@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+@import './components.css';
+@import './battle.css';
+@import './scenes.css';
+@import './arena.css';
+
+/* Parchment palette from the UI design brief (docs/08) and the 界面规范 artboard. */
+@theme {
+  --color-parchment: #e8e1d3;
+  --color-panel: #f5eedf;
+  --color-paper: #fbf8f1;
+  --color-line: #d5cab4;
+  --color-line-soft: #e2d8c5;
+  --color-ink: #302d28;
+  --color-ink-2: #4e473d;
+  --color-muted: #6a6256;
+  --color-faint: #9c9486;
+  --color-blue: #34556b;
+  --color-blue-deep: #22394a;
+  --color-blue-soft: #e2e9ed;
+  --color-red: #a84940;
+  --color-red-deep: #93392f;
+  --color-red-soft: #f5e2dd;
+  --color-green: #536d49;
+  --color-green-deep: #45603b;
+  --color-green-soft: #e4ebdc;
+  --color-brass: #a88445;
+  --color-brass-deep: #6e5322;
+  --color-brass-soft: #f2e6c8;
+  --font-sans: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Source Han Sans SC', sans-serif;
+  --font-serif: 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
+  --font-pixel: 'Silkscreen', 'Courier New', monospace;
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--color-parchment);
+    color: var(--color-ink);
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a {
+    color: var(--color-blue);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 2px;
+  }
+}

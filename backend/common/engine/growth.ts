@@ -1,0 +1,79 @@
+import { CHARACTERS } from '../data/characters.ts';
+import { STAT_KEYS } from '../data/types.ts';
+import type { StatKey, Stats } from '../data/types.ts';
+import { roll100 } from './rng.ts';
+import { classOf, effectiveLevel } from './units.ts';
+import type { BattleEvent, BattleState, UnitState } from './types.ts';
+
+// docs/03「经验」. Δ = foe effective level − own effective level.
+export function combatExp(unit: UnitState, foe: UnitState, dealtDamage: boolean, killed: boolean): number {
+  if (!dealtDamage && !killed) return 1;
+  const delta = effectiveLevel(foe) - effectiveLevel(unit);
+  let exp = Math.max(1, Math.floor((31 + delta) / 3));
+  if (killed) exp += Math.max(0, 20 + delta * 3) + (foe.boss ? 40 : 0);
+  return Math.min(100, exp);
+}
+
+export function staffExp(unit: UnitState): number {
+  return classOf(unit).tier === 'promoted' ? 8 : 12;
+}
+
+export function expPreview(unit: UnitState, foe: UnitState): { fight: number; kill: number } {
+  return { fight: combatExp(unit, foe, true, false), kill: combatExp(unit, foe, true, true) };
+}
+
+// Personal + class growth, floored at 0 (docs/02). Units without a character (generic enemies) do not grow.
+export function growthRates(unit: UnitState): Stats | null {
+  if (!unit.character) return null;
+  const personal = CHARACTERS[unit.character].growth, own = classOf(unit).growth;
+  const rates = {} as Stats;
+  for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + own[key]);
+  return rates;
+}
+
+// Pure random growth: each stat rolls independently; 100%+ grants a sure point and rolls the rest.
+// 空级保护: an empty level is rerolled up to twice while any stat is below its cap.
+export function rollLevelUp(state: BattleState, unit: UnitState): { gains: Partial<Stats>; rerolls: number } {
+  const rates = growthRates(unit);
+  if (!rates) return { gains: {}, rerolls: 0 };
+  const caps = classOf(unit).caps;
+  const roll = () => {
+    const gains: Partial<Stats> = {};
+    for (const key of STAT_KEYS) {
+      const room = caps[key] - unit.stats[key];
+      if (room <= 0) continue;
+      let gain = Math.floor(rates[key] / 100);
+      const rest = rates[key] % 100;
+      if (rest > 0 && roll100(state.growthRng) < rest) gain++;
+      if (gain > 0) gains[key] = Math.min(gain, room);
+    }
+    return gains;
+  };
+  const anyRoom = STAT_KEYS.some(key => unit.stats[key] < caps[key]);
+  let gains = roll(), rerolls = 0;
+  while (Object.keys(gains).length === 0 && anyRoom && rerolls < 2) {
+    gains = roll();
+    rerolls++;
+  }
+  return { gains, rerolls };
+}
+
+export function gainExp(state: BattleState, unit: UnitState, amount: number, events: BattleEvent[]): void {
+  const cls = classOf(unit);
+  if (state.kind !== 'field' || unit.level >= cls.maxLevel || amount <= 0) return;
+  unit.exp += amount;
+  const leveled = unit.exp >= 100;
+  if (leveled) {
+    unit.exp -= 100;
+    unit.level += 1;
+    if (unit.level >= cls.maxLevel) unit.exp = 0;
+  }
+  events.push({ t: 'exp', unit: unit.id, gained: amount, exp: unit.exp, level: unit.level });
+  if (!leveled) return;
+  const { gains, rerolls } = rollLevelUp(state, unit);
+  for (const [key, gain] of Object.entries(gains) as [StatKey, number][]) {
+    unit.stats[key] += gain;
+    if (key === 'hp') unit.hp += gain;
+  }
+  events.push({ t: 'levelUp', unit: unit.id, level: unit.level, gains, rerolls });
+}
