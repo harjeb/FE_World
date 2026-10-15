@@ -1,0 +1,279 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000" viewBox="0 0 1400 1000" role="img" aria-labelledby="title description" shape-rendering="crispEdges">
+<title id="title">十二地区像素世界地图：自由路线与连战副本</title>
+<desc id="description">中央大竞技场连接十二个可自由选择的地区。金色路线示例为铁丘、兽岭、旧王陵，不限制其他路线。敌人按已讨伐地区数成长，每区有三张同主题地图组成的大副本，名单锁定且状态持续。</desc>
+<defs>
+ <pattern id="sea" width="40" height="32" patternUnits="userSpaceOnUse"><rect width="40" height="32" fill="#152b35"/><path d="M4 12h16m8 12h8" stroke="#203c44" stroke-width="2"/></pattern>
+ <pattern id="grass" width="36" height="32" patternUnits="userSpaceOnUse"><rect width="36" height="32" fill="#344c41"/><path d="M4 8h4v-4m16 20h4v-4" stroke="#405a48" stroke-width="2"/></pattern>
+ <g id="tree"><path d="M8 2h8v4h4v4h4v10H0V10h4V6h4z" fill="#1e3530"/><path d="M8 3h8v4h4v8H4V7h4z" fill="#638c65"/><path d="M8 7h4v4H4V7z" fill="#8ca56b"/><path d="M10 20h5v7h-5z" fill="#a8885d"/></g>
+ <g id="pine"><path d="M10 0h4v4h4v4h4v4h-4v4h6v5H0v-5h6v-4H2V8h4V4h4z" fill="#668579"/><path d="M10 4h4v4h4v4H6V8h4z" fill="#a3b59a"/><path d="M10 21h4v6h-4z" fill="#998a6c"/></g>
+ <g id="mountain"><path d="M16 0h8v8h8v8h8v8h8v12H0V24h8V16h8z" fill="#263c39"/><path d="M16 0h8v8h8v8h8v8H24v-8H8v-8h8z" fill="#77918a"/><path d="M16 0h8v8h8v8H16V8H8V8h8z" fill="#c4ccae"/></g>
+ <g id="fort"><path d="M0 6h6V0h8v6h10V0h8v6h6v30H0z" fill="#253531"/><path d="M3 9h32v24H3z" fill="#acae92"/><path d="M4 10h30v5H4z" fill="#d4d3ae"/><path d="M15 22h8v14h-8z" fill="#33443b"/><path d="M6 18h4v5H6m22-5h4v5h-4" fill="#64796a"/></g>
+ <g id="mine"><path d="M0 20h6V12h6V4h18v8h6v8h6v17H0z" fill="#a08468"/><path d="M6 18h8V9h14v9h8v14H6z" fill="#ccb38d"/><path d="M14 18h14v19H14z" fill="#1a2d2d"/><path d="M10 15h22v4H10m1-1h4v19h-4m16-19h4v19h-4" fill="#715641"/><path d="M20 23h5v5h-5" fill="#80b8bf"/></g>
+ <g id="farm"><path d="M3 16h29v20H3z" fill="#c3ad76"/><path d="M0 13h6V7h6V1h10v6h7v6h6v6H0z" fill="#a76f4a"/><path d="M15 24h7v12h-7z" fill="#435143"/><path d="M5 20h6v6H5z" fill="#eee0a9"/><path d="M38 21h4v15h-4m8-19h4v19h-4" stroke="#c0bc74" stroke-width="2"/></g>
+ <g id="shrine"><path d="M2 28h36v8H2m4-21h28v7H6m5-18h18v18H11" fill="#aaa99d"/><path d="M0 3h40v6H0m4-6V0h32v3" fill="#d0c8ac"/><path d="M16 11h8v15h-8z" fill="#384c48"/><path d="M17 12h6v5h-6z" fill="#d3b673"/></g>
+ <g id="ruin"><path d="M0 31h40v6H0m4-26h8v26H4m16-21h8v21h-8m12-29h7v29h-7" fill="#b6aa88"/><path d="M2 4h12v5H2m16 8h12v5H18m12-17h12v5H30" fill="#e2cf9e"/><path d="M12 27h7v4h-7" fill="#716e55"/></g>
+ <g id="beast"><path d="M0 0h8v8h22V0h8v28h-6v8H6v-8H0z" fill="#b4aa7a"/><path d="M5 12h9v5H5m19-5h9v5h-9" fill="#33423a"/><path d="M15 21h8v6h-8z" fill="#5a5944"/><path d="M11 29h4v7h-4m13-7h4v7h-4" fill="#e1d6a7"/></g>
+ <g id="tower"><path d="M5 3h28v7H5m4 0h20v27H9m-4-5h28v6H5" fill="#a2b6ae"/><path d="M14 13h10v6H14m1 7h8v11h-8" fill="#3b5756"/><path d="M19 3v-12h15v8H19" stroke="#d2c59c" stroke-width="3" fill="#a5614d"/></g>
+ <g id="dragon"><path d="M2 5h8v7h9V5h10V0h7v10h6v15h-8v5H22v7H10V22H2z" fill="#b19388"/><path d="M21 12h6v5h-6z" fill="#f3ce8c"/><path d="M31 20h11v5H31" fill="#4b4341"/><path d="M0 18h8v7H0m12 12h14v5H12" fill="#7d766c"/></g>
+ <g id="gate"><path d="M0 28h48v8H0m4-27h11v27H4m29-27h11v27H33m-33-22h48v8H0" fill="#d2d5b5"/><path d="M16 0h16v5H16" fill="#f0ddb0"/><path d="M22 12h4v13h-4z" fill="#d5b56b"/></g>
+ <g id="dungeon"><path d="M0 0h7v7H0m10-7h7v7h-7m10-7h7v7h-7" fill="currentColor"/><path d="M7 3h3m7 0h3" stroke="currentColor" stroke-width="1"/></g>
+</defs>
+<style>text{font-family:'Microsoft YaHei','PingFang SC',sans-serif} .mono{font-family:Consolas,monospace;letter-spacing:2px} .name{font-weight:700;letter-spacing:2px}</style>
+<rect x="0" y="0" width="1400" height="1000" fill="#101e24" />
+<rect x="24" y="24" width="1352" height="952" fill="none" stroke="#51685c" stroke-width="2"/>
+<rect x="40" y="42" width="5" height="45" fill="#d6ba78" />
+<text x="60" y="61" font-size="12" fill="#9da990" class="mono">THE TWELVE REACHES</text>
+<text x="60" y="99" font-size="30" fill="#eee5cb" class="name">十二地区 · 自由远征图</text>
+<text x="1350" y="64" font-size="12" fill="#c7b88c" class="mono" text-anchor="end">WORLD ATLAS / 01</text>
+<text x="1350" y="94" font-size="16" fill="#9eafa3" text-anchor="end">路线与连战副本 · 设计示意</text>
+<rect x="40" y="122" width="1020" height="736" fill="url(#sea)" stroke="#52665a" stroke-width="2"/>
+<path d="M104 180H320V160H440V132H660V160H850V188H980V236H1020V432H992V560H1016V720H968V800H800V832H600V808H420V760H260V692H144V592H80V392H64V244H104Z" fill="#203b3a" stroke="#6b8170" stroke-width="8"/>
+<path d="M120 188H320V172H456V144H648V172H842V200H968V248H1008V420H980V572H1004V708H956V788H800V820H612V796H432V748H272V680H156V580H92V396H76V256H120Z" fill="url(#grass)"/>
+<path d="M742 652H932V676H972V768H932V796H786V780H736V724H714V676H742Z" fill="#8c7952"/>
+<path d="M750 668h178v16h28v66h-22v30H800v-22h-50v-26h-16v-48h16z" fill="#a68b5d"/>
+<path d="M562 132h88v50h-25v37h-60v-30h-32v-33h29z" fill="#78968c"/>
+<path d="M846 176h102v42h42v80h-70v-26h-58v-46h-16z" fill="#655e54"/>
+<path d="M106 184h108v28h20v76h-90v-24h-38z" fill="#4e5350"/>
+<path d="M672 554h28v48h-16v50h14v26h-28v62h-28v35h-30v-70h28v-62h12v-41h20z" fill="#497a7e"/>
+<path d="M683 556v48h-18v45h13v30h-24v55h-24" fill="none" stroke="#75a6a2" stroke-width="5"/>
+<use href="#tree" transform="translate(640 402) scale(0.9)"/>
+<use href="#tree" transform="translate(682 402) scale(0.9)"/>
+<use href="#tree" transform="translate(724 402) scale(0.9)"/>
+<use href="#tree" transform="translate(766 402) scale(0.9)"/>
+<use href="#tree" transform="translate(640 433) scale(0.9)"/>
+<use href="#tree" transform="translate(682 433) scale(0.9)"/>
+<use href="#tree" transform="translate(724 433) scale(0.9)"/>
+<use href="#tree" transform="translate(766 433) scale(0.9)"/>
+<use href="#tree" transform="translate(640 464) scale(0.9)"/>
+<use href="#tree" transform="translate(682 464) scale(0.9)"/>
+<use href="#tree" transform="translate(724 464) scale(0.9)"/>
+<use href="#tree" transform="translate(766 464) scale(0.9)"/>
+<use href="#tree" transform="translate(640 495) scale(0.9)"/>
+<use href="#tree" transform="translate(682 495) scale(0.9)"/>
+<use href="#mountain" transform="translate(220 310) scale(1.5)"/>
+<use href="#mountain" transform="translate(285 365) scale(1.1)"/>
+<use href="#mountain" transform="translate(300 450) scale(1.3)"/>
+<use href="#mountain" transform="translate(410 197) scale(1.1)"/>
+<use href="#mountain" transform="translate(490 188) scale(1.1)"/>
+<use href="#mountain" transform="translate(558 160) scale(1.2)"/>
+<use href="#mountain" transform="translate(875 190) scale(1.2)"/>
+<use href="#mountain" transform="translate(922 306) scale(1.2)"/>
+<use href="#pine" transform="translate(175 346) scale(1)"/>
+<use href="#pine" transform="translate(205 320) scale(1)"/>
+<use href="#pine" transform="translate(255 448) scale(1)"/>
+<use href="#pine" transform="translate(280 329) scale(1)"/>
+<use href="#pine" transform="translate(430 286) scale(1)"/>
+<use href="#pine" transform="translate(397 318) scale(1)"/>
+<use href="#pine" transform="translate(590 576) scale(1)"/>
+<use href="#pine" transform="translate(470 677) scale(1)"/>
+<use href="#pine" transform="translate(720 586) scale(1)"/>
+<use href="#pine" transform="translate(832 541) scale(1)"/>
+<rect x="758" y="675" width="8" height="3" fill="#c3a775" />
+<rect x="790" y="675" width="8" height="3" fill="#c3a775" />
+<rect x="822" y="675" width="8" height="3" fill="#c3a775" />
+<rect x="854" y="675" width="8" height="3" fill="#c3a775" />
+<rect x="886" y="675" width="8" height="3" fill="#c3a775" />
+<rect x="918" y="675" width="8" height="3" fill="#c3a775" />
+<rect x="758" y="713" width="8" height="3" fill="#c3a775" />
+<rect x="790" y="713" width="8" height="3" fill="#c3a775" />
+<rect x="822" y="713" width="8" height="3" fill="#c3a775" />
+<rect x="854" y="713" width="8" height="3" fill="#c3a775" />
+<rect x="886" y="713" width="8" height="3" fill="#c3a775" />
+<rect x="918" y="713" width="8" height="3" fill="#c3a775" />
+<rect x="758" y="751" width="8" height="3" fill="#c3a775" />
+<rect x="790" y="751" width="8" height="3" fill="#c3a775" />
+<rect x="822" y="751" width="8" height="3" fill="#c3a775" />
+<rect x="854" y="751" width="8" height="3" fill="#c3a775" />
+<rect x="886" y="751" width="8" height="3" fill="#c3a775" />
+<rect x="918" y="751" width="8" height="3" fill="#c3a775" />
+<polyline points="540,495 535,625 655,730 845,745" fill="none" stroke="#243c35" stroke-width="10"/>
+<polyline points="540,495 535,625 655,730 845,745" fill="none" stroke="#a4a582" stroke-width="3" stroke-dasharray="7 8"/>
+<polyline points="540,495 705,485 825,385 930,240" fill="none" stroke="#243c35" stroke-width="10"/>
+<polyline points="540,495 705,485 825,385 930,240" fill="none" stroke="#a4a582" stroke-width="3" stroke-dasharray="7 8"/>
+<polyline points="540,495 525,360 470,245 610,145" fill="none" stroke="#243c35" stroke-width="10"/>
+<polyline points="540,495 525,360 470,245 610,145" fill="none" stroke="#a4a582" stroke-width="3" stroke-dasharray="7 8"/>
+<polyline points="540,495 355,500 220,405 135,240" fill="none" stroke="#243c35" stroke-width="10"/>
+<polyline points="540,495 355,500 220,405 135,240" fill="none" stroke="#a4a582" stroke-width="3" stroke-dasharray="7 8"/>
+<polyline points="355,500 525,360 705,485 535,625 355,500" fill="none" stroke="#243c35" stroke-width="10"/>
+<polyline points="355,500 525,360 705,485 535,625 355,500" fill="none" stroke="#6b806d" stroke-width="3" stroke-dasharray="7 8"/>
+<polyline points="220,405 470,245 825,385 655,730 220,405" fill="none" stroke="#243c35" stroke-width="10"/>
+<polyline points="220,405 470,245 825,385 655,730 220,405" fill="none" stroke="#6b806d" stroke-width="3" stroke-dasharray="7 8"/>
+<polyline points="540,495 355,500 220,405 135,240" fill="none" stroke="#e7c575" stroke-width="5" stroke-dasharray="9 6"/>
+<g id="region-01" data-region="01"><title>晨原：失守庄园</title>
+<rect x="509" y="607" width="52" height="40" fill="#243a34" />
+<rect x="513" y="604" width="44" height="36" fill="#91ae68" />
+<use href="#farm" transform="translate(513 595) scale(1.1)"/>
+<rect x="468" y="647" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="478" y="668" font-size="12" fill="#91ae68" class="mono">01</text>
+<text x="506" y="669" font-size="19" fill="#eee6ca" class="name">晨原</text>
+<rect x="466" y="682" width="138" height="21" fill="#263d35" />
+<text x="535" y="697" font-size="12" fill="#ced8bc" text-anchor="middle">药草 · 步兵</text>
+<g color="#91ae68" transform="translate(478 711)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="513" y="719" font-size="12" fill="#bdc6ad" >失守庄园</text>
+</g>
+<g id="region-02" data-region="02"><title>绿林：古树密林</title>
+<rect x="679" y="467" width="52" height="40" fill="#243a34" />
+<rect x="683" y="464" width="44" height="36" fill="#70a486" />
+<use href="#tree" transform="translate(683 455) scale(1.1)"/>
+<rect x="638" y="507" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="648" y="528" font-size="12" fill="#70a486" class="mono">02</text>
+<text x="676" y="529" font-size="19" fill="#eee6ca" class="name">绿林</text>
+<rect x="636" y="542" width="138" height="21" fill="#263d35" />
+<text x="705" y="557" font-size="12" fill="#ced8bc" text-anchor="middle">木材 · 种植</text>
+<g color="#70a486" transform="translate(648 571)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="683" y="579" font-size="12" fill="#bdc6ad" >古树密林</text>
+</g>
+<g id="region-03" data-region="03"><title>铁丘：废弃矿坑</title>
+<rect x="329" y="482" width="52" height="40" fill="#243a34" />
+<rect x="333" y="479" width="44" height="36" fill="#c89a72" />
+<use href="#mine" transform="translate(333 470) scale(1.1)"/>
+<rect x="288" y="522" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="298" y="543" font-size="12" fill="#c89a72" class="mono">03</text>
+<text x="326" y="544" font-size="19" fill="#eee6ca" class="name">铁丘</text>
+<rect x="286" y="557" width="138" height="21" fill="#263d35" />
+<text x="355" y="572" font-size="12" fill="#ced8bc" text-anchor="middle">矿石 · 锻造</text>
+<g color="#c89a72" transform="translate(298 586)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="333" y="594" font-size="12" fill="#bdc6ad" >废弃矿坑</text>
+</g>
+<g id="region-04" data-region="04"><title>边关：旧日要塞</title>
+<rect x="499" y="342" width="52" height="40" fill="#243a34" />
+<rect x="503" y="339" width="44" height="36" fill="#b6b9a3" />
+<use href="#fort" transform="translate(503 330) scale(1.1)"/>
+<rect x="458" y="382" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="468" y="403" font-size="12" fill="#b6b9a3" class="mono">04</text>
+<text x="496" y="404" font-size="19" fill="#eee6ca" class="name">边关</text>
+<rect x="456" y="417" width="138" height="21" fill="#263d35" />
+<text x="525" y="432" font-size="12" fill="#ced8bc" text-anchor="middle">骑兵 · 训练</text>
+<g color="#b6b9a3" transform="translate(468 446)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="503" y="454" font-size="12" fill="#bdc6ad" >旧日要塞</text>
+</g>
+<g id="region-05" data-region="05"><title>水乡：沉水祠堂</title>
+<rect x="629" y="712" width="52" height="40" fill="#243a34" />
+<rect x="633" y="709" width="44" height="36" fill="#79bbbf" />
+<use href="#shrine" transform="translate(633 700) scale(1.1)"/>
+<rect x="588" y="752" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="598" y="773" font-size="12" fill="#79bbbf" class="mono">05</text>
+<text x="626" y="774" font-size="19" fill="#eee6ca" class="name">水乡</text>
+<rect x="586" y="787" width="138" height="21" fill="#263d35" />
+<text x="655" y="802" font-size="12" fill="#ced8bc" text-anchor="middle">药草 · 炼药</text>
+<g color="#79bbbf" transform="translate(598 816)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="633" y="824" font-size="12" fill="#bdc6ad" >沉水祠堂</text>
+</g>
+<g id="region-06" data-region="06"><title>古城：失落学院</title>
+<rect x="799" y="367" width="52" height="40" fill="#243a34" />
+<rect x="803" y="364" width="44" height="36" fill="#d0b992" />
+<use href="#ruin" transform="translate(803 355) scale(1.1)"/>
+<rect x="758" y="407" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="768" y="428" font-size="12" fill="#d0b992" class="mono">06</text>
+<text x="796" y="429" font-size="19" fill="#eee6ca" class="name">古城</text>
+<rect x="756" y="442" width="138" height="21" fill="#263d35" />
+<text x="825" y="457" font-size="12" fill="#ced8bc" text-anchor="middle">元素 · 魔法</text>
+<g color="#d0b992" transform="translate(768 471)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="803" y="479" font-size="12" fill="#bdc6ad" >失落学院</text>
+</g>
+<g id="region-07" data-region="07"><title>兽岭：兽王旧寨</title>
+<rect x="194" y="387" width="52" height="40" fill="#243a34" />
+<rect x="198" y="384" width="44" height="36" fill="#aeab75" />
+<use href="#beast" transform="translate(198 375) scale(1.1)"/>
+<rect x="153" y="427" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="163" y="448" font-size="12" fill="#aeab75" class="mono">07</text>
+<text x="191" y="449" font-size="19" fill="#eee6ca" class="name">兽岭</text>
+<rect x="151" y="462" width="138" height="21" fill="#263d35" />
+<text x="220" y="477" font-size="12" fill="#ced8bc" text-anchor="middle">兽人 · 兽石</text>
+<g color="#aeab75" transform="translate(163 491)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="198" y="499" font-size="12" fill="#bdc6ad" >兽王旧寨</text>
+</g>
+<g id="region-08" data-region="08"><title>风崖：风蚀高塔</title>
+<rect x="444" y="227" width="52" height="40" fill="#243a34" />
+<rect x="448" y="224" width="44" height="36" fill="#a7c3be" />
+<use href="#tower" transform="translate(448 215) scale(1.1)"/>
+<rect x="403" y="267" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="413" y="288" font-size="12" fill="#a7c3be" class="mono">08</text>
+<text x="441" y="289" font-size="19" fill="#eee6ca" class="name">风崖</text>
+<rect x="401" y="302" width="138" height="21" fill="#263d35" />
+<text x="470" y="317" font-size="12" fill="#ced8bc" text-anchor="middle">飞行 · 轻金属</text>
+<g color="#a7c3be" transform="translate(413 331)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="448" y="339" font-size="12" fill="#bdc6ad" >风蚀高塔</text>
+</g>
+<g id="region-09" data-region="09"><title>荒漠：沙下王城</title>
+<rect x="819" y="727" width="52" height="40" fill="#243a34" />
+<rect x="823" y="724" width="44" height="36" fill="#d7af72" />
+<use href="#ruin" transform="translate(823 715) scale(1.1)"/>
+<rect x="778" y="767" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="788" y="788" font-size="12" fill="#d7af72" class="mono">09</text>
+<text x="816" y="789" font-size="19" fill="#eee6ca" class="name">荒漠</text>
+<rect x="776" y="802" width="138" height="21" fill="#263d35" />
+<text x="845" y="817" font-size="12" fill="#ced8bc" text-anchor="middle">商旅 · 配方</text>
+<g color="#d7af72" transform="translate(788 831)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="823" y="839" font-size="12" fill="#bdc6ad" >沙下王城</text>
+</g>
+<g id="region-10" data-region="10"><title>龙谷：龙眠遗窟</title>
+<rect x="904" y="222" width="52" height="40" fill="#243a34" />
+<rect x="908" y="219" width="44" height="36" fill="#bb9488" />
+<use href="#dragon" transform="translate(908 210) scale(1.1)"/>
+<rect x="863" y="262" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="873" y="283" font-size="12" fill="#bb9488" class="mono">10</text>
+<text x="901" y="284" font-size="19" fill="#eee6ca" class="name">龙谷</text>
+<rect x="861" y="297" width="138" height="21" fill="#263d35" />
+<text x="930" y="312" font-size="12" fill="#ced8bc" text-anchor="middle">龙人 · 龙石</text>
+<g color="#bb9488" transform="translate(873 326)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="908" y="334" font-size="12" fill="#bdc6ad" >龙眠遗窟</text>
+</g>
+<g id="region-11" data-region="11"><title>旧王陵：无名王陵</title>
+<rect x="109" y="222" width="52" height="40" fill="#243a34" />
+<rect x="113" y="219" width="44" height="36" fill="#b1aab9" />
+<use href="#shrine" transform="translate(113 210) scale(1.1)"/>
+<rect x="68" y="262" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="78" y="283" font-size="12" fill="#b1aab9" class="mono">11</text>
+<text x="106" y="284" font-size="19" fill="#eee6ca" class="name">旧王陵</text>
+<rect x="66" y="297" width="138" height="21" fill="#263d35" />
+<text x="135" y="312" font-size="12" fill="#ced8bc" text-anchor="middle">传承 · 遗迹</text>
+<g color="#b1aab9" transform="translate(78 326)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="113" y="334" font-size="12" fill="#bdc6ad" >无名王陵</text>
+</g>
+<g id="region-12" data-region="12"><title>天门：天门圣所</title>
+<rect x="584" y="127" width="52" height="40" fill="#243a34" />
+<rect x="588" y="124" width="44" height="36" fill="#dce5c9" />
+<use href="#gate" transform="translate(588 115) scale(1.1)"/>
+<rect x="543" y="167" width="134" height="31" fill="#142b2a" stroke="#697b66" stroke-width="1"/>
+<text x="553" y="188" font-size="12" fill="#dce5c9" class="mono">12</text>
+<text x="581" y="189" font-size="19" fill="#eee6ca" class="name">天门</text>
+<rect x="541" y="202" width="138" height="21" fill="#263d35" />
+<text x="610" y="217" font-size="12" fill="#ced8bc" text-anchor="middle">神迹 · 轮回线索</text>
+<g color="#dce5c9" transform="translate(553 231)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="588" y="239" font-size="12" fill="#bdc6ad" >天门圣所</text>
+</g>
+<rect x="483" y="448" width="114" height="86" fill="#1d302d" stroke="#d9ba72" stroke-width="3"/>
+<rect x="492" y="455" width="96" height="73" fill="#526356" />
+<use href="#fort" transform="translate(508 457) scale(1.7)"/>
+<rect x="457" y="535" width="166" height="35" fill="#dbc38b" />
+<text x="540" y="560" font-size="19" fill="#26362e" text-anchor="middle" class="name">中央 · 大竞技场</text>
+<text x="540" y="588" font-size="12" fill="#e2d1a9" text-anchor="middle">每年一届 / 海选 → 64 强</text>
+<text x="1088" y="151" font-size="23" fill="#eddfb9" class="name">路线由你决定</text>
+<text x="1088" y="181" font-size="15" fill="#9faf9f" >编号标记地点，不代表先后。</text>
+<rect x="1088" y="204" width="264" height="4" fill="#65735e" />
+<text x="1088" y="240" font-size="16" fill="#e4ca8b" class="mono">01  选择资源方向</text>
+<text x="1088" y="274" font-size="16" fill="#dce2ce" >铁丘先行：更早建立锻造</text>
+<text x="1088" y="305" font-size="16" fill="#dce2ce" >绿林先行：更早种植药草</text>
+<text x="1088" y="336" font-size="16" fill="#dce2ce" >龙谷先行：更早接触龙人</text>
+<text x="1088" y="368" font-size="15" fill="#9faf9f" >所有地区最终都可走完。</text>
+<rect x="1088" y="396" width="264" height="1" fill="#465d50" />
+<text x="1088" y="435" font-size="16" fill="#e4ca8b" class="mono">02  难度随讨伐推进</text>
+<text x="1088" y="470" font-size="15" fill="#dce2ce" >已讨伐 0 区  →  基础 Lv 5</text>
+<text x="1088" y="501" font-size="15" fill="#dce2ce" >已讨伐 6 区  →  基础 Lv 53</text>
+<text x="1088" y="532" font-size="15" fill="#dce2ce" >已讨伐 11 区 →  基础 Lv 93</text>
+<text x="1088" y="565" font-size="14" fill="#9faf9f" >已通关地区保留原基础难度。</text>
+<rect x="1088" y="593" width="264" height="1" fill="#465d50" />
+<text x="1088" y="632" font-size="16" fill="#e4ca8b" class="mono">03  每区一个连战副本</text>
+<g color="#d8be7e" transform="translate(1090 660) scale(3)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="1088" y="719" font-size="16" fill="#dce2ce" >三张同主题地图 / 固定名单</text>
+<text x="1088" y="752" font-size="15" fill="#dce2ce" >HP · 异常 · 道具 · 耐久持续</text>
+<text x="1088" y="783" font-size="15" fill="#9faf9f" >无自动恢复，可用带入药杖。</text>
+<text x="1088" y="815" font-size="14" fill="#9faf9f" >允许暂停或撤离；撤离后重开。</text>
+<path d="M64 899h40" stroke="#e7c575" stroke-width="4" stroke-dasharray="9 6"/>
+<text x="117" y="905" font-size="15" fill="#dbc99b" >示例路线：铁丘 → 兽岭 → 旧王陵</text>
+<g color="#a4b79a" transform="translate(572 891) scale(1.5)"><use href="#dungeon" transform="translate(0 0) scale(1)"/></g>
+<text x="626" y="905" font-size="15" fill="#bac8b3" >三图大副本</text>
+<text x="1347" y="905" font-size="15" fill="#bac8b3" text-anchor="end">远境 ≠ 固定高等级</text>
+<text x="64" y="945" font-size="13" fill="#849889" >DESIGN DRAFT  /  地区位置、路线、等级公式与副本名称均为草案；尚未接入战斗引擎。</text>
+</svg>
