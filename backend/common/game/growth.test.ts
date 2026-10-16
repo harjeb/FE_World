@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { AGE_BANDS, GROWTH_BONUS, GROWTH_TYPE_NAMES, RECRUIT_AGE_RANGE, ageBandIndex, ageBandOf, applyGrowthBonus, growthBonus, rollGrowthType } from '../data/growth-types.ts';
+import { AGE_BANDS, GROWTH_BONUS, GROWTH_TYPE_NAMES, RECRUIT_AGE_RANGE, ageBandIndex, ageBandOf, applyGrowthBonus, growthBonus, recruitAgeCandidates, rollGrowthType, rollRecruitAge } from '../data/growth-types.ts';
 import { ageAt, createUnit, growthRates } from './model.ts';
 import { stats } from '../data/types.ts';
 
@@ -86,10 +86,22 @@ test('a late bloomer gets stronger growth as they age into the last band', () =>
   assert.equal(GROWTH_TYPE_NAMES.late, '晚成型');
 });
 
-test('ageAt advances one year per calendar year and recruits are adults', () => {
+test('ageAt advances one year per calendar year and recruitment allows 12 and up', () => {
   const unit = createUnit('erin', 10, 'u5', 100, false, { age: 18 });
   assert.equal(ageAt(unit, 100, 120), 18);
   assert.equal(ageAt(unit, 219, 120), 18);
   assert.equal(ageAt(unit, 220, 120), 19);
-  assert.deepEqual(RECRUIT_AGE_RANGE, [18, 45]);
+  assert.deepEqual(RECRUIT_AGE_RANGE, [12, 45]);
+});
+
+test('recruitment prefers an age that crosses a curve transition inside the mainline', () => {
+  const candidates = recruitAgeCandidates('early', 8);
+  assert.ok(candidates.length > 0);
+  assert.ok(candidates.every(age => age >= 12 && age + 8 >= 30));
+  // A normal curve has no transition to manufacture.
+  assert.deepEqual(recruitAgeCandidates('normal', 8), []);
+  const age = rollRecruitAge('late', 8, 3);
+  assert.ok(age >= 12 && age <= 45);
+  const fallback = rollRecruitAge('normal', 0, 0);
+  assert.equal(fallback, 12);
 });

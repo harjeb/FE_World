@@ -199,5 +199,6 @@ docVersion: 1
 | ARENA_PLAN_INVALID | 出战名单或站位不合法 | 按地图的 D 人从允许名册里选人并在出生区摆位 |
 | DEFENSE_INVALID | 防守设置不合法 | 读 error.message 里的校验错误后修正 |
 | IDEMPOTENCY_CONFLICT | 同一个 commandId 换了负载 | 用新的 commandId 重发，或先查询当前状态 |
+| FEATURE_DISABLED | 该功能在当前规则版本尚未启用 | 不要重试；按规则版本或替代路径处理 |
 | RATE_LIMITED | 请求过于频繁 | 等待片刻再重试 |
 | INTERNAL | 服务端内部错误 | 记录 requestId 并稍后重试，不要原样连发 |

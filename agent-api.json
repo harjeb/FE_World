@@ -709,6 +709,11 @@
       "action": "用新的 commandId 重发，或先查询当前状态"
     },
     {
+      "code": "FEATURE_DISABLED",
+      "meaning": "该功能在当前规则版本尚未启用",
+      "action": "不要重试；按规则版本或替代路径处理"
+    },
+    {
       "code": "RATE_LIMITED",
       "meaning": "请求过于频繁",
       "action": "等待片刻再重试"

@@ -8,9 +8,11 @@ import type { ItemKey } from '../common/game/items.ts';
 import { addWeaponExp, ageAt, effectiveCaps, growthRates, lifespanEndDayOf, toSnapshot } from '../common/game/model.ts';
 import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
+import { carryFromBattle, DUNGEON_STAGES, stageLoot } from '../common/game/expedition.ts';
+import type { RunRecord } from '../common/game/expedition.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
-import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, baseLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
+import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, baseLevel, regionLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
 import { summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
@@ -193,7 +195,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     }
   }
   const won = outcome.winner === 'player';
-  if (record.mode === 'field' && won) {
+  if (record.mode === 'field' && won && !record.dungeon) {
     const regionId = record.region ?? 1;
     rewards.gold = 180 + record.state.turn * 6;
     const region = regionById(regionId);
@@ -203,6 +205,8 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     rewards.items.push({ item: material, count });
     if (!player.flags.clearedRegions.includes(region.id)) {
       player.flags.clearedRegions.push(region.id);
+      player.flags.firstClearLevel ??= {};
+      if (player.flags.firstClearLevel[region.id] === undefined) player.flags.firstClearLevel[region.id] = regionLevel(player.flags.clearedRegions.length - 1, region.offset);
       store.addEvent(player.id, 'region', `首次讨伐 ${region.name}（已讨伐 ${player.flags.clearedRegions.length} 个地区）。`, { region: region.id });
     }
     player.gold += rewards.gold;
@@ -227,6 +231,51 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   });
   if (record.mode === 'arena' || record.mode === 'festival') store.saveReplay(player.id, record, Date.now());
   return rewards;
+}
+
+// 连续副本结算（docs/00 §8.1.3、docs/13 §4.3）：胜则进入下一图，首领图胜利才完整通关；
+// 撤离／失败作废未带回掉落，但保留死亡与消耗。
+export function handleRunOutcome(store: Store, player: Player, record: BattleRecord): { run: RunRecord; completed: boolean } | null {
+  if (!record.runId) return null;
+  const run = store.run(player.id, record.runId);
+  if (!run) return null;
+  const won = record.state.result?.winner === 'player';
+  const carry = carryFromBattle(record.state, run.unitIds);
+  const releaseLocks = () => {
+    for (const id of run.unitIds) {
+      const unit = store.unit(player.id, id);
+      if (unit?.lockedRunId === run.id) { unit.lockedRunId = null; store.saveUnit(unit, player.id); }
+    }
+  };
+  let completed = false;
+  if (won) {
+    run.pendingLoot.push(...stageLoot(run.region, run.stageIndex));
+    if (run.stageIndex >= DUNGEON_STAGES - 1) {
+      run.state = 'completed';
+      completed = true;
+      releaseLocks();
+      const region = regionById(run.region);
+      const firstClear = !player.flags.clearedRegions.includes(run.region);
+      if (firstClear) player.flags.clearedRegions.push(run.region);
+      player.flags.firstClearLevel ??= {};
+      if (player.flags.firstClearLevel[run.region] === undefined) player.flags.firstClearLevel[run.region] = run.level;
+      for (const drop of run.pendingLoot) store.addInventory(player.id, drop.item as ItemKey, 0, drop.count);
+      const gold = 300 + record.state.turn * 8;
+      player.gold += gold;
+      store.addEvent(player.id, 'region', `完整通关 ${region.name} 大副本（已讨伐 ${player.flags.clearedRegions.length} 个地区）。`, { region: run.region, loot: run.pendingLoot, gold });
+    } else {
+      run.state = 'between_maps';
+      run.stageIndex += 1;
+      run.battleId = null;
+    }
+  } else {
+    run.state = 'failed';
+    releaseLocks();
+  }
+  run.carry = carry;
+  store.saveRun(run);
+  store.savePlayer(player);
+  return { run, completed };
 }
 
 // Compact roster summary for GET_STATE / GET_ROSTER.

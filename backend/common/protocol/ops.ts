@@ -146,6 +146,7 @@ export const ERRORS: readonly ErrorDef[] = [
   { code: 'ARENA_PLAN_INVALID', meaning: '出战名单或站位不合法', action: '按地图的 D 人从允许名册里选人并在出生区摆位' },
   { code: 'DEFENSE_INVALID', meaning: '防守设置不合法', action: '读 error.message 里的校验错误后修正' },
   { code: 'IDEMPOTENCY_CONFLICT', meaning: '同一个 commandId 换了负载', action: '用新的 commandId 重发，或先查询当前状态' },
+  { code: 'FEATURE_DISABLED', meaning: '该功能在当前规则版本尚未启用', action: '不要重试；按规则版本或替代路径处理' },
   { code: 'RATE_LIMITED', meaning: '请求过于频繁', action: '等待片刻再重试' },
   { code: 'INTERNAL', meaning: '服务端内部错误', action: '记录 requestId 并稍后重试，不要原样连发' },
 ];

@@ -27,6 +27,10 @@ export interface BattleRecord {
   goalText: string;
   // Random encounters remember their region so the outcome can clear it.
   region?: number;
+  // 连续副本：同一 run 的第 stageIndex 张图（docs/00 §8.1.3）。
+  dungeon?: boolean;
+  runId?: string;
+  stageIndex?: number;
   // Arena attacks remember which day and opponent they belong to so the result can settle.
   opponentId?: string;
   arenaDay?: number;
@@ -54,34 +58,53 @@ export interface FieldBattleOptions {
   seed: string;
   width?: number;
   height?: number;
+  // 锁定的敌人等级；省略时按当前讨伐数计算。连续副本三张图共用出发时的等级（docs/13 §4.3）。
+  level?: number;
+  // 连续副本的图号与跨图携带状态（HP、物品、武器）。
+  stageIndex?: number;
+  runId?: string;
+  carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }>;
 }
 
+const DUNGEON_STAGE_NAMES = ['探路', '消耗战', '首领战'];
+
 // A random encounter (docs/00 §8.1.2): level locked from the cleared-region count before the fight.
+// 连续副本复用同一函数，只是等级、图名和跨图携带不同（docs/00 §8.1.3）。
 export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptions): BattleRecord {
   const region = regionById(options.region);
-  const level = encounterLevel(options.cleared, region.offset, 0);
+  const dungeon = options.stageIndex !== undefined;
+  const stage = options.stageIndex ?? 0;
+  const base = options.level ?? encounterLevel(options.cleared, region.offset, 0);
+  const level = dungeon ? Math.min(99, base + stage * 2) : base;
   const theme = REGION_THEMES[(options.region - 1) % REGION_THEMES.length];
   const count = Math.max(1, Math.min(FIELD_BATTLE.maxUnits, units.length));
   const map = generateMap({
-    seed: `${options.seed}:map`, width: options.width ?? 20, height: options.height ?? 20,
+    seed: `${options.seed}:map:${stage}`, width: options.width ?? 20, height: options.height ?? 20,
     unitsPerSide: count, theme,
   });
-  const playerUnits = units.slice(0, count).map((u, i) => toBattleUnit(u, 'player', u.id, map.spawns.player[i], { boss: i === 0 }));
-  const classes = pickClasses(`${options.seed}:foes`, count, ENEMY_CLASSES);
+  const playerUnits = units.slice(0, count).map((u, i) => {
+    const carry = options.carry?.[u.id];
+    const extra: Partial<UnitState> = { boss: i === 0 };
+    if (carry) { extra.hp = Math.max(1, carry.hp); extra.items = carry.items.map(it => ({ ...it })); extra.weapons = [...carry.weapons]; }
+    return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
+  });
+  const classes = pickClasses(`${options.seed}:foes:${stage}`, count, ENEMY_CLASSES);
   const enemies = classes.map((classId, i) => createEnemy(`e${i}`, {
     classId, level, pos: map.spawns.enemy[i], boss: i === 0,
     name: i === 0 ? `${region.name}守将` : undefined,
   }));
   const tiles = map.tiles;
+  const name = dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
   const state: BattleState = {
-    engineVersion: 1, id: `field-${options.seed}`, kind: 'field', name: `${region.name} · 遭遇战`,
+    engineVersion: 1, id: `field-${options.seed}-${stage}`, kind: 'field', name,
     map: { width: tiles[0].length, height: tiles.length, tiles },
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: FIELD_BATTLE.turnLimit, phase: 'player',
     goal: { kind: 'boss', target: 'e0' },
-    rng: seedRng(`${options.seed}:combat`), growthRng: seedRng(`${options.seed}:growth`),
+    rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
+    dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined,
     goalText: FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
     createdAt: Date.now(), updatedAt: Date.now(),
   };

@@ -93,6 +93,10 @@ CREATE TABLE IF NOT EXISTS production_orders (
   id TEXT PRIMARY KEY, player_id TEXT NOT NULL, data TEXT NOT NULL, state TEXT NOT NULL, ready_day INTEGER NOT NULL, created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS production_player ON production_orders(player_id, state, ready_day);
+CREATE TABLE IF NOT EXISTS runs (
+  id TEXT PRIMARY KEY, player_id TEXT NOT NULL, state TEXT NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS runs_player ON runs(player_id, updated_at DESC);
 `;
 
 // Adds columns that predate a save file. CREATE TABLE IF NOT EXISTS cannot do this, so an existing

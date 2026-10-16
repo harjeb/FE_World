@@ -23,11 +23,13 @@ import type { AttackPlan, Defense } from '../common/arena/rules.ts';
 import { applyBans, opponentList, validateDefense } from '../common/arena/rules.ts';
 import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { seedRng } from '../common/engine/rng.ts';
-import { GROWTH_TYPE_NAMES, RECRUIT_AGE_RANGE, rollGrowthType } from '../common/data/growth-types.ts';
+import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, recordDeath, recordRetire, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, handleRunOutcome, recordDeath, recordRetire, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
+import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, slotsUsed } from '../common/game/production.ts';
+import { createRun, DUNGEON_STAGE_DAYS, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
 
 export class OpError extends Error {
   code: string;
@@ -168,6 +170,7 @@ function applyAction(ctx: Context, record: BattleRecord, action: Action): { stat
 
 function finishBattle(ctx: Context, record: BattleRecord): void {
   const rewards = applyBattleOutcome(ctx.store, ctx.player, record);
+  const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
   if (record.mode === 'arena' && record.opponentId && record.arenaDay !== undefined) {
     const day = ctx.store.arenaDay(ctx.player.id, record.arenaDay);
     if (day) {
@@ -176,7 +179,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     }
   }
   ctx.store.addEvent(ctx.player.id, 'battle-end', `${record.name} 结束：${record.state.result?.winner === 'player' ? '胜利' : '失败'}。`, {
-    battleId: record.id, deaths: rewards.deaths, gold: rewards.gold,
+    battleId: record.id, deaths: rewards.deaths, gold: rewards.gold, runState: runOutcome?.run.state ?? null,
   });
   ctx.push(OP.STATE_CHANGED, { reason: 'battle-end', battleId: record.id });
 }
@@ -243,6 +246,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.SORTIE]: (ctx, data) => {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const region = asNumber(data.region, 'region');
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const units = ids.length > 0
@@ -252,7 +256,9 @@ const handlers: Record<number, Handler> = {
     if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
     // 种子由服务器生成，不采用客户端提交的 seed，避免预选随机结果 (docs/03)。
     const seed = randomUUID().slice(0, 8);
-    const record = createFieldBattle(ready, { region, cleared: ctx.player.flags.clearedRegions.length, seed });
+    // 已通关地区使用首次通关时锁定的等级档，重打不追涨 (docs/00 §8.1.2)。
+    const lockedLevel = ctx.player.flags.firstClearLevel?.[region];
+    const record = createFieldBattle(ready, { region, cleared: ctx.player.flags.clearedRegions.length, seed, level: lockedLevel });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.sortie;
     syncPlayer(ctx.store, ctx.player);
@@ -323,7 +329,8 @@ const handlers: Record<number, Handler> = {
     // 成长类型与年龄由招募决定（成长型 5%）；同一天的结果确定可复现。
     const traits = seedRng(`recruit-traits:${ctx.player.id}:${ctx.player.day}`);
     const growthType = rollGrowthType(traits[0] % 100);
-    const age = RECRUIT_AGE_RANGE[0] + (traits[1] % (RECRUIT_AGE_RANGE[1] - RECRUIT_AGE_RANGE[0] + 1));
+    const remainingYears = Math.max(0, MAINLINE_YEARS - (dateOf(ctx.player.day).year - 1));
+    const age = rollRecruitAge(growthType, remainingYears, traits[1]);
     const unit = createUnit(character, level, `u_${character}_${ctx.player.day}`, ctx.player.day, true, { growthType, age,
       classId: initialClass((Object.keys(CLASS_PATHS) as (keyof typeof CLASS_PATHS)[])[regionById(region).id - 1]) });
     ctx.store.addUnit(ctx.player.id, unit);
@@ -591,7 +598,8 @@ const handlers: Record<number, Handler> = {
       const level = Math.max(1, regionLevel(ctx.player.flags.clearedRegions.length, 0) - 4);
       const traits = seedRng(`emergency-traits:${ctx.player.id}:${deaths}:${i}`);
       const growthType = rollGrowthType(traits[0] % 100);
-      const age = RECRUIT_AGE_RANGE[0] + (traits[1] % (RECRUIT_AGE_RANGE[1] - RECRUIT_AGE_RANGE[0] + 1));
+      const remainingYears = Math.max(0, MAINLINE_YEARS - (dateOf(ctx.player.day).year - 1));
+      const age = rollRecruitAge(growthType, remainingYears, traits[1]);
       const unit = createUnit(character, level, `u_${character}_e${ctx.player.day}_${i}`, ctx.player.day, true, { growthType, age });
       ctx.store.addUnit(ctx.player.id, unit);
       created.push(unitSummary(unit));
@@ -639,6 +647,139 @@ const handlers: Record<number, Handler> = {
     ctx.store.addEvent(ctx.player.id, 'class-market', `${CHARACTERS[unit.character].name} 购买职业资格 ${CLASSES[classId].name}（${price} 金币）。`, { unit: unit.id, classId });
     ctx.push(OP.STATE_CHANGED, { reason: 'class-market' });
     return { unit: unit.id, classId, price, gold: ctx.player.gold, qualifications: unit.classQualifications };
+  },
+
+  // ---- dungeon runs (docs/00 §8.1.3, docs/13 §4.3) ---------------------
+
+  [OP.GET_RUN]: ctx => {
+    const run = ctx.store.activeRun(ctx.player.id) ?? ctx.store.latestRun(ctx.player.id);
+    return { run: run ? runSummary(run) : null };
+  },
+
+  [OP.START_DUNGEON]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '已有进行中的远征');
+    const region = asNumber(data.region, 'region');
+    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
+    const units = ids.length > 0
+      ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
+      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, 6);
+    const ready = units.filter(u => u.status === 'active' && !u.lockedRunId);
+    if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
+    // 出发时锁定等级、名单与物品；只有实际创建 run 才锁配置（docs/13 §4.4）。
+    const level = regionLevel(ctx.player.flags.clearedRegions.length, regionById(region).offset);
+    const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length);
+    for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
+    ctx.player.day += DUNGEON_STAGE_DAYS;
+    syncPlayer(ctx.store, ctx.player);
+    const seed = randomUUID().slice(0, 8);
+    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, seed, level, stageIndex: 0, runId: run.id });
+    record.playerId = ctx.player.id;
+    run.battleId = record.id;
+    ctx.store.saveRun(run);
+    ctx.store.saveBattle(record);
+    ctx.store.addEvent(ctx.player.id, 'dungeon', `进入 ${regionById(region).name} 大副本（第 1 图）。`, { runId: run.id });
+    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+    return { run: runSummary(run), battleId: record.id, battle: battleView(record, false) };
+  },
+
+  [OP.CONTINUE_DUNGEON]: ctx => {
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    const run = ctx.store.activeRun(ctx.player.id);
+    if (!run || run.state !== 'between_maps') throw new OpError('NOT_FOUND', '没有等待继续的远征');
+    // 下一张只能使用原名单中仍存活、未离队的角色（docs/00 §8.1.3）。
+    const units = survivingIds(run.carry).map(id => ctx.store.unit(ctx.player.id, id)).filter((u): u is NonNullable<typeof u> => !!u && u.status === 'active');
+    if (units.length === 0) throw new OpError('FORBIDDEN', '没有存活的队员，只能撤离');
+    ctx.player.day += DUNGEON_STAGE_DAYS;
+    syncPlayer(ctx.store, ctx.player);
+    const seed = randomUUID().slice(0, 8);
+    const record = createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry });
+    record.playerId = ctx.player.id;
+    run.state = 'battle';
+    run.battleId = record.id;
+    ctx.store.saveRun(run);
+    ctx.store.saveBattle(record);
+    ctx.store.addEvent(ctx.player.id, 'dungeon', `${regionById(run.region).name} 大副本第 ${run.stageIndex + 1} 图开始。`, { runId: run.id });
+    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+    return { run: runSummary(run), battleId: record.id, battle: battleView(record, false) };
+  },
+
+  [OP.WITHDRAW_RUN]: ctx => {
+    const run = ctx.store.activeRun(ctx.player.id);
+    if (!run) throw new OpError('NOT_FOUND', '没有进行中的远征');
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('FORBIDDEN', '战斗中请先用 RETREAT 撤离');
+    run.state = 'withdrawn';
+    for (const id of run.unitIds) {
+      const unit = ctx.store.unit(ctx.player.id, id);
+      if (unit?.lockedRunId === run.id) { unit.lockedRunId = null; ctx.store.saveUnit(unit, ctx.player.id); }
+    }
+    ctx.store.saveRun(run);
+    ctx.store.addEvent(ctx.player.id, 'dungeon', '撤离大副本，未带回的掉落作废。', { runId: run.id });
+    return { run: runSummary(run) };
+  },
+
+  // ---- production (docs/00 §9.2, docs/13 §2.3) -------------------------
+
+  [OP.GET_PRODUCTION]: ctx => {
+    const orders = ctx.store.productionOrders(ctx.player.id).map(o => mature(o, ctx.player.day));
+    for (const order of orders) ctx.store.saveProductionOrder(order);
+    const open = orders.filter(o => o.state !== 'collected');
+    return {
+      day: ctx.player.day,
+      facilities: FACILITIES.map(f => ({ ...f, used: slotsUsed(open, f.id) })),
+      recipes: RECIPES.map(r => ({ id: r.id, name: r.name, facility: r.facility, days: r.days, input: r.input, output: r.output, kind: r.kind })),
+      orders: open.map(o => ({ id: o.id, ...describeOrder(o), startedDay: o.startedDay, quality: o.quality })),
+      ready: open.filter(o => o.state === 'ready').map(o => o.id),
+    };
+  },
+
+  [OP.PLANT]: ctx => {
+    const recipe = recipeById('plant_herb')!;
+    if (!canStart(ctx.store.productionOrders(ctx.player.id), recipe)) throw new OpError('FORBIDDEN', '药草田工位已满');
+    if (ctx.store.countInventory(ctx.player.id, 'seed') < 1) throw new OpError('NO_SUCH_ITEM', '没有种子');
+    ctx.store.takeInventory(ctx.player.id, 'seed', 1);
+    // 播种消耗种子并推进 1 日（docs/00 §9.2）。
+    ctx.player.day += 1;
+    const order = createOrder(`po-${randomUUID().slice(0, 8)}`, ctx.player.id, recipe, ctx.player.day);
+    ctx.store.saveProductionOrder(order);
+    syncPlayer(ctx.store, ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'plant' });
+    return { order: { id: order.id, ...describeOrder(order) }, day: ctx.player.day };
+  },
+
+  [OP.START_PRODUCTION]: (ctx, data) => {
+    const recipe = recipeById(asString(data.recipeId, 'recipeId'));
+    if (!recipe) throw new OpError('NOT_FOUND', '没有这个配方');
+    if (!canStart(ctx.store.productionOrders(ctx.player.id), recipe)) throw new OpError('FORBIDDEN', `${facilityById(recipe.facility).name}工位已满`);
+    for (const input of recipe.input) {
+      if (ctx.store.countInventory(ctx.player.id, input.item) < input.count) throw new OpError('NO_SUCH_ITEM', `缺少${GAME_ITEMS[input.item].name}`);
+    }
+    // 开工先扣输入、消耗开工日，ready_day = 开工动作结束日 + duration（docs/13 §3.3）。
+    for (const input of recipe.input) ctx.store.takeInventory(ctx.player.id, input.item, input.count);
+    const order = createOrder(`po-${randomUUID().slice(0, 8)}`, ctx.player.id, recipe, ctx.player.day);
+    ctx.store.saveProductionOrder(order);
+    ctx.push(OP.STATE_CHANGED, { reason: 'production' });
+    return { order: { id: order.id, ...describeOrder(order) }, day: ctx.player.day };
+  },
+
+  [OP.COLLECT_PRODUCTION]: (ctx, data) => {
+    const order = ctx.store.productionOrder(ctx.player.id, asString(data.orderId, 'orderId'));
+    if (!order) throw new OpError('NOT_FOUND', '没有这个订单');
+    if (order.state === 'collected') throw new OpError('FORBIDDEN', '这个订单已经领取过');
+    mature(order, ctx.player.day);
+    if (order.state !== 'ready') throw new OpError('FORBIDDEN', `还要等到第 ${order.readyDay} 日`);
+    // 领取不额外推进日期；产出在开工时固定，不能重抽（docs/13 §2.3）。
+    ctx.store.addInventory(ctx.player.id, order.output.item, GAME_ITEMS[order.output.item].uses ?? 0, order.output.count);
+    order.state = 'collected';
+    ctx.store.saveProductionOrder(order);
+    ctx.push(OP.STATE_CHANGED, { reason: 'collect' });
+    return { orderId: order.id, item: order.output.item, count: order.output.count };
+  },
+
+  [OP.REPAIR_ITEM]: () => {
+    // 耐久与完美锻造仍是候选（docs/00 §9.2.1、docs/13 §7），首版 features.refinement.enabled=false，
+    // 不提供可以凭空多发耐久的接口。
+    throw new OpError('FEATURE_DISABLED', '耐久与维修尚未启用：规则版本未开启 features.durability');
   },
 
   // ---- battle ops --------------------------------------------------------

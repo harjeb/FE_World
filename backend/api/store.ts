@@ -6,12 +6,16 @@ import { SHOP_STOCK } from '../common/game/items.ts';
 import { createUnit, normalizeUnit } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import type { LegacyRecord } from '../common/game/legacy.ts';
+import type { ProductionOrder } from '../common/game/production.ts';
+import type { RunRecord } from '../common/game/expedition.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import { isArenaDay } from '../common/game/calendar.ts';
 
 export interface PlayerFlags {
   clearedRegions: number[];
+  // 每个地区首次通关时锁定的敌人等级（docs/00 §8.1.2）：重打不追涨。
+  firstClearLevel?: Record<number, number>;
   shopMonth: number;
   festivalRound: number;
   festivalYear: number;
@@ -461,6 +465,46 @@ export class Store {
     return (this.db.prepare('SELECT unit_id, player_id, data, created_at FROM memorials WHERE player_id = ? ORDER BY created_at DESC').all(playerId) as
       { unit_id: string; player_id: string; data: string; created_at: number }[])
       .map(r => ({ unitId: r.unit_id, playerId: r.player_id, data: JSON.parse(r.data) as MemorialData, createdAt: r.created_at }));
+  }
+
+  // ---- production orders (docs/13 §2.3) ---------------------------------
+
+  saveProductionOrder(order: ProductionOrder): void {
+    this.db.prepare('INSERT OR REPLACE INTO production_orders (id, player_id, data, state, ready_day, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(order.id, order.playerId, JSON.stringify(order), order.state, order.readyDay, Date.now());
+  }
+
+  productionOrder(playerId: string, orderId: string): ProductionOrder | null {
+    const row = this.db.prepare('SELECT data FROM production_orders WHERE player_id = ? AND id = ?').get(playerId, orderId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as ProductionOrder : null;
+  }
+
+  productionOrders(playerId: string): ProductionOrder[] {
+    return (this.db.prepare('SELECT data FROM production_orders WHERE player_id = ? ORDER BY created_at').all(playerId) as { data: string }[])
+      .map(row => JSON.parse(row.data) as ProductionOrder);
+  }
+
+  // ---- dungeon runs (docs/13 §2.4) --------------------------------------
+
+  saveRun(run: RunRecord): void {
+    run.updatedAt = Date.now();
+    this.db.prepare('INSERT OR REPLACE INTO runs (id, player_id, state, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(run.id, run.playerId, run.state, JSON.stringify(run), run.createdAt, run.updatedAt);
+  }
+
+  run(playerId: string, runId: string): RunRecord | null {
+    const row = this.db.prepare('SELECT data FROM runs WHERE player_id = ? AND id = ?').get(playerId, runId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as RunRecord : null;
+  }
+
+  activeRun(playerId: string): RunRecord | null {
+    const row = this.db.prepare("SELECT data FROM runs WHERE player_id = ? AND state IN ('battle','between_maps') ORDER BY updated_at DESC LIMIT 1").get(playerId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as RunRecord : null;
+  }
+
+  latestRun(playerId: string): RunRecord | null {
+    const row = this.db.prepare('SELECT data FROM runs WHERE player_id = ? ORDER BY updated_at DESC LIMIT 1').get(playerId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as RunRecord : null;
   }
 }
 

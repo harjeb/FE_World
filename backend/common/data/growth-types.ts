@@ -72,5 +72,27 @@ export function rollGrowthType(roll0to99: number): GrowthType {
   return 'normal';
 }
 
-// 人类初始招募年龄 18–45（docs/00 §2）; 固定角色的年龄写在角色表里。
-export const RECRUIT_AGE_RANGE: [number, number] = [18, 45];
+// 随机招募年龄（docs/00 §3.4）：最低 12 岁，固定类型不变；有转折的曲线尽量在剩余主线内跨过转折。
+export const RECRUIT_AGE_RANGE: [number, number] = [12, 45];
+export const MAINLINE_YEARS = 8;
+// 当前曲线在两个年龄段之间的转折年龄（旧试算 30／48，待重新校准）。
+export const CURVE_TRANSITIONS = [30, 48];
+
+// 能在剩余主线年份内跨过一个转折的合法年龄候选；平稳曲线（通常／成长）不强行制造转折。
+export function recruitAgeCandidates(growthType: GrowthType, remainingYears: number): number[] {
+  if (growthType === 'normal' || growthType === 'growth') return [];
+  const [min, max] = RECRUIT_AGE_RANGE;
+  const out: number[] = [];
+  for (let age = min; age <= max; age++) {
+    if (CURVE_TRANSITIONS.some(t => age < t && age + Math.max(0, remainingYears) >= t)) out.push(age);
+  }
+  return out;
+}
+
+// 确定性抽取招募年龄：先定类型，再优先从能跨转折的候选里取；没有候选时按内部兜底均匀取。
+export function rollRecruitAge(growthType: GrowthType, remainingYears: number, roll0to99: number): number {
+  const candidates = recruitAgeCandidates(growthType, remainingYears);
+  if (candidates.length > 0) return candidates[Math.abs(roll0to99) % candidates.length];
+  const [min, max] = RECRUIT_AGE_RANGE;
+  return min + (Math.abs(roll0to99) % (max - min + 1));
+}
