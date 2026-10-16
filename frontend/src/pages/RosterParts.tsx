@@ -122,7 +122,6 @@ export function StatsPanel({ entry, weapons }: { entry: RosterEntry; weapons: We
         {line
           ? <>装备{WEAPONS[line.weapon].name}时：攻击 <b>{line.attack}</b> · 命中 <b>{line.hit}</b> · 必杀 <b>{line.crit}</b> · 攻速 <b>{line.attackSpeed}</b> · 回避 <b>{line.avoid}</b></>
           : weapons.length === 0 ? <>没有携带武器，不能攻击。</> : <>不能攻击；治疗量 = 魔 + 10（当前 <b>{unit.stats.mag + 10}</b>）。</>}
-        {bonus !== 0 && <div style={{ color: '#6A6256', marginTop: 2 }}>已计入成长类型/年龄修正 {signed(bonus)}（全属性）。</div>}
         <div style={{ color: '#6A6256', marginTop: 2 }}>成长为概率：同样的成长率，每次升级的结果都可能不同；整级无提升时自动重掷（最多 2 次）。</div>
       </div>
     </section>
