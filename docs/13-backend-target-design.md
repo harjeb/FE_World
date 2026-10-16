@@ -5,7 +5,7 @@
 ## 1. 不可破坏的约束
 
 1. 账号有独立、单调增加的 `day`，起始0；无现实时间体力、追赶或赛季清空。
-2. 一个账号最多一项未结束正式活动。单位／物品实例不能同时归属两个活动或两个持有人。
+2. 一个账号最多一项未结束前台正式战斗／连战／赛事，可同时存在后台自动探索派遣与生产。并行以人员／物品互斥为边界，不能把前台单活动限制误用成全账号不可派遣；同一单位／物品不能同时归属两个活动。
 3. 正式野外、地区副本和大竞技场的己方普通角色真实死亡；神主角撤退；普通竞技场与练习暂用模拟副本。历史对手的变化永远不回写原账号。
 4. 一条战斗动作的状态、死亡／盾消耗／耐久、经验、事件与幂等收据同事务提交。
 5. 地区副本固定名单、跨图不自动恢复；年度赛事可使用报名时替补，已死者不能跨轮恢复。
@@ -41,8 +41,9 @@
 | `unit_skills` | `unit_id, cycle, skill_id, rank, learned_source, equipped_slot` | `(unit_id,cycle,skill_id) UNIQUE`；习得装备技能槽只允许1–5，轮回清当前学习成果 |
 | `skill_grants` | `unit_id, cycle, skill_id, source_kind, source_id, rank, active` | 按个人、职业、特殊装备分别归因；装备授予不占5格，离开来源即撤销，不当成永久学会 |
 | `unit_class_qualifications` | `unit_id, cycle, class_id, purchased_at_day, receipt_id` | 每轮每职业唯一；年份开放后付金币获得，允许跨路线；轮回不复制旧资格 |
-| `class_learning_progress` | `unit_id, cycle, class_id, unlocked_nodes_json` | 每职业多个节点，技能种类／等级依据来自目录，不能默认为所有职业同一节点 |
-| `class_market_periods` | `player_id, period_index, purchased, rules_version` | 月度购买额度候选；月长、次数和累积方式待定，不能直接把季度库存当月度定案 |
+| `class_learning_progress` | `unit_id, cycle, class_id, mastery, unlocked_nodes_json` | 按该职业有效参战／训练积累，不用人物等级解锁全部；节点唯一，轮回清除 |
+| `mastery_ledger` | `unit_id, cycle, source_kind, source_id, class_id, weapon_type, amount` | 同一有效战斗／派遣来源唯一入账，职业精通与现有武器熟练度分别记，不另建重复武器等级 |
+| `class_market_periods` | `player_id, period_index, purchased, rules_version` | 月度额度限制购买新资格，切回已购职业免费且不占额度；月长／次数／累积仍待定 |
 | `unit_proficiencies` | `unit_id, weapon_type, exp, rank` | `(unit_id,weapon_type) UNIQUE`；保存所有职业资格外的实际熟练度 |
 | `growth_history` | `unit_id, cycle, level, rates_json, random_gains_json, inherited_gains_json, stats_after_json, rng_checkpoint_ref` | `(unit_id,cycle,level) UNIQUE`，首次一级基准另存；历史不可修改 |
 | `unit_drug_usage` | `unit_id, cycle, stat_key, count` | `(unit_id,cycle,stat_key) UNIQUE`；总额由锁住角色后计算，不能只检查单项 |
@@ -68,15 +69,15 @@
 | `shop_stock` | `player_id, shop_id, quarter_index, offer_id, remaining, version` | `(player_id,shop_id,quarter_index,offer_id) UNIQUE`，库存非负 |
 | `recruit_encounters` | `id, player_id, region_id, kind, created_day, candidate_json, state, cost_receipt_id` | 同一encounter接受／拒绝只能一次，拒绝后不可再付钱复原同一人 |
 | `recruit_pity` | `player_id, region_id, failures` | `(player_id,region_id) UNIQUE`，付时间后按结果更新 |
-| `recovery_recruit_claims` | `player_id, loss_episode_id, state, candidate_ids_json, claimed_unit_ids_json, receipt_id` | 严重损失可在酒馆免费随机2人；每次资格唯一，候选不重掷；阈值与重复资格规则待定 |
+| `recovery_recruit_claims` | `player_id, loss_episode_id, source_death_sequence, state, candidate_ids_json, claimed_unit_ids_json, receipt_id` | 真实伤亡且存活现役<=2（含神）时免费随机2人；每次新损失资格唯一，解雇／派遣不触发 |
 | `facilities` | `id, player_id, template_id, tier, capacity` | 工位由归属与配置验证 |
 | `production_orders` | `id, player_id, facility_id, recipe_id, state, started_day, ready_day, input_ledger_ref, output_spec_json` | 活跃工位不超容量；产出模板在开工时固定，领取不能重抽 |
 | `refinement_challenges` | `id, order_id, state, rules_version, armed_at, started_at, expires_at, stop_received_at, result_json` | `order_id UNIQUE`；一订单一结果，过期结果固定normal |
 | `reward_claims` | `player_id, source_kind, source_id, reward_key, receipt_id` | `(player_id,source_kind,source_id,reward_key) UNIQUE`；不同commandId也不能重复领奖 |
 
-材料是数量余额，武器、药品、盾、传承石是可锁定实例；不把同名装备当成同一物品。药品有剩余次数，材料不占战斗携带栏。死者装备已确定回收，保留当前耐久；已消耗物品不补发。先冻结遗产成长来源再解绑装备。回收时点待定，目标草案先转独立`recovery_bag`、活动结束后转仓库；它不属于战败没收的pending新掉落，也不能在同一事务复制两份。
+材料是数量余额，武器、药品、盾、传承石是可锁定实例；不把同名装备当成同一物品。死者装备先冻结遗产来源再解绑、保留当前耐久，已消耗物品不补发。已确认先转`recovery_bag`，单场／整次连战／整届赛事结束后再入仓库；活动途中不补给。它不属于战败没收的pending新掉落，不能复制两份或被错误没收。
 
-严重损失的酒馆补员不花钱、不推进日期，每次有效资格随机2人；领取受活动锁限制。阈值、初始装备与再次资格仍待定，不能仅因重复刷新或主动解雇就再发一批。正式条件未配置前不自行定为无限领取。
+酒馆补员已定：真实伤亡使存活现役总数<=2（含主角）时开放免费随机2人，不扣钱／日。派遣者仍计存活，解雇／退役不构成新伤亡；领取受活动锁限制。一次领取消耗当前损失资格，合并已发生但未领取的旧伤亡，不能囤多份旧资格反复领；以后有新真实伤亡且再次满足阈值才能再开放。候选固定，初始装备与强度仍待校准。
 
 ### 2.4 地区、远征与战斗
 
@@ -92,8 +93,12 @@
 | `battles` | `id, run_id, stage_id, version, phase, status, engine_version, initial_private_json, current_private_json, public_checkpoint_json, result_json` | 一个stage一个battle；版本单调增长；私有状态绝不直接作为响应 |
 | `battle_actions` | `battle_id, action_index, source, command_id, input_json, result_hash, events_json` | `(battle_id,action_index) PRIMARY KEY`，玩家commandId唯一关联；含AI动作 |
 | `jobs` | `id, kind, entity_id, expected_version, state, lease_token, lease_until, attempts` | `(kind,entity_id,expected_version) UNIQUE`，有限重试与失败告警 |
+| `dispatches` | `id, player_id, state, region_id, started_day, duration_days, return_day, training_config_json, ruleset_version, reward_seed_ref, resolved_at_day, receipt_id` | duration为正整数，`return_day=started_day+duration_days`；个人行动日驱动，返程只结算一次 |
+| `dispatch_units` | `dispatch_id, unit_id, cycle, class_id, weapon_type, departure_snapshot_json, result_json` | 锁出发时职业／武器／培养轮次，收益只给参与者，返程前不可参与其他战斗／派遣 |
+| `unit_activity_locks` | `unit_id, owner_kind, owner_id` | 每单位唯一未释放占用；owner区分前台run与后台dispatch |
+| `dispatch_rewards` | `dispatch_id, reward_key, type, spec_json, state, claimed_receipt_id` | 每来源／奖励键唯一；经验精通与物资分别明确结算时点，不因刷新／重复领取重发 |
 
-`players.active_run_id`、`units.locked_run_id` 和物品锁的建立／释放与run状态同事务完成。跨账号引用通过应用层归属验证加组合外键兜底，不能仅凭UUID存在就允许操作。
+`players.active_run_id`只表示前台活动。它与人员／物品占用的建立、释放同事务提交；后台派遣必须查实体锁，不能只查全账号active_run。已有前台活动时，可用未占用角色运行派遣；任何部署、训练、换职、轮回、退役、转移装备路径都要校验占用。跨账号引用验证归属，不能仅凭UUID存在就操作。
 
 ### 2.5 赛事、快照、故事与见闻
 
@@ -103,12 +108,14 @@
 | `arena_snapshots` | `id, player_id, captured_day, kind, ruleset_version, catalog_version, qualification_json, private_roster_json, public_roster_json, defense_json, content_hash` | 生成后不可变；匹配索引 `(kind,captured_day,ruleset_version)` |
 | `arena_entries` | `id, player_id, kind, annual_index, run_id, snapshot_id, state, qualifier_wins, qualifier_count, bracket_size` | 大竞技场 `(player_id,annual_index) UNIQUE WHERE kind=annual`；普通竞技场每次独立entry |
 | `arena_matches` | `id, entry_id, phase, round, slot, snapshot_a, snapshot_b, state, result_json, battle_id` | `(entry_id,phase,round,slot) UNIQUE`；签表节点结果只写一次 |
-| `ratings` | `player_id, mode, progress_bracket, rating, matches` | 每场有效赛果唯一来源，不按纯累计场数排名 |
+| `rating_periods` | `id, mode, starts_at, ends_at, timezone, status, rewards_finalized_at` | 按现实月份，不与个人日历相连；归档后不可改旧榜，结算任务幂等 |
+| `ratings` | `player_id, period_id, mode, progress_bracket, rating, wins, losses, matches` | 每玩家／月／模式／进度档唯一，新月从基准分开始，单场赛果只记一次 |
+| `monthly_rating_rewards` | `period_id, player_id, final_rank, reward_spec_json, claimed_at, receipt_id` | `(period_id,player_id) UNIQUE`，冻结旧榜奖励，可跨月领取但不改新月分 |
 | `story_events` | `player_id, chapter, available_day, state, completed_day` | `(player_id,chapter) UNIQUE`，章节1–8，不含名次门槛 |
 | `quest_progress` | `player_id, quest_id, state, progress_json` | 与主线年度事件分开；不通过随机文献阻挡主线 |
 | `discoveries` | `player_id, discovery_id, discovered_day, context_ref` | `(player_id,discovery_id) UNIQUE`，可回看文本按目录版本渲染 |
 
-不创建 `seasons / season_players / arena_days` 来驱动个人成长；现实榜单周期若加入，用独立排名配置，不接入个人日历和角色清空。
+不创建现实赛季来驱动个人成长。已确认普通竞技场按现实月份归档并重置积分／名次／当月战绩，历史记录保留；不得清角色／资源、推进个人日期或发追赶资源。月界统一用服务端配置时区，不按每个浏览器时间判断。
 
 ## 3. 日历与动作报价
 
@@ -116,7 +123,7 @@
 
 默认草案 `year_length=120, quarter_length=30`。显示年份为 `floor(D/120)+1`，季度为 `floor((D%120)/30)+1`，年内日为 `D%120+1`。年度赛事编号与显示年份分开：第一届在累计D=120开放，即刚经历一年；第八届D=960，正常打满至978。API同时返回两种字段，UI不自行推算“当前届数”。
 
-跨多日行动枚举区间 `(old_day,new_day]` 内所有边界，稳定按日期和事件优先级处理。建议同日顺序：寿终／资格变更→生产成熟→库存换季→年度赛事开放／故事事件→一般探索事件。纯读取只展示既有状态，不发新奖励或抽随机数。
+跨多日行动枚举`(old_day,new_day]`内所有边界，稳定按日期和事件优先级处理。建议同日顺序：寿终／资格变更→派遣返程／生产成熟→库存换季→年度赛事开放／故事事件。派遣与生产共用实际经过的日数，不因队数／工位数倍增时间。离线和零日读写不推进派遣；现实月榜结算是独立时钟，不推进个人日期。
 
 ### 3.2 报价与执行
 
@@ -172,7 +179,7 @@ stateDiagram-v2
 
 ### 4.2 致死一击与不朽盾
 
-保命盾完整石化效果仍是待确认候选，不能默认已正式启用；已定只能战前携带、不能战斗中补充、有重量。若启用当前候选，每击按：检查有效攻击／耐久→扣耐久→命中／技能／暴击／伤害→祈祷→盾保护→最终生命状态。盾消耗一枚、保留1HP并石化，后续连击不能再致死。神主角为withdrawn，普通角色为dead或模拟defeated。补给／交换接口必须拒绝战斗新增盾。
+本轮采用首个盾方案：每击检查攻击／耐久→扣耐久→命中／技能／暴击／伤害→祈祷→盾保护→最终生命状态。盾消耗一枚、保留1HP并石化至下个己方阶段，后续连击不能再致死；不能简化成自动撤退。仅战前携带、不可战斗补充且有重量；补给／交换拒绝新增盾。神主角为withdrawn，普通角色为dead或模拟defeated；重量／携带量仍待配置。
 
 石化解除用明确的 `expires_at_player_phase` 标记，不用“剩余1回合”猜测当前阶段。阶段开始的持续伤害先在保护仍有效时结算，再解除，保证1HP单位有操作机会。石化占格、不可行动／反击，治疗和光环按当前草案禁用。阶段结束、地图结束和异常清理不能让死者恢复active。
 
@@ -205,7 +212,7 @@ boss = min(99, L + 4)
 
 九属性使用 `hp,str,mag,skl,spd,lck,def,res,cha`；运和幸运同一属性，体格／移动单列。个人基础、职业、固定类型自身年龄曲线、装备、被动与其他临时修正分别保存；类型曲线只算一次。最终率最低0，每项基础增量`floor(rate/100)`，余数再掷一次，超上限裁剪。空级保护是否启用仍留配置，不假定旧重掷已被取消。
 
-幸运和魅力按指定原作职能核对，不能增加魅力招募加成填补未实现战斗用途；精确公式和对应机制需有可核对来源。技能按个人1个可升级、职业N个不同节点、习得装备技能最多5格、特殊装备额外授予不占格分别建模，轮回清习得成果。职业被动离职后生效规则与同名叠加仍需目录明确，不能借标签绕过5格。
+幸运和魅力按指定原作核对，不增加自创招募加成。技能来源分个人1个可升级、当前职业自带N能力、已学技能库和特殊装备授予。已学装备技能／被动可跨职业自由装备，共享5格，不以“被动”名义免费常驻；装备授予不占格，失去装备即失效。职业自带能力随当前职业重算，已学技能随换职保留；轮回清学习成果。节点改用职业精通，重复效果叠加仍需目录明确。
 
 分配大量公共经验时逐级循环，依次记录自然成长与传承补点；1→99共98次，99级剩余经验固定0。随机流按角色实例与培养轮次固定，升级指令重试不得重掷。已离队／死亡角色不能接收公共经验。
 
@@ -224,11 +231,23 @@ boss = min(99, L + 4)
 
 轮回仅存活、未锁定、99级且cycle=0角色可用。一次事务扣资源、保存记录、清第一轮成长／药效／数值继承补点、恢复固定一级基准、cycle变1并开放新药剂额度。清已学技能、熟练度、职业资格和学习进度，回初始职业；个人技能回身份初始形态。年龄重置16岁并重算寿终日；身份、历史、血缘锁及已用轮回次数不清，额外仅30个百分点成长分配。已清资格不退金币／月度次数，账号世界年份及市场开放状态不倒退。
 
-成长率遗产暂沿用保留为基础来源的草案，此项实现前须明示；个人轮回奖励单列且不跨代。数值旧合同结束，不在第二轮重新补。特殊装备的技能依据当前实际穿戴重新授予，不算保留已学技能；不能把装备历史转成永久学习成果。退役不可参战，主角不可产遗产，普通解雇不自动成为合资格退役。
+已确认轮回保留继承后的个人基础成长，不恢复继承前资质；额外30点轮回奖励单列、不跨代。数值旧合同结束、不重新补。职业精通与学习进度清除；特殊装备仅按实际穿戴重新授予，不算保留习得。退役不可参战，主角不可产遗产，普通解雇不自动成为合资格退役。
 
 ### 5.4 职业市场与跨路线
 
-按个人年份开放可购买职业，购买向当前角色／培养轮次发放资格；允许跨路线但仍校验已购资格、种族和活动锁，神主角不能买兽／龙资格。月度购买次数是候选，周期长度、额度和是否累积未定，不能擅自把30日季度当成已确定月份。角色轮回清个人资格，不重置账号市场时期或返还额度；未来实现需覆盖跨路线、重复购买与跨月结算。
+按个人年份开放职业，按角色／培养轮次付费取得资格；允许跨路线，神不可兽／龙。已购职业在营地免费切回、不占购买额度，战斗／派遣中不能切换。月度额度只限制新资格购买，周期长度／额度／累积仍待配置，不擅自把季度当月份。轮回清个人资格，不重置账号市场时期或退还额度；月度购买与现实竞技榜月份是两个独立周期。
+
+### 5.5 职业精通与并行自动探索
+
+职业精通以`(unit_id,cycle,class_id)`分别累计；有效参战或职业训练提供进度，人物等级不直接解锁该职业全部节点。战斗记来源battle，训练记来源dispatch，每个来源只入账一次；重复回合／投降不冒充有效参战。武器精通度复用现有武器经验与EDCBAS／SS／SSS，按出发时训练武器归因。每场／每日增益、节点和上限待配置，切回保留各职业进度，轮回清除。
+
+派遣是后台占用任务，目标接口可增`GET_DISPATCHES`／`START_DISPATCH`；名称与op号需在真实协议接入时统一，此处不冒充已有接口。启动事务锁玩家、人员、装备，验证归属、现役／可用、资格、地点与正整数天数，冻结职业、武器、规则和收益种子，创建running任务并取得实体锁；不立刻推进整段日期，也不重复扣一份所选日数。
+
+个人日历达到return_day时一次返程结算：按版本化规则计算参与者经验、职业精通、武器熟练度及素材／武器产出，保存报告和唯一收益键；人物培养逐级按经过日期处理，不能把最后一天的年龄套到全部多日成长。返程结算完成后释放人员／装备占用，物资可保存在待领取袋，未查看报告不让已返程者继续离队。具体自动发奖与物资领取UI可调整，但同一来源只能发一次。
+
+派遣中禁止角色参加地区战斗、连续副本、年度／普通竞技场、第二项派遣，亦不可换职、轮回、退役、抽走装备。其余未占用角色正常活动；历史防守快照不占真人，已报名年度名单仍锁定。派遣不能额外锁整账号；若全员外出，仍可主动等待。普通模式不增加未告知随机永久死亡，寿终边界遵守个人日历规则。
+
+例：D100派A十日，B／C完成一次八日战斗后为D108，A仍占用；再推进两日至D110即返程。现实离线十天不推进，零日买卖／查看不完成。两队各派十日共经过十日，不能累加成二十日；奖励只给各自参与者。提前召回、可同时派遣队数、最大时长和精确收益仍为配置／待定，不擅自允许零日或无限重复领取。
 
 ## 6. 年度大竞技场与普通竞技场
 
@@ -242,7 +261,7 @@ boss = min(99, L + 4)
 
 已确认三场海选至少两胜，打完三场判断，未通过为eliminated；正赛64队单败，64→32→16→8→4→2→1。全签表63节点，玩家只打六轮；其他节点由规则AI模拟并保存，重试不换胜者。
 
-每届均从海选开始，前冠军无跳过资格。年度已报名entry一旦退赛／淘汰，当届不能重报；下一届重新海选。当前玩家可在每轮使用存活报名替补，不能招新或给报名名单外角色换入；局间仅恢复存活者HP和短期状态，永不恢复已死者／消耗盾／耐久。
+每届均海选，年度entry退赛／淘汰不能重报。每轮可用存活报名替补，局间仅恢复存活者HP／短期状态，不恢复死者、消耗盾或耐久。已确认整届不额外买物资、不维修、不取外部仓库；缺员可继续，仍验证地图必要主将／目标。回收袋在整届结束释放，不借死者装备中途补给。
 
 保存／断线不取消entry。报名窗口需留至少整届18日，下一图或比赛每次重新验证日期和寿终；不得通过后端隐式跳日撞过已承诺赛事边界。BAN使用槽位实例ID，初期三人BAN=0；后期优先采用双方禁对手槽位，跨池通用防守BAN维度另作为配置，不按固定角色名误伤随机新人。
 
@@ -255,6 +274,8 @@ boss = min(99, L + 4)
 ### 6.4 普通竞技场
 
 已确认随时报名、每场1日、独立报名和快照副本；金币、积分取有效胜负，等级经验0。非致死，药品／耐久模拟消耗不写真实资产，不能取得对手真实装备。开始对局只扣一次日数，重连不重复扣；奖励按1日成本重算金币效率。免费练习无经济收益。匹配精确同日，榜单可按较宽进度段统计；评分按match结果唯一结算，防守被多次挑战不自动发金币。
+
+现实月榜已确认每月重置。Worker按服务时区归档旧period、冻结奖励，创建新月基准分；不修改个人行动日／角色／资源。目标默认以有效赛果提交时所属现实月份记分，跨月未完战斗可继续，完赛后只计新月一次，不回写已归档旧榜；月界具体时区及奖励档仍是配置。周期键、赛果唯一键和奖励领取键共同防止重复结算，旧月奖励可稍后领取但不重新增加新月分。
 
 ## 7. 完美锻造与其他小活动
 
@@ -294,6 +315,13 @@ boss = min(99, L + 4)
 | 酒馆免费补员重复请求 | 每次有效严重损失资格最多随机2人，候选不重掷，不扣钱／日，不能在连战中换入 |
 | 跨路线购买、轮回与月份边界 | 先年份开放再购买，种族校验不绕过；轮回不退额度，月度规则未定不自行启用 |
 | 普通竞技场超时重连 | 同场只推进1日、无真实伤亡／消耗，赛果与奖励只结一次 |
+| D100派遣A十日，其他人推进八日再两日 | D108仍占用，D110一次返程；现实离线和零日操作不推进，奖励只给参与者 |
+| 派遣A同时被选入战斗、赛事或另一派遣 | 人员／物品唯一占用阻止重复使用；B／C可照常进入前台活动 |
+| 70级角色新买职业、训练及免费切回 | 不因总等级学满；按该职业精通解锁，切回不收费／不扣新资格额度 |
+| 已学多个职业被动与特殊装备授予 | 跨职业自由选共5格；个人／当前职业能力另列，装备授予不占格且卸下即撤销 |
+| 派遣返程重试、重复领取或换职后看报告 | 同来源经验／双精通／物资只发一次，归出发职业和武器，已返程者不因没看报告继续锁定 |
+| 解雇／全员派遣后申请免费补员 | 不算真实伤亡；现役存活人数仍含外出者，旧损失事件不能重复领取 |
+| 现实跨月时战斗未完成、旧月奖励未领取 | 新月按基准重置，旧榜归档；赛果按目标归属规则只计一次，旧奖励不能重复或污染新月积分，个人日期不变 |
 | 第八届海选出局／主动退赛 | 主线事件照常可完成，真实死亡不恢复 |
 | 历史对手被多玩家打败 | 原账号单位／日期／金币不变 |
 | 尚有精工挑战时重复领取／STOP | 一次结果、一件成品、最多+5，无零时间无限产物 |
@@ -307,5 +335,7 @@ boss = min(99, L + 4)
 当前主分支已有远端实现的服务端、SQLite 存档及已接入的前端，验证包含引擎、成长、竞技场、协议、API、Worker 结算、地图工具和浏览器联调；具体范围见14。本文不是这套代码的数据字典，也没有要求先重写已存在的模块。后续应按12的缺口逐项扩展现有代码，并在每项落地时补状态迁移与验收。
 
 2026-10-16 第四轮已把本文 §2–§6 的大部分**非 UI** 规则落到现有代码：命令收据与玩家版本、事件游标、行动报价（`PREVIEW_ACTION`／`EXECUTE_ACTION`）、年龄按天与自然寿终、死亡／退役的装备回收与纪念、成长与数值传承及逐级保底、一代血缘锁、一次轮回、职业资格市场、两条生产链、三图连续副本与跨图状态、地区首通等级锁定、年度大竞技场海选＋64 强、八章主线独立结算、严重损失免费补员。存储仍为 SQLite 单库，事务边界以应用层顺序写入为主，未实现本文列的完整 `runs`／`item_instances` 规范化模型、不朽盾完整石化、耐久与完美锻造、职业技能节点与成长率继承清除口径；这些仍按本文与12的候选口径对待，不宣称已实现。
+
+随后用户又确认职业精通／自选天数并行派遣、五格自由装备、轮回保留继承成长、真实伤亡<=2触发补员、活动结束回收、石化盾、赛事补给限制与现实月榜重置。上述内容已更新为目标，不再列为方向候选；是否已落地须对现有代码逐项验收，本轮仅同步设计，不覆盖其他任务正在修改的后端／UI。
 
 此前独立的 v2 契约、客户端、mock、31项测试及完整原设计保存在本地备份分支 `codex/local-v2-before-remote-20261016`（提交 `464aaae`）。它们未接入当前数字 op 服务端。可参考其中的命令恢复、状态版本与跨图状态设计，不能把两套客户端同时接到页面。合并任务由 Beads `fe-world-fgb` 记录。
