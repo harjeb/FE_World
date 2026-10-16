@@ -1,5 +1,15 @@
 # 07 技术架构
 
+## 当前实现（2026-10-16）
+
+本次整合以远端 `b7d2b8f` 为基础。当前浏览器经 `frontend/src/api/client.ts` 和 `session.ts` 调用 Fastify 的 HTTP 桥；Agent 经 WebSocket `/ws` 调用同一组数字 op。协议清单位于 `backend/common/protocol/ops.ts`，具体处理器位于 `backend/api/handlers.ts`。
+
+持久化已使用 Node 内置 `node:sqlite`，由 `backend/api/db.ts` 建表、`store.ts` 读写；API 与 Worker 默认共享 `backend/data/agent-tactics.db`，均可由 `DB_PATH` 覆盖。运行要求 Node.js 22.18+。尚无 PostgreSQL 迁移，不能按下文的规划表结构直接查询当前存档。
+
+日期按个人行动推进，Worker 调用同一套懒结算逻辑，不按现实时间发放行动日，也不自动推进玩家日期。当前实现范围与未闭环部分见 [12 功能缺口清单](12-implementation-gap-checklist.md)。后续领域、事务与继承设计保存在 [13 目标设计](13-backend-target-design.md)；现有前端接入和验证命令见 [14](14-integration-handoff.md)。
+
+以下为早期技术方案历史参考；其中赛季时钟、现实24:00结算、赛季内角色和追赶规则已被 [00 个人日历方案](00-game-design.md) 取代，不能作为当前实现要求。
+
 ## 技术栈（沿用 SLG）
 
 ```

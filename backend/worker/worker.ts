@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { openDb } from '../api/db.ts';
 import { Store } from '../api/store.ts';
 import { snapshotData, syncPlayer } from '../api/services.ts';
@@ -32,7 +33,7 @@ export function tick(store: Store, now = Date.now()): number {
 const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 60_000);
 
 if (process.argv[1] && process.argv[1].endsWith('worker.ts')) {
-  const store = new Store(openDb(process.env.DB_PATH ?? new URL('../../backend/data/agent-tactics.db', import.meta.url).pathname));
+  const store = new Store(openDb(process.env.DB_PATH ?? fileURLToPath(new URL('../data/agent-tactics.db', import.meta.url))));
   const run = () => {
     try {
       const handled = tick(store);

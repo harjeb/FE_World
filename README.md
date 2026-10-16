@@ -29,6 +29,9 @@
 | [09 永久养成与传承草案](docs/09-permanent-progression-legacy-draft.md) | 永久死亡、不朽盾石化保护、有限传承、99 级与一次轮回、旧方案交接与待定事项 |
 | [10 随机地图生成器](docs/10-random-map-generator.md) | 六种场景主题、可选尺寸与种子、四类移动连通校验、JSON/SVG 导出与示例 |
 | [11 战斗引擎与战斗页](docs/11-battle-engine-and-page.md) | 确定性引擎、暂定规则、战斗页、竞技场进攻流程与防守设置、演示页面、运行与测试、尚未实现的部分 |
+| [12 功能实现缺口](docs/12-implementation-gap-checklist.md) | 已有实现、部分闭环与待办的核对清单 |
+| [13 后端后续目标设计](docs/13-backend-target-design.md) | 未实现草案：继承保底、轮回、连战、生产、事务与幂等边界 |
+| [14 合并与 UI 接入说明](docs/14-integration-handoff.md) | 当前接口入口、本地备份、功能边界与验证命令 |
 
 ## 服务端（API · Worker · Agent 协议）
 
@@ -87,4 +90,4 @@ python3 design/pixel-art/gen_art.py
 
 ## 技术栈（沿用 SLG）
 
-React + TypeScript + Tailwind（前端） · Fastify + 标准 WebSocket（API） · 独立 Worker · PostgreSQL · MCP 插件（stdio）。
+React + TypeScript + Tailwind（前端） · Fastify + 标准 WebSocket（API） · 独立 Worker · SQLite（当前存档） · MCP 插件（stdio）。PostgreSQL 为后续规划，尚未迁移。

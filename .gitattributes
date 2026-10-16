@@ -1,0 +1,3 @@
+# Generated protocol artifacts must match the generator on every platform.
+/docs/agent-api.md text eol=lf
+/agent-api.json text eol=lf

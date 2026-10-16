@@ -9,6 +9,7 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { stopProcess } from './processes.mjs';
 
 const API_PORT = 8612;
 let cdpPort = 9512;
@@ -60,7 +61,7 @@ async function openPage(profile) {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
   return {
     errors, evaluate, key,
-    close: () => { ws.close(); try { process.kill(-chrome.pid, 'SIGKILL'); } catch { chrome.kill('SIGKILL'); } },
+    close: async () => { ws.close(); await stopProcess(chrome); },
     async open(url, selector) {
       await send('Page.navigate', { url });
       for (let i = 0; i < 150 && !(await evaluate(`document.readyState === 'complete' && !!document.querySelector(${JSON.stringify(selector)})`)); i++) await sleep(100);
@@ -201,12 +202,12 @@ try {
     const spectateText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 200)`);
     check('spectate auto-plays a server battle', spectateText.includes('实时观战') && page.errors.length === 0, spectateText.slice(0, 120));
   } finally {
-    page.close();
+    await page.close();
   }
 } finally {
-  try { process.kill(-server.pid, 'SIGKILL'); } catch { server.kill('SIGKILL'); }
-  rmSync(profile, { recursive: true, force: true });
-  rmSync(dbDir, { recursive: true, force: true });
+  await stopProcess(server);
+  rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  rmSync(dbDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }
 
 const failed = checks.filter(ok => !ok).length;
