@@ -6,7 +6,8 @@ import type { ItemId, WeaponId } from '../data/weapons.ts';
 // Everything that can sit in the warehouse. Battle items the engine understands (伤药) reuse the
 // engine's ItemId; the rest exist only for the economy (docs/09「物品」, prices are drafts).
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
-  | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed';
+  | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
+  | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric';
 
 export interface GameItem {
   name: string;
@@ -47,6 +48,9 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   ore: { name: '矿石', kind: 'material', price: 120 },
   wood: { name: '木材', kind: 'material', price: 100 },
   seed: { name: '种子', kind: 'material', price: 60 },
+  reincarnation_core: { name: '轮回核心', kind: 'material', price: 30_000, note: '轮回消耗一枚；来自主线后期或挑战塔' },
+  legacy_stone_growth: { name: '成长传承石', kind: 'material', price: 12_000, note: '兑现成长遗产时消耗' },
+  legacy_stone_numeric: { name: '数值传承石', kind: 'material', price: 12_000, note: '兑现数值遗产时消耗' },
 };
 
 export const ITEM_KEYS = Object.keys(GAME_ITEMS) as ItemKey[];

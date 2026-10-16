@@ -5,7 +5,9 @@ import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
-import { addWeaponExp, ageAt, effectiveCaps, growthRates, toSnapshot } from '../common/game/model.ts';
+import { addWeaponExp, ageAt, effectiveCaps, growthRates, lifespanEndDayOf, toSnapshot } from '../common/game/model.ts';
+import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
+import type { LegacyCause } from '../common/game/legacy.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, baseLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
@@ -61,6 +63,11 @@ export function syncPlayer(store: Store, player: Player): Player {
   for (const day of store.unsettledArenaDays(player.id)) {
     if (day.day < player.day) settleArenaDay(store, player, day);
   }
+  // 自然寿终：主角不衰老，其他角色到寿终日在日历推进时死亡（docs/00 §3.4）。
+  for (const unit of store.units(player.id)) {
+    if (unit.status !== 'active' || unit.isProtagonist) continue;
+    if (player.day >= lifespanEndDayOf(unit)) recordDeath(store, player, unit, 'age', null);
+  }
   // Ages follow the personal calendar (1 year per 120 days), which moves the growth-type band.
   for (const unit of store.units(player.id)) {
     const age = ageAt(unit, player.day, DAYS_PER_SEASON * 4);
@@ -105,6 +112,47 @@ export function settleArenaDay(store: Store, player: Player, day: ArenaDayRecord
 
 export interface BattleRewards { gold: number; items: { item: ItemKey; count: number }[]; levelUps: { unit: string; level: number }[]; deaths: string[]; weaponRanks: { unit: string; type: string; rank: string }[] }
 
+// 死亡／退役统一处理（docs/00 §7.1、§7.4）：先冻结遗产来源，再回收装备，最后写纪念名册。
+export function recordDeath(store: Store, player: Player, unit: UnitRecord, cause: LegacyCause, battleId: string | null): string | null {
+  if (unit.status === 'dead') return null;
+  const legacy = eligibleForLegacy(unit) ? createLegacy(unit, cause, `legacy-${unit.id}`, player.id) : null;
+  if (legacy) store.saveLegacy(legacy);
+  recoverEquipment(store, player, unit);
+  unit.status = 'dead';
+  store.saveUnit(unit, player.id);
+  store.saveMemorial({
+    unitId: unit.id, playerId: player.id, name: CHARACTERS[unit.character].name, character: unit.character,
+    classId: unit.classId, level: unit.level, cause, atDay: player.day, battleId, stats: unit.stats, lineageDepth: unit.lineageDepth,
+  });
+  store.addEvent(player.id, 'death', `${CHARACTERS[unit.character].name}${cause === 'age' ? '寿终' : '战死'}。`, { unit: unit.id, cause, legacy: legacy?.id ?? null });
+  return legacy?.id ?? null;
+}
+
+// 正常退役：达到传承门槛则留下遗产，退役后退出战斗名册（docs/00 §7.4）。
+export function recordRetire(store: Store, player: Player, unit: UnitRecord): string | null {
+  if (unit.status !== 'active') throw new Error('只有现役角色可以退役');
+  const legacy = eligibleForLegacy(unit) ? createLegacy(unit, 'retired', `legacy-${unit.id}`, player.id) : null;
+  if (legacy) store.saveLegacy(legacy);
+  recoverEquipment(store, player, unit);
+  unit.status = 'retired';
+  unit.retiredDay = player.day;
+  store.saveUnit(unit, player.id);
+  store.saveMemorial({
+    unitId: unit.id, playerId: player.id, name: CHARACTERS[unit.character].name, character: unit.character,
+    classId: unit.classId, level: unit.level, cause: 'retired', atDay: player.day, battleId: null, stats: unit.stats, lineageDepth: unit.lineageDepth,
+  });
+  store.addEvent(player.id, 'retire', `${CHARACTERS[unit.character].name} 退役。`, { unit: unit.id, legacy: legacy?.id ?? null });
+  return legacy?.id ?? null;
+}
+
+// 回收真实装备并保留当时耐久／剩余次数，不额外复制新品（docs/00 §7.1）。
+function recoverEquipment(store: Store, player: Player, unit: UnitRecord): void {
+  for (const weapon of unit.weapons) store.addInventory(player.id, weapon as ItemKey, 0, 1);
+  for (const item of unit.items) store.addInventory(player.id, item.id as ItemKey, item.uses, 1);
+  unit.weapons = [];
+  unit.items = [];
+}
+
 // Writes a finished battle back to the roster: growth, weapon experience, deaths, rewards and the
 // replay (docs/00 §7.1 for death, §8.3 for rewards).
 export function applyBattleOutcome(store: Store, player: Player, record: BattleRecord): BattleRewards {
@@ -137,11 +185,11 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       if (unit.character === player.protagonist) {
         // 神主角 HP 归零只撤退，不死亡 (docs/00 §7.1).
         unit.status = 'active';
+        store.saveUnit(unit, player.id);
       } else {
-        unit.status = 'dead';
+        recordDeath(store, player, unit, 'death', record.id);
         rewards.deaths.push(unit.id);
       }
-      store.saveUnit(unit, player.id);
     }
   }
   const won = outcome.winner === 'player';
@@ -192,6 +240,11 @@ export function unitSummary(unit: UnitRecord) {
     joinedDay: unit.joinedDay, weaponExp: unit.weaponExp, growthLog: unit.growthLog, drugCounts: unit.drugCounts,
     growthType: unit.growthType, growthTypeName: GROWTH_TYPE_NAMES[unit.growthType],
     age: unit.age, ageBand: band ? band.name : null, growthBonus: growthBonus(unit.growthType, unit.age),
+    cycle: unit.cycle, lineageDepth: unit.lineageDepth, isProtagonist: !!unit.isProtagonist,
+    ageBaseDays: unit.ageBaseDays, ageEpochDay: unit.ageEpochDay,
+    lifespanYears: unit.lifespanYears, lifespanEndDay: lifespanEndDayOf(unit),
+    growthAllocation: unit.growthAllocation ?? {}, classQualifications: unit.classQualifications ?? [],
+    hasInheritance: !!unit.inheritance,
     // The arena snapshot the browser needs to build AttackPlans and defense previews.
     snapshot: toSnapshot(unit),
   };

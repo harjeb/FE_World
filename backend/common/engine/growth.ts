@@ -30,7 +30,7 @@ export function growthRates(unit: UnitState): Stats | null {
   const def = CHARACTERS[unit.character];
   const personal = def.growth, own = classOf(unit).growth;
   const rates = {} as Stats;
-  for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + own[key]);
+  for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + (unit.growthAllocation?.[key] ?? 0) + own[key]);
   return applyGrowthBonus(rates, unit.growthType ?? def.growthType, unit.age ?? def.age);
 }
 

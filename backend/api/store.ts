@@ -5,6 +5,7 @@ import type { ItemKey } from '../common/game/items.ts';
 import { SHOP_STOCK } from '../common/game/items.ts';
 import { createUnit, normalizeUnit } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
+import type { LegacyRecord } from '../common/game/legacy.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import { isArenaDay } from '../common/game/calendar.ts';
@@ -16,6 +17,8 @@ export interface PlayerFlags {
   festivalYear: number;
   chapterExpClaimed: number[];
   recruitFails?: number;
+  // 紧急补员：上次领取时的战死人数，防止一次损失重复领取（docs/00 §3.3）。
+  emergencyClaimed?: number;
   // 最近一次 Agent 连接上报时间 (docs/06)，用于区分在线/离线。
   agentLastSeen?: number;
 }
@@ -34,8 +37,13 @@ export interface Player {
   protagonist: string;
   defense: Defense | null;
   flags: PlayerFlags;
+  version: number;
   createdAt: number;
 }
+
+export interface CommandReceipt { commandId: string; op: number; payloadHash: string; response: unknown; committedAt: number }
+export interface MemorialRow { unitId: string; playerId: string; data: MemorialData; createdAt: number }
+export interface MemorialData { unitId: string; name: string; character: string; classId: string; level: number; cause: 'death' | 'retired' | 'age'; atDay: number; battleId: string | null; stats: unknown; lineageDepth: number }
 
 export interface InventoryRow { id: number; item: ItemKey; uses: number; count: number }
 export interface EventRow { id: number; kind: string; text: string; data: unknown; createdAt: number }
@@ -112,12 +120,14 @@ export class Store {
     const flags: PlayerFlags = { clearedRegions: [1, 2], shopMonth: Math.floor(SEED_DAY / 30), festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
     const defense = this.seedDefense(id, legion);
     this.db.prepare(`INSERT INTO players
-      (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, accountId, name, legion, SEED_DAY, SEED_GOLD, SEED_BEXP, 1317, 0, 1, 'erin', JSON.stringify(defense), JSON.stringify(flags), Date.now());
+      (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, version, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(id, accountId, name, legion, SEED_DAY, SEED_GOLD, SEED_BEXP, 1317, 0, 1, 'erin', JSON.stringify(defense), JSON.stringify(flags), 0, Date.now());
     let position = 0;
     for (const [character, level] of SEED_LEVELS) {
-      this.saveUnit(createUnit(character as UnitRecord['character'], level, `u_${character}`, SEED_DAY, true), id, position++);
+      const unit = createUnit(character as UnitRecord['character'], level, `u_${character}`, SEED_DAY, true);
+      if (character === 'erin') unit.isProtagonist = true;
+      this.saveUnit(unit, id, position++);
     }
     this.addInventory(id, 'vulnerary', 3, 5);
     this.addInventory(id, 'herb', 0, 6);
@@ -160,9 +170,9 @@ export class Store {
 
   savePlayer(player: Player): void {
     this.db.prepare(`UPDATE players SET day = ?, gold = ?, bexp = ?, arena_points = ?, arena_medals = ?,
-      registered = ?, protagonist = ?, defense = ?, flags = ? WHERE id = ?`)
+      registered = ?, protagonist = ?, defense = ?, flags = ?, version = ? WHERE id = ?`)
       .run(player.day, player.gold, player.bexp, player.arenaPoints, player.arenaMedals,
-        player.registered ? 1 : 0, player.protagonist, JSON.stringify(player.defense), JSON.stringify(player.flags), player.id);
+        player.registered ? 1 : 0, player.protagonist, JSON.stringify(player.defense), JSON.stringify(player.flags), player.version, player.id);
   }
 
   // ---- units -------------------------------------------------------------
@@ -401,6 +411,57 @@ export class Store {
       .all(playerId, Date.now()) as { id: string; player_id: string; data: string; public_at: number; created_at: number }[])
       .map(r => ({ id: r.id, playerId: r.player_id, data: JSON.parse(r.data), publicAt: r.public_at, createdAt: r.created_at }));
   }
+
+  // ---- idempotent command receipts (docs/13 §1.4、§2.1) -------------------
+
+  receipt(playerId: string, commandId: string): CommandReceipt | null {
+    const row = this.db.prepare('SELECT command_id, op, payload_hash, response, committed_at FROM command_receipts WHERE player_id = ? AND command_id = ?')
+      .get(playerId, commandId) as { command_id: string; op: number; payload_hash: string; response: string; committed_at: number } | undefined;
+    return row ? { commandId: row.command_id, op: row.op, payloadHash: row.payload_hash, response: JSON.parse(row.response), committedAt: row.committed_at } : null;
+  }
+
+  saveReceipt(playerId: string, commandId: string, op: number, payloadHash: string, response: unknown): void {
+    this.db.prepare('INSERT OR IGNORE INTO command_receipts (player_id, command_id, op, payload_hash, response, committed_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(playerId, commandId, op, payloadHash, JSON.stringify(response ?? null), Date.now());
+  }
+
+  // ---- legacies, reincarnation, memorial (docs/13 §2.2) ------------------
+
+  saveLegacy(legacy: LegacyRecord): void {
+    this.db.prepare('INSERT OR REPLACE INTO legacies (id, player_id, source_unit_id, data, created_at) VALUES (?, ?, ?, ?, ?)')
+      .run(legacy.id, legacy.playerId, legacy.sourceUnitId, JSON.stringify(legacy), legacy.createdAt);
+  }
+
+  legacy(playerId: string, legacyId: string): LegacyRecord | null {
+    const row = this.db.prepare('SELECT data FROM legacies WHERE player_id = ? AND id = ?').get(playerId, legacyId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as LegacyRecord : null;
+  }
+
+  legacyBySource(playerId: string, sourceUnitId: string): LegacyRecord | null {
+    const row = this.db.prepare('SELECT data FROM legacies WHERE player_id = ? AND source_unit_id = ?').get(playerId, sourceUnitId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as LegacyRecord : null;
+  }
+
+  legacies(playerId: string): LegacyRecord[] {
+    return (this.db.prepare('SELECT data FROM legacies WHERE player_id = ? ORDER BY created_at DESC').all(playerId) as { data: string }[])
+      .map(row => JSON.parse(row.data) as LegacyRecord);
+  }
+
+  saveReincarnation(playerId: string, unitId: string, data: unknown): void {
+    this.db.prepare('INSERT OR REPLACE INTO reincarnations (unit_id, player_id, data, created_at) VALUES (?, ?, ?, ?)')
+      .run(unitId, playerId, JSON.stringify(data), Date.now());
+  }
+
+  saveMemorial(row: MemorialData): void {
+    this.db.prepare('INSERT OR REPLACE INTO memorials (unit_id, player_id, data, created_at) VALUES (?, ?, ?, ?)')
+      .run(row.unitId, row.playerId, JSON.stringify(row), Date.now());
+  }
+
+  memorials(playerId: string): MemorialRow[] {
+    return (this.db.prepare('SELECT unit_id, player_id, data, created_at FROM memorials WHERE player_id = ? ORDER BY created_at DESC').all(playerId) as
+      { unit_id: string; player_id: string; data: string; created_at: number }[])
+      .map(r => ({ unitId: r.unit_id, playerId: r.player_id, data: JSON.parse(r.data) as MemorialData, createdAt: r.created_at }));
+  }
 }
 
 function rowToPlayer(row: Record<string, unknown>): Player {
@@ -418,6 +479,7 @@ function rowToPlayer(row: Record<string, unknown>): Player {
     protagonist: row.protagonist as string,
     defense: row.defense ? JSON.parse(row.defense as string) as Defense : null,
     flags: JSON.parse(row.flags as string) as PlayerFlags,
+    version: (row.version as number | undefined) ?? 0,
     createdAt: row.created_at as number,
   };
 }

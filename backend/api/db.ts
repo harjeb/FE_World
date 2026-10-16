@@ -10,6 +10,7 @@ export function openDb(path: string): DatabaseSync {
   db.exec('PRAGMA journal_mode = WAL;');
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS players (
   day INTEGER NOT NULL, gold INTEGER NOT NULL, bexp INTEGER NOT NULL,
   arena_points INTEGER NOT NULL DEFAULT 0, arena_medals INTEGER NOT NULL DEFAULT 0,
   registered INTEGER NOT NULL DEFAULT 0, protagonist TEXT NOT NULL, defense TEXT, flags TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS units (
@@ -72,4 +74,30 @@ CREATE TABLE IF NOT EXISTS replays (
   id TEXT NOT NULL, player_id TEXT NOT NULL, data TEXT NOT NULL, public_at INTEGER NOT NULL, created_at INTEGER NOT NULL,
   PRIMARY KEY (player_id, id)
 );
+CREATE TABLE IF NOT EXISTS command_receipts (
+  player_id TEXT NOT NULL, command_id TEXT NOT NULL, op INTEGER NOT NULL, payload_hash TEXT NOT NULL,
+  response TEXT NOT NULL, committed_at INTEGER NOT NULL, PRIMARY KEY (player_id, command_id)
+);
+CREATE TABLE IF NOT EXISTS legacies (
+  id TEXT PRIMARY KEY, player_id TEXT NOT NULL, source_unit_id TEXT NOT NULL UNIQUE, data TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS legacies_player ON legacies(player_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS reincarnations (
+  unit_id TEXT PRIMARY KEY, player_id TEXT NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS memorials (
+  unit_id TEXT PRIMARY KEY, player_id TEXT NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS memorials_player ON memorials(player_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS production_orders (
+  id TEXT PRIMARY KEY, player_id TEXT NOT NULL, data TEXT NOT NULL, state TEXT NOT NULL, ready_day INTEGER NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS production_player ON production_orders(player_id, state, ready_day);
 `;
+
+// Adds columns that predate a save file. CREATE TABLE IF NOT EXISTS cannot do this, so an existing
+// prototype database is upgraded in place (docs/13 §2.1「version」).
+function migrate(db: DatabaseSync): void {
+  const columns = (db.prepare('PRAGMA table_info(players)').all() as { name: string }[]).map(c => c.name);
+  if (!columns.includes('version')) db.exec('ALTER TABLE players ADD COLUMN version INTEGER NOT NULL DEFAULT 0');
+}

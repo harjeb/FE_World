@@ -40,6 +40,34 @@ export const OPS: readonly OpDef[] = [
   { op: 45, name: 'PROMOTE', group: '整备', agentNote: '转职到相邻职业阶段；保留总等级、经验和已获属性。解锁规则待定，开发版暂不收取材料或设置等级门槛。' },
   { op: 46, name: 'ASSIGN_BEXP', group: '整备', agentNote: '把公共经验分配给一个单位；分配不耗行动日，消耗真实库存；满级单位不能分配。' },
   { op: 47, name: 'DISMISS', group: '整备', agentNote: '解雇一个单位；普通解雇不等于符合条件的退役传承。' },
+  { op: 48, name: 'GET_LEGACIES', group: '整备', agentNote: '读取可用与已兑现的遗产（来源、等级、总量、成长向量）。' },
+  { op: 49, name: 'CLAIM_LEGACY', group: '整备', agentNote: '用一个一级新角色兑现一份遗产：mode 取 growth（替换个人成长）或 numeric（逐级保底）；一人一生只接一次。' },
+
+  { op: 74, name: 'RETIRE_UNIT', group: '名册', agentNote: '让达到传承门槛的角色正常退役并生成遗产；退役不可逆，不能继续出战。' },
+  { op: 75, name: 'REINCARNATE_UNIT', group: '名册', agentNote: '让 99 级的存活角色轮回一次：回一级、清学习与资格、年龄 16 岁，并分配 30 个百分点成长。' },
+  { op: 76, name: 'GET_MEMORIAL', group: '名册', agentNote: '读取纪念名册：战死、寿终、退役的角色与原因、最终状态与传承关系。' },
+  { op: 77, name: 'EMERGENCY_RECRUIT', group: '整备', agentNote: '严重损失后的免费酒馆补员：不花钱、不推进日期，每次有效资格随机 2 人。' },
+  { op: 78, name: 'GET_CLASS_MARKET', group: '名册', agentNote: '读取本账号已开放的职业资格与购买价格（按年份开放，可跨路线）。' },
+  { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族与金币，轮回会清除旧资格。' },
+
+  { op: 90, name: 'GET_PRODUCTION', group: '生产', agentNote: '读取农田、工位、进行中的订单与可领取的产出。' },
+  { op: 91, name: 'PLANT', group: '生产', agentNote: '在农田播种：消耗种子并推进 1 日，成熟后收获不额外耗日。' },
+  { op: 92, name: 'START_PRODUCTION', group: '生产', agentNote: '开一个生产订单（炼药／锻造），扣料并占用一个工位，按行动日成熟。' },
+  { op: 93, name: 'COLLECT_PRODUCTION', group: '生产', agentNote: '领取已成熟订单的产出；每单只结算一次，不重抽产出。' },
+  { op: 94, name: 'REPAIR_ITEM', group: '生产', agentNote: '花金币与材料维修一件损坏武器，恢复到它已有的最大耐久，不叠第二个完美奖励。' },
+
+  { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、带入物品与下一图报价。' },
+  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡。' },
+  { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
+  { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
+
+  { op: 110, name: 'GET_ANNUAL', group: '赛事', agentNote: '读取年度大竞技场：报名状态、海选战绩、签表轮次与下一场报价。' },
+  { op: 111, name: 'REGISTER_ANNUAL', group: '赛事', agentNote: '报名本届大竞技场并锁定名单与快照；一旦淘汰或退赛，当届不能重报。' },
+  { op: 112, name: 'START_ANNUAL_MATCH', group: '赛事', agentNote: '开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。' },
+
+  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；名次不阻挡章节。' },
+  { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '完成一章主线事件；只标记完成，不自动发奖。' },
+  { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器。' },
@@ -117,6 +145,7 @@ export const ERRORS: readonly ErrorDef[] = [
   { code: 'ARENA_BAN_INVALID', meaning: '禁用名单不合法', action: '按地图的 B 数从对手名单里禁用不同角色' },
   { code: 'ARENA_PLAN_INVALID', meaning: '出战名单或站位不合法', action: '按地图的 D 人从允许名册里选人并在出生区摆位' },
   { code: 'DEFENSE_INVALID', meaning: '防守设置不合法', action: '读 error.message 里的校验错误后修正' },
+  { code: 'IDEMPOTENCY_CONFLICT', meaning: '同一个 commandId 换了负载', action: '用新的 commandId 重发，或先查询当前状态' },
   { code: 'RATE_LIMITED', meaning: '请求过于频繁', action: '等待片刻再重试' },
   { code: 'INTERNAL', meaning: '服务端内部错误', action: '记录 requestId 并稍后重试，不要原样连发' },
 ];

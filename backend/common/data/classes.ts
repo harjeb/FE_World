@@ -68,3 +68,10 @@ for (const route of Object.keys(CLASS_PATHS) as ClassRoute[]) {
 }
 export function classDef(id: ClassId): ClassDef { return CLASSES[id]; }
 export function initialClass(route: ClassRoute): ClassId { return CLASS_PATHS[route][0][0]; }
+
+// 职业市场（docs/00 §4.1、docs/13 §5.4）：按个人年份开放，可跨路线购买。数值待校准。
+export const CLASS_OPEN_YEAR: Record<ClassStage, number> = { 1: 1, 2: 2, 3: 4, 4: 6, 5: 8 };
+export const CLASS_PRICE: Record<ClassStage, number> = { 1: 500, 2: 1_500, 3: 4_000, 4: 9_000, 5: 20_000 };
+export function classOpenYear(id: ClassId): number { return CLASS_OPEN_YEAR[CLASSES[id].stage]; }
+export function classPrice(id: ClassId): number { return CLASS_PRICE[CLASSES[id].stage]; }
+export function initialClassOf(classId: ClassId): ClassId { return initialClass(CLASSES[classId].route); }

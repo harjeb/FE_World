@@ -1,19 +1,20 @@
 import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { OP } from '../common/protocol/ops.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
 import { actionOptions, expPreview, forecast, moveRange, step, threatMap, unitById } from '../common/engine/index.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { CLASSES, CLASS_PATHS, initialClass } from '../common/data/classes.ts';
+import { CLASSES, CLASS_PATHS, classOpenYear, classPrice, initialClass, initialClassOf } from '../common/data/classes.ts';
 import { CHARACTERS } from '../common/data/characters.ts';
 import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
-import { ACTION_DAYS, dateOf, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
+import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
 import { createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
-import { addWeaponExp, createUnit, gainExperience, promote, rankFromExp, ROSTER_LIMIT, toSnapshot, useDrug } from '../common/game/model.ts';
+import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, promote, rankFromExp, ROSTER_LIMIT, toSnapshot, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { PROMOTIONS } from '../common/data/promotions.ts';
 import { settleAttack, startAttack } from '../common/game/arena.ts';
@@ -24,7 +25,9 @@ import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { seedRng } from '../common/engine/rng.ts';
 import { GROWTH_TYPE_NAMES, RECRUIT_AGE_RANGE, rollGrowthType } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, recordDeath, recordRetire, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, reincarnate, totalStats } from '../common/game/legacy.ts';
+import type { LegacyMode } from '../common/game/legacy.ts';
 
 export class OpError extends Error {
   code: string;
@@ -491,6 +494,153 @@ const handlers: Record<number, Handler> = {
     return { unit: unit.id, removed: true };
   },
 
+  // ---- permanent legion: legacies, retirement, reincarnation (docs/00 §5、§7) ----
+
+  [OP.GET_LEGACIES]: ctx => {
+    const units = ctx.store.units(ctx.player.id);
+    return {
+      minLevel: LEGACY_MIN_LEVEL,
+      legacies: ctx.store.legacies(ctx.player.id).map(legacy => {
+        const recipient = legacy.recipientUnitId ? units.find(u => u.id === legacy.recipientUnitId) : undefined;
+        return {
+          id: legacy.id, sourceUnitId: legacy.sourceUnitId, sourceName: legacy.sourceName,
+          cause: legacy.cause, sourceLevel: legacy.sourceLevel, sourceTotal: totalStats(legacy.sourceStats),
+          sourceStats: legacy.sourceStats, sourceGrowth: legacy.sourceGrowth,
+          state: legacy.state, mode: legacy.mode, recipientUnitId: legacy.recipientUnitId,
+          recipientName: recipient ? CHARACTERS[recipient.character].name : null,
+        };
+      }),
+    };
+  },
+
+  [OP.CLAIM_LEGACY]: (ctx, data) => {
+    const legacy = ctx.store.legacy(ctx.player.id, asString(data.legacyId, 'legacyId'));
+    if (!legacy) throw new OpError('NOT_FOUND', '没有这份遗产');
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const mode = asString(data.mode, 'mode') as LegacyMode;
+    if (mode !== 'growth' && mode !== 'numeric') throw new OpError('BAD_REQUEST', 'mode 取 growth / numeric');
+    const problem = canClaim(legacy, unit);
+    if (problem) throw new OpError('FORBIDDEN', problem);
+    const stone = mode === 'growth' ? 'legacy_stone_growth' : 'legacy_stone_numeric';
+    if (ctx.store.countInventory(ctx.player.id, stone) < 1) throw new OpError('NO_SUCH_ITEM', `需要一枚${GAME_ITEMS[stone].name}`);
+    const preview = previewInheritance(legacy, unit);
+    const weights = (data.weights && typeof data.weights === 'object' ? data.weights : {}) as Record<string, number>;
+    ctx.store.takeInventory(ctx.player.id, stone, 1);
+    claimLegacy(legacy, unit, mode, weights);
+    ctx.store.saveLegacy(legacy);
+    ctx.store.saveUnit(unit, ctx.player.id);
+    ctx.store.addEvent(ctx.player.id, 'legacy', `${CHARACTERS[unit.character].name} 以${mode === 'growth' ? '成长' : '数值'}传承兑现了 ${legacy.sourceName} 的遗产。`, { unit: unit.id, legacy: legacy.id, mode });
+    ctx.push(OP.STATE_CHANGED, { reason: 'legacy' });
+    return { legacy: { id: legacy.id, state: legacy.state, mode: legacy.mode, recipientUnitId: legacy.recipientUnitId }, unit: unitDetail(unit), preview };
+  },
+
+  [OP.RETIRE_UNIT]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    if (unit.character === ctx.player.protagonist) throw new OpError('FORBIDDEN', '主角不能退役');
+    if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
+    const legacyId = recordRetire(ctx.store, ctx.player, unit);
+    ctx.push(OP.STATE_CHANGED, { reason: 'retire' });
+    return { unit: unit.id, status: unit.status, legacyId };
+  },
+
+  [OP.REINCARNATE_UNIT]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const problem = canReincarnate(unit);
+    if (problem) throw new OpError('FORBIDDEN', problem);
+    if (ctx.store.countInventory(ctx.player.id, 'reincarnation_core') < 1) throw new OpError('NO_SUCH_ITEM', '需要一枚轮回核心');
+    const cost = 5000;
+    if (ctx.player.gold < cost) throw new OpError('NOT_ENOUGH_GOLD', `轮回需要 ${cost} 金币`);
+    const allocation = (data.allocation && typeof data.allocation === 'object' ? data.allocation : {}) as Record<string, number>;
+    const initial = initialClassOf(CHARACTERS[unit.character].classId);
+    let result: ReturnType<typeof reincarnate>;
+    try {
+      result = reincarnate(unit, allocation as never, initial, DAYS_PER_YEAR, ctx.player.day);
+    } catch (error) {
+      throw new OpError('FORBIDDEN', error instanceof Error ? error.message : String(error));
+    }
+    ctx.store.takeInventory(ctx.player.id, 'reincarnation_core', 1);
+    ctx.player.gold -= cost;
+    ctx.store.saveUnit(unit, ctx.player.id);
+    ctx.store.saveReincarnation(ctx.player.id, unit.id, result.record);
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'reincarnate', `${CHARACTERS[unit.character].name} 完成轮回，回到 ${CLASSES[initial].name} 与 16 岁。`, { unit: unit.id });
+    ctx.push(OP.STATE_CHANGED, { reason: 'reincarnate' });
+    return { unit: unitDetail(unit), allocation: result.allocation, baseStats: result.baseStats };
+  },
+
+  [OP.GET_MEMORIAL]: ctx => ({
+    memorials: ctx.store.memorials(ctx.player.id).map(row => row.data),
+  }),
+
+  [OP.EMERGENCY_RECRUIT]: ctx => {
+    const units = ctx.store.units(ctx.player.id);
+    const active = units.filter(u => u.status === 'active');
+    const deaths = ctx.store.memorials(ctx.player.id).filter(m => m.data.cause === 'death').length;
+    const claimedFor = ctx.player.flags.emergencyClaimed ?? 0;
+    if (deaths < 3) throw new OpError('FORBIDDEN', '尚未达到严重损失（累计战死 3 人）');
+    if (deaths <= claimedFor) throw new OpError('FORBIDDEN', '本次损失已经领取过免费补员');
+    const room = ROSTER_LIMIT - active.length;
+    if (room < 2) throw new OpError('FORBIDDEN', `名册空间不足（还差 ${2 - room} 个位置）`);
+    const owned = new Set(units.map(u => u.character));
+    const pool = (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]).filter(c => !owned.has(c));
+    const picks = pool.length >= 2 ? pool : (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]);
+    const rng = seedRng(`emergency:${ctx.player.id}:${deaths}`);
+    const created = [];
+    for (let i = 0; i < 2; i++) {
+      const character = picks[(rng[i] ?? i) % picks.length];
+      const level = Math.max(1, regionLevel(ctx.player.flags.clearedRegions.length, 0) - 4);
+      const traits = seedRng(`emergency-traits:${ctx.player.id}:${deaths}:${i}`);
+      const growthType = rollGrowthType(traits[0] % 100);
+      const age = RECRUIT_AGE_RANGE[0] + (traits[1] % (RECRUIT_AGE_RANGE[1] - RECRUIT_AGE_RANGE[0] + 1));
+      const unit = createUnit(character, level, `u_${character}_e${ctx.player.day}_${i}`, ctx.player.day, true, { growthType, age });
+      ctx.store.addUnit(ctx.player.id, unit);
+      created.push(unitSummary(unit));
+    }
+    ctx.player.flags.emergencyClaimed = deaths;
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'recruit', `严重损失补员：酒馆免费加入 ${created.length} 人。`, { units: created.map(u => u.id) });
+    ctx.push(OP.STATE_CHANGED, { reason: 'emergency-recruit' });
+    return { units: created, free: true };
+  },
+
+  [OP.GET_CLASS_MARKET]: (ctx, data) => {
+    const year = dateOf(ctx.player.day).year;
+    const unit = typeof data.unitId === 'string' ? ctx.store.unit(ctx.player.id, data.unitId) : null;
+    return {
+      year,
+      classes: (Object.keys(CLASSES) as (keyof typeof CLASSES)[]).map(id => ({
+        id, name: CLASSES[id].name, stage: CLASSES[id].stage, route: CLASSES[id].route,
+        openYear: classOpenYear(id), open: year >= classOpenYear(id), price: classPrice(id),
+        owned: !!unit?.classQualifications?.includes(id),
+      })),
+    };
+  },
+
+  [OP.BUY_CLASS_QUALIFICATION]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const classId = asString(data.classId, 'classId') as keyof typeof CLASSES;
+    if (!CLASSES[classId]) throw new OpError('NOT_FOUND', `没有职业 ${classId}`);
+    if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能购买资格');
+    if (unit.lockedRunId) throw new OpError('FORBIDDEN', '远征中的角色不能购买资格');
+    const year = dateOf(ctx.player.day).year;
+    if (year < classOpenYear(classId)) throw new OpError('FORBIDDEN', `${CLASSES[classId].name} 要到第 ${classOpenYear(classId)} 年才开放`);
+    const route = CLASSES[classId].route;
+    const required = route === 'beast' ? 'beast' : route === 'dragon' ? 'dragon' : 'human';
+    if (unit.isProtagonist && required !== 'human') throw new OpError('FORBIDDEN', '主角不能购买兽／龙职业资格');
+    if (unit.species !== required) throw new OpError('FORBIDDEN', `${CLASSES[classId].name} 需要 ${required === 'beast' ? '兽' : required === 'dragon' ? '龙' : '人类'}种族`);
+    if (unit.classQualifications?.includes(classId)) throw new OpError('FORBIDDEN', '已经拥有该职业资格');
+    const price = classPrice(classId);
+    if (ctx.player.gold < price) throw new OpError('NOT_ENOUGH_GOLD', `购买 ${CLASSES[classId].name} 需要 ${price} 金币`);
+    ctx.player.gold -= price;
+    unit.classQualifications = [...(unit.classQualifications ?? []), classId];
+    ctx.store.saveUnit(unit, ctx.player.id);
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'class-market', `${CHARACTERS[unit.character].name} 购买职业资格 ${CLASSES[classId].name}（${price} 金币）。`, { unit: unit.id, classId });
+    ctx.push(OP.STATE_CHANGED, { reason: 'class-market' });
+    return { unit: unit.id, classId, price, gold: ctx.player.gold, qualifications: unit.classQualifications };
+  },
+
   // ---- battle ops --------------------------------------------------------
 
   [OP.GET_BATTLE]: (ctx, data) => {
@@ -844,7 +994,34 @@ export function dispatch(ctx: Context, op: number, data: Json): unknown {
       ctx.store.savePlayer(ctx.player);
     }
   }
-  return handler(ctx, data);
+  // 幂等命令收据 (docs/13 §1.4、§2.1)：带 commandId 的写命令超时重发返回原结果，换负载则报冲突。
+  const commandId = typeof data.commandId === 'string' && data.commandId.length > 0 ? data.commandId : null;
+  if (!commandId) return handler(ctx, data);
+  const payloadHash = commandHash(op, data);
+  const existing = ctx.store.receipt(ctx.player.id, commandId);
+  if (existing) {
+    if (existing.payloadHash !== payloadHash || existing.op !== op) {
+      throw new OpError('IDEMPOTENCY_CONFLICT', '同一个 commandId 被用于不同的请求负载');
+    }
+    return existing.response;
+  }
+  const result = handler(ctx, data);
+  ctx.store.saveReceipt(ctx.player.id, commandId, op, payloadHash, result);
+  return result;
+}
+
+// 负载摘要包含操作与数据（去掉 commandId），不包含连接 seq（docs/13 §2.1）。
+function commandHash(op: number, data: Json): string {
+  const rest: Json = {};
+  for (const [key, value] of Object.entries(data)) if (key !== 'commandId') rest[key] = value as Json;
+  return createHash('sha256').update(`${op}:${stableStringify(rest)}`).digest('hex');
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`).join(',')}}`;
 }
 
 export function hasHandler(op: number): boolean {

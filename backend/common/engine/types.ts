@@ -34,6 +34,8 @@ export interface UnitState {
   // 成长类型与年龄（docs/02）: carried per unit so recruits can differ from their character default.
   growthType?: GrowthType;
   age?: number;
+  // 轮回的 30 点个人成长率分配（docs/00 §5.2），加在个人基础上。
+  growthAllocation?: Partial<Stats>;
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
   boss?: boolean;
   behavior?: Behavior;

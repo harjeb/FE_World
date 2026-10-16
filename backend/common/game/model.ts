@@ -14,6 +14,9 @@ import type { RngState } from '../engine/rng.ts';
 import type { ItemStack, Point, Side, UnitState } from '../engine/types.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from './items.ts';
 import type { ItemKey } from './items.ts';
+import { DAYS_PER_YEAR } from './calendar.ts';
+import { applyInheritanceFloor } from './legacy.ts';
+import type { InheritanceContract } from './legacy.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
 
 // The server-side unit: permanent stats plus everything the battle layer needs to build a UnitState
@@ -39,10 +42,40 @@ export interface UnitRecord {
   growthType: GrowthType;
   baseAge: number;
   age: number;
-  growthLog: { level: number; gains: Partial<Stats> }[];
+  // 年龄按天计（docs/13 §2.2）：ageBaseDays 是 ageEpochDay 当天的年龄天数，之后随个人日历增加。
+  ageBaseDays: number;
+  ageEpochDay: number;
+  // 可见自然寿命（整年，从出生起算）；主角不衰老也不寿终。
+  lifespanYears: number;
+  growthLog: { level: number; gains: Partial<Stats>; inherited?: Partial<Stats> }[];
   // 能力药 counts (docs/09.3): 5 per stat, 20 total per round.
   drugCounts: Partial<Record<StatKey, number>>;
   promotedFrom?: ClassId;
+  // 一次轮回（docs/00 §5.2）：cycle 0→1，轮回后成长率分配、资格与学习进度都按新轮次重来。
+  cycle: 0 | 1;
+  // 轮回额外奖励：总计 30 个百分点的个人成长率分配，固定不跨代。
+  growthAllocation: Partial<Stats>;
+  // 已购买职业资格（按轮次）；年份开放后购买，允许跨路线。
+  classQualifications: ClassId[];
+  // 职业学习进度：每个职业已解锁的节点。
+  learningProgress: Partial<Record<ClassId, string[]>>;
+  // 传承血缘锁（docs/00 §7.3）：接收过遗产的 B 为 1，永不再接或再产。
+  lineageDepth: 0 | 1;
+  receivedLegacyId: string | null;
+  isProtagonist?: boolean;
+  retiredDay?: number;
+  reincarnatedDay?: number;
+  // 数值传承的逐级保底合同（docs/00 §7.3.1）。
+  inheritance?: InheritanceContract;
+  // 远征锁（docs/13 §2.4）；锁定中的单位不能轮回或转职。
+  lockedRunId?: string | null;
+}
+
+// Deterministic visible natural lifespan, 80–100 years for humans (docs/00 §3.4).
+function lifespanYearsFor(id: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
+  return 80 + (h % 21);
 }
 
 // Default gear per character, mirroring the arena demo kits so a fresh roster is immediately playable.
@@ -64,6 +97,15 @@ const KITS: Record<CharacterId, { weapons: WeaponId[]; ranks: Partial<Record<Wea
 export function normalizeUnit(unit: UnitRecord): UnitRecord {
   // Old IDs, levels and earned attributes stay intact; only absent progression fields are filled.
   unit.species ??= 'human';
+  unit.cycle ??= 0;
+  unit.lineageDepth ??= 0;
+  unit.receivedLegacyId ??= null;
+  unit.growthAllocation ??= {};
+  unit.classQualifications ??= [];
+  unit.learningProgress ??= {};
+  if (unit.ageEpochDay === undefined) unit.ageEpochDay = unit.joinedDay;
+  if (unit.ageBaseDays === undefined) unit.ageBaseDays = (unit.baseAge ?? CHARACTERS[unit.character].age) * DAYS_PER_YEAR;
+  unit.lifespanYears ??= lifespanYearsFor(unit.id);
   return unit;
 }
 
@@ -72,7 +114,7 @@ export const ROSTER_LIMIT = 18;
 // docs/04: a new character starts at level 1 with the class base. `expected: true` uses the growth
 // expectation (deterministic) — the seed roster and opponents use it; real level-ups roll randomly.
 // `opts` lets recruitment override the character default's growth type and age.
-export interface UnitOptions { growthType?: GrowthType; age?: number; classId?: ClassId }
+export interface UnitOptions { growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1 }
 
 export function createUnit(character: CharacterId, level: number, id: string, joinedDay: number, expected = true, opts: UnitOptions = {}): UnitRecord {
   const def = CHARACTERS[character];
@@ -95,7 +137,10 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     id, character, classId, species: cls.route === 'beast' || cls.route === 'dragon' ? cls.route : 'human', level, exp: 0, stats, con: def.con, hp: stats.hp,
     weapons: [...kit.weapons], items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
     ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, baseAge: age, age,
-    growthLog: [], drugCounts: {},
+    ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
+    lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id), growthLog: [], drugCounts: {},
+    cycle: opts.cycle ?? 0, growthAllocation: {}, classQualifications: [], learningProgress: {},
+    lineageDepth: 0, receivedLegacyId: null,
   };
 }
 
@@ -107,10 +152,22 @@ export function personalGrowth(character: CharacterId, growthType: GrowthType, a
   return applyGrowthBonus(rates, growthType, age);
 }
 
+// 年龄天数（docs/13 §2.2）：ageBaseDays + (day - ageEpochDay)。主角不衰老，返回固定基准。
+export function ageDaysOf(unit: UnitRecord, day: number): number {
+  if (unit.isProtagonist) return unit.ageBaseDays;
+  return unit.ageBaseDays + Math.max(0, day - unit.ageEpochDay);
+}
+
+// 寿终日（绝对行动日）：ageEpochDay + (寿命天数 - 基准年龄天数)。
+export function lifespanEndDayOf(unit: UnitRecord): number {
+  return unit.ageEpochDay + unit.lifespanYears * DAYS_PER_YEAR - unit.ageBaseDays;
+}
+
 // Recomputes a unit's age from the calendar; callers persist the record when it changes.
 export function ageAt(unit: UnitRecord, day: number, daysPerYear: number): number {
   // Old saves may predate baseAge; fall back to the character's written age (docs/02).
   const base = unit.baseAge ?? CHARACTERS[unit.character].age;
+  if (unit.isProtagonist) return base;
   return base + Math.floor((day - unit.joinedDay) / daysPerYear);
 }
 
@@ -121,7 +178,7 @@ export function effectiveCaps(unit: UnitRecord): Stats {
 export function growthRates(unit: UnitRecord): Stats {
   const personal = CHARACTERS[unit.character].growth, own = CLASSES[unit.classId].growth;
   const rates = {} as Stats;
-  for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + own[key]);
+  for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + (unit.growthAllocation?.[key] ?? 0) + own[key]);
   return applyGrowthBonus(rates, unit.growthType, unit.age);
 }
 
@@ -158,6 +215,9 @@ export function levelUp(unit: UnitRecord, rng: RngState): Partial<Stats> {
     if (key === 'hp') unit.hp += gain;
   }
   unit.growthLog.push({ level: unit.level, gains });
+  // 数值遗产的逐级保底在自然成长之后补差额（docs/00 §7.3.1）。
+  const inherited = applyInheritanceFloor(unit);
+  if (Object.keys(inherited).length > 0) unit.growthLog[unit.growthLog.length - 1].inherited = inherited;
   return gains;
 }
 
@@ -194,6 +254,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     level: unit.level, exp: unit.exp, stats: { ...unit.stats }, con: unit.con, hp: unit.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
     ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
+    growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
     acted: false, alive: true, ...extra,
   };
 }
