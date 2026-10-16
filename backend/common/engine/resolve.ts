@@ -14,13 +14,25 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   const dealt = { attacker: false, defender: false };
   for (const spec of f.order) {
     if (attacker.hp === 0 || defender.hp === 0) break;
+    // 石化庇护阻止后续连击、追击与其他攻击（docs/00 §7.2）。
+    if (attacker.petrified || defender.petrified) break;
     const [me, foe, side] = spec.side === 'attacker'
       ? [attacker, defender, f.attacker] as const
       : [defender, attacker, f.defender] as const;
     const hit = roll100(state.rng) + roll100(state.rng) < 2 * side.hit;
     const crit = hit && roll100(state.rng) < (spec.followUp ? side.followUpCrit : side.crit);
     const damage = hit ? side.damage * (crit ? 3 : 1) : 0;
-    foe.hp = Math.max(0, foe.hp - damage);
+    if (damage > 0) {
+      foe.hp = Math.max(0, foe.hp - damage);
+      // 不朽盾：致命时消耗一枚、保留 1HP 并石化，后续攻击不再致死（docs/00 §7.2）。
+      if (foe.hp === 0 && (foe.shields ?? 0) > 0) {
+        foe.shields = (foe.shields ?? 0) - 1;
+        foe.shieldsUsed = (foe.shieldsUsed ?? 0) + 1;
+        foe.hp = 1;
+        foe.petrified = true;
+        events.push({ t: 'shield', unit: foe.id });
+      }
+    }
     if (damage > 0) dealt[spec.side] = true;
     strikes.push({ by: me.id, target: foe.id, hit, crit, damage, hpAfter: foe.hp });
   }

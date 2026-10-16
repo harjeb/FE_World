@@ -219,18 +219,18 @@ function MemorialPanel({ memorials, legacies }: { memorials: ServerMemorial[] | 
   );
 }
 
-function EmergencyPanel({ status }: { status: { deaths: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null } | null }) {
+function EmergencyPanel({ status }: { status: { deaths: number; claimedFor: number; survivors: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null } | null }) {
   const { busy, act } = useAct();
   return (
     <section className="panel" aria-labelledby="em-h">
       <div className="ph"><h2 id="em-h">酒馆 · 紧急补员</h2>{status && <span className={`tag ${status.available ? 'tag-green' : 'tag-grey'}`}>{status.available ? '可以领取' : '未开放'}</span>}</div>
-      <p className="sys-note">累计战死 {status?.threshold ?? 3} 人后，可以在酒馆免费招募随机 {status?.units ?? 2} 人：不花金币、不推进日期，每次新的损失只能领一次。</p>
+      <p className="sys-note">真实伤亡使现役存活人数降到 {status?.threshold ?? 2} 人及以下（含主角）时，可以在酒馆免费招募随机 {status?.units ?? 2} 人：不花金币、不推进日期。解雇、退役与派遣都不算新伤亡；每次新的真实损失只能领一次。</p>
       {status && (
         <>
           <Checks items={[
-            [status.deaths >= status.threshold, `累计战死 ${status.deaths} / ${status.threshold} 人`],
+            [status.deaths > status.claimedFor, `新的真实伤亡（已领取到第 ${status.claimedFor} 次）`],
+            [status.survivors <= status.threshold, `现役存活 ${status.survivors} 人（需要 ≤${status.threshold}）`],
             [status.room >= status.units, `名册空位 ${status.room}（需要 ${status.units} 个）`],
-            ...(status.blocker && status.deaths >= status.threshold && status.room >= status.units ? [[false, status.blocker] as [boolean, string]] : []),
           ]} />
           <div className="go-bar">
             <button type="button" className="btn btn-primary" disabled={busy !== null || !status.available}

@@ -68,11 +68,12 @@ export function eligibleForLegacy(unit: UnitRecord): boolean {
   return !unit.isProtagonist && unit.lineageDepth === 0 && unit.level >= LEGACY_MIN_LEVEL && unit.status !== 'dead';
 }
 
-// 来源的成长向量：个人基础 + 已记录装备／被动／传承偏移，排除职业与年龄曲线（docs/00 §7.3）。
+// 来源的成长向量：个人基础（若已接受过成长传承则用继承后的基础）＋已记录装备／被动／轮回偏移，
+// 排除职业与年龄曲线（docs/00 §7.3）。
 export function sourceGrowthVector(unit: UnitRecord): Stats {
-  const personal = CHARACTERS[unit.character].growth;
+  const personal = unit.inheritedGrowth ?? CHARACTERS[unit.character].growth;
   const out = {} as Stats;
-  for (const key of STAT_KEYS) out[key] = Math.max(0, personal[key] + (unit.growthAllocation?.[key] ?? 0));
+  for (const key of STAT_KEYS) out[key] = Math.max(0, (personal[key] ?? 0) + (unit.growthAllocation?.[key] ?? 0));
   return out;
 }
 
@@ -168,18 +169,9 @@ export function claimLegacy(legacy: LegacyRecord, recipient: UnitRecord, mode: L
   const problem = canClaim(legacy, recipient);
   if (problem) throw new Error(problem);
   if (mode === 'growth') {
-    const personal = CHARACTERS[recipient.character].growth;
-    const allocation: Partial<Stats> = {};
-    for (const key of STAT_KEYS) {
-      const offset = legacy.sourceGrowth[key] - personal[key];
-      if (offset !== 0) allocation[key] = offset;
-    }
-    // 保留轮回已分配的 30 点，叠加在成长遗产之上（docs/00 §5.2）。
-    for (const key of STAT_KEYS) {
-      const add = recipient.growthAllocation?.[key] ?? 0;
-      if (add !== 0) allocation[key] = (allocation[key] ?? 0) + add;
-    }
-    recipient.growthAllocation = allocation;
+    // 成长传承替换个人基础向量（绝对向量）；轮回保留它（docs/00 §5.2），
+    // 轮回的 30 点分配单列在 growthAllocation，两者不混在一起。
+    recipient.inheritedGrowth = { ...legacy.sourceGrowth };
   }
   const caps = effectiveCaps(recipient);
   const initialTotal = totalStats(recipient.stats);
@@ -212,6 +204,7 @@ export function canReincarnate(unit: UnitRecord): string | null {
   if (unit.status !== 'active') return '只有存活且未锁定的角色可以轮回';
   if (unit.level < REINCARNATION_LEVEL) return `必须达到 ${REINCARNATION_LEVEL} 级才能轮回`;
   if (unit.lockedRunId) return '远征中的角色不能轮回';
+  if (unit.lockedDispatchId) return '派遣中的角色不能轮回';
   return null;
 }
 
@@ -246,7 +239,10 @@ export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initia
   unit.drugCounts = {};
   unit.growthAllocation = { ...allocation };
   unit.classQualifications = [];
+  unit.classMastery = {};
   unit.learningProgress = {};
+  unit.learnedSkills = [];
+  unit.equippedSkills = [];
   unit.weapons = [];
   unit.items = [];
   unit.ranks = {};

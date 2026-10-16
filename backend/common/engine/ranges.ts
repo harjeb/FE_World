@@ -1,4 +1,5 @@
 import type { WeaponId } from '../data/weapons.ts';
+import { ITEMS } from '../data/weapons.ts';
 import { moveRange } from './movement.ts';
 import type { MoveRange } from './movement.ts';
 import { attackWeapons, cellKey, distance, inBounds, inRange, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
@@ -27,7 +28,10 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
   const heal = staffWeapons(unit)
     .map(weapon => ({ weapon, targets: targetsFrom(state, unit, to, weapon, 'heal') }))
     .filter(o => o.targets.length > 0);
-  const items = unit.hp < unit.stats.hp ? unit.items.map((_, i) => i) : [];
+  // 不朽盾不进入道具菜单，只在致死时自动触发（docs/00 §7.2）。
+  const items = unit.hp < unit.stats.hp
+    ? unit.items.map((_, i) => i).filter(i => !(ITEMS[unit.items[i].id] as { shield?: boolean }).shield)
+    : [];
   return { attack, heal, items, seize: canSeize(state, unit, to) };
 }
 

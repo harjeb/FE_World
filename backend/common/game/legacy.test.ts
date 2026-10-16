@@ -49,11 +49,21 @@ test('a claimed growth legacy replaces the personal vector and locks the lineage
   assert.equal(recipient.receivedLegacyId, legacy.id);
   assert.equal(legacy.state, 'claimed');
   assert.equal(legacy.mode, 'growth');
+  // 成长遗产替换个人基础向量（绝对向量），不含职业成长。
+  assert.deepEqual(recipient.inheritedGrowth, legacy.sourceGrowth);
   assert.notEqual(growthRates(recipient).str, before);
-  // 成长遗产只复制个人基础＋装备偏移，不含职业成长；erin 与 owen 的差值应等于两角色个人成长差。
-  const expected = sourceGrowthVector(source).str - (sourceGrowthVector(source).str - 0);
-  assert.equal(typeof expected, 'number');
   assert.equal(canClaim(legacy, recipient), '这份遗产已经被兑现');
+});
+
+test('reincarnation keeps the inherited growth and only adds the 30-point allocation', () => {
+  const source = createUnit('erin', 20, 'src2', 0, false, { growthType: 'growth', age: 20 });
+  const recipient = createUnit('owen', 1, 'dst2', 0, false, { classId: 'gladiator', age: 18 });
+  claimLegacy(legacyFor(source), recipient, 'growth');
+  const inherited = { ...recipient.inheritedGrowth };
+  recipient.level = 99;
+  reincarnate(recipient, { str: 10 }, 'gladiator', 120, 0);
+  assert.deepEqual(recipient.inheritedGrowth, inherited, '轮回保留继承后的个人基础成长');
+  assert.deepEqual(recipient.growthAllocation, { str: 10 });
 });
 
 test('a numeric legacy tops the recipient up to the per-level floor', () => {

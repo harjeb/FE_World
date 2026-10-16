@@ -76,5 +76,7 @@ export function triangle(mine: WeaponType, theirs: WeaponType): -1 | 0 | 1 {
 
 export const ITEMS = {
   vulnerary: { name: '伤药', heal: 10, uses: 3 },
+  // 不朽盾（docs/00 §7.2）：不是治疗道具，只在致死时自动触发；shield 标记让它不出现在道具菜单。
+  immortal_shield: { name: '不朽盾', heal: 0, uses: 1, shield: true },
 } as const;
 export type ItemId = keyof typeof ITEMS;

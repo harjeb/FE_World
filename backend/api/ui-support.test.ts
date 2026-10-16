@@ -67,20 +67,24 @@ test('story chapters show a title once open and what was learned once completed'
 test('the memorial reports the free emergency recruit status and the op follows it', () => {
   const { store, accountId, player } = setup('emergency-ui');
   const ctx = ctxFor(store, accountId, player);
-  const status = () => (dispatch(ctx, OP.GET_MEMORIAL, {}) as { emergency: { deaths: number; available: boolean; blocker: string | null } }).emergency;
+  const status = () => (dispatch(ctx, OP.GET_MEMORIAL, {}) as { emergency: { deaths: number; available: boolean; blocker: string | null; survivors: number } }).emergency;
   assert.equal(status().available, false);
-  assert.match(status().blocker ?? '', /累计战死 3 人/);
-  for (const id of ['u_owen', 'u_noah', 'u_lina']) recordDeath(store, player, store.unit(player.id, id)!, 'death', null);
+  assert.match(status().blocker ?? '', /新的真实伤亡/);
+  // Real casualties until only two survivors remain (the protagonist included).
+  for (const id of ['u_karl', 'u_victor', 'u_lina', 'u_owen', 'u_sera', 'u_noah', 'u_gustav', 'u_ren', 'u_ig', 'u_mira']) {
+    recordDeath(store, player, store.unit(player.id, id)!, 'death', null);
+  }
   const ready = status();
-  assert.equal(ready.deaths, 3);
+  assert.equal(ready.deaths, 10);
+  assert.equal(ready.survivors, 2);
   assert.equal(ready.available, true);
   assert.equal(ready.blocker, null);
   const recruited = dispatch(ctx, OP.EMERGENCY_RECRUIT, {}) as { units: unknown[] };
   assert.equal(recruited.units.length, 2);
   const after = status();
   assert.equal(after.available, false);
-  assert.match(after.blocker ?? '', /已经领取过/);
-  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /已经领取过/);
+  assert.match(after.blocker ?? '', /新的真实伤亡/);
+  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /新的真实伤亡/);
 });
 
 test('a dungeon run reports the HP and supplies each survivor carries into the next map', () => {

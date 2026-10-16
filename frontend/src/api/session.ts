@@ -173,7 +173,7 @@ export interface ServerMemorial {
   unitId: string; name: string; character: string; classId: string; level: number;
   cause: 'death' | 'retired' | 'age'; atDay: number; battleId: string | null; stats: Stats; lineageDepth: number;
 }
-export interface ServerEmergency { deaths: number; claimedFor: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null }
+export interface ServerEmergency { deaths: number; claimedFor: number; survivors: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null }
 
 // GET_CLASS_MARKET: every class, when it opens and what a qualification costs (docs/00 §5).
 export interface ClassMarketRow { id: string; name: string; stage: number; route: string; openYear: number; open: boolean; price: number; owned: boolean }

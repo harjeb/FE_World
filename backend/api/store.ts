@@ -9,6 +9,8 @@ import type { LegacyRecord } from '../common/game/legacy.ts';
 import type { ProductionOrder } from '../common/game/production.ts';
 import type { RunRecord } from '../common/game/expedition.ts';
 import type { AnnualEntry } from '../common/game/annual.ts';
+import type { DispatchRecord } from '../common/game/dispatch.ts';
+import type { MonthlyRatingReward, RatingPeriod, RatingRow } from '../common/game/ratings.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import { isArenaDay } from '../common/game/calendar.ts';
@@ -550,6 +552,77 @@ export class Store {
       { player_version: number; data: string } | undefined;
     return row ? { playerVersion: row.player_version, data: JSON.parse(row.data) as Record<string, unknown> } : null;
   }
+
+  // ---- background dispatches (docs/13 §5.5) -----------------------------
+
+  saveDispatch(dispatch: DispatchRecord): void {
+    this.db.prepare('INSERT OR REPLACE INTO dispatches (id, player_id, state, return_day, data, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(dispatch.id, dispatch.playerId, dispatch.state, dispatch.returnDay, JSON.stringify(dispatch), dispatch.createdAt);
+  }
+
+  dispatch(playerId: string, id: string): DispatchRecord | null {
+    const row = this.db.prepare('SELECT data FROM dispatches WHERE player_id = ? AND id = ?').get(playerId, id) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as DispatchRecord : null;
+  }
+
+  dispatches(playerId: string): DispatchRecord[] {
+    return (this.db.prepare('SELECT data FROM dispatches WHERE player_id = ? ORDER BY created_at DESC').all(playerId) as { data: string }[])
+      .map(row => JSON.parse(row.data) as DispatchRecord);
+  }
+
+  runningDispatches(playerId: string): DispatchRecord[] {
+    return (this.db.prepare("SELECT data FROM dispatches WHERE player_id = ? AND state = 'running' ORDER BY return_day").all(playerId) as { data: string }[])
+      .map(row => JSON.parse(row.data) as DispatchRecord);
+  }
+
+  // ---- real-month ratings (docs/13 §6.4) --------------------------------
+
+  saveRatingPeriod(period: RatingPeriod): void {
+    this.db.prepare('INSERT OR REPLACE INTO rating_periods (id, mode, starts_at, ends_at, status, rewards_finalized_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(period.id, period.mode, period.startsAt, period.endsAt, period.status, period.rewardsFinalizedAt);
+  }
+
+  ratingPeriod(id: string, mode = 'arena'): RatingPeriod | null {
+    const row = this.db.prepare('SELECT * FROM rating_periods WHERE id = ? AND mode = ?').get(id, mode) as Record<string, unknown> | undefined;
+    return row ? rowToPeriod(row) : null;
+  }
+
+  activeRatingPeriod(mode = 'arena'): RatingPeriod | null {
+    const row = this.db.prepare("SELECT * FROM rating_periods WHERE mode = ? AND status = 'active' ORDER BY starts_at DESC LIMIT 1").get(mode) as Record<string, unknown> | undefined;
+    return row ? rowToPeriod(row) : null;
+  }
+
+  ratingPeriods(mode = 'arena'): RatingPeriod[] {
+    return (this.db.prepare('SELECT * FROM rating_periods WHERE mode = ? ORDER BY starts_at DESC').all(mode) as Record<string, unknown>[]).map(rowToPeriod);
+  }
+
+  rating(periodId: string, playerId: string, mode = 'arena'): RatingRow | null {
+    const row = this.db.prepare('SELECT * FROM ratings WHERE period_id = ? AND player_id = ? AND mode = ?').get(periodId, playerId, mode) as Record<string, unknown> | undefined;
+    return row ? rowToRating(row) : null;
+  }
+
+  saveRating(row: RatingRow): void {
+    this.db.prepare('INSERT OR REPLACE INTO ratings (period_id, player_id, mode, progress_bracket, rating, wins, losses, matches) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(row.periodId, row.playerId, row.mode, row.progressBracket, row.rating, row.wins, row.losses, row.matches);
+  }
+
+  ratingsForPeriod(periodId: string, mode = 'arena'): RatingRow[] {
+    return (this.db.prepare('SELECT * FROM ratings WHERE period_id = ? AND mode = ?').all(periodId, mode) as Record<string, unknown>[]).map(rowToRating);
+  }
+
+  saveMonthlyReward(row: MonthlyRatingReward): void {
+    this.db.prepare('INSERT OR REPLACE INTO monthly_rating_rewards (period_id, player_id, final_rank, reward, claimed_at) VALUES (?, ?, ?, ?, ?)')
+      .run(row.periodId, row.playerId, row.finalRank, JSON.stringify(row.reward), row.claimedAt);
+  }
+
+  monthlyReward(periodId: string, playerId: string): MonthlyRatingReward | null {
+    const row = this.db.prepare('SELECT * FROM monthly_rating_rewards WHERE period_id = ? AND player_id = ?').get(periodId, playerId) as Record<string, unknown> | undefined;
+    return row ? rowToReward(row) : null;
+  }
+
+  monthlyRewards(playerId: string): MonthlyRatingReward[] {
+    return (this.db.prepare('SELECT * FROM monthly_rating_rewards WHERE player_id = ? ORDER BY period_id DESC').all(playerId) as Record<string, unknown>[]).map(rowToReward);
+  }
 }
 
 function rowToPlayer(row: Record<string, unknown>): Player {
@@ -580,4 +653,26 @@ function toSnap(character: string, level: number) {
 
 export function isPlayerArenaDay(player: Player): boolean {
   return player.registered && isArenaDay(player.day);
+}
+
+function rowToPeriod(row: Record<string, unknown>): RatingPeriod {
+  return {
+    id: row.id as string, mode: row.mode as string, startsAt: row.starts_at as number, endsAt: row.ends_at as number,
+    status: row.status as RatingPeriod['status'], rewardsFinalizedAt: (row.rewards_finalized_at as number | null) ?? null,
+  };
+}
+
+function rowToRating(row: Record<string, unknown>): RatingRow {
+  return {
+    periodId: row.period_id as string, playerId: row.player_id as string, mode: row.mode as string,
+    progressBracket: row.progress_bracket as number, rating: row.rating as number, wins: row.wins as number,
+    losses: row.losses as number, matches: row.matches as number,
+  };
+}
+
+function rowToReward(row: Record<string, unknown>): MonthlyRatingReward {
+  return {
+    periodId: row.period_id as string, playerId: row.player_id as string, finalRank: row.final_rank as number,
+    reward: JSON.parse(row.reward as string) as { gold: number }, claimedAt: (row.claimed_at as number | null) ?? null,
+  };
 }

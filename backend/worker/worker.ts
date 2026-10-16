@@ -1,13 +1,16 @@
 import { fileURLToPath } from 'node:url';
 import { openDb } from '../api/db.ts';
 import { Store } from '../api/store.ts';
-import { snapshotData, syncPlayer } from '../api/services.ts';
+import { snapshotData, settleMonthlyRatings, syncPlayer } from '../api/services.ts';
 import { isArenaDay } from '../common/game/calendar.ts';
 
 // The worker (docs/07): month-end snapshots, arena-day settlement and the due_tasks queue. Because the
 // calendar is personal and lazy, most of the work is idempotent sweeping — restarting never doubles it.
 export function tick(store: Store, now = Date.now()): number {
   let handled = 0;
+  // 现实月榜按服务端时钟归档与重置，不推进个人日期（docs/13 §6.4）。
+  const rating = settleMonthlyRatings(store, now);
+  handled += rating.archived.length;
   for (const player of store.allPlayers()) {
     if (player.registered && !isArenaDay(player.day)) {
       // Nothing to do; syncPlayer handles the lazy arena open/settle below.

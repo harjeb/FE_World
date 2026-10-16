@@ -9,6 +9,7 @@ import { RANKS, STAT_KEYS } from '../data/types.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
+import type { SkillId } from '../data/skills.ts';
 import { nextU32 } from '../engine/rng.ts';
 import type { RngState } from '../engine/rng.ts';
 import type { ItemStack, Point, Side, UnitState } from '../engine/types.ts';
@@ -55,10 +56,17 @@ export interface UnitRecord {
   cycle: 0 | 1;
   // 轮回额外奖励：总计 30 个百分点的个人成长率分配，固定不跨代。
   growthAllocation: Partial<Stats>;
-  // 已购买职业资格（按轮次）；年份开放后购买，允许跨路线。
+  // 成长率传承替换后的个人基础成长向量（绝对向量，非偏移）；轮回保留（docs/00 §5.2）。
+  inheritedGrowth: Partial<Stats> | null;
+  // 已购买职业资格（按轮次）；年份开放后购买，允许跨路线；已购职业可在营地免费切回。
   classQualifications: ClassId[];
-  // 职业学习进度：每个职业已解锁的节点。
+  // 职业精通（docs/00 §4.2.1）：按 (cycle, classId) 独立累计，由有效参战／训练提供。
+  classMastery: Partial<Record<ClassId, number>>;
+  // 职业学习进度：每个职业已解锁的精通节点。
   learningProgress: Partial<Record<ClassId, string[]>>;
+  // 已学会、可跨职业自由装备的技能（共用 5 格）；个人技能单列，不算在 5 格内。
+  learnedSkills: SkillId[];
+  equippedSkills: SkillId[];
   // 传承血缘锁（docs/00 §7.3）：接收过遗产的 B 为 1，永不再接或再产。
   lineageDepth: 0 | 1;
   receivedLegacyId: string | null;
@@ -69,6 +77,8 @@ export interface UnitRecord {
   inheritance?: InheritanceContract;
   // 远征锁（docs/13 §2.4）；锁定中的单位不能轮回或转职。
   lockedRunId?: string | null;
+  // 后台派遣锁（docs/13 §5.5）；派遣中不能参加其他战斗、换职、轮回或退役。
+  lockedDispatchId?: string | null;
 }
 
 // Deterministic visible natural lifespan per species (docs/00 §3.4): humans 80–100, beasts shorter,
@@ -109,8 +119,12 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   unit.lineageDepth ??= 0;
   unit.receivedLegacyId ??= null;
   unit.growthAllocation ??= {};
+  unit.inheritedGrowth ??= null;
   unit.classQualifications ??= [];
+  unit.classMastery ??= {};
   unit.learningProgress ??= {};
+  unit.learnedSkills ??= [];
+  unit.equippedSkills ??= [];
   if (unit.ageEpochDay === undefined) unit.ageEpochDay = unit.joinedDay;
   if (unit.ageBaseDays === undefined) unit.ageBaseDays = (unit.baseAge ?? CHARACTERS[unit.character].age) * DAYS_PER_YEAR;
   unit.lifespanYears ??= lifespanYearsFor(unit.id, unit.species);
@@ -148,7 +162,8 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
-    cycle: opts.cycle ?? 0, growthAllocation: {}, classQualifications: [], learningProgress: {},
+    cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
+    learnedSkills: [], equippedSkills: [],
     lineageDepth: 0, receivedLegacyId: null,
   };
 }
@@ -185,9 +200,10 @@ export function effectiveCaps(unit: UnitRecord): Stats {
 }
 
 export function growthRates(unit: UnitRecord): Stats {
-  const personal = CHARACTERS[unit.character].growth, own = CLASSES[unit.classId].growth;
+  const personal = unit.inheritedGrowth ?? CHARACTERS[unit.character].growth;
+  const own = CLASSES[unit.classId].growth;
   const rates = {} as Stats;
-  for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + (unit.growthAllocation?.[key] ?? 0) + own[key]);
+  for (const key of STAT_KEYS) rates[key] = Math.max(0, (personal[key] ?? 0) + (unit.growthAllocation?.[key] ?? 0) + own[key]);
   return applyGrowthBonus(rates, unit.growthType, unit.age);
 }
 
@@ -264,6 +280,9 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
     ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
+    inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
+    skills: [...(unit.equippedSkills ?? [])],
+    shields: unit.items.filter(i => i.id === 'immortal_shield').length,
     acted: false, alive: true, ...extra,
   };
 }
@@ -277,12 +296,13 @@ export function rankFromExp(exp: number): Rank {
 }
 
 // Weapon experience raises the rank when it crosses a threshold (docs/04.3「熟练度通过实际使用提升」).
-export function addWeaponExp(unit: UnitRecord, type: WeaponType, amount: number): Rank | null {
+// `classId` overrides the class whose weapon cap applies (used by training a class off-field).
+export function addWeaponExp(unit: UnitRecord, type: WeaponType, amount: number, classId: ClassId = unit.classId): Rank | null {
   const before = unit.ranks[type] ?? 'E';
   const exp = Math.max(unit.weaponExp[type] ?? 0, RANK_EXP[before]) + amount;
   unit.weaponExp[type] = exp;
   const after = rankFromExp(exp);
-  const cap = CLASSES[unit.classId].weapons[type];
+  const cap = CLASSES[classId].weapons[type];
   const capped = cap && RANKS[Math.min(RANKS.indexOf(after), RANKS.indexOf(cap))];
   if (capped && RANKS.indexOf(capped) > RANKS.indexOf(before)) {
     unit.ranks[type] = capped;

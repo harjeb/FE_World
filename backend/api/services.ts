@@ -5,7 +5,13 @@ import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
-import { addWeaponExp, ageAt, effectiveCaps, growthRates, lifespanEndDayOf, toSnapshot } from '../common/game/model.ts';
+import { addWeaponExp, ageAt, effectiveCaps, gainExperience, growthRates, lifespanEndDayOf, toSnapshot } from '../common/game/model.ts';
+import { gainMastery, MASTERY_PER_BATTLE, MASTERY_PER_TRAIN_DAY, MASTERY_PER_WIN } from '../common/game/mastery.ts';
+import { dispatchMaterials, dispatchWeapons } from '../common/game/dispatch.ts';
+import type { DispatchResult } from '../common/game/dispatch.ts';
+import { createPeriod, periodIdFor, rankByRating, ratingDelta, rewardForRank } from '../common/game/ratings.ts';
+import type { RatingPeriod, RatingRow } from '../common/game/ratings.ts';
+import { seedRng } from '../common/engine/rng.ts';
 import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
 import { carryFromBattle, DUNGEON_STAGES, stageLoot } from '../common/game/expedition.ts';
@@ -67,6 +73,8 @@ export function syncPlayer(store: Store, player: Player): Player {
   for (const day of store.unsettledArenaDays(player.id)) {
     if (day.day < player.day) settleArenaDay(store, player, day);
   }
+  // 后台派遣达到 return_day 时一次结算（docs/13 §5.5）。
+  settleDispatches(store, player);
   // 自然寿终：主角不衰老，其他角色到寿终日在日历推进时死亡（docs/00 §3.4）。
   for (const unit of store.units(player.id)) {
     if (unit.status !== 'active' || unit.isProtagonist) continue;
@@ -108,6 +116,8 @@ export function settleArenaDay(store: Store, player: Player, day: ArenaDayRecord
   player.gold += gold;
   player.arenaPoints += progress.points;
   player.arenaMedals += day.defenseTrials.filter(t => t.held).length;
+  // 现实月榜：有效赛果记入当前现实月，与个人日历无关（docs/13 §6.4）。
+  recordRating(store, player.id, wins, losses);
   store.saveArenaDay(day);
   store.addEvent(player.id, 'arena', `竞技场日结算：进攻 ${wins} 胜 ${losses} 负，积分 +${progress.points}，金币 +${gold}。`, {
     day: day.day, wins, losses, points: progress.points, gold,
@@ -123,6 +133,7 @@ export function recordDeath(store: Store, player: Player, unit: UnitRecord, caus
   if (legacy) store.saveLegacy(legacy);
   recoverEquipment(store, player, unit);
   unit.status = 'dead';
+  unit.lockedDispatchId = null;
   store.saveUnit(unit, player.id);
   store.saveMemorial({
     unitId: unit.id, playerId: player.id, name: CHARACTERS[unit.character].name, character: unit.character,
@@ -183,6 +194,18 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       for (const type of used.get(battleUnit.id) ?? []) {
         const rank = addWeaponExp(unit, type, 2);
         if (rank) rewards.weaponRanks.push({ unit: unit.id, type, rank });
+      }
+      // 有效参战积累当前职业精通（docs/00 §4.2.1）；普通竞技场／练习不计。
+      if (record.mode === 'field' || record.mode === 'festival') {
+        gainMastery(unit, MASTERY_PER_BATTLE + (outcome.winner === 'player' ? MASTERY_PER_WIN : 0));
+      }
+      // 真实扣除已触发的不朽盾（docs/00 §7.2）；普通竞技场／练习用副本，不写回真实资产。
+      if (lethal && battleUnit.shieldsUsed) {
+        let used = battleUnit.shieldsUsed;
+        unit.items = unit.items.filter(item => {
+          if (used > 0 && item.id === 'immortal_shield') { used--; return false; }
+          return true;
+        });
       }
       store.saveUnit(unit, player.id);
     } else if (lethal) {
@@ -308,6 +331,95 @@ export function handleAnnualOutcome(store: Store, player: Player, record: Battle
   return { entry, finished: entry.state === 'champion' || entry.state === 'eliminated' };
 }
 
+// 后台派遣结算（docs/00 §9.1.1、docs/13 §5.5）：达到 return_day 时只结算一次，奖励只给参与者。
+// 出发时冻结的职业／武器在此入账；返程后释放人员锁。
+export function settleDispatches(store: Store, player: Player): DispatchResult[] {
+  const settled: DispatchResult[] = [];
+  for (const dispatch of store.runningDispatches(player.id)) {
+    if (dispatch.returnDay > player.day) continue;
+    const materials = dispatchMaterials(dispatch.region, dispatch.durationDays);
+    const weaponRoll = seedRng(`dispatch-weapons:${dispatch.id}`)[0] % 4;
+    const weapons = dispatchWeapons(dispatch.region, dispatch.durationDays, weaponRoll);
+    const unitRewards: DispatchResult['unitRewards'] = [];
+    for (const unitId of dispatch.unitIds) {
+      const unit = store.unit(player.id, unitId);
+      if (!unit || unit.status !== 'active') continue;
+      const exp = 20 * dispatch.durationDays;
+      const ups = gainExperience(unit, exp, seedRng(`dispatch-exp:${dispatch.id}:${unitId}`));
+      const mastery = MASTERY_PER_TRAIN_DAY * dispatch.durationDays;
+      const unlocked = gainMastery(unit, mastery, dispatch.classId).map(node => node.name);
+      const weaponRank = addWeaponExp(unit, dispatch.weaponType, dispatch.durationDays, dispatch.classId);
+      store.saveUnit(unit, player.id);
+      unitRewards.push({ unitId, exp, levelUps: ups.map(u => ({ level: u.level, gains: u.gains as Record<string, number> })), mastery, unlocked, weaponType: dispatch.weaponType, weaponRank });
+    }
+    for (const row of materials) store.addInventory(player.id, row.item, 0, row.count);
+    for (const row of weapons) store.addInventory(player.id, row.item, 0, row.count);
+    dispatch.state = 'returned';
+    dispatch.result = { day: player.day, materials, weapons, unitRewards };
+    store.saveDispatch(dispatch);
+    for (const unitId of dispatch.unitIds) {
+      const unit = store.unit(player.id, unitId);
+      if (unit?.lockedDispatchId === dispatch.id) { unit.lockedDispatchId = null; store.saveUnit(unit, player.id); }
+    }
+    store.addEvent(player.id, 'dispatch', `派遣返程：${dispatch.unitIds.length} 人经过 ${dispatch.durationDays} 日。`, { dispatchId: dispatch.id });
+    settled.push(dispatch.result);
+  }
+  return settled;
+}
+
+// 现实月榜（docs/13 §6.4）：确保当前现实月有一个 active period，不推进个人日期。
+export function ensureRatingPeriod(store: Store, now = Date.now(), mode = 'arena'): RatingPeriod {
+  const id = periodIdFor(now);
+  const active = store.activeRatingPeriod(mode);
+  if (active) return active;
+  const period = createPeriod(id, mode);
+  store.saveRatingPeriod(period);
+  return period;
+}
+
+// 把一场有效赛果记入当前现实月；胜多负少，跨月只计新月一次。
+export function recordRating(store: Store, playerId: string, wins: number, losses: number, mode = 'arena', now = Date.now()): RatingRow {
+  const period = ensureRatingPeriod(store, now, mode);
+  const row: RatingRow = store.rating(period.id, playerId, mode) ?? {
+    periodId: period.id, playerId, mode, progressBracket: 0, rating: 0, wins: 0, losses: 0, matches: 0,
+  };
+  row.wins += wins;
+  row.losses += losses;
+  row.matches += wins + losses;
+  row.rating += ratingDelta(wins, losses);
+  store.saveRating(row);
+  return row;
+}
+
+// 归档旧月、冻结奖励并开启新月；幂等，可反复调用。
+export function settleMonthlyRatings(store: Store, now = Date.now(), mode = 'arena'): { archived: string[]; active: string } {
+  const id = periodIdFor(now);
+  const active = store.activeRatingPeriod(mode);
+  const archived: string[] = [];
+  if (active && active.id !== id) {
+    const rows = store.ratingsForPeriod(active.id, mode);
+    const ranks = rankByRating(rows);
+    for (const row of rows) {
+      const rank = ranks.get(row.playerId) ?? rows.length;
+      store.saveMonthlyReward({ periodId: active.id, playerId: row.playerId, finalRank: rank, reward: rewardForRank(rank), claimedAt: null });
+    }
+    active.status = 'archived';
+    active.rewardsFinalizedAt = now;
+    store.saveRatingPeriod(active);
+    archived.push(active.id);
+  }
+  const existing = store.ratingPeriod(id, mode);
+  const current = existing ?? createPeriod(id, mode);
+  if (current.status !== 'active' || current.rewardsFinalizedAt !== null) {
+    current.status = 'active';
+    current.rewardsFinalizedAt = null;
+    store.saveRatingPeriod(current);
+  } else if (!existing) {
+    store.saveRatingPeriod(current);
+  }
+  return { archived, active: id };
+}
+
 // Compact roster summary for GET_STATE / GET_ROSTER.
 export function unitSummary(unit: UnitRecord) {
   const cls = CLASSES[unit.classId];
@@ -323,6 +435,8 @@ export function unitSummary(unit: UnitRecord) {
     ageBaseDays: unit.ageBaseDays, ageEpochDay: unit.ageEpochDay,
     lifespanYears: unit.lifespanYears, lifespanEndDay: lifespanEndDayOf(unit),
     growthAllocation: unit.growthAllocation ?? {}, classQualifications: unit.classQualifications ?? [],
+    classMastery: unit.classMastery ?? {}, learnedSkills: unit.learnedSkills ?? [], equippedSkills: unit.equippedSkills ?? [],
+    inheritedGrowth: unit.inheritedGrowth ?? null, lockedRunId: unit.lockedRunId ?? null, lockedDispatchId: unit.lockedDispatchId ?? null,
     hasInheritance: !!unit.inheritance,
     // The arena snapshot the browser needs to build AttackPlans and defense previews.
     snapshot: toSnapshot(unit),
@@ -381,7 +495,8 @@ export function stateView(store: Store, player: Player) {
 }
 
 export function activeSnapshot(store: Store, player: Player): SnapshotUnit[] {
-  return store.units(player.id).filter(u => u.status === 'active').map(toSnapshot);
+  // 派遣中的角色仍算存活，但不能参加其他战斗（docs/13 §5.5）。
+  return store.units(player.id).filter(u => u.status === 'active' && !u.lockedDispatchId).map(toSnapshot);
 }
 
 export function defenseOrSeed(player: Player): Defense {

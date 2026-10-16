@@ -36,6 +36,14 @@ export interface UnitState {
   age?: number;
   // 轮回的 30 点个人成长率分配（docs/00 §5.2），加在个人基础上。
   growthAllocation?: Partial<Stats>;
+  // 成长率传承替换后的个人基础成长（绝对向量）；存在时优先于角色表基础。
+  inheritedGrowth?: Partial<Stats>;
+  // 已学会并装备的技能（最多 5 个，跨职业自由装备）；个人技能单列在 skill。
+  skills?: SkillId[];
+  // 不朽盾（docs/00 §7.2）：致死时消耗一枚，保留 1HP 并石化至下个己方阶段。
+  shields?: number;
+  shieldsUsed?: number;
+  petrified?: boolean;
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
   boss?: boolean;
   behavior?: Behavior;
@@ -85,6 +93,7 @@ export type BattleEvent =
   | { t: 'move'; unit: string; path: Point[] }
   | { t: 'combat'; attacker: string; defender: string; weapons: [WeaponId, WeaponId | null]; strikes: Strike[] }
   | { t: 'defeated'; unit: string }
+  | { t: 'shield'; unit: string }
   | { t: 'heal'; by: string | null; target: string; amount: number; hpAfter: number; source: 'staff' | 'item' | 'terrain' }
   | { t: 'exp'; unit: string; gained: number; exp: number; level: number }
   | { t: 'levelUp'; unit: string; level: number; gains: Partial<Stats>; rerolls: number }

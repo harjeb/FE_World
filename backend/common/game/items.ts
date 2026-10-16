@@ -51,6 +51,7 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   reincarnation_core: { name: '轮回核心', kind: 'material', price: 30_000, note: '轮回消耗一枚；来自主线后期或挑战塔' },
   legacy_stone_growth: { name: '成长传承石', kind: 'material', price: 12_000, note: '兑现成长遗产时消耗' },
   legacy_stone_numeric: { name: '数值传承石', kind: 'material', price: 12_000, note: '兑现数值遗产时消耗' },
+  immortal_shield: { name: '不朽盾', kind: 'consumable', price: 6_000, uses: 1, note: '致命时消耗一枚，保留 1HP 并石化至下个己方阶段；只能战前携带' },
 };
 
 export const ITEM_KEYS = Object.keys(GAME_ITEMS) as ItemKey[];

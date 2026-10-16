@@ -252,6 +252,27 @@
       "push": false
     },
     {
+      "op": 84,
+      "name": "GET_MASTERY",
+      "group": "名册",
+      "agentNote": "读取角色各职业的精通进度、已解锁节点与可装备的已学技能。",
+      "push": false
+    },
+    {
+      "op": 85,
+      "name": "SWITCH_CLASS",
+      "group": "名册",
+      "agentNote": "在营地免费切回已购资格的职业；不占购买额度，保留各职业精通与已学技能。",
+      "push": false
+    },
+    {
+      "op": 86,
+      "name": "EQUIP_SKILLS",
+      "group": "名册",
+      "agentNote": "在最多 5 个格子里装备已学会的技能（跨职业自由装备）；未学会的技能会被拒绝。",
+      "push": false
+    },
+    {
       "op": 90,
       "name": "GET_PRODUCTION",
       "group": "生产",
@@ -287,6 +308,20 @@
       "push": false
     },
     {
+      "op": 95,
+      "name": "GET_RATINGS",
+      "group": "竞技场",
+      "agentNote": "读取普通竞技场的现实月榜：本月积分／名次／战绩与已归档旧月榜、可领取奖励。",
+      "push": false
+    },
+    {
+      "op": 96,
+      "name": "CLAIM_RATING_REWARD",
+      "group": "竞技场",
+      "agentNote": "领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。",
+      "push": false
+    },
+    {
       "op": 100,
       "name": "GET_RUN",
       "group": "远征",
@@ -312,6 +347,20 @@
       "name": "WITHDRAW_RUN",
       "group": "远征",
       "agentNote": "撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。",
+      "push": false
+    },
+    {
+      "op": 104,
+      "name": "GET_DISPATCHES",
+      "group": "派遣",
+      "agentNote": "读取后台派遣：进行中任务的返程日、参与者、冻结职业／武器，以及已返程的报告。",
+      "push": false
+    },
+    {
+      "op": 105,
+      "name": "START_DISPATCH",
+      "group": "派遣",
+      "agentNote": "派遣未占用角色自动探索／职业训练，自选正整数天数；按个人日历并行，返程一次结算素材、武器、经验、职业精通与武器熟练度。",
       "push": false
     },
     {

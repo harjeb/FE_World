@@ -202,7 +202,7 @@ try {
     await until(async () => (await page.text()).includes('纪念名册') && (await page.text()).includes('累计战死'));
     const legacy = await page.text();
     check('the legacy page lists the legacy, the memorial and the recruit status',
-      legacy.includes('欧文') && legacy.includes('可兑现') && legacy.includes('退役') && legacy.includes('累计战死 0 / 3 人') && legacy.includes('缺少成长传承石'),
+      legacy.includes('欧文') && legacy.includes('可兑现') && legacy.includes('退役') && legacy.includes('新的真实伤亡') && legacy.includes('需要 ≤2') && legacy.includes('缺少成长传承石'),
       legacy.slice(legacy.indexOf('遗产'), legacy.indexOf('遗产') + 200));
 
     // 生产: start a brew, plant a seed (one day), rest until it ripens, collect on the page.

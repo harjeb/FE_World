@@ -51,6 +51,9 @@ export const OPS: readonly OpDef[] = [
   { op: 77, name: 'EMERGENCY_RECRUIT', group: '整备', agentNote: '严重损失后的免费酒馆补员：不花钱、不推进日期，每次有效资格随机 2 人。' },
   { op: 78, name: 'GET_CLASS_MARKET', group: '名册', agentNote: '读取本账号已开放的职业资格与购买价格（按年份开放，可跨路线）。' },
   { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族与金币，轮回会清除旧资格。' },
+  { op: 84, name: 'GET_MASTERY', group: '名册', agentNote: '读取角色各职业的精通进度、已解锁节点与可装备的已学技能。' },
+  { op: 85, name: 'SWITCH_CLASS', group: '名册', agentNote: '在营地免费切回已购资格的职业；不占购买额度，保留各职业精通与已学技能。' },
+  { op: 86, name: 'EQUIP_SKILLS', group: '名册', agentNote: '在最多 5 个格子里装备已学会的技能（跨职业自由装备）；未学会的技能会被拒绝。' },
 
   { op: 90, name: 'GET_PRODUCTION', group: '生产', agentNote: '读取农田、工位、进行中的订单与可领取的产出。' },
   { op: 91, name: 'PLANT', group: '生产', agentNote: '在农田播种：消耗种子并推进 1 日，成熟后收获不额外耗日。' },
@@ -58,10 +61,16 @@ export const OPS: readonly OpDef[] = [
   { op: 93, name: 'COLLECT_PRODUCTION', group: '生产', agentNote: '领取已成熟订单的产出；每单只结算一次，不重抽产出。' },
   { op: 94, name: 'REPAIR_ITEM', group: '生产', agentNote: '花金币与材料维修一件损坏武器，恢复到它已有的最大耐久，不叠第二个完美奖励。' },
 
+  { op: 95, name: 'GET_RATINGS', group: '竞技场', agentNote: '读取普通竞技场的现实月榜：本月积分／名次／战绩与已归档旧月榜、可领取奖励。' },
+  { op: 96, name: 'CLAIM_RATING_REWARD', group: '竞技场', agentNote: '领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。' },
+
   { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。' },
   { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
+
+  { op: 104, name: 'GET_DISPATCHES', group: '派遣', agentNote: '读取后台派遣：进行中任务的返程日、参与者、冻结职业／武器，以及已返程的报告。' },
+  { op: 105, name: 'START_DISPATCH', group: '派遣', agentNote: '派遣未占用角色自动探索／职业训练，自选正整数天数；按个人日历并行，返程一次结算素材、武器、经验、职业精通与武器熟练度。' },
 
   { op: 110, name: 'GET_ANNUAL', group: '赛事', agentNote: '读取年度大竞技场：报名状态、海选战绩、签表轮次与下一场报价。' },
   { op: 111, name: 'REGISTER_ANNUAL', group: '赛事', agentNote: '报名本届大竞技场并锁定名单与快照；一旦淘汰或退赛，当届不能重报。' },

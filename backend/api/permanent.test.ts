@@ -163,24 +163,27 @@ test('natural death happens on the calendar and is not replayed twice', () => {
   void accountId;
 });
 
-test('emergency recruitment is free and only once per loss episode', () => {
+test('emergency recruitment opens when real casualties leave at most two survivors', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  // No losses yet.
-  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /严重损失/);
-  // Three ordinary deaths unlock one free pair.
-  for (const id of ['u_karl', 'u_owen', 'u_sera']) {
-    const unit = store.unit(player.id, id)!;
-    unit.level = 20;
-    recordDeath(store, player, unit, 'death', null);
+  // No real casualty yet.
+  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /新的真实伤亡/);
+  // Dismissal is not a casualty and does not open the free recruit.
+  dispatch(ctx, OP.DISMISS, { unitId: 'u_roland' });
+  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /新的真实伤亡/);
+  // Real deaths until only the protagonist and one ally remain.
+  for (const id of ['u_karl', 'u_victor', 'u_lina', 'u_owen', 'u_sera', 'u_noah', 'u_gustav', 'u_ren', 'u_ig']) {
+    recordDeath(store, player, store.unit(player.id, id)!, 'death', null);
   }
+  assert.equal(store.units(player.id).filter(u => u.status === 'active').length, 2);
   const before = store.units(player.id).filter(u => u.status === 'active').length;
   const day = player.day;
   const out = dispatch(ctx, OP.EMERGENCY_RECRUIT, {}) as { units: unknown[] };
   assert.equal(out.units.length, 2);
-  assert.equal(player.day, day);
+  assert.equal(player.day, day, 'free recruit does not advance the calendar');
   assert.equal(store.units(player.id).filter(u => u.status === 'active').length, before + 2);
-  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /已经领取/);
+  // The old loss event cannot be claimed twice.
+  assert.throws(() => dispatch(ctx, OP.EMERGENCY_RECRUIT, {}), /新的真实伤亡/);
 });
 
 test('recordRetire leaves the unit in the memorial but not the active roster', () => {

@@ -104,6 +104,23 @@ CREATE UNIQUE INDEX IF NOT EXISTS annual_player_index ON annual_entries(player_i
 CREATE TABLE IF NOT EXISTS action_quotes (
   id TEXT PRIMARY KEY, player_id TEXT NOT NULL, player_version INTEGER NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS dispatches (
+  id TEXT PRIMARY KEY, player_id TEXT NOT NULL, state TEXT NOT NULL, return_day INTEGER NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS dispatch_player ON dispatches(player_id, state, return_day);
+CREATE TABLE IF NOT EXISTS rating_periods (
+  id TEXT NOT NULL, mode TEXT NOT NULL, starts_at INTEGER NOT NULL, ends_at INTEGER NOT NULL, status TEXT NOT NULL, rewards_finalized_at INTEGER,
+  PRIMARY KEY (id, mode)
+);
+CREATE TABLE IF NOT EXISTS ratings (
+  period_id TEXT NOT NULL, player_id TEXT NOT NULL, mode TEXT NOT NULL, progress_bracket INTEGER NOT NULL DEFAULT 0,
+  rating INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0, losses INTEGER NOT NULL DEFAULT 0, matches INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (period_id, player_id, mode)
+);
+CREATE TABLE IF NOT EXISTS monthly_rating_rewards (
+  period_id TEXT NOT NULL, player_id TEXT NOT NULL, final_rank INTEGER NOT NULL, reward TEXT NOT NULL, claimed_at INTEGER,
+  PRIMARY KEY (period_id, player_id)
+);
 `;
 
 // Adds columns that predate a save file. CREATE TABLE IF NOT EXISTS cannot do this, so an existing

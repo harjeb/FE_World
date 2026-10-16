@@ -44,6 +44,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction): UnitS
     case 'heal': {
       const target = foeOrAlly(action.target);
       if (target.side !== unit.side || target.id === unit.id) throw new EngineError('TARGET_OUT_OF_RANGE', '只能治疗其他友军');
+      if (target.petrified) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 石化庇护中，不能治疗`);
       if (!staffWeapons(unit).includes(action.weapon)) throw new EngineError('WEAPON_RANK_TOO_LOW', `${unit.name} 不能使用这根杖`);
       if (!inRange(unit, action.weapon, action.to, target.pos)) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在杖的射程内');
       if (target.hp >= target.stats.hp) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 没有受伤`);
@@ -55,7 +56,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction): UnitS
     }
     case 'item': {
       const stack = unit.items[action.item];
-      if (!stack || !(stack.id in ITEMS)) throw new EngineError('NO_SUCH_ITEM', '没有这件道具');
+      if (!stack || !(stack.id in ITEMS) || (ITEMS[stack.id] as { shield?: boolean }).shield) throw new EngineError('NO_SUCH_ITEM', '没有这件道具');
       if (unit.hp >= unit.stats.hp) throw new EngineError('NOTHING_TO_HEAL', `${unit.name} 没有受伤`);
       return null;
     }
@@ -66,6 +67,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction): UnitS
 function applyAct(state: BattleState, action: ActAction, events: BattleEvent[]): void {
   const unit = unitById(state, action.unit);
   if (!unit.alive) throw new EngineError('UNKNOWN_UNIT', `${unit.name} 已退出战斗`);
+  if (unit.petrified) throw new EngineError('UNIT_ALREADY_ACTED', `${unit.name} 石化庇护中，无法行动`);
   if (unit.acted) throw new EngineError('UNIT_ALREADY_ACTED', `${unit.name} 本阶段已经行动`);
   const range = moveRange(state, unit);
   if (!inBounds(state, action.to) || !range.stops.has(cellKey(state, action.to))) {
@@ -115,6 +117,8 @@ function checkResult(state: BattleState, events: BattleEvent[]): void {
 
 function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void {
   state.phase = side;
+  // 石化庇护到下一个己方阶段解除（docs/13 §4.2）。
+  if (side === 'player') for (const unit of living(state, 'player')) unit.petrified = false;
   for (const unit of living(state, side)) unit.acted = false;
   events.push({ t: 'phase', side, turn: state.turn });
   terrainHeal(state, side, events);
@@ -127,6 +131,8 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
   for (const enemy of living(state, 'enemy')) {
     if (state.result) return;
     if (!enemy.alive) continue;
+    // 石化中的单位不能行动（docs/00 §7.2）。
+    if (enemy.petrified) { enemy.acted = true; continue; }
     applyAct(state, decide(state, enemy), events);
   }
   if (state.result) return;
