@@ -343,12 +343,47 @@ def build_units():
 
 
 # ---------------------------------------------------------------- portraits
-HEAD = {5: (13, 18), 6: (12, 19), 7: (10, 21), 8: (9, 22), 9: (8, 23), 10: (8, 23), 11: (8, 23),
-        12: (8, 23), 13: (8, 23), 14: (8, 23), 15: (8, 23), 16: (8, 23), 17: (9, 23),
-        18: (10, 23), 19: (11, 22), 20: (12, 22), 21: (14, 21), 22: (16, 20)}
+# Heads are (left, right) column spans per row, three-quarter view facing right. All faces share
+# the cranium, so every hair style and headband fits every face; they differ from the cheeks down
+# and all of them cover the eyes (rows 13-15), nose (row 17) and mouth (rows 19-20).
+CRANIUM = {5: (13, 18), 6: (12, 19), 7: (10, 21), 8: (9, 22), 9: (8, 23), 10: (8, 23), 11: (8, 23),
+           12: (8, 23), 13: (8, 23), 14: (8, 23)}
+
+
+def _face(lower, neck=(13, 18)):
+    head = {**CRANIUM, **lower}
+    cells = {(x, y) for y, (l, r) in head.items() for x in range(l, r + 1)}
+    return dict(head=head, set=cells, neck=neck)
+
+
+FACES = {
+    # female: small chin, slim neck
+    'oval': _face({15: (8, 23), 16: (8, 22), 17: (9, 22), 18: (10, 22), 19: (11, 21),
+                   20: (13, 21), 21: (15, 20), 22: (17, 19)}, neck=(14, 18)),
+    'sharp': _face({15: (8, 23), 16: (8, 22), 17: (9, 22), 18: (10, 22), 19: (11, 21),
+                    20: (12, 21), 21: (14, 20), 22: (16, 19), 23: (17, 18)}, neck=(14, 18)),
+    'round': _face({15: (8, 23), 16: (8, 23), 17: (9, 23), 18: (10, 22), 19: (11, 22),
+                    20: (12, 21), 21: (14, 20)}, neck=(14, 18)),
+    # male: broader jaw
+    'standard': _face({15: (8, 23), 16: (8, 23), 17: (9, 23), 18: (10, 23), 19: (11, 22),
+                       20: (12, 22), 21: (14, 21), 22: (16, 20)}),
+    'square': _face({15: (8, 23), 16: (8, 23), 17: (8, 23), 18: (9, 23), 19: (9, 23),
+                     20: (10, 23), 21: (12, 22), 22: (14, 22)}),
+    'long': _face({15: (8, 23), 16: (8, 22), 17: (9, 22), 18: (9, 22), 19: (10, 22),
+                   20: (11, 22), 21: (12, 21), 22: (14, 21), 23: (16, 20)}),
+    'broad': _face({15: (8, 23), 16: (8, 23), 17: (8, 24), 18: (8, 24), 19: (8, 24),
+                    20: (9, 23), 21: (10, 23), 22: (12, 22), 23: (14, 21)}, neck=(12, 19)),
+}
+
+
+def face_of(sp):
+    return FACES[sp.get('face', 'oval' if sp.get('fem') else 'standard')]
+
+
+# Hair and headbands only touch the shared cranium, so they draw against the standard head.
+HEAD, HEADSET = FACES['standard']['head'], FACES['standard']['set']
 SHOULDER = {24: (11, 20), 25: (8, 23), 26: (6, 25), 27: (4, 27), 28: (3, 28), 29: (2, 29),
             30: (1, 30), 31: (1, 30)}
-HEADSET = {(x, y) for y, (l, r) in HEAD.items() for x in range(l, r + 1)}
 SHOULDERSET = {(x, y) for y, (l, r) in SHOULDER.items() for x in range(l, r + 1)}
 SCLERA = C('#FAF6EC')
 MOUTH = C('#9A4C44')
@@ -564,11 +599,12 @@ def of_light(p, sp):
 
 def of_cloak(p, sp):
     base, shade, light, trim = [C(c) for c in sp['colors']]
+    head = face_of(sp)['set']
     for (x, y) in SHOULDERSET:
         p[(x, y)] = shade_cloth(x, y, base, shade, light)
     for y in range(22, 26):
         for x in range(10, 22):
-            if (x, y) not in HEADSET:
+            if (x, y) not in head:
                 p[(x, y)] = base if x > 13 else shade
     for i in range(16):
         x, y = 22 - i, 24 + (i * 7) // 15
@@ -580,11 +616,12 @@ def of_cloak(p, sp):
 
 def of_robe(p, sp):
     base, shade, light, trim = [C(c) for c in sp['colors']]
+    head = face_of(sp)['set']
     for (x, y) in SHOULDERSET:
         p[(x, y)] = shade_cloth(x, y, base, shade, light)
     for y in range(23, 27):
         for x in range(11, 21):
-            if (x, y) not in HEADSET and abs(x - 15.5) <= 5 - (y - 23) * 0.4:
+            if (x, y) not in head and abs(x - 15.5) <= 5 - (y - 23) * 0.4:
                 p[(x, y)] = trim if abs(x - 15.5) >= 4 - (y - 23) * 0.4 else base
     for y in range(26, 32):
         p[(15, y)] = trim
@@ -618,9 +655,10 @@ def of_plate(p, sp):
         if (x, y) in {(6, 28), (25, 28), (9, 30), (22, 30)}:
             c = trim
         p[(x, y)] = c
+    head = face_of(sp)['set']
     for y in range(22, 25):
         for x in range(12, 20):
-            if (x, y) not in HEADSET:
+            if (x, y) not in head:
                 p[(x, y)] = shade if x < 15 else base
 
 
@@ -657,21 +695,28 @@ def draw_portrait(sp):
     hair, hairL, hairD = [C(c) for c in sp['hair']]
     eyeC, eyeD = C(sp['eye'][0]), C(sp['eye'][1])
     front, back = HAIR_STYLES[sp['style']](sp)
+    face = face_of(sp)
+    n0, n1 = face['neck']
     p = {}
     for xy in back:
         p[xy] = hair
     for y in range(20, 26):
-        for x in range(13, 19):
-            p[(x, y)] = skinS if (y <= 22 or x == 13) else skin
+        for x in range(n0, n1 + 1):
+            p[(x, y)] = skinS if (y <= 22 or x == n0) else skin
     OUTFITS[sp['outfit']](p, sp)
-    for (x, y) in HEADSET:
-        l, r = HEAD[y]
+    for (x, y) in face['set']:
+        l, r = face['head'][y]
         c = skin
         if x <= l + 1 and y >= 9:
             c = skinS
-        if y >= 20 and x <= l + 2:
+        if y >= 20 and x <= min(l + 2, (l + r) // 2):
             c = skinS
         p[(x, y)] = c
+    for y in range(20, 25):
+        for x in range(n0, n1 + 1):
+            below_chin = (x, y) not in face['set'] and (x, y - 1) in face['set']
+            if below_chin and p[(x, y)] in (skin, skinS):
+                p[(x, y)] = mix(skinS, 0.86)
     for xy in ((7, 13), (6, 14), (7, 14), (6, 15), (7, 15), (7, 16)):
         p[xy] = skin
     p[(7, 14)] = skinS
@@ -816,7 +861,7 @@ def acc_glasses(p, sp):
 
 def acc_beard(p, sp):
     hair, hairL, hairD = [C(c) for c in sp['hair']]
-    for (x, y) in HEADSET:
+    for (x, y) in face_of(sp)['set']:
         if y >= 18 and x >= 11:
             p[(x, y)] = hair if x >= 15 else hairD
     for y in range(23, 25):
@@ -843,7 +888,7 @@ def acc_scar_near(p, sp):
 
 def acc_scarf(p, sp):
     sc, scD, scL = C('#2E3A4E'), C('#1E2636'), C('#46567A')
-    for (x, y) in HEADSET:
+    for (x, y) in face_of(sp)['set']:
         if y >= 18:
             p[(x, y)] = sc if x >= 14 else scD
     for y in range(21, 26):
@@ -857,8 +902,9 @@ def acc_scarf(p, sp):
 
 def acc_hood(p, sp):
     base, shade, light, trim = [C(c) for c in sp['colors']]
+    face = face_of(sp)
     for y in range(3, 24):
-        r = HEAD.get(y)
+        r = face['head'].get(y)
         if r:
             l, rr = r[0] - 2, r[1] + 1
         elif y < 5:
@@ -866,8 +912,7 @@ def acc_hood(p, sp):
         else:
             l, rr = 11, 21
         for x in range(l, rr + 1):
-            face = (x, y) in HEADSET and y >= 10 and x >= 10 and y <= 22
-            if face:
+            if (x, y) in face['set'] and y >= 10 and x >= 10:
                 continue
             if y >= 22 and 12 <= x <= 20:
                 continue
@@ -877,19 +922,20 @@ def acc_hood(p, sp):
             if y <= 6 and x >= 15:
                 c = light
             p[(x, y)] = c
-    for (x, y) in HEADSET:
+    for (x, y) in face['set']:
         if y == 10 and x >= 10:
             p[(x, y)] = C(sp['hair'][2])
         if y == 11 and x in (11, 12, 15, 16, 19, 20):
             p[(x, y)] = C(sp['hair'][0])
     for y in range(10, 22):
-        r = HEAD[y]
+        r = face['head'][y]
         p[(max(r[0], 10) - 1, y)] = light
 
 
 def acc_helm(p, sp):
     st, stL, stD = C('#8E979C'), C('#C9D0D3'), C('#565E64')
-    for (x, y) in HEADSET:
+    head = face_of(sp)['set']
+    for (x, y) in head:
         if y <= 11 or (x <= 11 and y <= 18):
             c = st
             if x <= 10:
@@ -901,7 +947,7 @@ def acc_helm(p, sp):
         for x in range(14, 18):
             p[(x, y)] = C('#A84940') if y < 5 else C('#74302A')
     for x in range(8, 24):
-        if (x, 11) in HEADSET:
+        if (x, 11) in head:
             p[(x, 11)] = stD
     for y in range(11, 16):
         p[(16, y)] = stD if y > 11 else stD
@@ -922,11 +968,11 @@ PORTRAITS = [
          colors=('#7A5236', '#56381F', '#9A7048', '#D4AA52'), acc='bandana',
          band=('#A84940', '#74302A'), brows='soft', mouth='grin', extra=['scar_near']),
     dict(key='victor', skin=('#EEC4A0', '#C9906C'), hair=('#B4B2AA', '#DEDCD4', '#77756E'),
-         eye=('#5C7A92', '#2E3E4C'), style='slick', outfit='armor',
+         eye=('#5C7A92', '#2E3E4C'), face='long', style='slick', outfit='armor',
          colors=('#34556B', '#22394A', '#5A7E98', '#D4AA52'), acc='mustache',
          brows='heavy', eyes='narrow', mouth='grim', brow='#6E6C66'),
     dict(key='lina', skin=('#F6D2B0', '#D9A684'), hair=('#E6D49A', '#FFF2C6', '#B09C62'),
-         eye=('#3E86B8', '#1E3E5E'), style='bob', outfit='light',
+         eye=('#3E86B8', '#1E3E5E'), face='round', style='bob', outfit='light',
          colors=('#E4E0D6', '#B9B2A2', '#FFFFFF', '#D4AA52'), acc='circlet', brows='soft',
          mouth='smile', fem=True, blush=True, brow='#9C8650'),
     dict(key='owen', skin=('#F0C8A2', '#CC9270'), hair=('#6B4A2E', '#8E6A44', '#4A321E'),
@@ -934,7 +980,7 @@ PORTRAITS = [
          colors=('#5F6E3A', '#46522A', '#7E8E50', '#D4AA52'), acc='hood', brows='soft',
          eyes='calm', mouth='smirk'),
     dict(key='sera', skin=('#F4D6C0', '#D4A88E'), hair=('#4E3A5E', '#6E5A86', '#2E2238'),
-         eye=('#7A5AA8', '#3A2A56'), style='long', outfit='robe',
+         eye=('#7A5AA8', '#3A2A56'), face='sharp', style='long', outfit='robe',
          colors=('#3E5E56', '#2A443E', '#5A7E74', '#D4AA52'), acc='glasses', brows='soft',
          mouth='neutral', fem=True),
     dict(key='noah', skin=('#F2CCA8', '#CF9A78'), hair=('#D8D6D0', '#F6F4EE', '#A09E96'),
@@ -942,15 +988,15 @@ PORTRAITS = [
          colors=('#ECE6DA', '#C2B8A6', '#FFFFFF', '#D4AA52'), stole='#34556B', brows='soft',
          eyes='calm', mouth='smile', brow='#8E8C86'),
     dict(key='gustav', skin=('#D9A27A', '#AE7656'), hair=('#4A3626', '#6E523A', '#2A1E14'),
-         eye=('#4A3A2A', '#2A1E14'), style='bald', outfit='plate',
+         eye=('#4A3A2A', '#2A1E14'), face='broad', style='bald', outfit='plate',
          colors=('#9EA6AA', '#5E666C', '#D2D8DA', '#D4AA52'), acc='beard', brows='heavy',
          eyes='narrow', mouth='grim', extra=['scar']),
     dict(key='ren', skin=('#EEDACA', '#C9AE9A'), hair=('#CDD1D8', '#F2F4F8', '#8E949E'),
-         eye=('#B0473C', '#5E1E1A'), style='swept', outfit='scarf',
+         eye=('#B0473C', '#5E1E1A'), face='long', style='swept', outfit='scarf',
          colors=('#3A3E4E', '#262A36', '#50566A', '#2E3A4E'), acc='scarf', brows='stern',
          eyes='narrow', mouth='neutral'),
     dict(key='ig', skin=('#F0C4A0', '#CC8E6C'), hair=('#B5452B', '#DD7448', '#7A2A1A'),
-         eye=('#C08A2A', '#5A3A10'), style='wild', outfit='fur',
+         eye=('#C08A2A', '#5A3A10'), face='square', style='wild', outfit='fur',
          colors=('#5A4232', '#3E2C20', '#7A5A44', '#D4AA52'), brows='stern', mouth='grin',
          extra=['scar']),
     dict(key='mira', skin=('#F6D4B8', '#D8A88A'), hair=('#C77A86', '#E8A6AE', '#8E4A56'),
@@ -958,14 +1004,14 @@ PORTRAITS = [
          colors=('#EEE8DC', '#C4BAA8', '#FFFFFF', '#D4AA52'), stole='#536D49', brows='soft',
          mouth='smile', fem=True, blush=True),
     dict(key='roland', skin=('#F2C8A0', '#CF9470'), hair=('#D6B060', '#F0D488', '#9A7A38'),
-         eye=('#3E6A9A', '#1E3450'), style='neat', outfit='armor',
+         eye=('#3E6A9A', '#1E3450'), face='square', style='neat', outfit='armor',
          colors=('#8E3A34', '#5E241F', '#B4544A', '#D4AA52'), brows='stern', mouth='neutral'),
     dict(key='brock', skin=('#B57E58', '#8C5A3C'), hair=('#3A2A1E', '#5A4430', '#20160E'),
-         eye=('#2A1E14', '#120C08'), style='helm', outfit='plate',
+         eye=('#2A1E14', '#120C08'), face='broad', style='helm', outfit='plate',
          colors=('#6E767C', '#3E464C', '#A2AAAE', '#A84940'), acc='helm', extra=['beard'],
          brows='heavy', eyes='narrow', mouth='grim'),
     dict(key='grunt_axe', skin=('#D29C74', '#A8704E'), hair=('#3E3430', '#5A4A40', '#241C18'),
-         eye=('#3A2A1E', '#1E140C'), style='spiky', outfit='vest',
+         eye=('#3A2A1E', '#1E140C'), face='broad', style='spiky', outfit='vest',
          colors=('#7A3A30', '#56261F', '#9A5244', '#8E6C2E'), acc='bandana',
          band=('#5E2A24', '#3E1A16'), brows='heavy', eyes='narrow', mouth='grim', extra=['scar_near']),
 ]

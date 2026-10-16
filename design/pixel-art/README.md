@@ -23,7 +23,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 
 唯一的参数是输出根目录，省略时为脚本所在目录。素材写入 `<根目录>/png/`，总览图 `contact.png`（4 倍）和 `contact_maps.png`（2 倍）写入根目录。
 
-所有随机取值都用固定种子，每次运行的像素完全相同；Pillow 版本相同时，文件也逐字节相同。
+所有随机取值都用固定种子，每次运行的像素完全相同；Pillow 版本相同时，文件也逐字节相同。仓库里的 PNG 用 Pillow 9.4.0 生成；换别的版本（例如 12.1.1）重新生成，像素不变，但每个文件的字节都会变，`diff -r` 会全部报不同。
 
 ## 显示规则
 
@@ -60,6 +60,18 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | `owen` | 欧文 | 弓兵 | `roland` | 罗兰 | 骑兵 |
 | `sera` | 塞拉 | 魔道士 | `brock` | 布洛克 | 重甲兵（黑松隘口敌方主将） |
 | `noah` | 诺亚 | 修士 | `grunt_axe` | 灰岩斧兵 | 通用敌兵 |
+
+头像由脸型、发型、眼睛、眉毛、嘴、服装、配饰和配色拼成，每个角色的配方写在 `PORTRAITS` 里。脸型在 `FACES` 里，分男女。所有脸型共用头顶，任何发型和头带都能配任何脸型；不同的是脸颊以下的轮廓和脖子粗细。配方不写 `face` 时，`fem=True` 的角色用 `oval`，其余用 `standard`。
+
+| 键 | 脸型 | 轮廓 | 角色 |
+| --- | --- | --- | --- |
+| `oval` | 女：鹅蛋脸 | 小下巴、细脖子 | 艾琳、米拉 |
+| `sharp` | 女：瓜子脸 | 尖下巴，比鹅蛋脸长一格 | 塞拉 |
+| `round` | 女：圆脸 | 下巴短而圆，显年轻 | 莉娜 |
+| `standard` | 男：标准脸 | 下颌适中 | 卡尔、欧文、诺亚 |
+| `square` | 男：方脸 | 下颌宽、下巴平 | 伊格、罗兰 |
+| `long` | 男：长脸 | 下颌有棱角，下巴长一格 | 维克托、雷恩 |
+| `broad` | 男：宽脸 | 下颌比头顶还宽，粗脖子 | 古斯塔夫、布洛克、灰岩斧兵 |
 
 ### 图标 `ico_<键>.png`
 
@@ -115,7 +127,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | 地图 | `MAPS`，键名即文件名 |
 | 地形画法 | `PAINTERS`、`TERRAIN_ORDER`；新增地形还要同步 03 地形表和 `backend/common/maps/map.ts` |
 | 地图单位 | `UNITS` 字符画，字符对应 `BASE` 调色板；阵营色在 `FACTIONS`，己方发色在 `UNIT_HAIR_ALLY` |
-| 头像 | `PORTRAITS`，组合 `HAIR_STYLES` 发型、`OUTFITS` 服装、`ACCESSORIES` 配饰和配色 |
+| 头像 | `PORTRAITS`，组合 `FACES` 脸型、`HAIR_STYLES` 发型、`OUTFITS` 服装、`ACCESSORIES` 配饰和配色；新增脸型只改第 15 行以下，并盖住眼、鼻、嘴的位置 |
 | 图标 | `ICONS16`、`ICONS12` 字符画；训练和金币图标由 `target16()`、`coin12()` 绘制 |
 | 纹章 | `build_crests()` |
 | 交战演出 | `fighter_erin()`、`fighter_axe()`、`spark()`、`backdrop()` |
