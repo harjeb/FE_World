@@ -1,0 +1,61 @@
+/* Agent 实时观战 and 历史回放, ported from the Spectate and Replay artboards. The page layout is the
+   battle page's (battle-shell / stage / mapcol / side). */
+.live-badge { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 5px; background: var(--color-red); color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.02em; }
+.live-badge i { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3); animation: live-pulse 1.4s ease-in-out infinite; }
+@keyframes live-pulse { 50% { opacity: 0.35; } }
+.rp-badge { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 5px; background: var(--color-brass-soft); color: #5e4618; font-weight: 700; font-size: 14px; border: 1px solid #d7c08a; }
+.trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+
+.ev li { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 14px; font-size: 13px; border-bottom: 1px dashed var(--color-line-soft); }
+.ev li:last-child { border-bottom: 0; }
+.ev .lt { color: var(--color-muted); white-space: nowrap; }
+.ev li.now { background: var(--color-brass-soft); }
+.intent-k { padding: 10px 14px 0; font-size: 13px; color: var(--color-ink-2); }
+.intent { margin: 8px 14px 6px; padding: 10px 12px; border-radius: 6px; background: var(--color-paper); border: 1px solid #d7c08a; }
+.intent q { display: block; font-size: 15px; line-height: 1.6; font-weight: 500; quotes: '“' '”'; }
+.intent .meta { font-size: 12px; color: var(--color-muted); margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+.intent-empty { margin: 8px 14px 12px; padding: 10px 12px; border-radius: 6px; border: 1px dashed #cdbfa3; color: var(--color-muted); font-size: 13px; }
+.kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--color-line-soft); }
+.kv div { background: var(--color-panel); padding: 10px 14px; min-width: 0; }
+.kv span { display: block; font-size: 12px; color: var(--color-muted); }
+.kv b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.kv small { font-size: 13px; color: var(--color-ink-2); }
+.watch-end { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--color-ink-2); }
+@media (prefers-reduced-motion: reduce) { .live-badge i { animation: none; } }
+@media (max-width: 760px) { .ev li { grid-template-columns: 1fr; } }
+
+/* 回放 controls: transport, speed, turn timeline. */
+.mt-dark { background: #2b2421; color: var(--color-panel); }
+.rp-player { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; }
+.pctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.vsep { width: 1px; height: 26px; background: var(--color-line); margin: 0 4px; }
+.speed { display: inline-flex; border: 1px solid #cdbfa3; border-radius: 6px; overflow: hidden; }
+.speed button { min-width: 44px; min-height: 36px; border: 0; border-right: 1px solid #e0d6c2; background: var(--color-paper); font-family: var(--font-pixel); font-size: 12px; cursor: pointer; color: var(--color-ink); }
+.speed button:last-child { border-right: 0; }
+.speed button:hover { background: #efe7d6; }
+.speed button[aria-pressed='true'] { background: var(--color-blue); color: #fff; }
+.speed button:focus-visible { outline: 2px solid var(--color-brass); outline-offset: -2px; }
+.track { position: relative; height: 60px; margin: 2px 4px 0; cursor: pointer; }
+.track:focus-visible { outline: 2px solid var(--color-brass); outline-offset: 4px; border-radius: 4px; }
+.segs { position: absolute; left: 0; right: 0; top: 22px; height: 16px; display: grid; gap: 3px; }
+.seg-t { display: grid; grid-template-columns: 1fr 1fr; border-radius: 3px; overflow: hidden; border: 1px solid #cdbfa3; }
+.seg-t i { background: linear-gradient(to right, #7fa2ba var(--fill), #d3dee5 var(--fill)); }
+.seg-t i.foe { background: linear-gradient(to right, #c98a80 var(--fill), #eed8d2 var(--fill)); }
+.tlabels { position: absolute; left: 0; right: 0; top: 40px; display: grid; gap: 3px; }
+.tlabels button { all: unset; cursor: pointer; text-align: center; font-size: 12px; color: var(--color-muted); border-radius: 3px; }
+.tlabels button:hover { color: var(--color-blue-deep); background: #efe7d6; }
+.tlabels button:focus-visible { outline: 2px solid var(--color-brass); }
+.tmark { position: absolute; top: 0; transform: translateX(-50%); width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; pointer-events: none; }
+.tmark.mk-kill { background: var(--color-red); }
+.tmark.mk-level { background: var(--color-green); }
+.tmark.mk-retreat { background: #5c554a; }
+.head { position: absolute; top: 16px; width: 4px; height: 28px; margin-left: -2px; background: var(--color-brass); border-radius: 2px; box-shadow: 0 0 0 2px var(--color-panel); pointer-events: none; transition: left 0.2s; }
+.evf { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--color-line-soft); flex-wrap: wrap; }
+.evl { max-height: 430px; overflow-y: auto; }
+.evl li button { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; width: 100%; padding: 8px 14px; cursor: pointer; border-bottom: 1px dashed var(--color-line-soft); font-size: 13px; }
+.evl li button:hover { background: #efe7d6; }
+.evl li button:focus-visible { outline: 2px solid var(--color-brass); outline-offset: -2px; }
+.evl li button[aria-current='true'] { background: var(--color-brass-soft); box-shadow: inset 0 0 0 1px #d7c08a; }
+.evl .k { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.evl .t { font-size: 12px; color: var(--color-muted); }
+@media (prefers-reduced-motion: reduce) { .head { transition: none; } }

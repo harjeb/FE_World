@@ -114,9 +114,11 @@ export function MapTag({ at, cell, className, children, view, prefer = 'above' }
   const other = prefer === 'above' ? 'below' : 'above';
   const blocked = (side: 'above' | 'below') => occupied(side === 'above' ? at[1] - 1 : at[1] + 1) || (side === 'above' ? at[1] === 0 : at[1] === view.map.height - 1);
   const side = blocked(prefer) && !blocked(other) ? other : prefer;
+  // Near the left or right edge the tag hangs inward so it never sticks out of the board.
+  const align = at[0] <= 1 ? 0 : at[0] >= view.map.width - 2 ? 1 : 0.5;
   return (
     <span className={`maptag ${className}`}
-      style={{ left: at[0] * cell + cell * 0.5, top: side === 'below' ? (at[1] + 1) * cell + 2 : at[1] * cell - 26, transform: 'translateX(-50%)' }}>
+      style={{ left: (at[0] + align) * cell, top: side === 'below' ? (at[1] + 1) * cell + 2 : at[1] * cell - 26, transform: `translateX(${-align * 100}%)` }}>
       {children}
     </span>
   );

@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, PointerEvent } from 'react';
+import type { CSSProperties, PointerEvent, ReactNode } from 'react';
 import { living, unitById } from '@common/engine/index.ts';
 import type { Point } from '@common/engine/index.ts';
 import { MAPS } from '../assets.ts';
+import { SeizeIcon } from '../ui/icons.tsx';
 import type { BattleController, Snapshot } from './controller.ts';
 import { CellLayer, Cursor, Floats, Ghost, MapTag, PathArrow, ThreatLayer, TileColors, UnitLayer } from './MapLayers.tsx';
 import { Minimap, PhaseBanner, TerrainWindow, ZoomControls } from './MapWidgets.tsx';
@@ -13,7 +14,8 @@ const DRAG_START = 6;
 
 // The tactical map: a scrollable viewport over a board of --cell sized tiles. Click selects,
 // drag pans, the keyboard cursor mirrors the mouse (arrow keys + Enter / Space, see BattlePage).
-export function BattleMap({ snap, ctl }: { snap: Snapshot; ctl: BattleController }) {
+// `overlay` draws extra marks on the board (观战 / 回放: the acting unit, results of the last step).
+export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleController; overlay?: (cell: number) => ReactNode }) {
   const { view, state, mode, hover, settings } = snap;
   const cell = 16 * settings.zoom;
   const width = view.map.width * cell, height = view.map.height * cell;
@@ -42,7 +44,7 @@ export function BattleMap({ snap, ctl }: { snap: Snapshot; ctl: BattleController
   useEffect(() => {
     ctl.focus = (at: Point) => {
       const el = viewport.current;
-      if (!el) return;
+      if (!el || !ctl.follow) return;
       const margin = cell * 2;
       const x = at[0] * cell, y = at[1] * cell;
       const outside = x < el.scrollLeft + margin || x + cell > el.scrollLeft + el.clientWidth - margin
@@ -105,6 +107,13 @@ export function BattleMap({ snap, ctl }: { snap: Snapshot; ctl: BattleController
   const infoAt = target?.pos ?? hover ?? selected?.pos ?? null;
   const W = view.map.width;
   const image = MAPS[view.name];
+  // 王座: always framed; named while hovered or while our commander is selected, unless the
+  // planned destination already sits there.
+  const goal = view.goal;
+  const throne = goal.kind === 'seize' ? goal.throne : null;
+  const isThrone = (at: Point | null | undefined) => !!throne && !!at && at[0] === throne[0] && at[1] === throne[1];
+  const throneTag = !!throne && !(ghostElsewhere && isThrone(ghost?.at))
+    && (isThrone(hover) || (!!selected && selected.side === 'player' && !!selected.boss));
 
   return (
     <div className="viewport-shell">
@@ -122,9 +131,11 @@ export function BattleMap({ snap, ctl }: { snap: Snapshot; ctl: BattleController
           {threat && <ThreatLayer cells={threat} width={W} cell={cell} />}
           {settings.grid && <div className="gridlines" />}
           {overlays?.path && <PathArrow path={overlays.path} cell={cell} width={width} height={height} />}
+          {throne && <span className="throne-mark" style={{ left: throne[0] * cell, top: throne[1] * cell }} aria-hidden="true" />}
           <UnitLayer view={view} cell={cell} selected={selectedId} ghostElsewhere={ghostElsewhere} fading={snap.fading} />
           {ghost && ghostElsewhere && <Ghost unit={ghost.unit} at={ghost.at} cell={cell} />}
           {ghost && ghostElsewhere && !target && mode.kind !== 'move' && <MapTag at={ghost.at} cell={cell} view={view} className="mt-brass">预览落点</MapTag>}
+          {throne && throneTag && <MapTag at={throne} cell={cell} view={view} className="mt-throne"><SeizeIcon size={14} />王座 · 压制目标</MapTag>}
           {hover && !busy && <Cursor at={hover} cell={cell} kind={snap.cursor ? 'kbd-cursor' : ''} />}
           {target && <Cursor at={target.pos} cell={cell} kind="tgt" />}
           {target && (
@@ -132,6 +143,7 @@ export function BattleMap({ snap, ctl }: { snap: Snapshot; ctl: BattleController
               {target.side === 'enemy' ? '目标' : '治疗'} · {displayName(view, target.id)}
             </MapTag>
           )}
+          {overlay?.(cell)}
           <Floats floats={snap.floats} cell={cell} />
         </div>
       </div>

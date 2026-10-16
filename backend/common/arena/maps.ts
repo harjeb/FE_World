@@ -2,8 +2,7 @@ import type { Point } from '../engine/types.ts';
 
 // Arena map pool (docs/05「初版图池示例」). Each map brings its own rules: fielded units D, bans B
 // (both sides), turn limit and the attacker's victory condition. Layouts are the pixel-art maps of the
-// same key in design/pixel-art/gen_art.py; a test keeps them in sync. 王城 needs 压制王座 and a map
-// with a throne, so it is not in the pool yet.
+// same key in design/pixel-art/gen_art.py; a test keeps them in sync.
 export interface ArenaMap {
   id: ArenaMapId;
   name: string;
@@ -11,14 +10,14 @@ export interface ArenaMap {
   deploy: number;
   bans: number;
   turnLimit: number;
-  goal: 'boss' | 'rout';
+  goal: 'boss' | 'rout' | 'seize';
   goalText: string;
   feature: string;
   attackerZone: Point[];
   defenderZone: Point[];
 }
 
-export type ArenaMapId = 'plains' | 'pass' | 'woods';
+export type ArenaMapId = 'plains' | 'pass' | 'woods' | 'castle';
 
 const WALKABLE = new Set(['.', 'r', 'b', 'p', 'v', 'f', 'F', 'T']);
 
@@ -70,6 +69,25 @@ const WOODS = [
   'ffff.fff.fff',
 ];
 
+// Moat with one bridge (armor must use it) and two fords, three gates, forts behind the gates and
+// the throne at the back of the hall.
+const CASTLE = [
+  'mmm..fff..w.mmmmmmmm',
+  'm....f....w.########',
+  '..f.......w.#ppp#pp#',
+  '..ff..v...s.pppF#pp#',
+  '..........w.#pppppp#',
+  '.f......f.w.##p###p#',
+  '.ff.......w.#Fppppp#',
+  'rrrrrrrrrrbrppppppT#',
+  '.....f....w.#Fppppp#',
+  '..f.......w.##p###p#',
+  '..ff...v..w.#pppppp#',
+  '..........s.pppF#pp#',
+  'm..f......w.#ppp#pp#',
+  'mmm.......w.########',
+];
+
 export const ARENA_MAPS: Record<ArenaMapId, ArenaMap> = {
   plains: {
     id: 'plains', name: '平原会战', rows: PLAINS, deploy: 6, bans: 2, turnLimit: 20,
@@ -86,4 +104,15 @@ export const ARENA_MAPS: Record<ArenaMapId, ArenaMap> = {
     goal: 'rout', goalText: '全灭', feature: '小规模、森林密布，精英单位决胜',
     attackerZone: zone(WOODS, [0, 2], [1, 5]), defenderZone: zone(WOODS, [9, 11], [1, 6]),
   },
+  castle: {
+    id: 'castle', name: '王城', rows: CASTLE, deploy: 8, bans: 3, turnLimit: 25,
+    goal: 'seize', goalText: '压制王座', feature: '大规模攻城，防守方有堡垒和城墙',
+    attackerZone: zone(CASTLE, [0, 2], [4, 10]), defenderZone: zone(CASTLE, [13, 18], [2, 12]),
+  },
 };
+
+// The throne cell of a seize map.
+export function throneOf(map: ArenaMap): Point {
+  const y = map.rows.findIndex(row => row.includes('T'));
+  return [map.rows[y].indexOf('T'), y];
+}

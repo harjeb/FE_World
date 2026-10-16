@@ -1,5 +1,6 @@
 import type { ClassId } from '../data/classes.ts';
 import type { CharacterId } from '../data/characters.ts';
+import type { GrowthType } from '../data/growth-types.ts';
 import type { SkillId } from '../data/skills.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
@@ -30,6 +31,9 @@ export interface UnitState {
   items: ItemStack[];
   ranks: Partial<Record<WeaponType, Rank>>;
   skill?: SkillId;
+  // 成长类型与年龄（docs/02）: carried per unit so recruits can differ from their character default.
+  growthType?: GrowthType;
+  age?: number;
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
   boss?: boolean;
   behavior?: Behavior;
@@ -40,8 +44,9 @@ export interface UnitState {
   alive: boolean;
 }
 
-// boss: defeat the commander (全灭 also wins); rout: only defeating every enemy wins (docs/05).
-export type Goal = { kind: 'boss'; target: string } | { kind: 'rout' };
+// boss: defeat the commander (全灭 also wins); rout: only defeating every enemy wins;
+// seize: the player's commander stands on the throne and seizes it (压制王座, docs/03 and 05).
+export type Goal = { kind: 'boss'; target: string } | { kind: 'rout' } | { kind: 'seize'; throne: Point };
 
 export interface BattleState {
   engineVersion: 1;
@@ -66,7 +71,8 @@ export type ActAction =
   | ActBase & { act: 'wait' }
   | ActBase & { act: 'attack'; target: string; weapon: WeaponId }
   | ActBase & { act: 'heal'; target: string; weapon: WeaponId }
-  | ActBase & { act: 'item'; item: number };
+  | ActBase & { act: 'item'; item: number }
+  | ActBase & { act: 'seize' };
 // retreat: 全军撤退 in field battles (docs/06 op 56); surrender: 投降 in arena attacks (op 67).
 // Both end the battle as a loss.
 export type Action = ActAction | { type: 'endPhase' } | { type: 'retreat' } | { type: 'surrender' };
@@ -81,6 +87,7 @@ export type BattleEvent =
   | { t: 'exp'; unit: string; gained: number; exp: number; level: number }
   | { t: 'levelUp'; unit: string; level: number; gains: Partial<Stats>; rerolls: number }
   | { t: 'wait'; unit: string }
+  | { t: 'seize'; unit: string }
   | { t: 'phase'; side: Side; turn: number }
   | { t: 'end'; winner: Side; reason: string };
 

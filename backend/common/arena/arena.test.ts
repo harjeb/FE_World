@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { decide, EngineError, living, step, unitById } from '../engine/index.ts';
-import type { BattleState } from '../engine/index.ts';
+import { autoplay, decide, EngineError, living, step, unitById } from '../engine/index.ts';
 import { reachable, tilesFromGlyphs } from '../maps/map.ts';
 import { MY_DEFENSE, MY_ROSTER, OPPONENTS } from './demo.ts';
+import { switchMap } from './defense.ts';
 import { ARENA_MAPS } from './maps.ts';
 import { applyBans, arenaPoints, createArenaBattle, opponentList, validateAttack, validateDefense } from './rules.ts';
 import type { AttackPlan, Defense } from './rules.ts';
@@ -81,8 +81,38 @@ test('an arena battle starts with the attacker, uses snapshots and gives no expe
   assert.equal(living(state, 'enemy').length, 6);
   const { events } = step(state, { type: 'endPhase' });
   assert.ok(!events.some(e => e.t === 'exp' || e.t === 'levelUp'));
-  const woods = OPPONENTS.find(o => o.id === 'white')!;
-  assert.deepEqual(createArenaBattle(woods, ['lina', 'erin'], MY_ROSTER, firstPlan(woods, ['lina', 'erin']), 's').goal, { kind: 'rout' });
+  const castle = OPPONENTS.find(o => o.id === 'white')!;
+  const bans = ['lina', 'erin', 'owen'];
+  assert.deepEqual(createArenaBattle(castle, bans as never, MY_ROSTER, firstPlan(castle, bans), 's').goal, { kind: 'seize', throne: [18, 7] });
+  const woods = switchMap(frost, 'woods');
+  const woodsBans = woods.slots.slice(0, 2).map(s => s.unit.character);
+  assert.deepEqual(createArenaBattle(woods, woodsBans, MY_ROSTER, firstPlan(woods, woodsBans), 's').goal, { kind: 'rout' });
+});
+
+test('王城: only the commander on the throne seizes, and losing the commander loses', () => {
+  const castle = OPPONENTS.find(o => o.id === 'white')!;
+  const bans = ['sera', 'lina', 'erin'];
+  const plan = firstPlan(castle, bans);
+  const state = createArenaBattle(castle, bans as never, MY_ROSTER, plan, 'seize');
+  assert.equal(plan.commander, 'erin');
+  unitById(state, 'erin').pos = [17, 7];
+  unitById(state, 'sera').pos = [18, 6];
+  const seize = (unit: string, to: [number, number]) => step(state, { type: 'act', unit, to, act: 'seize' });
+  const refused = (e: EngineError) => e.code === 'CANNOT_SEIZE';
+  assert.throws(() => seize('erin', [17, 7]), refused, 'the commander must stand on the throne');
+  assert.throws(() => seize('sera', [18, 7]), refused, 'only the commander seizes');
+  assert.equal(decide(state, unitById(state, 'erin')).act, 'seize', 'the AI commander seizes when it can');
+  const { state: won, events } = seize('erin', [18, 7]);
+  assert.deepEqual(won.result, { winner: 'player', reason: '压制王座' });
+  assert.deepEqual(events.slice(-2).map(e => e.t), ['seize', 'end']);
+
+  const routed = structuredClone(state);
+  for (const u of living(routed, 'enemy')) Object.assign(u, { hp: 0, alive: false });
+  assert.equal(step(routed, { type: 'act', unit: 'sera', to: [18, 6], act: 'wait' }).state.result, undefined, 'a rout does not win');
+  const fallen = structuredClone(state);
+  Object.assign(unitById(fallen, 'erin'), { hp: 0, alive: false });
+  assert.deepEqual(step(fallen, { type: 'act', unit: 'sera', to: [18, 6], act: 'wait' }).state.result,
+    { winner: 'enemy', reason: '我方主将被击败，无法压制王座' });
 });
 
 test('arena points follow docs/05', () => {
@@ -95,18 +125,6 @@ test('arena points follow docs/05', () => {
 });
 
 // Rule AI on both sides: every opponent must be beatable and also able to hold.
-function autoplay(state: BattleState): BattleState {
-  while (!state.result) {
-    for (const unit of living(state, 'player')) {
-      const current = unitById(state, unit.id);
-      if (state.result || !current.alive || current.acted) continue;
-      state = step(state, decide(state, current)).state;
-    }
-    if (!state.result) state = step(state, { type: 'endPhase' }).state;
-  }
-  return state;
-}
-
 test('each demo opponent can be won and lost by the rule AI', () => {
   for (const defense of OPPONENTS) {
     const map = ARENA_MAPS[defense.map];

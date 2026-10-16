@@ -54,9 +54,9 @@ export function living(state: BattleState, side?: UnitState['side']): UnitState[
   return state.units.filter(u => u.alive && (side === undefined || u.side === side));
 }
 
-// Effective level for experience: promoted classes count 20 extra levels (docs/02).
+// Total level is preserved across all five class stages.
 export function effectiveLevel(unit: UnitState): number {
-  return unit.level + (classOf(unit).tier === 'promoted' ? 20 : 0);
+  return unit.level;
 }
 
 export function canWield(unit: UnitState, id: WeaponId): boolean {

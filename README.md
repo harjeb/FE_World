@@ -3,7 +3,9 @@
 一款为 AI Agent 设计的原创火纹式战棋页游：以**永久军团养成、地区冒险与八届年度大竞技场主线**为核心，平时可参加普通竞技场赚钱与排名；两类赛事均可遇到同日进度的玩家历史队伍。
 人和 AI 走同一套协议、同一套规则；任何能连 WebSocket、读 JSON 的 Agent 都能上场（同时提供 MCP 插件）。
 
-> 当前处于**设计与原型阶段**：已有可运行的随机地图生成器，以及可以完整打一局的单机战斗页（确定性战斗引擎 + 前端），尚无服务端和其他页面。设计参考了同作者的三国 SLG（`~/dev/slg`）的 Agent 接口做法。
+> 当前处于**设计与原型阶段**：已有可运行的随机地图生成器、可以完整打一局的单机战斗页（确定性战斗引擎 + 前端），以及一套可运行的**服务端**（Fastify API + WebSocket Agent 协议 + Worker + SQLite 存档），前端已接入服务端。
+>
+> 设计参考了同作者的三国 SLG（`~/dev/slg`）的 Agent 接口做法。
 >
 > **看玩法、调整方案，请直接阅读：[游戏设计方案（玩法评审版）](docs/00-game-design.md)。** 已整合个人行动日日历、神主角与双渠道招募、五阶职业、年龄候选、成长率／数值传承、轮回、十二地区、生产候选、年度大竞技场主线（每届海选起步、正赛 64 强）、普通竞技场及通关后玩法；包含八年培养预算、同日快照匹配草案及围绕神与邪恶的轻量故事提纲。区分已确认方向、当前草案与待定事项，不包含技术实现。
 >
@@ -26,18 +28,42 @@
 | [08 UI 设计提示词](docs/08-ui-design-prompts.md) | 像素战棋与羊皮纸风格、战斗、军营、名册、竞技场、观战回放的设计提示词 |
 | [09 永久养成与传承草案](docs/09-permanent-progression-legacy-draft.md) | 永久死亡、不朽盾石化保护、有限传承、99 级与一次轮回、旧方案交接与待定事项 |
 | [10 随机地图生成器](docs/10-random-map-generator.md) | 六种场景主题、可选尺寸与种子、四类移动连通校验、JSON/SVG 导出与示例 |
-| [11 战斗引擎与战斗页](docs/11-battle-engine-and-page.md) | 确定性引擎、暂定规则、战斗页、竞技场进攻流程、运行与测试、尚未实现的部分 |
+| [11 战斗引擎与战斗页](docs/11-battle-engine-and-page.md) | 确定性引擎、暂定规则、战斗页、竞技场进攻流程与防守设置、演示页面、运行与测试、尚未实现的部分 |
 
-## 战斗页（前端原型）
+## 服务端（API · Worker · Agent 协议）
 
-Node.js 22.18+。打开后是竞技场（禁用 → 部署 → 进攻 → 计分），左侧导航可进入示例关卡「黑松隘口」：
+Node.js 22.18+，无需数据库服务（用 `node:sqlite` 落盘）。所有规则都在 `backend/common` 定义一次，API、Worker、前端与 MCP 共用。
 
 ```bash
-cd frontend && npm install && npm run dev        # http://localhost:8524
-node --test backend/common/engine/engine.test.ts  # 在项目根目录运行引擎测试
+cd backend && npm install
+npm start          # API + 静态前端，默认 http://localhost:8525（API_PORT / DB_PATH 可覆盖）
+npm run worker     # 月末快照与竞技场结算的后台扫描（默认每 60s）
+npm run docs       # 由 op 表重新生成 docs/agent-api.md 与 agent-api.json
+npm test           # 引擎 / 竞技场 / 协议 / API / Worker 测试
 ```
 
-规则引擎在 `backend/common/engine`，前端和以后的服务端共用；详见 [11 战斗引擎与战斗页](docs/11-battle-engine-and-page.md)。
+- **WebSocket Agent 协议**：`ws://localhost:8525/ws`，帧格式 `{op,seq,data}` / `{op,seq,ok,data|error}`，推送无 `seq`；用 `sk_` 令牌 `LOGIN`（带 `docVersion`，落后会返回 `docNotice`）。
+- **协议文档**：`GET /agent-api.md`、`GET /agent-api.json`、`GET /agent-api/changes/:v`；op 与错误码只在 `backend/common/protocol/ops.ts` 定义一次，文档与 MCP 工具都由它生成。
+- **浏览器桥**：`POST /api/login`、`POST /api/op`、`GET /api/agent-token`、`GET /api/health`。前端用会话令牌调用同一套 op。
+- **存档**：SQLite 表（账号 / 玩家 / 单位 / 战斗 / 竞技场日 / 快照 / 事件 / 回放 / due_tasks）；行动日懒结算，竞技场日在行动推进越过当天时结算。
+- **MCP 插件**：`mcp/server.ts` 用同一张 op 表生成工具，经 `AGENT_TOKEN` 调 API：`node mcp/server.ts`（stdio）。
+- **自走校准**：`node tools/sim/sim.ts` 用规则 AI 跑各地区遭遇战，输出胜率 / 回合数 / 阵亡。
+
+## 前端演示
+
+Node.js 22.18+。设计稿里的画面都已做成页面，**已接入服务端**：登录后军营、名册、竞技场、防守、出击与战斗都由服务端数据驱动，战斗指令通过 op 提交。开发时前端 `npm run dev`（8524）把 `/api` 代理到 API（8525）。
+
+- 可以完整操作：出击（出征准备页选地区与队伍，确认后服务端生成遭遇战）、军营行动（扫荡 / 训练 / 休整 / 游历招募，耗日与推进到的日期来自 GET_TODAY）、竞技场（禁用 → 部署 → 进攻 → 服务端计分）、防守设置（保存到服务端）。
+- 仍需补齐：整备、战报、规则手册等页面；部分养成与经济规则仍是草案。
+
+```bash
+cd frontend && npm install && npm run dev        # http://localhost:8524（需先启动后端）
+cd frontend && npm run build && node test/backend-integration.e2e.mjs  # 浏览器端到端：前端确实连上了后端
+cd frontend && npm run build && node test/battle-replay.e2e.mjs        # 浏览器端到端：战斗指令提交到服务端
+node --test backend/common/engine/*.test.ts backend/common/arena/*.test.ts backend/common/protocol/*.test.ts backend/api/*.test.ts
+```
+
+规则引擎在 `backend/common/engine`，前端和服务端共用；服务端结构见 [07 技术架构](docs/07-architecture.md)，协议见 [06 Agent 接口设计](docs/06-agent-api.md)。
 
 ## 随机地图工具
 
@@ -53,7 +79,7 @@ node --test tools/mapgen/mapgen.test.ts
 
 ## 像素素材
 
-UI 设计稿用的原创像素素材共 63 张 PNG，包括地图单位、头像、图标、纹章、示例地图和交战演出，放在 [design/pixel-art](design/pixel-art/README.md)。地形字符与随机地图生成器共用一套，见 [03 战斗规则](docs/03-combat.md)的地形表。素材由脚本生成；修改后需用 Python 3 和 Pillow 重新生成：
+UI 设计稿用的原创像素素材共 64 张 PNG，包括地图单位、头像、图标、纹章、示例地图（含竞技场的王城）和交战演出，放在 [design/pixel-art](design/pixel-art/README.md)。地形字符与随机地图生成器共用一套，见 [03 战斗规则](docs/03-combat.md)的地形表。素材由脚本生成；修改后需用 Python 3 和 Pillow 重新生成：
 
 ```bash
 python3 design/pixel-art/gen_art.py

@@ -11,6 +11,7 @@ export interface Weapon {
   crit: number;
   range: readonly [number, number];
   effective?: readonly MoveType[];
+  effectiveRoutes?: readonly ('beast' | 'dragon')[];
   brave?: boolean;
   // Staves: heal = 'mag10' restores 魔 + 10, 'full' restores all HP; magRange caps range at 魔 ÷ 2.
   heal?: 'mag10' | 'full';
@@ -21,6 +22,12 @@ export interface Weapon {
 const FLYING = ['flying'] as const;
 
 const TABLE = {
+  beastkiller: { name: '猎兽剑', type: 'sword', rank: 'D', might: 6, hit: 80, weight: 7, crit: 0, range: [1, 1], effectiveRoutes: ['beast'], note: '对兽人特效' },
+  dragonslayer: { name: '屠龙剑', type: 'sword', rank: 'D', might: 6, hit: 80, weight: 7, crit: 0, range: [1, 1], effectiveRoutes: ['dragon'], note: '对龙人特效，不针对龙骑士' },
+  gauntlet: { name: '铁拳套', type: 'fist', rank: 'E', might: 4, hit: 90, weight: 3, crit: 0, range: [1, 1], brave: true },
+  dagger: { name: '短刀', type: 'dagger', rank: 'E', might: 5, hit: 90, weight: 3, crit: 5, range: [1, 1] },
+  beast_claw: { name: '兽爪', type: 'beast', rank: 'E', might: 8, hit: 80, weight: 7, crit: 0, range: [1, 1] },
+  dragonstone: { name: '龙石', type: 'dragon', rank: 'E', might: 7, hit: 80, weight: 8, crit: 0, range: [1, 2], note: '魔力对魔防' },
   iron_sword: { name: '铁剑', type: 'sword', rank: 'E', might: 5, hit: 90, weight: 5, crit: 0, range: [1, 1] },
   steel_sword: { name: '钢剑', type: 'sword', rank: 'D', might: 8, hit: 75, weight: 10, crit: 0, range: [1, 1] },
   horseslayer: { name: '斩马刀', type: 'sword', rank: 'D', might: 6, hit: 70, weight: 9, crit: 0, range: [1, 1], effective: ['mounted'], note: '对骑乘特效' },

@@ -10,11 +10,12 @@ import { seedRng } from '../engine/rng.ts';
 import { EngineError } from '../engine/types.ts';
 import type { BattleState, Behavior, ItemStack, Point, Side, UnitState } from '../engine/types.ts';
 import { tilesFromGlyphs } from '../maps/map.ts';
-import { ARENA_MAPS } from './maps.ts';
+import { ARENA_MAPS, throneOf } from './maps.ts';
 import type { ArenaMap, ArenaMapId } from './maps.ts';
 
 // One unit frozen in a month-end snapshot (docs/04, 05): it fights at full HP with these numbers.
 export interface SnapshotUnit {
+  id?: string;
   character: CharacterId;
   classId: ClassId;
   level: number;
@@ -53,7 +54,7 @@ export interface AttackPlan { picks: { character: CharacterId; pos: Point }[]; c
 const key = ([x, y]: Point) => `${x},${y}`;
 const fail = (code: string, message: string): never => { throw new EngineError(code, message); };
 
-function canUseStaff(unit: SnapshotUnit): boolean {
+export function canHeal(unit: SnapshotUnit): boolean {
   return unit.weapons.some(id => WEAPONS[id].type === 'staff'
     && CLASSES[unit.classId].weapons.staff !== undefined && rankAtLeast(unit.ranks.staff, WEAPONS[id].rank));
 }
@@ -73,12 +74,14 @@ export function validateDefense(defense: Defense): string[] {
   if (spots.some(s => !zone.has(s))) errors.push('站位必须在防守出生区内');
   if (new Set(spots).size !== spots.length) errors.push('站位不能重复');
   for (const slot of defense.slots) {
-    if (slot.behavior === 'healer' && !canUseStaff(slot.unit)) errors.push(`${CHARACTERS[slot.unit.character].name} 不会用杖，不能设为治疗优先`);
+    if (slot.behavior === 'healer' && !canHeal(slot.unit)) errors.push(`${CHARACTERS[slot.unit.character].name} 不会用杖，不能设为治疗优先`);
   }
   if (defense.commanders.length < 1 || defense.commanders.length > 3 || defense.commanders.some(c => !characters.includes(c))) {
     errors.push('主将与备选必须是防守名单中的 1–3 人');
   }
+  if (new Set(defense.commanders).size !== defense.commanders.length) errors.push('主将与备选不能是同一人');
   if (defense.bans.length > map.bans) errors.push(`预设禁用最多 ${map.bans} 个角色`);
+  if (new Set(defense.bans).size !== defense.bans.length || defense.bans.some(c => !(c in CHARACTERS))) errors.push('预设禁用的角色不能重复');
   return errors;
 }
 
@@ -158,9 +161,23 @@ export function createArenaBattle(defense: Defense, bans: CharacterId[], roster:
     turn: 1,
     turnLimit: map.turnLimit,
     phase: 'player',
-    goal: map.goal === 'boss' ? { kind: 'boss', target: defenderId(reveal.commander) } : { kind: 'rout' },
+    goal: map.goal === 'boss' ? { kind: 'boss', target: defenderId(reveal.commander) }
+      : map.goal === 'seize' ? { kind: 'seize', throne: throneOf(map) } : { kind: 'rout' },
     rng: seedRng(`${seed}:combat`),
     growthRng: seedRng(`${seed}:growth`),
+  };
+}
+
+// The defense alone on its map (every listed unit, no attackers), for previewing AI behavior areas.
+export function defenseBoard(defense: Defense): BattleState {
+  const map = arenaMap(defense);
+  const tiles = tilesFromGlyphs(map.rows);
+  return {
+    engineVersion: 1, id: `defense-${defense.id}`, kind: 'arena', name: map.name,
+    map: { width: tiles[0].length, height: tiles.length, tiles },
+    units: defense.slots.map(s => fromSnapshot(s.unit, 'enemy', defenderId(s.unit.character), s.pos, { behavior: s.behavior })),
+    turn: 1, turnLimit: map.turnLimit, phase: 'enemy', goal: { kind: 'rout' },
+    rng: seedRng('preview'), growthRng: seedRng('preview'),
   };
 }
 

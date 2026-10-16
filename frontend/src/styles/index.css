@@ -1,8 +1,11 @@
 @import 'tailwindcss';
 @import './components.css';
+@import './shell.css';
 @import './battle.css';
 @import './scenes.css';
 @import './arena.css';
+@import './pages.css';
+@import './watch.css';
 
 /* Parchment palette from the UI design brief (docs/08) and the 界面规范 artboard. */
 @theme {

@@ -1,21 +1,4 @@
-/* Page frame and arena pages, ported from the 竞技场 artboards (ArenaBan / ArenaDeploy / ArenaResults). */
-.topbar { display: flex; align-items: center; gap: 18px; min-height: 60px; padding: 4px 20px; flex-wrap: wrap; background: var(--color-blue); color: var(--color-panel); border-bottom: 2px solid var(--color-brass); box-shadow: inset 0 -4px 0 #2c4a5e; }
-.tb-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.tb-sep { width: 1px; align-self: stretch; margin: 10px 0; background: rgba(245, 238, 223, 0.2); }
-.tb-k { display: block; font-size: 12px; color: #c6d3dc; line-height: 1.2; }
-.tb-v { display: block; font-size: 16px; font-weight: 700; color: #fff; line-height: 1.25; white-space: nowrap; }
-.tb-v small { font-size: 12px; font-weight: 500; color: #c6d3dc; }
-.shell { flex: 1; display: flex; align-items: stretch; }
-.rail { flex: 0 0 196px; display: flex; flex-direction: column; gap: 4px; padding: 16px 12px; background: #f1e9d8; border-right: 1px solid var(--color-line); }
-.rail-note { margin-top: 12px; padding: 0 12px; font-size: 12px; color: var(--color-muted); line-height: 1.5; }
-.main { flex: 1; min-width: 0; padding: 14px 24px 18px; display: flex; flex-direction: column; gap: 12px; }
-.nav-item { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: 6px; color: var(--color-ink); text-decoration: none; font-size: 15px; font-weight: 500; }
-.nav-item svg { width: 20px; height: 20px; flex: none; }
-.nav-item:hover { background: #e7decb; color: var(--color-ink); }
-.nav-item[aria-current='page'] { background: var(--color-blue); color: #fff; font-weight: 700; }
-.nb { margin-left: auto; min-width: 22px; height: 20px; padding: 0 7px; border-radius: 10px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; background: var(--color-panel); color: var(--color-blue); white-space: nowrap; }
-.nav-item:not([aria-current='page']) .nb { background: #e2d6bc; color: #5e4618; }
-
+/* Arena pages, ported from the 竞技场 artboards (ArenaBan / ArenaDeploy / ArenaResults). */
 .headrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .snap { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 5px; background: var(--color-brass-soft); border: 1px solid #d7c08a; color: #5e4618; font-size: 13px; font-weight: 700; }
 .arena-cols { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
@@ -114,11 +97,64 @@
 .pts span { display: block; font-size: 12px; color: var(--color-muted); }
 
 @media (max-width: 900px) {
-  .shell { flex-direction: column; }
-  .rail { flex: none; flex-direction: row; flex-wrap: wrap; padding: 8px; border-right: 0; border-bottom: 1px solid var(--color-line); }
-  .rail nav { display: flex; flex-wrap: wrap; gap: 4px; }
-  .rail-note { display: none; }
-  .main { padding: 12px 16px 16px; }
   .match { grid-template-columns: 82px minmax(0, 1fr) auto; }
   .match .crest, .match .pts { display: none; }
 }
+
+/* Defense settings (ArenaDefense artboard). */
+.maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.mapopt { all: unset; box-sizing: border-box; display: flex; gap: 10px; align-items: center; padding: 6px 10px 6px 6px; border-radius: 6px; border: 1px solid var(--color-line); background: var(--color-panel); cursor: pointer; min-height: 58px; }
+.mapopt:hover { border-color: #8c8273; }
+.mapopt:focus-visible { outline: 2px solid var(--color-brass); outline-offset: 2px; }
+.mapopt[aria-pressed='true'] { border-color: var(--color-blue); background: var(--color-blue-soft); box-shadow: inset 0 0 0 1px var(--color-blue); }
+.thumb { width: 72px; height: 46px; object-fit: none; object-position: center; border-radius: 3px; border: 1px solid #2f3a33; flex: none; }
+.mo-n { display: block; font-size: 14px; font-weight: 700; line-height: 1.25; }
+.mo-r { display: block; font-size: 12px; color: var(--color-ink-2); line-height: 1.3; }
+.notes { list-style: none; margin: 0; padding: 8px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #6e5322; }
+.notes .err { color: var(--color-red-deep); }
+
+.unit .prio { position: absolute; left: -4px; top: -6px; min-width: 18px; height: 18px; padding: 0 3px; border-radius: 3px; background: var(--color-brass); color: #fff; font-family: var(--font-pixel); font-size: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1.5px #2b2421; }
+.unit .beh { position: absolute; right: -4px; bottom: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--color-panel); color: var(--color-blue-deep); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1.5px var(--color-blue); }
+.unit .role { position: absolute; right: -6px; top: -6px; height: 18px; padding: 0 4px; border-radius: 3px; background: var(--color-blue); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; box-shadow: 0 0 0 1.5px var(--color-panel); }
+.unit.sub .spr { opacity: 0.62; }
+.unit.sub { outline: 2px dashed var(--color-panel); outline-offset: -3px; border-radius: 4px; }
+.lgd { display: flex; gap: 14px; flex-wrap: wrap; padding: 2px 14px 10px; font-size: 12px; color: var(--color-ink-2); align-items: center; }
+
+.dfrow { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 10px; border-bottom: 1px solid #e6ddcb; }
+.dfrow:last-child { border-bottom: 0; }
+.dfrow.sel { background: var(--color-blue-soft); }
+.dfrow.subrow { background: #f1ece2; }
+.dfrow.sel.subrow { background: #e3e6e2; }
+.pn { font-family: var(--font-pixel); font-size: 12px; width: 24px; height: 24px; border-radius: 4px; background: var(--color-brass); color: #fff; display: flex; align-items: center; justify-content: center; }
+.dname { all: unset; cursor: pointer; display: block; min-width: 0; }
+.dname:focus-visible { outline: 2px solid var(--color-brass); outline-offset: 2px; border-radius: 3px; }
+.dname b { display: flex; align-items: center; font-size: 14px; line-height: 1.25; }
+.dname > span { display: block; font-size: 12px; color: var(--color-ink-2); line-height: 1.3; }
+.mv { display: flex; gap: 4px; }
+.mv button { width: 32px; height: 32px; padding: 0; border-radius: 5px; border: 1px solid #cdbfa3; background: var(--color-paper); cursor: pointer; font-size: 14px; color: var(--color-ink); }
+.mv button:hover:not(:disabled) { border-color: #8c8273; background: #fff; }
+.mv button:disabled { color: #c9c0b0; cursor: not-allowed; background: #eee8dc; }
+.mv button.out { width: auto; padding: 0 8px; font-size: 12px; color: var(--color-red); border-color: #ddb0a8; }
+.mv button.out:hover { background: #f4e3de; border-color: var(--color-red); }
+.dsub { grid-column: 3 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--color-ink-2); }
+.bsel { min-height: 30px; padding: 0 6px; border: 1px solid #cdbfa3; border-radius: 5px; background: var(--color-paper); color: var(--color-blue-deep); font-size: 13px; font-weight: 700; cursor: pointer; }
+.bsel:hover:not(:disabled) { border-color: #8c8273; background: #fff; }
+.bsel:disabled { color: var(--color-faint); cursor: not-allowed; }
+.ov.trig { background-color: rgba(232, 190, 98, 0.26); background-image: repeating-linear-gradient(45deg, rgba(255, 246, 216, 0.45) 0 2px, transparent 2px 7px); box-shadow: inset 0 0 0 1px rgba(168, 132, 69, 0.95); }
+.mt-blue { background: var(--color-blue); color: #fff; }
+/* At 2x the badges shrink so neighbours do not cover each other. */
+.mapbox.compact .unit .prio { min-width: 13px; height: 13px; padding: 0 2px; font-size: 8px; left: -3px; top: -4px; }
+.mapbox.compact .unit .beh { width: 14px; height: 14px; font-size: 9px; right: -3px; bottom: 1px; }
+.mapbox.compact .unit .role { height: 13px; padding: 0 2px; font-size: 9px; right: -4px; top: -4px; }
+.mapbox.compact .unit .lead { width: 13px; height: 13px; font-size: 8px; }
+
+/* 今日结果 (ArenaResults artboard): defense results, rewards, replays. */
+.locked { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: 5px; border: 1px dashed #b9ad95; color: var(--color-muted); font-size: 13px; white-space: nowrap; }
+.locked .ico { width: 16px; height: 16px; }
+.def-next { padding: 8px 16px 12px; font-size: 13px; color: var(--color-ink-2); border-top: 1px solid var(--color-line-soft); }
+.rw { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--color-line-soft); border-bottom: 1px solid var(--color-line-soft); }
+.rw > div { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--color-panel); }
+.rw span span { display: block; font-size: 12px; color: var(--color-muted); }
+.rw b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.lr li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px; border-bottom: 1px solid #e6ddcb; font-size: 14px; }
+.lr li:last-child { border-bottom: 0; }

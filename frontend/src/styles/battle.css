@@ -94,11 +94,16 @@
 .mt-red { background: var(--color-red); color: #fff; }
 .mt-brass { background: var(--color-panel); color: #5e4618; border: 1px solid var(--color-brass); }
 .mt-green { background: var(--color-green); color: #fff; }
+.mt-throne { background: var(--color-brass-soft); color: var(--color-brass-deep); border: 1px solid var(--color-brass); }
+/* 王座 on seize maps: battle map, arena previews and the legend swatch. */
+.throne-mark { position: absolute; width: var(--cell); height: var(--cell); outline: 2px dashed #e7c266; outline-offset: -3px; pointer-events: none; }
+.throne-sw { display: inline-block; width: 16px; height: 16px; background: #8a7a5c; outline: 2px dashed #e7c266; outline-offset: -3px; border-radius: 2px; }
 
 .float-num { position: absolute; z-index: 6; font-family: var(--font-pixel); font-size: 18px; font-weight: 700; color: #fff; text-shadow: 0 0 2px #2b2421, 0 2px 0 #2b2421; pointer-events: none; animation: float-up 0.9s ease-out forwards; }
 .float-num.heal { color: #c9f0b0; }
 .float-num.miss { color: #e8e1d3; font-size: 14px; }
 .float-num.crit { color: #ffd76a; font-size: 22px; }
+.float-num.seize { color: #ffd76a; font-size: 20px; font-family: inherit; animation-duration: 1.4s; }
 @keyframes float-up { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-28px); opacity: 0; } }
 
 .widget { position: absolute; z-index: 4; border-radius: 6px; background: rgba(245, 238, 223, 0.95); border: 1px solid #cdbfa3; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28); }

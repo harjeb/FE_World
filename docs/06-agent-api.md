@@ -76,6 +76,8 @@ UNIT_ACT 一次提交「移动 + 行动」，不能悔棋：
 } }
 ```
 
+`action` 取 `attack`、`heal`、`item`、`seize`、`wait`。`seize`（压制）只在压制地图上可用：主将的 `moveTo` 必须是王座，提交后立即获胜。
+
 响应包含逐次出手的结果（命中/必杀/伤害）、双方剩余 HP、获得的经验，以及升级时每项属性的增长（野外战斗）。
 
 ### 4. 意图上报
@@ -138,6 +140,7 @@ UNIT_ACT 一次提交「移动 + 行动」，不能悔棋：
 | UNREACHABLE | 目标格不可达 | 先用 GET_REACHABLE 取可达格 |
 | TARGET_OUT_OF_RANGE | 目标不在所选武器的射程内 | 用 GET_REACHABLE 返回的 attackable 列表 |
 | WEAPON_RANK_TOO_LOW | 武器等级不够 | 换武器，或者通过训练提升武器等级 |
+| CANNOT_SEIZE | 只有主将站在王座上才能压制 | 从 GET_BATTLE 的胜利条件读王座坐标，让主将以王座为 `moveTo` 再提交 |
 | NO_DAYS_LEFT | 已发放的行动日用完了 | 等下个游戏月开始（GET_STATE 有时间），期间可以做不占行动日的事 |
 | BATTLE_IN_PROGRESS | 已有进行中的战斗 | 先结束（或撤退）当前战斗 |
 | ARENA_NOT_OPEN | 现在不是竞技场日，或你没有报名 | 用 GET_ARENA 查看时间与报名状态 |

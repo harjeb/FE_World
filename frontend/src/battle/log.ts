@@ -11,6 +11,8 @@ export interface LogEntry {
   side: Side;
   kind: 'a' | 'e' | 'g';
   text: string;
+  // The event the line describes (回放 filters by it).
+  t: BattleEvent['t'];
 }
 
 let nextId = 1;
@@ -21,10 +23,12 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
   let turn = before.turn, phase: Side = before.phase;
   const entries: LogEntry[] = [];
   let moved = new Set<string>();
-  const push = (text: string, kind: LogEntry['kind'], side: Side = phase) => entries.push({ id: nextId++, turn, side, kind, text });
+  let t: BattleEvent['t'] = 'wait';
+  const push = (text: string, kind: LogEntry['kind'], side: Side = phase) => entries.push({ id: nextId++, turn, side, kind, text, t });
   const mark = (id: string): LogEntry['kind'] => (sideOf(id) === 'player' ? 'a' : 'e');
 
   for (const e of events) {
+    t = e.t;
     switch (e.t) {
       case 'phase':
         turn = e.turn;
@@ -49,6 +53,9 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       }
       case 'defeated':
         push(`${name(e.unit)} 被击败，退出战斗。`, mark(e.unit));
+        break;
+      case 'seize':
+        push(`${name(e.unit)} 压制了王座。`, mark(e.unit));
         break;
       case 'heal':
         if (e.source === 'terrain') push(`${name(e.target)} 在据点回复 ${e.amount} HP。`, 'g');

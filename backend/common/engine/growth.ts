@@ -1,4 +1,5 @@
 import { CHARACTERS } from '../data/characters.ts';
+import { applyGrowthBonus } from '../data/growth-types.ts';
 import { STAT_KEYS } from '../data/types.ts';
 import type { StatKey, Stats } from '../data/types.ts';
 import { roll100 } from './rng.ts';
@@ -14,21 +15,23 @@ export function combatExp(unit: UnitState, foe: UnitState, dealtDamage: boolean,
   return Math.min(100, exp);
 }
 
-export function staffExp(unit: UnitState): number {
-  return classOf(unit).tier === 'promoted' ? 8 : 12;
+export function staffExp(_unit: UnitState): number {
+  return 12;
 }
 
 export function expPreview(unit: UnitState, foe: UnitState): { fight: number; kill: number } {
   return { fight: combatExp(unit, foe, true, false), kill: combatExp(unit, foe, true, true) };
 }
 
-// Personal + class growth, floored at 0 (docs/02). Units without a character (generic enemies) do not grow.
+// Personal + class growth, floored at 0, plus the growth-type/age offset (docs/02).
+// Units without a character (generic enemies) do not grow.
 export function growthRates(unit: UnitState): Stats | null {
   if (!unit.character) return null;
-  const personal = CHARACTERS[unit.character].growth, own = classOf(unit).growth;
+  const def = CHARACTERS[unit.character];
+  const personal = def.growth, own = classOf(unit).growth;
   const rates = {} as Stats;
   for (const key of STAT_KEYS) rates[key] = Math.max(0, personal[key] + own[key]);
-  return rates;
+  return applyGrowthBonus(rates, unit.growthType ?? def.growthType, unit.age ?? def.age);
 }
 
 // Pure random growth: each stat rolls independently; 100%+ grants a sure point and rolls the rest.

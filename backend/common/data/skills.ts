@@ -9,5 +9,9 @@ export const SKILLS = {
   focus: { name: '聚魔', text: '理魔法必杀 +10' },
   shelter: { name: '庇护', text: '治疗目标下回合防 +2' },
   steadfast: { name: '坚守', text: '本回合未移动时防 +3' },
+  keen: { name: '锐眼', text: '必杀 +10' },
+  grit: { name: '斗志', text: 'HP ≤ 50% 时命中 +20' },
+  prayer: { name: '祈愿', text: '治疗量 +5' },
+  charge: { name: '冲阵', text: '本回合移动后伤害 +2' },
 } as const;
 export type SkillId = keyof typeof SKILLS;

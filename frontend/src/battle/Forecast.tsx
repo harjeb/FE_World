@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
-import { expPreview, forecast, terrainAt, unitById } from '@common/engine/index.ts';
+import { expPreview, forecast, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
 import type { BattleState, Point, SideForecast, UnitState } from '@common/engine/index.ts';
 import { TERRAINS } from '@common/maps/map.ts';
 import { weaponIcon } from '../assets.ts';
@@ -118,7 +118,7 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId }: { state: 
 export function HealPreview({ state, unitId, targetId, weapon }: { state: BattleState; unitId: string; targetId: string; weapon: WeaponId }) {
   const healer = unitById(state, unitId), target = unitById(state, targetId);
   const staff = WEAPONS[weapon];
-  const amount = staff.heal === 'full' ? target.stats.hp - target.hp : Math.min(target.stats.hp - target.hp, healer.stats.mag + 10);
+  const amount = healAmount(healer, target, weapon);
   return (
     <section className="panel" aria-labelledby="heal-h">
       <div className="ph"><h2 id="heal-h">治疗预览</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{staff.name}：{staff.note}</span></div>

@@ -1,18 +1,74 @@
+import { useEffect, useState } from 'react';
+import { session, useSession } from './api/session.ts';
+import { token } from './api/client.ts';
 import { ArenaBattle } from './arena/ArenaBattle.tsx';
 import { ArenaHub } from './arena/ArenaHub.tsx';
 import { BanPage } from './arena/BanPage.tsx';
+import { DefensePage } from './arena/DefensePage.tsx';
 import { DeployPage } from './arena/DeployPage.tsx';
 import { FieldBattle } from './battle/FieldBattle.tsx';
+import { CampPage } from './pages/CampPage.tsx';
+import { PrepPage } from './pages/PrepPage.tsx';
+import { PromotePage } from './pages/PromotePage.tsx';
+import { RosterPage } from './pages/RosterPage.tsx';
 import { useRoute } from './router.ts';
+import { Toasts } from './ui/toast.tsx';
+import { ReplayPage } from './watch/ReplayPage.tsx';
+import { SpectatePage } from './watch/SpectatePage.tsx';
 
-// Pages built so far: today's arena (ban → deploy → battle) and the PvE demo battle.
-export default function App() {
+// Every designed screen, now reading live server state. 军营 is home.
+function Page() {
   const route = useRoute();
   switch (route.page) {
+    case 'roster': return <RosterPage unit={route.unit} tab={route.tab} />;
+    case 'promote': return <PromotePage key={route.unit} unit={route.unit} />;
     case 'field': return <FieldBattle />;
+    case 'prep': return <PrepPage unit={route.unit} />;
+    case 'spectate': return <SpectatePage />;
+    case 'replay': return <ReplayPage key={route.id ?? 'latest'} id={route.id} />;
+    case 'arena': return <ArenaHub />;
+    case 'defense': return <DefensePage />;
     case 'ban': return <BanPage key={route.opponent} id={route.opponent} />;
     case 'deploy': return <DeployPage key={route.opponent} id={route.opponent} />;
     case 'arena-battle': return <ArenaBattle key={route.opponent} id={route.opponent} />;
-    default: return <ArenaHub />;
+    default: return <CampPage />;
   }
+}
+
+function Login() {
+  const { loading, error } = useSession();
+  const [name, setName] = useState('指挥官');
+  return (
+    <div className="app-bg" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+      <form
+        className="panel" style={{ padding: 24, width: 360, display: 'flex', flexDirection: 'column', gap: 12 }}
+        onSubmit={e => { e.preventDefault(); void session.login(name.trim()); }}
+      >
+        <h1 style={{ fontSize: 20, fontWeight: 700 }}>AgentTactics</h1>
+        <p style={{ fontSize: 13, color: '#4E473D' }}>输入军团指挥官名进入游戏。首次进入会创建账号与初始名册。</p>
+        <label style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          指挥官名
+          <input value={name} onChange={e => setName(e.target.value)} minLength={2} maxLength={32} required />
+        </label>
+        {error && <p role="alert" style={{ color: '#93392F', fontSize: 13 }}>{error}</p>}
+        <button type="submit" className="btn btn-primary" disabled={loading || name.trim().length < 2}>
+          {loading ? '进入中…' : '进入军营'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function App() {
+  const { ready, loading } = useSession();
+  useEffect(() => {
+    if (token() && !session.get().ready && !session.get().loading) void session.refresh();
+  }, []);
+  if (!ready) return <>{loading ? <div className="app-bg" style={{ padding: 24 }}>载入中…</div> : <Login />}</>;
+  return (
+    <>
+      <Page />
+      <Toasts />
+    </>
+  );
 }

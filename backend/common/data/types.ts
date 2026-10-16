@@ -2,7 +2,7 @@ import type { Movement } from '../maps/map.ts';
 
 export type StatKey = 'hp' | 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res';
 export type Stats = Record<StatKey, number>;
-export type WeaponType = 'sword' | 'lance' | 'axe' | 'bow' | 'tome' | 'staff';
+export type WeaponType = 'sword' | 'lance' | 'axe' | 'bow' | 'tome' | 'staff' | 'fist' | 'dagger' | 'beast' | 'dragon';
 export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S';
 export type MoveType = Movement;
 
@@ -13,6 +13,7 @@ export const STAT_NAMES: Record<StatKey, string> = {
 export const RANKS: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S'];
 export const WEAPON_TYPE_NAMES: Record<WeaponType, string> = {
   sword: '剑', lance: '枪', axe: '斧', bow: '弓', tome: '理', staff: '杖',
+  fist: '拳', dagger: '短刀', beast: '兽爪', dragon: '龙石',
 };
 export const MOVE_TYPE_NAMES: Record<MoveType, string> = {
   foot: '步行', armored: '重甲', mounted: '骑乘', flying: '飞行',

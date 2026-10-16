@@ -61,7 +61,7 @@ export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: W
   const mods = skillMods(state, { unit, pos, weapon: w, moved: unit.movedTurn === state.turn });
   const as = attackSpeed(unit, weaponId);
   return {
-    attack: w ? (w.type === 'tome' ? unit.stats.mag : unit.stats.str) + w.might : 0,
+    attack: w ? ((w.type === 'tome' || w.type === 'dragon') ? unit.stats.mag : unit.stats.str) + w.might : 0,
     hit: w ? w.hit + unit.stats.skl * 2 + Math.floor(unit.stats.lck / 2) + mods.hit : 0,
     crit: w ? w.crit + Math.floor(unit.stats.skl / 2) + mods.crit : 0,
     attackSpeed: as,
@@ -72,9 +72,10 @@ export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: W
 function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null): SideForecast {
   const w = me.weapon, fw = foe.weapon;
   const tri = w && fw ? triangle(w.type, fw.type) : 0;
-  const effective = !!w?.effective?.includes(classOf(foe.unit).moveType);
+  const effective = !!w?.effective?.includes(classOf(foe.unit).moveType)
+    || !!w?.effectiveRoutes?.some(route => route === classOf(foe.unit).route);
   const mods = skillMods(state, me), foeMods = skillMods(state, foe);
-  const magic = w?.type === 'tome';
+  const magic = w?.type === 'tome' || w?.type === 'dragon';
   const attack = w ? (magic ? me.unit.stats.mag : me.unit.stats.str) + (w.might + tri) * (effective ? 3 : 1) : 0;
   const foeTerrain = terrainBonus(state, foe.unit, foe.pos);
   const protection = (magic ? foe.unit.stats.res : foe.unit.stats.def + foeMods.def) + foeTerrain.def;

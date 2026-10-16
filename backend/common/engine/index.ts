@@ -7,9 +7,10 @@ export { forecast, trueHit, unitCombatStats, terrainBonus } from './combat.ts';
 export type { Forecast, SideForecast } from './combat.ts';
 export { moveRange, pathTo } from './movement.ts';
 export type { MoveRange } from './movement.ts';
-export { actionOptions, reachCells, targetsFrom, threatMap } from './ranges.ts';
+export { actionOptions, canSeize, reachCells, targetsFrom, threatMap } from './ranges.ts';
 export type { ActionOptions } from './ranges.ts';
 export { expPreview, growthRates } from './growth.ts';
+export { healAmount } from './resolve.ts';
 export { seedRng } from './rng.ts';
 export {
   attackWeapons, cellKey, classOf, distance, equipped, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,

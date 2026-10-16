@@ -23,6 +23,9 @@ export function skillMods(state: BattleState, f: Fighter): Mods {
     case 'opening': mods.followUpCrit += 10; break;
     case 'surge': if (unit.hp * 2 <= unit.stats.hp) mods.damage += 3; break;
     case 'steadfast': if (!f.moved) mods.def += 3; break;
+    case 'keen': mods.crit += 10; break;
+    case 'grit': if (unit.hp * 2 <= unit.stats.hp) mods.hit += 20; break;
+    case 'charge': if (f.moved) mods.damage += 2; break;
   }
   if (unit.shelteredTurn === state.turn) mods.def += 2;
   const veteranNearby = living(state, unit.side)

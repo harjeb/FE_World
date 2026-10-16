@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MY_ROSTER } from '@common/arena/demo.ts';
-import { ARENA_MAPS } from '@common/arena/maps.ts';
+import { MY_ROSTER, OPPONENTS } from '../demo/live.ts';
+import { ARENA_MAPS, throneOf } from '@common/arena/maps.ts';
 import { validateAttack } from '@common/arena/rules.ts';
 import type { AttackPlan, SnapshotUnit } from '@common/arena/rules.ts';
 import { CHARACTERS } from '@common/data/characters.ts';
@@ -97,6 +97,7 @@ export function DeployPage({ id }: { id: string }) {
   };
 
   const plan: AttackPlan | null = commander ? { picks, commander } : null;
+  const throne = map.goal === 'seize' ? throneOf(map) : null;
   const errors = plan ? validateAttack(defense, reveal, MY_ROSTER, plan) : ['请指定主将'];
   const enemyAt = (at: Point) => reveal.fielded.find(s => same(s.pos, at));
   const hovered = hover && (enemyAt(hover)?.unit ?? MY_ROSTER.find(u => same(placed(u.character)?.pos ?? [-1, -1], hover)));
@@ -115,9 +116,9 @@ export function DeployPage({ id }: { id: string }) {
     <Shell current="arena">
       <div className="headrow">
         <h1 style={{ fontSize: 20, fontWeight: 700 }}>
-          进攻 {attackIndex(id)} / 3 · {defense.legion} <span className="tag tag-grey" style={{ verticalAlign: 'middle' }}>{map.name} · 出战 {map.deploy} · {map.turnLimit} 回合 · {map.goalText}</span>
+          进攻 {attackIndex(id)} / {OPPONENTS.length} · {defense.legion} <span className="tag tag-grey" style={{ verticalAlign: 'middle' }}>{map.name} · 出战 {map.deploy} · {map.turnLimit} 回合 · {map.goalText}</span>
         </h1>
-        <SnapshotTag text="使用第 6 月末锁定快照 · 之后的养成变化不影响本场" />
+        <SnapshotTag text="开战时锁定双方阵容 · 之后的养成变化不影响本场" />
       </div>
       <Flow current={3} />
       <div className="arena-cols">
@@ -129,13 +130,16 @@ export function DeployPage({ id }: { id: string }) {
           <div className="mapscroll" ref={fitRef}>
             <MapPreview map={map} cell={cell} mine={map.attackerZone} units={units} cursor={selected ? placed(selected)?.pos : null}
               onCell={onCell} onHover={setHover}
-              label={`${map.name}：右侧为对方 ${reveal.fielded.length} 名防守单位，主将${name(reveal.commander)}；左侧蓝色为我方部署区。`} />
+              label={`${map.name}：右侧为对方 ${reveal.fielded.length} 名防守单位，主将${name(reveal.commander)}；左侧蓝色为我方部署区。${throne ? `王座在 (${throne[0]},${throne[1]})，金色虚线框。` : ''}`} />
           </div>
           <div className="deploy-help">
             {hovered
               ? <UnitLine unit={hovered} side={enemyAt(hover!) ? 'enemy' : 'player'} />
               : <span>在名单中选择出战人员；点名字选中后，点蓝色格子或按方向键调整站位，遇到己方单位会交换位置。鼠标停在单位上可查看属性。</span>}
-            <span><b style={{ color: '#34556B' }}>★</b> 我方主将 · <b style={{ color: '#A84940' }}>旗帜</b> 敌方主将 {name(reveal.commander)}</span>
+            <span>
+              <b style={{ color: '#34556B' }}>★</b> 我方主将 · <b style={{ color: '#A84940' }}>旗帜</b> 敌方主将 {name(reveal.commander)}
+              {throne && <> · <b style={{ color: '#6E5322' }}>金框</b> 王座</>}
+            </span>
           </div>
         </section>
 
@@ -156,7 +160,7 @@ export function DeployPage({ id }: { id: string }) {
           <section className="panel" aria-labelledby="pick-h">
             <div className="ph">
               <h2 id="pick-h">出战编成 <span className="num" style={{ fontWeight: 500, color: '#6A6256' }}>{picks.length} / {need}</span></h2>
-              <span style={{ fontSize: 12, color: '#6A6256' }}>快照内全员满状态参赛</span>
+              <span style={{ fontSize: 12, color: '#6A6256' }}>全员满 HP 参赛</span>
             </div>
             <ul>
               {MY_ROSTER.map(u => {
@@ -186,9 +190,10 @@ export function DeployPage({ id }: { id: string }) {
             <div style={{ fontSize: 13, color: '#4E473D' }}>
               已放置 {picks.length} / {need} · 主将：<b>{commander ? name(commander) : '未指定'}</b> · 我方先手
             </div>
+            {throne && <div style={{ fontSize: 13, color: '#4E473D' }}>王城：只有我方主将能压制王座，全歼守军不算胜利；主将被击败即落败。</div>}
             {errors.length > 0 && <div role="status" style={{ fontSize: 13, color: '#93392F' }}>{errors[0]}</div>}
             <button type="button" className="btn btn-primary btn-lg" disabled={errors.length > 0}
-              onClick={() => { if (plan) { arena.start(id, plan); go(links.battle(id)); } }}>
+              onClick={() => { if (plan) void arena.start(id, plan).then(() => go(links.battle(id))); }}>
               开始战斗
             </button>
             <div style={{ fontSize: 12, color: '#6A6256' }}>开始后不能再更换出战人员；进攻中可随时投降，按落败计。</div>

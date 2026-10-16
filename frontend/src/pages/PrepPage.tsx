@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react';
+import { STAT_NAMES } from '@common/data/types.ts';
+import type { WeaponId } from '@common/data/weapons.ts';
+import { OP } from '@common/protocol/ops.ts';
+import { session, useSession } from '../api/session.ts';
+import type { ShopRow } from '../api/session.ts';
+import { go, links } from '../router.ts';
+import { Shell } from '../shell/Shell.tsx';
+import { dateLabel, plainDate } from '../ui/calendar.ts';
+import { BexpPanel, CARRY, CarriedPanel, cannotWield, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
+
+type Filter = 'all' | 'weapon' | 'item' | 'stat' | 'material';
+const FILTERS: [Filter, string][] = [['all', '全部'], ['weapon', '武器'], ['item', '道具'], ['stat', '能力药'], ['material', '材料']];
+const ORDER = ['weapon', 'consumable', 'stat', 'seal', 'material'];
+
+function inFilter(key: string, filter: Filter): boolean {
+  const kind = itemOf(key)?.kind;
+  if (filter === 'all') return true;
+  if (filter === 'item') return kind === 'consumable' || kind === 'seal';
+  return kind === filter;
+}
+const byKind = (a: string, b: string) => ORDER.indexOf(itemOf(a)?.kind ?? '') - ORDER.indexOf(itemOf(b)?.kind ?? '');
+const half = (key: string) => Math.floor((itemOf(key)?.price ?? 0) / 2);
+
+// 整备 (docs/00 §9: 整理、买卖、装备、分配公共经验都不耗日). Warehouse and shop on the left; on the
+// right, the character the warehouse buttons act on. Every change is a server op (TRANSFER_ITEM,
+// USE_ITEM, BUY, SELL, ASSIGN_BEXP) followed by a session refresh.
+export function PrepPage({ unit: wanted }: { unit: string | null }) {
+  const { state } = useSession();
+  const [filter, setFilter] = useState<Filter>('all');
+  const [shop, setShop] = useState<ShopRow[] | null>(null);
+  const loadShop = () => session.shop().then(setShop).catch(() => setShop([]));
+  useEffect(() => { void loadShop(); }, []);
+
+  const active = state?.units.filter(u => u.status === 'active') ?? [];
+  const unit = active.find(u => u.id === wanted) ?? active.find(u => u.character === wanted) ?? active[0];
+  const gold = state?.gold ?? 0;
+  const day = state?.day ?? 0;
+  const nextSeason = state?.nextMonthStart ?? day;
+  const stock = (state?.inventory ?? []).filter(r => inFilter(r.item, filter)).sort((a, b) => byKind(a.item, b.item) || b.uses - a.uses);
+  const wares = (shop ?? []).filter(r => inFilter(r.item, filter)).sort((a, b) => byKind(a.item, b.item));
+
+  function warehouseActions(key: string, uses: number, count: number) {
+    const item = itemOf(key);
+    const sell = (n: number) => runOp<{ gained: number; count: number }>(OP.SELL, { item: key, count: n }, r => `卖出 ${item?.name ?? key} ×${r.count}，金币 +${r.gained}`);
+    const acts = [];
+    if (unit && item?.kind === 'weapon') {
+      const full = unit.snapshot.weapons.length >= CARRY;
+      acts.push(<button key="give" type="button" className="btn btn-sm" disabled={full} title={full ? '武器栏已满' : undefined}
+        onClick={() => void runOp(OP.TRANSFER_ITEM, { unitId: unit.id, item: key, action: 'toUnit' }, () => `${item.name}交给了${unit.name}`)}>交给{unit.name}</button>);
+    }
+    if (unit && item?.kind === 'consumable') {
+      const full = unit.snapshot.items.length >= CARRY;
+      acts.push(<button key="give" type="button" className="btn btn-sm" disabled={full} title={full ? '道具栏已满' : undefined}
+        onClick={() => void runOp(OP.TRANSFER_ITEM, { unitId: unit.id, item: key, action: 'toUnit', uses }, () => `${item.name}（${uses} 次）交给了${unit.name}`)}>交给{unit.name}</button>);
+    }
+    if (unit && item?.kind === 'stat') {
+      const blocked = drugBlock(unit, key);
+      acts.push(<button key="use" type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined}
+        onClick={() => void runOp<{ stat: keyof typeof STAT_NAMES; amount: number }>(OP.USE_ITEM, { unitId: unit.id, item: key }, r => `${unit.name}的${STAT_NAMES[r.stat]} +${r.amount}`)}>{unit.name}使用</button>);
+    }
+    acts.push(<button key="sell" type="button" className="btn btn-sm btn-ghost" onClick={() => void sell(1)}>卖 +{half(key)}</button>);
+    if (item?.kind === 'material' && count > 1) {
+      acts.push(<button key="sellAll" type="button" className="btn btn-sm btn-ghost" onClick={() => void sell(count)}>全卖 +{half(key) * count}</button>);
+    }
+    return acts;
+  }
+
+  return (
+    <Shell current="prep">
+      <div className="brief-head">
+        <div>
+          <div className="eyebrow">整备 · {dateLabel(day)}</div>
+          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>仓库与商店</h1>
+          <p style={{ fontSize: 14, color: '#4E473D' }}>整理、买卖、装备和分配公共经验都不推进日期。</p>
+        </div>
+        <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>
+          金币 <b className="num">{gold.toLocaleString()}</b> · 商店在{plainDate(nextSeason)}补货（{nextSeason - day} 日后）
+        </div>
+      </div>
+
+      <div className="chips" role="group" aria-label="物品分类">
+        {FILTERS.map(([f, label]) => <button key={f} type="button" className="chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>{label}</button>)}
+      </div>
+
+      <div className="gear-cols">
+        <div className="colstack">
+          <section className="panel" aria-labelledby="wh-h">
+            <div className="ph"><h2 id="wh-h">仓库</h2><span style={{ fontSize: 12, color: '#6A6256' }}>出售价为商店价的一半</span></div>
+            <ul className="eq gear-list">
+              {stock.map(r => {
+                const item = itemOf(r.item);
+                const wield = unit && item?.kind === 'weapon' && item.weapon ? cannotWield(unit, item.weapon as WeaponId) : null;
+                return (
+                  <li key={`${r.item}:${r.uses}`}>
+                    <img className="px" src={itemIcon(r.item)} width={32} height={32} alt="" />
+                    <div className="min-w-0">
+                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{item?.kind === 'consumable' && <span className="tag tag-grey">剩 {r.uses} 次</span>}</div>
+                      <div className="sp">{itemSpec(r.item)}</div>
+                      {wield && <div className="why">{unit!.name}现在用不了：{wield}（仍可携带）</div>}
+                    </div>
+                    <span className="acts">{warehouseActions(r.item, r.uses, r.count)}</span>
+                  </li>
+                );
+              })}
+              {stock.length === 0 && <li className="empty-row">仓库里没有这类物品</li>}
+            </ul>
+          </section>
+
+          <section className="panel" aria-labelledby="shop-h">
+            <div className="ph"><h2 id="shop-h">商店</h2><span style={{ fontSize: 12, color: '#6A6256' }}>本季库存，每季第 1 日补货</span></div>
+            <ul className="eq gear-list gear-shop">
+              {wares.map(r => (
+                <li key={r.item}>
+                  <img className="px" src={itemIcon(r.item)} width={32} height={32} alt="" />
+                  <div className="min-w-0">
+                    <div className="nm">{r.name} <span className="cnt">{r.price.toLocaleString()} 金</span></div>
+                    <div className="sp">{itemSpec(r.item)}</div>
+                  </div>
+                  <span className="acts">
+                    <span className="stock">{r.stock > 0 ? `剩 ${r.stock}` : '售罄'}</span>
+                    <button type="button" className="btn btn-sm" disabled={r.stock <= 0 || gold < r.price} title={gold < r.price ? '金币不足' : undefined}
+                      onClick={() => void runOp<{ price: number }>(OP.BUY, { item: r.item, count: 1 }, b => `买下${r.name}，金币 −${b.price}`).then(loadShop)}>买</button>
+                  </span>
+                </li>
+              ))}
+              {shop !== null && wares.length === 0 && <li className="empty-row">商店里没有这类物品</li>}
+              {shop === null && <li className="empty-row">读取商店…</li>}
+            </ul>
+          </section>
+        </div>
+
+        <div className="colstack">
+          <UnitPicker units={active} selected={unit} onPick={id => go(links.prep(id))} />
+          {unit && <CarriedPanel unit={unit} />}
+          {unit && <DrugPanel unit={unit} />}
+          {unit && <BexpPanel key={unit.id} unit={unit} bexp={state?.bexp ?? 0} />}
+        </div>
+      </div>
+    </Shell>
+  );
+}

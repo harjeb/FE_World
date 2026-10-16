@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MY_ROSTER } from '@common/arena/demo.ts';
+import { MY_ROSTER } from '../demo/live.ts';
 import { ARENA_MAPS } from '@common/arena/maps.ts';
 import { opponentList } from '@common/arena/rules.ts';
 import type { SnapshotUnit } from '@common/arena/rules.ts';
@@ -30,7 +30,7 @@ export function BanPage({ id }: { id: string }) {
   const defense = arena.opponent(id);
   const record = day.attacks[id];
   const [bans, setBans] = useState<CharacterId[]>([]);
-  const [fitRef, cell] = useFitCell(defense ? ARENA_MAPS[defense.map].rows[0].length : 16, [32]);
+  const [fitRef, cell] = useFitCell(defense ? ARENA_MAPS[defense.map].rows[0].length : 16, [32, 16]);
 
   useEffect(() => {
     if (!defense) go(links.arena);
@@ -49,7 +49,7 @@ export function BanPage({ id }: { id: string }) {
       <Versus defense={defense} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Flow current={1} />
-        <span style={{ fontSize: 13, color: '#4E473D' }}>今日 24:00 截止；未完成的进攻按落败计</span>
+        <span style={{ fontSize: 13, color: '#4E473D' }}>推进日期前打完；没打的进攻按落败计</span>
       </div>
       <div className="arena-cols">
         <section className="panel" aria-labelledby="list-h" style={{ flex: '999 1 640px', minWidth: 0 }}>
@@ -101,7 +101,7 @@ export function BanPage({ id }: { id: string }) {
             <li><span>防守站位</span><b>禁用后揭晓</b></li>
             <li><span>防守方 AI 行为</span><b>全程不公开</b></li>
             <li><span>防守方对我方的预设禁用</span><b>揭晓阵容时显示</b></li>
-            <li><span>我方可出战</span><b>快照名册 {MY_ROSTER.length} 人</b></li>
+            <li><span>我方可出战</span><b>现役名册 {MY_ROSTER.length} 人</b></li>
           </ul>
         </section>
       </div>
@@ -129,7 +129,7 @@ export function BanPage({ id }: { id: string }) {
         </span>
         <a className="btn btn-ghost" href={links.arena}>稍后再打</a>
         <button type="button" className="btn btn-primary btn-lg" disabled={bans.length !== map.bans}
-          onClick={() => { arena.confirmBans(id, bans); go(links.deploy(id)); }}>
+          onClick={() => { void arena.confirmBans(id, bans).then(() => go(links.deploy(id))); }}>
           确认禁用并揭晓阵容
         </button>
       </section>

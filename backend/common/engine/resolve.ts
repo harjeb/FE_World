@@ -39,10 +39,15 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   }
 }
 
-export function runHeal(state: BattleState, healer: UnitState, target: UnitState, weaponId: WeaponId, events: BattleEvent[]): void {
-  const staff = WEAPONS[weaponId];
+// Staff healing: 魔 + 10 (祈愿 +5) or full, never above max HP.
+export function healAmount(healer: UnitState, target: UnitState, weaponId: WeaponId): number {
   const missing = target.stats.hp - target.hp;
-  const amount = staff.heal === 'full' ? missing : Math.min(missing, healer.stats.mag + 10);
+  if (WEAPONS[weaponId].heal === 'full') return missing;
+  return Math.min(missing, healer.stats.mag + 10 + (healer.skill === 'prayer' ? 5 : 0));
+}
+
+export function runHeal(state: BattleState, healer: UnitState, target: UnitState, weaponId: WeaponId, events: BattleEvent[]): void {
+  const amount = healAmount(healer, target, weaponId);
   target.hp += amount;
   if (healer.skill === 'shelter') target.shelteredTurn = state.turn;
   events.push({ t: 'heal', by: healer.id, target: target.id, amount, hpAfter: target.hp, source: 'staff' });

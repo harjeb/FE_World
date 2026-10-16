@@ -1,6 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
-import { MY_LEGION, MY_POINTS, OPPONENTS, SNAPSHOT_LABEL } from '@common/arena/demo.ts';
+import { MY_LEGION, MY_POINTS, OPPONENTS, WORLD } from '../demo/live.ts';
+import { plainDate } from '../ui/calendar.ts';
+import { throneOf } from '@common/arena/maps.ts';
 import type { ArenaMap } from '@common/arena/maps.ts';
 import type { Defense } from '@common/arena/rules.ts';
 import type { Point } from '@common/engine/index.ts';
@@ -18,7 +20,8 @@ export function Crest({ id, size = 48 }: { id: string; size?: 40 | 48 }) {
 
 export const attackIndex = (id: string) => OPPONENTS.findIndex(o => o.id === id) + 1;
 
-export function SnapshotTag({ text = `双方使用${SNAPSHOT_LABEL}` }: { text?: string }) {
+// ARENA_ATTACK builds the battle from both sides as they stand when it starts (docs/00 §10「每场报名锁定双方状态」).
+export function SnapshotTag({ text = '开战时锁定双方阵容' }: { text?: string }) {
   return (
     <span className="snap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
@@ -36,7 +39,7 @@ export function Versus({ defense }: { defense: Defense }) {
         <div><div className="vs-name">{MY_LEGION} <span className="tag tag-blue">● 进攻方 · 我方</span></div><div className="vs-sub num">积分 {MY_POINTS.toLocaleString()}</div></div>
       </div>
       <div className="vs-mid">
-        <div style={{ fontSize: 13, color: '#4E473D' }}>第 6 月竞技场 · 进攻 <b>{attackIndex(defense.id)}</b> / {OPPONENTS.length}</div>
+        <div style={{ fontSize: 13, color: '#4E473D' }}>竞技场 · {plainDate(WORLD.day)} · 进攻 <b>{attackIndex(defense.id)}</b> / {OPPONENTS.length}</div>
         <div style={{ marginTop: 4 }}><SnapshotTag /></div>
       </div>
       <div className="vs-side foe">
@@ -77,7 +80,7 @@ export function RulesGrid({ map }: { map: ArenaMap }) {
 
 // Largest whole-number tile size whose map fits the container's width (pixel art is never scaled
 // by fractions); on very narrow screens the smallest size is used and the container scrolls.
-export function useFitCell(columns: number, sizes: (32 | 48)[]) {
+export function useFitCell(columns: number, sizes: (16 | 32 | 48)[]) {
   const ref = useRef<HTMLDivElement>(null);
   const [cell, setCell] = useState(sizes[0]);
   useLayoutEffect(() => {
@@ -101,15 +104,22 @@ export interface PreviewUnit {
   boss?: boolean;
   lead?: boolean;
   selected?: boolean;
+  // Defense settings: priority number, one-character behavior, role tag, bench (dashed) look.
+  prio?: number;
+  behavior?: string;
+  role?: string;
+  bench?: boolean;
 }
 
 interface PreviewProps {
   map: ArenaMap;
-  cell: 32 | 48;
+  cell: 16 | 32 | 48;
   mine?: Point[];
   foe?: Point[];
   units?: PreviewUnit[];
   cursor?: Point | null;
+  // Extra highlighted cells drawn under the units, e.g. a behavior area.
+  marks?: { cells: Point[]; className: string };
   label: string;
   onCell?: (at: Point) => void;
   onHover?: (at: Point | null) => void;
@@ -117,15 +127,16 @@ interface PreviewProps {
 }
 
 // Static map with spawn zones and units, used before the battle starts (ban and deploy steps).
-export function MapPreview({ map, cell, mine = [], foe = [], units = [], cursor, label, onCell, onHover, children }: PreviewProps) {
+export function MapPreview({ map, cell, mine = [], foe = [], units = [], cursor, marks, label, onCell, onHover, children }: PreviewProps) {
   const width = map.rows[0].length * cell, height = map.rows.length * cell;
+  const throne = map.goal === 'seize' ? throneOf(map) : null;
   const at = (e: MouseEvent<HTMLDivElement>): Point | null => {
     const box = e.currentTarget.getBoundingClientRect();
     const x = Math.floor((e.clientX - box.left) / cell), y = Math.floor((e.clientY - box.top) / cell);
     return x >= 0 && y >= 0 && x < map.rows[0].length && y < map.rows.length ? [x, y] : null;
   };
   return (
-    <div className="mapbox" style={{ width, height, '--cell': `${cell}px`, cursor: onCell ? 'pointer' : undefined } as CSSProperties}
+    <div className={`mapbox${cell < 48 ? ' compact' : ''}`} style={{ width, height, '--cell': `${cell}px`, cursor: onCell ? 'pointer' : undefined } as CSSProperties}
       role="img" aria-label={label}
       onClick={onCell ? e => { const p = at(e); if (p) onCell(p); } : undefined}
       onMouseMove={onHover ? e => onHover(at(e)) : undefined}
@@ -133,12 +144,17 @@ export function MapPreview({ map, cell, mine = [], foe = [], units = [], cursor,
       <img className="px" src={MAPS[map.name]} width={width} height={height} alt="" draggable={false} />
       {mine.map(([x, y]) => <span key={`m${x},${y}`} className="zc me" style={{ left: x * cell, top: y * cell }} />)}
       {foe.map(([x, y]) => <span key={`f${x},${y}`} className="zc foe" style={{ left: x * cell, top: y * cell }} />)}
+      {marks?.cells.map(([x, y]) => <span key={`k${x},${y}`} className={`ov ${marks.className}`} style={{ left: x * cell, top: y * cell }} />)}
+      {throne && <span className="throne-mark" style={{ left: throne[0] * cell, top: throne[1] * cell }} aria-hidden="true" />}
       {units.map(u => (
-        <div key={u.key} className={`unit ${u.side === 'player' ? 'ally' : 'enemy'}${u.selected ? ' active' : ''}`} style={{ left: u.pos[0] * cell, top: u.pos[1] * cell }}>
+        <div key={u.key} className={`unit ${u.side === 'player' ? 'ally' : 'enemy'}${u.selected ? ' active' : ''}${u.bench ? ' sub' : ''}`} style={{ left: u.pos[0] * cell, top: u.pos[1] * cell }}>
           <span className="base" />
           <img className="px spr" src={u.sprite} width={cell} height={cell} alt="" />
           {u.boss && <BossFlag />}
           {u.lead && <span className="lead" aria-hidden="true">★</span>}
+          {u.prio !== undefined && <span className="prio" aria-hidden="true">{u.prio}</span>}
+          {u.behavior && <span className="beh" aria-hidden="true">{u.behavior}</span>}
+          {u.role && <span className="role" aria-hidden="true">{u.role}</span>}
         </div>
       ))}
       {cursor && (

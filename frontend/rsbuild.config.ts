@@ -12,6 +12,11 @@ export default defineConfig({
   html: { template: './index.html' },
   source: { entry: { index: './src/main.tsx' } },
   resolve: { alias: { '@common': fileURLToPath(new URL('../backend/common', import.meta.url)) } },
-  server: { port: webPort },
+  server: {
+    port: webPort,
+    // The browser talks to the Fastify API through this proxy, so there is no CORS and the built
+    // frontend can be served from the API too (docs/07).
+    proxy: { '/api': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true } },
+  },
   output: { distPath: { root: 'dist' } },
 });

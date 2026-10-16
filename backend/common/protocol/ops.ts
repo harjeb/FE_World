@@ -1,0 +1,128 @@
+// The single source of truth for the Agent protocol (docs/06). The API dispatches by these numbers,
+// the docs generator turns them into docs/agent-api.md, and the MCP package turns them into tools,
+// so no op is ever written twice.
+
+export interface OpDef {
+  op: number;
+  name: string;
+  group: string;
+  // One line for an Agent (docs/06「每个 op 带 agentNote」). Kept short: detail lives in the docs.
+  agentNote: string;
+}
+
+export const OPS: readonly OpDef[] = [
+  { op: 1, name: 'LOGIN', group: '会话', agentNote: '用 sk_ 令牌登录，带上 docVersion 与可选的 agentModel；成功后开始收发指令。' },
+  { op: 2, name: 'LOGOUT', group: '会话', agentNote: '结束当前会话；之后的指令都会以未登录拒绝。' },
+
+  { op: 10, name: 'GET_STATE', group: '账号', agentNote: '读取个人日期、可用行动日、金币、公共经验、名册摘要与下一次快照／竞技场时间。' },
+  { op: 11, name: 'GET_EVENTS', group: '账号', agentNote: '按 sinceId 增量读取账号事件流，用来知道离线期间发生了什么。' },
+  { op: 12, name: 'GET_AGENT_INFO', group: '账号', agentNote: '读取 Agent 的在线状态、计划与最近一次上报。' },
+
+  { op: 20, name: 'GET_ROSTER', group: '名册', agentNote: '名册摘要与各单位等级、职业、HP、状态；用 GET_UNIT 取完整属性。' },
+  { op: 21, name: 'GET_UNIT', group: '名册', agentNote: '一个单位的完整属性、成长率、武器经验、物品与升级记录。' },
+  { op: 22, name: 'GET_INVENTORY', group: '仓库', agentNote: '仓库物品与每个单位携带的物品。' },
+  { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。' },
+
+  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。' },
+  { op: 31, name: 'SORTIE', group: '日历', agentNote: '带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op。' },
+  { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
+  { op: 33, name: 'TRAIN', group: '日历', agentNote: '训练一个单位，补武器熟练度；消耗金币或教材并推进日期。' },
+  { op: 34, name: 'REST', group: '日历', agentNote: '休整指定日数，推进日期、作物与年龄，不直接发金币经验。' },
+  { op: 35, name: 'RECRUIT', group: '日历', agentNote: '游历招募：只花行动日，按地区角色池概率遇到新人，失败也推进日期。' },
+  { op: 36, name: 'START_MAIN_STAGE', group: '日历', agentNote: '开始大竞技场的下一轮（第 1–3 轮海选，之后淘汰赛），推进日期；普通角色阵亡即永久死亡。返回 battleId。' },
+  { op: 37, name: 'SKIP_MAIN_STAGE', group: '日历', agentNote: '把日期推进到下一季第 1 日；只按到达日判断竞技场日，途经的竞技场日不会开放。' },
+
+  { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。' },
+  { op: 41, name: 'BUY', group: '整备', agentNote: '用金币购买商品；库存有限，买入再卖出会亏损。' },
+  { op: 42, name: 'SELL', group: '整备', agentNote: '卖出仓库物品换取金币。' },
+  { op: 43, name: 'TRANSFER_ITEM', group: '整备', agentNote: '在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具各最多 5 件；只有武器和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，剩余次数随物品走。' },
+  { op: 44, name: 'USE_ITEM', group: '整备', agentNote: '使用能力药等道具；超出永久上限或额度的使用会被拦截，道具不扣。' },
+  { op: 45, name: 'PROMOTE', group: '整备', agentNote: '转职到相邻职业阶段；保留总等级、经验和已获属性。解锁规则待定，开发版暂不收取材料或设置等级门槛。' },
+  { op: 46, name: 'ASSIGN_BEXP', group: '整备', agentNote: '把公共经验分配给一个单位；分配不耗行动日，消耗真实库存；满级单位不能分配。' },
+  { op: 47, name: 'DISMISS', group: '整备', agentNote: '解雇一个单位；普通解雇不等于符合条件的退役传承。' },
+
+  { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
+  { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器。' },
+  { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器打某个目标：双方伤害、命中、必杀、出手次数与击杀概率。' },
+  { op: 53, name: 'GET_THREAT_MAP', group: '战斗', agentNote: '敌方下个阶段所有单位能攻击到的格子与每格威胁数。' },
+  { op: 54, name: 'UNIT_ACT', group: '战斗', agentNote: '原子提交「移动 + 行动」，确认后不能悔棋；先查询再提交。' },
+  { op: 55, name: 'END_PHASE', group: '战斗', agentNote: '结束己方阶段；未行动单位待机，随后敌方规则 AI 行动。' },
+  { op: 56, name: 'RETREAT', group: '战斗', agentNote: '野外全军撤退，立即判负；已结算经验保留，不发通关奖励。' },
+  { op: 57, name: 'GET_BATTLE_LOG', group: '战斗', agentNote: '读取本场战斗的完整事件日志。' },
+
+  { op: 60, name: 'GET_ARENA', group: '竞技场', agentNote: '图池、下一个竞技场日、报名状态、今日（或最近一次）对手与进攻进度、积分。' },
+  { op: 61, name: 'GET_DEFENSE', group: '竞技场', agentNote: '读取当前防守设置：地图、名单、站位、优先级、AI 行为、主将顺序与预设 BAN；单位数据按当前名册返回。' },
+  { op: 62, name: 'SET_DEFENSE', group: '竞技场', agentNote: '提交防守设置；快照锁定后本次不能再改，改动用于下一次竞技场。' },
+  { op: 63, name: 'ARENA_REGISTER', group: '竞技场', agentNote: '报名下一次竞技场；报名时会保存快照。' },
+  { op: 64, name: 'GET_OPPONENT', group: '竞技场', agentNote: '查看某个对手的防守地图与名单（不含站位与 AI 行为）。' },
+  { op: 65, name: 'ARENA_BAN', group: '竞技场', agentNote: '对某个对手禁用 B 个防守角色，返回实际出战名单、站位与对方对我的禁用。' },
+  { op: 66, name: 'ARENA_ATTACK', group: '竞技场', agentNote: '选人、指定主将、部署后开打，返回 battleId（之后用战斗类 op）。' },
+  { op: 67, name: 'SURRENDER', group: '竞技场', agentNote: '投降，按落败计。' },
+  { op: 68, name: 'GET_ARENA_RESULTS', group: '竞技场', agentNote: '读取最近一次竞技场日的进攻／防守结果、当天锁定的防守与积分。' },
+  { op: 69, name: 'GET_REPLAY', group: '竞技场', agentNote: '读取一场回放；他人的对局在公开后可看（目前战斗结束即公开）。' },
+  { op: 70, name: 'GET_SPARRING', group: '竞技场', agentNote: '读取可用于陪练的对手快照列表。' },
+  { op: 71, name: 'START_SPARRING', group: '竞技场', agentNote: '用某个快照发起练习战；练习不造成真实死亡或养成损失。' },
+  { op: 72, name: 'GET_REPLAYS', group: '竞技场', agentNote: '列出可查看的回放（自己的全部，别人已公开的；目前战斗结束即公开），再用 GET_REPLAY 取某一场。' },
+  { op: 73, name: 'GET_SNAPSHOTS', group: '竞技场', agentNote: '读取本人各竞技场日的报名快照（名册与防守），新的在前，最多 12 份。' },
+
+  { op: 80, name: 'AGENT_REPORT_PLAN', group: 'Agent', agentNote: '上报培养计划，网页的 Agent 面板会展示给玩家。' },
+  { op: 81, name: 'AGENT_PHASE_NOTE', group: 'Agent', agentNote: '每个阶段上报一句意图，回放中逐阶段显示。' },
+  { op: 82, name: 'AGENT_COMMENT_BATTLE', group: 'Agent', agentNote: '给一场战斗写点评。' },
+  { op: 83, name: 'AGENT_DAILY_REPORT', group: 'Agent', agentNote: '写一份离线日报。' },
+
+  { op: 200, name: 'PHASE_STARTED', group: '推送', agentNote: '推送：轮到你的阶段，可以行动。' },
+  { op: 201, name: 'BATTLE_UPDATED', group: '推送', agentNote: '推送：战斗局面发生变化。' },
+  { op: 202, name: 'ARENA_OPPONENTS_READY', group: '推送', agentNote: '推送：今天的竞技场对手已生成。' },
+  { op: 203, name: 'DEFENSE_RESULT', group: '推送', agentNote: '推送：别人对你防守的进攻结果。' },
+  { op: 204, name: 'MONTH_STARTED', group: '推送', agentNote: '推送：新的一季已开始（日期到了季初）。' },
+  { op: 205, name: 'STATE_CHANGED', group: '推送', agentNote: '推送：账号状态变化（金币、日期、名册等）。' },
+];
+
+export const PUSH_OPS = new Set([200, 201, 202, 203, 204, 205]);
+export const OP = Object.fromEntries(OPS.map(def => [def.name, def.op])) as Record<string, number>;
+export const OP_BY_NUMBER = new Map(OPS.map(def => [def.op, def]));
+
+// The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
+export const DOC_VERSION = 1;
+
+export interface ErrorDef { code: string; meaning: string; action: string }
+
+// Error codes from docs/06「错误码草案」. action is written to the Agent: what to do next.
+export const ERRORS: readonly ErrorDef[] = [
+  { code: 'NOT_YOUR_PHASE', meaning: '当前不是你的阶段', action: '等待 PHASE_STARTED 推送或轮询 GET_BATTLE，不要重试' },
+  { code: 'UNIT_ALREADY_ACTED', meaning: '该单位本阶段已行动', action: '用 GET_BATTLE 刷新局面，换其他单位' },
+  { code: 'UNREACHABLE', meaning: '目标格不可达', action: '先用 GET_REACHABLE 取可达格' },
+  { code: 'TARGET_OUT_OF_RANGE', meaning: '目标不在所选武器的射程内', action: '用 GET_REACHABLE 返回的 attackable 列表' },
+  { code: 'WEAPON_RANK_TOO_LOW', meaning: '武器等级不够', action: '换武器，或者通过训练提升武器等级' },
+  { code: 'CANNOT_SEIZE', meaning: '只有主将站在王座上才能压制', action: '从 GET_BATTLE 的胜利条件读王座坐标，让主将以王座为 moveTo 再提交' },
+  { code: 'NO_DAYS_LEFT', meaning: '已发放的行动日用完了', action: '等下个游戏月开始（GET_STATE 有时间），期间可以做不占行动日的事' },
+  { code: 'BATTLE_IN_PROGRESS', meaning: '已有进行中的战斗', action: '先结束（或撤退）当前战斗' },
+  { code: 'ARENA_NOT_OPEN', meaning: '现在不是竞技场日，或你没有报名', action: '用 GET_ARENA 查看时间与报名状态' },
+  { code: 'ARENA_ALREADY_ATTACKED', meaning: '这个对手今天已经打过了', action: '换下一个对手' },
+  { code: 'ARENA_BAN_REQUIRED', meaning: '还没对该对手执行 BAN', action: '先 ARENA_BAN（B=0 的地图传空数组）' },
+  { code: 'CHARACTER_BANNED', meaning: '所选单位的角色被防守方禁用', action: '看 ARENA_BAN 响应中的禁用列表，换人' },
+  { code: 'DEFENSE_LOCKED', meaning: '快照已锁定，本次防守设置不能再改', action: '改动会用于下一次竞技场' },
+  // Codes raised by the engine and the game layer that docs/06 does not list yet.
+  { code: 'BATTLE_OVER', meaning: '战斗已经结束', action: '不要继续提交行动；用 GET_BATTLE 确认结果' },
+  { code: 'UNKNOWN_UNIT', meaning: '没有这个单位', action: '用 GET_BATTLE 或 GET_ROSTER 刷新 id' },
+  { code: 'UNKNOWN_OP', meaning: '没有这个 op', action: '用 GET /agent-api.json 读取当前 op 清单，不要猜号' },
+  { code: 'BAD_REQUEST', meaning: '请求字段缺失或类型不对', action: '对照 docs/agent-api.md 修正字段后重试一次' },
+  { code: 'UNAUTHORIZED', meaning: '未登录或令牌无效', action: '用 sk_ 令牌重新 LOGIN' },
+  { code: 'FORBIDDEN', meaning: '这个账号不能做这件事', action: '不要原样重试' },
+  { code: 'NOT_FOUND', meaning: '找不到目标对象', action: '刷新列表后再选' },
+  { code: 'NO_SUCH_ITEM', meaning: '没有这件道具', action: '用 GET_INVENTORY 刷新' },
+  { code: 'NOTHING_TO_HEAL', meaning: '目标没有需要回复的 HP', action: '换目标或换行动' },
+  { code: 'NOT_ENOUGH_GOLD', meaning: '金币不足', action: '先赚金币，不要重试同一笔购买' },
+  { code: 'INVALID_PLAN', meaning: '编成、站位或选择不合法', action: '读 error.message 里的具体原因后修正' },
+  { code: 'ARENA_BAN_INVALID', meaning: '禁用名单不合法', action: '按地图的 B 数从对手名单里禁用不同角色' },
+  { code: 'ARENA_PLAN_INVALID', meaning: '出战名单或站位不合法', action: '按地图的 D 人从允许名册里选人并在出生区摆位' },
+  { code: 'DEFENSE_INVALID', meaning: '防守设置不合法', action: '读 error.message 里的校验错误后修正' },
+  { code: 'RATE_LIMITED', meaning: '请求过于频繁', action: '等待片刻再重试' },
+  { code: 'INTERNAL', meaning: '服务端内部错误', action: '记录 requestId 并稍后重试，不要原样连发' },
+];
+
+export const ERROR_BY_CODE = new Map(ERRORS.map(def => [def.code, def]));
+
+export function opDef(op: number): OpDef | undefined {
+  return OP_BY_NUMBER.get(op);
+}

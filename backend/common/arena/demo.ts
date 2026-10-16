@@ -22,6 +22,10 @@ const KITS: Record<CharacterId, Kit> = {
   sera: { weapons: ['thunder', 'wind'], ranks: { tome: 'C' } },
   noah: { weapons: ['heal', 'recover'], ranks: { staff: 'C' } },
   gustav: { weapons: ['steel_lance', 'javelin'], ranks: { lance: 'C' } },
+  ren: { weapons: ['steel_sword', 'iron_sword'], ranks: { sword: 'C' } },
+  ig: { weapons: ['steel_axe', 'hand_axe'], ranks: { axe: 'C' } },
+  mira: { weapons: ['heal', 'recover'], ranks: { staff: 'C' } },
+  roland: { weapons: ['steel_lance', 'javelin'], ranks: { lance: 'C' } },
 };
 
 // Base stats plus growth × levels gained, rounded down and capped by the class.
@@ -39,12 +43,12 @@ export function expectedUnit(character: CharacterId, level: number, kit: Kit = K
 }
 
 export const MY_LEGION = '灰鸦军团';
-export const SNAPSHOT_LABEL = '第 6 月末锁定快照';
 export const MY_POINTS = 1317;
 
 export const MY_ROSTER: SnapshotUnit[] = [
   expectedUnit('erin', 11), expectedUnit('victor', 11), expectedUnit('gustav', 10), expectedUnit('lina', 10),
   expectedUnit('owen', 10), expectedUnit('noah', 9), expectedUnit('karl', 9), expectedUnit('sera', 9),
+  expectedUnit('ren', 9), expectedUnit('roland', 9), expectedUnit('ig', 8), expectedUnit('mira', 8),
 ];
 
 const slot = (character: CharacterId, level: number, pos: Point, behavior: Behavior): DefenseSlot => ({
@@ -81,21 +85,29 @@ export const OPPONENTS: Defense[] = [
     bans: ['lina'],
   },
   {
-    id: 'white', legion: '白塔学士团', points: 1265, record: '本季防守 10 胜 2 负', map: 'woods',
+    id: 'white', legion: '白塔学士团', points: 1265, record: '本季防守 10 胜 2 负', map: 'castle',
     slots: [
-      slot('sera', 10, [10, 3], 'opportunist'),
-      slot('lina', 9, [9, 1], 'opportunist'),
-      slot('erin', 9, [9, 3], 'guard'),
-      slot('noah', 8, [11, 3], 'healer'),
-      slot('owen', 9, [10, 5], 'opportunist'),
-      slot('victor', 9, [11, 5], 'guard'),
+      slot('sera', 11, [18, 7], 'hold'),
+      slot('gustav', 11, [13, 7], 'hold'),
+      slot('erin', 11, [14, 6], 'guard'),
+      slot('owen', 11, [16, 6], 'opportunist'),
+      slot('noah', 10, [17, 8], 'healer'),
+      slot('lina', 10, [15, 3], 'opportunist'),
+      slot('ig', 10, [15, 11], 'opportunist'),
+      slot('roland', 10, [16, 8], 'guard'),
+      slot('karl', 10, [13, 3], 'hold'),
+      slot('ren', 10, [13, 11], 'opportunist'),
+      slot('mira', 9, [17, 6], 'healer'),
     ],
-    commanders: ['sera', 'erin'],
-    bans: ['owen'],
+    commanders: ['sera', 'gustav', 'erin'],
+    bans: ['victor', 'lina'],
   },
 ];
 
-// My own defense, shown on the arena page (the defense settings page comes later).
+// 陪练: rosters the rule AI attacks with when the player tests a defense (docs/05「练习」).
+export const SPARRING = OPPONENTS.map(o => ({ legion: o.legion, roster: o.slots.map(s => s.unit) }));
+
+// My defense in the locked month-6 snapshot: used today, and the starting draft for the next one.
 export const MY_DEFENSE: Defense = {
   id: 'mine', legion: MY_LEGION, points: MY_POINTS, record: '本季防守 8 胜 5 负', map: 'pass',
   slots: [

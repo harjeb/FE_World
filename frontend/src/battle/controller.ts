@@ -15,7 +15,7 @@ import type { BattleSession } from './session.ts';
 
 export type CombatEvent = Extract<BattleEvent, { t: 'combat' }>;
 export type LevelUpEvent = Extract<BattleEvent, { t: 'levelUp' }>;
-export interface FloatText { id: number; at: Point; text: string; kind: 'dmg' | 'crit' | 'miss' | 'heal' | 'exp' }
+export interface FloatText { id: number; at: Point; text: string; kind: 'dmg' | 'crit' | 'miss' | 'heal' | 'exp' | 'seize' }
 export interface CombatShow { event: CombatEvent; before: BattleState; done: () => void }
 export interface LevelShow { event: LevelUpEvent; unit: UnitState; done: () => void }
 export type Dialog = 'endPhase' | 'retreat' | null;
@@ -49,8 +49,11 @@ export class BattleController {
   private listeners = new Set<() => void>();
   private floatId = 1;
   readonly session: BattleSession;
-  // Registered by the map so animations keep the acting unit on screen.
+  // Registered by the map so animations keep the acting unit on screen (unless follow is off).
   focus: (at: Point) => void = () => {};
+  follow = true;
+  // Animation speed multiplier (回放 2× / 4×).
+  speed = 1;
 
   constructor(session: BattleSession) {
     this.session = session;
@@ -71,7 +74,7 @@ export class BattleController {
 
   private get blocked(): boolean {
     const s = this.snap;
-    return s.mode.kind === 'busy' || !!s.dialog || !!s.levelUp || !!s.combat || !!s.state.result;
+    return !!this.session.readOnly || s.mode.kind === 'busy' || !!s.dialog || !!s.levelUp || !!s.combat || !!s.state.result;
   }
 
   start(): void {
@@ -99,11 +102,11 @@ export class BattleController {
     else if (!this.blocked) this.set({ mode: back(this.snap.mode), notice: null });
   }
 
-  chooseAction(kind: 'attack' | 'heal' | 'item' | 'wait'): void {
+  chooseAction(kind: 'attack' | 'heal' | 'item' | 'wait' | 'seize'): void {
     const mode = this.snap.mode;
     if (this.blocked || !('to' in mode)) return;
-    if (kind === 'wait') {
-      void this.commit({ type: 'act', unit: mode.unit, to: mode.to, act: 'wait' });
+    if (kind === 'wait' || kind === 'seize') {
+      void this.commit({ type: 'act', unit: mode.unit, to: mode.to, act: kind });
       return;
     }
     if (kind === 'item') {
@@ -203,17 +206,23 @@ export class BattleController {
 
   async showBanner(side: Side, turn: number): Promise<void> {
     this.set({ banner: { side, turn } });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000 / this.speed));
     this.set({ banner: null });
+  }
+
+  // A command chosen elsewhere (the Agent on the 观战 page); ignored while something is animating.
+  async play(action: Action): Promise<void> {
+    if (this.snap.mode.kind === 'busy' || this.snap.state.result) return;
+    await this.commit(action);
   }
 
   // Applies a command, animates its events, then hands control back (or ends the phase when every
   // unit has acted, as in docs/03).
   private async commit(action: Action): Promise<void> {
     const before = this.snap.state;
-    let result: ReturnType<typeof step>;
+    let result: { state: BattleState; events: BattleEvent[] };
     try {
-      result = step(before, action);
+      result = this.session.apply ? await this.session.apply(action) : step(before, action);
     } catch (error) {
       this.set({ notice: error instanceof EngineError ? error.message : String(error) });
       return;

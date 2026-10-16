@@ -1,6 +1,7 @@
 import { ITEMS } from '../data/weapons.ts';
 import { decide } from './ai.ts';
 import { moveRange, pathTo } from './movement.ts';
+import { canSeize } from './ranges.ts';
 import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { attackWeapons, cellKey, inBounds, inRange, living, staffWeapons, unitById } from './units.ts';
 import { EngineError } from './types.ts';
@@ -48,6 +49,10 @@ function validate(state: BattleState, unit: UnitState, action: ActAction): UnitS
       if (target.hp >= target.stats.hp) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 没有受伤`);
       return target;
     }
+    case 'seize': {
+      if (!canSeize(state, unit, action.to)) throw new EngineError('CANNOT_SEIZE', '只有主将站在王座上才能压制');
+      return null;
+    }
     case 'item': {
       const stack = unit.items[action.item];
       if (!stack || !(stack.id in ITEMS)) throw new EngineError('NO_SUCH_ITEM', '没有这件道具');
@@ -80,6 +85,11 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[]):
     runHeal(state, unit, target, action.weapon, events);
   } else if (action.act === 'item') {
     useItem(unit, action.item, events);
+  } else if (action.act === 'seize') {
+    events.push({ t: 'seize', unit: unit.id });
+    unit.acted = true;
+    finish(state, events, 'player', '压制王座');
+    return;
   } else {
     events.push({ t: 'wait', unit: unit.id });
   }
@@ -94,9 +104,13 @@ function finish(state: BattleState, events: BattleEvent[], winner: Side, reason:
 
 function checkResult(state: BattleState, events: BattleEvent[]): void {
   if (state.result) return;
+  const seize = state.goal.kind === 'seize';
   if (state.goal.kind === 'boss' && !unitById(state, state.goal.target).alive) finish(state, events, 'player', '击败敌方主将');
-  else if (living(state, 'enemy').length === 0) finish(state, events, 'player', '全歼敌军');
+  // On a seize map only seizing wins, even after every defender has fallen.
+  else if (!seize && living(state, 'enemy').length === 0) finish(state, events, 'player', '全歼敌军');
   else if (living(state, 'player').length === 0) finish(state, events, 'enemy', '我方全部退出战斗');
+  // Only the commander can seize, so losing it ends the attack.
+  else if (seize && !living(state, 'player').some(u => u.boss)) finish(state, events, 'enemy', '我方主将被击败，无法压制王座');
 }
 
 function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void {

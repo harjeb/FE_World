@@ -36,12 +36,16 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 
 16×16。`ally` 为己方：蓝色、面朝右，发色对应示例名册中该兵种的角色；`enemy` 为敌方：红色、面朝左。
 
-| 键 | 兵种 | 键 | 兵种 |
+每条职业路线共用一张（`frontend/src/assets.ts::spriteFor` 按 `CLASSES[id].route` 取图），五个阶位外观相同，专用美术以后再补。
+
+| 键 | 职业路线 | 键 | 职业路线 |
 | --- | --- | --- | --- |
-| `sword` | 剑士 | `peg` | 天马骑士 |
-| `axe` | 斧兵 | `archer` | 弓兵 |
-| `armor` | 重甲兵 | `mage` | 魔道士 |
-| `cav` | 骑兵 | `cleric` | 修士 |
+| `sword` | 剑术 | `archer` | 弓术 |
+| `axe` | 斧战 | `mage` | 魔法 |
+| `armor` | 重甲 | `cleric` | 治疗 |
+| `cav` | 骑乘 | `thief` | 机巧（潜行）：兜帽、遮面、短刀 |
+| `peg` | 飞行 | `monk` | 格斗：头带、铁拳套 |
+| `beast` | 兽人：尖耳、尾巴、爪 | `dragon` | 龙人：角、翼、龙石 |
 
 ### 头像 `por_<角色>.png`
 
@@ -59,7 +63,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 
 ### 图标 `ico_<键>.png`
 
-- 16×16：`sword` 剑、`lance` 枪、`axe` 斧、`bow` 弓、`tome` 理魔法、`staff` 杖、`vulnerary` 伤药、`elixir` 能力药、`seal` 转职印。
+- 16×16：`sword` 剑、`lance` 枪、`axe` 斧、`bow` 弓、`tome` 理魔法、`staff` 杖、`fist` 拳套、`dagger` 短刀、`beast` 兽爪、`dragon` 龙石、`vulnerary` 伤药、`elixir` 能力药、`seal` 转职印。
 - 16×16 军营行动：`act_sortie` 出击、`act_sweep` 扫荡、`act_train` 训练、`act_rest` 休整、`act_travel` 游历。
 - 12×12 资源：`hourglass` 行动日、`coin` 金币、`bexp` 奖励经验、`medal` 竞技场勋章、`roster` 名册。
 
@@ -82,7 +86,8 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | `woods` | 12×8 | 林中遭遇 | 防守地图选项 |
 | `mine` | 12×8 | — | 画板未使用 |
 | `bend` | 12×8 | — | 画板未使用 |
-| `ruins` | 12×8 | 王城 | 防守地图选项 |
+| `ruins` | 12×8 | 王城 | 防守地图选项（画板里的王城缩略图） |
+| `castle` | 20×14 | — | 竞技场「王城」：禁用、部署、战斗、防守设置（画板之后新增） |
 
 布局写在 `gen_art.py` 的 `MAPS` 里：每张图是一组等长的字符行，前面的数字是纹理随机种子。字符与 [03 战斗规则](../../docs/03-combat.md)的地形表一致：
 
@@ -95,7 +100,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | `v` | 村庄 | `#` | 墙壁 |
 | `f` | 森林 | `T` | 王座 |
 
-素材总览图的最后一行是这 12 种地形的单格样例，顺序与地形表相同。示例地图里没有王座，王座目前只出现在随机地图中。
+素材总览图的最后一行是这 12 种地形的单格样例，顺序与地形表相同。王座出现在 `castle`（王座在 `(18,7)`）和随机地图中；地图总览图的最后一行是 `castle`。
 
 ### 交战演出
 

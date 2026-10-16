@@ -12,7 +12,7 @@ export function Hud({ snap, ctl }: { snap: Snapshot; ctl: BattleController }) {
   return (
     <header className="hud" aria-label="战斗状态栏">
       {exit && (
-        <a className="btn btn-sm btn-dark" href={exit.href} title="战斗会保留，可随时回来继续">
+        <a className="btn btn-sm btn-dark" href={exit.href} title={ctl.session.surrender ? '战斗会保留，可随时回来继续' : undefined}>
           <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
           {exit.label}
         </a>

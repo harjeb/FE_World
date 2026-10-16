@@ -6,9 +6,12 @@ import type { BattleController, CombatEvent } from './controller.ts';
 
 const STEP_MS = 70;
 const STRIKE_MS = 520;
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export async function playEvents(ctl: BattleController, events: BattleEvent[], before: BattleState): Promise<void> {
+// What playback drives: the battle controller, or a stand-in that can drop a cancelled replay step.
+export type PlaybackHost = Pick<BattleController, 'get' | 'set' | 'focus' | 'float' | 'showBanner'> & { speed?: number };
+
+export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], before: BattleState): Promise<void> {
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms / (ctl.speed ?? 1)));
   let view = before;
   const unitIn = (s: BattleState, id: string) => s.units.find(u => u.id === id)!;
   const edit = (fn: (draft: BattleState) => void) => {
@@ -102,6 +105,14 @@ export async function playEvents(ctl: BattleController, events: BattleEvent[], b
       case 'wait':
         edit(d => { unitIn(d, e.unit).acted = true; });
         break;
+      case 'seize': {
+        const at = unitIn(view, e.unit).pos;
+        ctl.focus(at);
+        ctl.float(at, '压制！', 'seize');
+        edit(d => { unitIn(d, e.unit).acted = true; });
+        await sleep(900);
+        break;
+      }
       case 'end':
         break;
     }
