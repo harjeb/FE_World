@@ -3,8 +3,6 @@ import type { ClassId } from '../data/classes.ts';
 import { CLASSES } from '../data/classes.ts';
 import { STAT_KEYS } from '../data/types.ts';
 import type { StatKey, Stats } from '../data/types.ts';
-import { applyGrowthBonus } from '../data/growth-types.ts';
-import type { GrowthType } from '../data/growth-types.ts';
 import { effectiveCaps } from './model.ts';
 import type { UnitRecord } from './model.ts';
 

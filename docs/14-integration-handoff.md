@@ -12,6 +12,7 @@
 | 浏览器登录与请求 | `frontend/src/api/client.ts`：`login`、`call`、`ApiError` |
 | 页面状态与业务操作 | `frontend/src/api/session.ts`：`session`、`useSession`、`run`、战斗/整备/竞技场方法 |
 | 服务端入口与规则 | `backend/api/server.ts`、`handlers.ts`、`services.ts` |
+| 永久军团规则 | `backend/common/game/legacy.ts`（传承／保底／轮回）、`annual.ts`（年度赛事）、`expedition.ts`（三图副本）、`production.ts`（生产）、`story.ts`（八章） |
 | 当前存档 | `backend/api/db.ts`、`store.ts`；SQLite，默认 `backend/data/agent-tactics.db` |
 | 共用战斗与养成 | `backend/common/engine`、`game`、`data`、`arena` |
 
@@ -35,6 +36,17 @@ git diff main...codex/local-v2-before-remote-20261016 -- backend/common/protocol
 ## 完成范围
 
 已验证登录、个人日期、军营行动、整备物品转移/买卖/能力药/公共经验、名册快照、出击、竞技场进攻、防守保存和回放读取，以及五阶职业、99级成长、武器三角与现有战斗规则。
+
+2026-10-16 第四轮又补齐了下列后端闭环（op 见 `backend/common/protocol/ops.ts`，测试见对应 `*.test.ts`）：
+
+- **幂等与版本**：带 `commandId` 的写命令返回原收据，换负载报 `IDEMPOTENCY_CONFLICT`；写命令推进 `player.version`；`GET_EVENTS` 返回 `cursor`。
+- **永久军团**：`GET_LEGACIES`／`CLAIM_LEGACY`／`RETIRE_UNIT`／`REINCARNATE_UNIT`／`GET_MEMORIAL`／`EMERGENCY_RECRUIT`；死亡／退役冻结遗产并回收装备；成长与数值两种传承、逐级保底、一代血缘锁；一次轮回重置学习与年龄。
+- **职业市场**：`GET_CLASS_MARKET`／`BUY_CLASS_QUALIFICATION`，按年份开放、跨路线、种族与主角校验。
+- **生产**：`GET_PRODUCTION`／`PLANT`／`START_PRODUCTION`／`COLLECT_PRODUCTION`；耐久与维修仍 `FEATURE_DISABLED`（docs/13 §7 明确默认关闭）。
+- **连续远征**：`GET_RUN`／`START_DUNGEON`／`CONTINUE_DUNGEON`／`WITHDRAW_RUN`；三图固定名单、跨图状态、完整通关才带回掉落，地区首通等级锁定。
+- **年度赛事与主线**：`GET_ANNUAL`／`REGISTER_ANNUAL`／`START_ANNUAL_MATCH`；`GET_STORY`／`COMPLETE_STORY_EVENT`／`CLAIM_REWARD`。
+
+仍未实现：自捏开局、完整八届内容、行动报价（`PREVIEW_ACTION`／`EXECUTE_ACTION`）、不朽盾完整石化、耐久与完美锻造、成长率传承是否随轮回清除、职业技能节点结构。观战页仍自动播放历史回放，尚非实时订阅。
 
 当前仍为演示存档（新账号使用预置军团和日期）。自捏神主角与3人开局、完整八届年度赛事、连续副本、遗产继承、轮回、生产等仍需开发；完整状态以 [12](12-implementation-gap-checklist.md) 对应条目为准。观战页目前自动播放服务器历史战斗，尚非实时订阅。
 

@@ -16,6 +16,8 @@
 
 本轮共盘点 **32** 个缺口。当前：**6 项已修复**（G01、G02、G03、G05、G07、G28），**6 项部分修复**（G04、G06、G08、G12、G14、G27），**20 项待办**。职业解锁方式明确留待设计，不将旧稿等级、试炼、材料门槛作为必须实现项。
 
+2026-10-16 第四轮（后端领域，不含 UI）：**新增后端闭环**：幂等命令收据与玩家版本、事件游标；年龄按天与自然寿终、主角不衰老；死亡／退役冻结遗产并回收装备、纪念名册；成长与数值两种传承及逐级保底、一代血缘锁；一次轮回（回一级、清技能／熟练度／资格、16 岁、30 点分配）；职业资格按年份购买与跨路线／种族校验；两条生产链（播种炼药、矿石木材锻造）；三图连续副本与跨图状态、地区首通等级锁定；年度大竞技场海选＋64 强；八章主线独立结算；严重损失免费补员。以下状态表按此更新，UI 接入与剩余项仍按原口径。
+
 | 状态 | 缺口 |
 | --- | --- |
 | 已修复 | G01、G02、G03、G05、G07、G28 |
@@ -72,6 +74,27 @@ P0 表示应在宣称规则正确/多人可用之前处理；P1 表示核心游�
 | G23 | 未形成完整闭环 | **八年主线与通关后持续经营**：没有完整八届剧情/目标/最终结算及通关后的系统衔接。 | `api/store.ts` 的 flags、`handlers.ts`、`game/calendar.ts` 仅有基础年份/地区/赛事状态。需要端到端长流程验证。 |
 | G24 | 未实现完整系统 | **生产**：已定种植→炼药、矿木→锻造、行动日成熟、有限工位、损坏装备可修。材料／种子常量不等于已有订单；完美+5、指定材料完美产无损耗仍候选。 | 补扣料、生产队列、成熟与唯一领取，产销待测算；无损耗不能默认是所有完美成品的正式奖励。 |
 | G25 | 部分实现 | **补员与新档**：仍预置名册；已定自捏神主角＋2伙伴、严重损失酒馆免费随机2人。尚无正式开局、紧急补员及按类型曲线生成年龄的完整流程。 | 免费补员阈值、再次资格等待定，领取不耗钱／日、不重掷，不允许活动中塞人；区分演示种子与新档。 |
+
+### 2026-10-16 第四轮后端落地（不含 UI）
+
+下列条目已按 docs/00、docs/13 的确认规则补上**后端闭环**（规则模块 + 存储 + op + 自动化测试）；UI 接入、长期数值校准与 docs/13 中仍标为候选的机制（不朽盾完整石化、耐久与完美锻造、成长率继承是否随轮回清除、各职业技能节点）不在本轮范围。
+
+| 缺口 | 本轮后端落地 | 证据 |
+| --- | --- | --- |
+| G13 轮回 | `game/legacy.ts::reincarnate/canReincarnate`；op `REINCARNATE_UNIT`；回一级、清技能／熟练度／资格／学习进度与药效、回初始职业、16 岁重算、30 点分配、血缘锁保留；扣轮回核心与金币 | `legacy.test.ts`、`permanent.test.ts` |
+| G14 职业市场 | `data/classes.ts::classOpenYear/classPrice`；op `GET_CLASS_MARKET`／`BUY_CLASS_QUALIFICATION`；按年份开放、跨路线、种族与神主角校验、扣金币、轮回清资格 | `permanent.test.ts`「class market」 |
+| G15 年龄与寿终 | `model.ts::ageDaysOf/lifespanEndDayOf`、`data/growth-types.ts::rollRecruitAge`；`syncPlayer` 自然寿终；最低 12 岁、优先跨曲线转折；轮回 16 岁重算 | `growth.test.ts`、`permanent.test.ts` |
+| G16 种族与主角 | 主角 `isProtagonist` 不衰老、免死撤退；兽／龙资格按种族与主角限制 | `permanent.test.ts` |
+| G17 死亡与回收 | `services.ts::recordDeath`：先冻结遗产成长来源，再回收装备（保留剩余次数），写纪念名册 | `permanent.test.ts` |
+| G18 一代遗产 | `game/legacy.ts::createLegacy/claimLegacy/previewInheritance/applyInheritanceFloor`；两种模式、逐级保底、上限裁剪、血缘锁；op `GET_LEGACIES`／`CLAIM_LEGACY` | `legacy.test.ts`、`permanent.test.ts` |
+| G19 退役与纪念 | `services.ts::recordRetire`；op `RETIRE_UNIT`／`GET_MEMORIAL`；区分解雇、退役、战死、寿终 | `permanent.test.ts` |
+| G20 连续远征 | `game/expedition.ts`；op `START_DUNGEON`／`CONTINUE_DUNGEON`／`WITHDRAW_RUN`／`GET_RUN`；三图、固定名单、跨图 HP／物品、完整通关才带回掉落 | `expedition.test.ts` |
+| G21 重打与首通档 | `PlayerFlags.firstClearLevel`；SORTIE 使用首次通关等级；完整通关才写地区讨伐 | `expedition.test.ts` |
+| G22 年度大竞技场 | `game/annual.ts`；op `GET_ANNUAL`／`REGISTER_ANNUAL`／`START_ANNUAL_MATCH`；海选三场两胜、64 强六轮单败、年度唯一报名、真实死亡与消耗延续、局间只恢复存活者 HP | `annual.test.ts` |
+| G23 八年主线 | `game/story.ts`；op `GET_STORY`／`COMPLETE_STORY_EVENT`／`CLAIM_REWARD`；八章按个人日历开放、名次不阻挡、唯一奖励键 | `annual.test.ts` |
+| G24 生产 | `game/production.ts`；op `GET_PRODUCTION`／`PLANT`／`START_PRODUCTION`／`COLLECT_PRODUCTION`；两条链、有限工位、行动日成熟、唯一领取；耐久／维修仍 `FEATURE_DISABLED` | `production.test.ts` |
+| G25 免费补员 | op `EMERGENCY_RECRUIT`；累计战死 3 人解锁一次、随机 2 人、不花钱／不推进日期、每次损失只领一次 | `permanent.test.ts` |
+| 幂等与版本 | `command_receipts`、`dispatch` 收据与冲突、写命令 `player.version`、事件 `cursor` | `permanent.test.ts` |
 
 ## 四、外围能力、内容与验证缺口
 
