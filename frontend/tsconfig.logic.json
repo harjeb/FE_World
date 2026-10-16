@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/game/**/*.ts", "test/functional.test.ts", "../backend/common/protocol/**/*.ts"],
+  "exclude": []
+}

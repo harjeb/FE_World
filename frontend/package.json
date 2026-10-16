@@ -8,6 +8,7 @@
     "build": "rsbuild build",
     "preview": "rsbuild preview",
     "typecheck": "tsc --noEmit",
+    "test:logic": "tsc -p tsconfig.logic.json && node --experimental-strip-types --test test/functional.test.ts",
     "test:e2e": "rsbuild build && node test/battle-replay.e2e.mjs"
   },
   "dependencies": {

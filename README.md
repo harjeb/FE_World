@@ -10,6 +10,10 @@
 > 原 01–05、09 保留作为历史资料与数值参考，不再作为独立玩法定案入口；其中的赛季清空、野外仅重伤、两段各 20 级等旧规则不再沿用。后续玩法调整集中修改 00，技术文档仍独立维护。
 >
 > 最新方向：大竞技场名次不阻挡主线，但普通角色会永久死亡；传承两种道具二选一、实际属性保底受上限限制；保留老死与正常退役传承。首轮目标 40–60 小时，新增完美锻造等可选小游戏及耐久奖励草案。
+>
+> **后端与 UI 并行开发：**先读 [06 接口契约 v2](docs/06-agent-api.md)、[07 后端架构](docs/07-architecture.md) 和 [12 领域与持久化设计](docs/12-backend-domain-design.md)。[共享类型](backend/common/protocol/v2.ts) 与 [mock 样例](backend/common/protocol/v2.examples.ts) 可供 UI 开发导入；目前只完成设计与类型交付，HTTP／WebSocket 服务、数据库迁移和新玩法仍待实现。
+>
+> **非 UI 前端功能已加入：**[13 功能层接入指南](docs/13-frontend-functional-layer.md) 对应 `frontend/src/game/` 的客户端、状态、命令恢复、事件同步、业务控制器、React hooks 与 mock 场景。UI 可直接接入，现有演示页面尚未迁移；后端服务仍待实现。
 
 ## 设计文档
 
@@ -21,12 +25,14 @@
 | [03 战斗规则](docs/03-combat.md) | 地图地形、回合流程、战斗公式、武器、随机数、经验 |
 | [04 养成与赛季日历](docs/04-progression-calendar.md) | 赛季与游戏月、行动日、野外练级、主线关、招募、经济、快照 |
 | [05 大竞技场](docs/05-arena.md) | 异步攻防、防守设置、按地图变化的 BAN / 出战人数、积分与奖励 |
-| [06 Agent 接口设计](docs/06-agent-api.md) | 协议原则、op 草案、观测格式、战斗查询工具、错误码 |
-| [07 技术架构](docs/07-architecture.md) | 技术栈、确定性引擎、数据表草案、Worker 职责 |
+| [06 UI 与 Agent 接口契约 v2](docs/06-agent-api.md) | 请求与返回、操作清单、重试与事件、三条接入流程、UI 交接说明 |
+| [07 后端架构](docs/07-architecture.md) | 模块边界、事务与幂等、战斗 Worker、版本与回放、现有引擎接入清单 |
 | [08 UI 设计提示词](docs/08-ui-design-prompts.md) | 像素战棋与羊皮纸风格、战斗、军营、名册、竞技场、观战回放的设计提示词 |
 | [09 永久养成与传承草案](docs/09-permanent-progression-legacy-draft.md) | 永久死亡、不朽盾石化保护、有限传承、99 级与一次轮回、旧方案交接与待定事项 |
 | [10 随机地图生成器](docs/10-random-map-generator.md) | 六种场景主题、可选尺寸与种子、四类移动连通校验、JSON/SVG 导出与示例 |
 | [11 战斗引擎与战斗页](docs/11-battle-engine-and-page.md) | 确定性引擎、暂定规则、战斗页、竞技场进攻流程、运行与测试、尚未实现的部分 |
+| [12 后端领域与持久化设计](docs/12-backend-domain-design.md) | 数据表与唯一约束、个人日历、连战状态机、成长传承、64 强赛事、故障验收矩阵 |
+| [13 非 UI 前端功能层](docs/13-frontend-functional-layer.md) | 已实现的统一客户端、状态／事件同步、业务流程、mock、React hooks与UI接入示例 |
 
 ## 战斗页（前端原型）
 
