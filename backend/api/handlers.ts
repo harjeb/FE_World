@@ -6,7 +6,7 @@ import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '.
 import { actionOptions, expPreview, forecast, moveRange, step, threatMap, unitById } from '../common/engine/index.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { CLASSES, CLASS_PATHS, classOpenYear, classPrice, initialClass, initialClassOf, ROUTE_NAMES } from '../common/data/classes.ts';
+import { CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, classOpenYear, classPrice, initialClass, initialClassOf, ROUTE_NAMES } from '../common/data/classes.ts';
 import { CHARACTERS } from '../common/data/characters.ts';
 import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
@@ -25,7 +25,7 @@ import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { seedRng } from '../common/engine/rng.ts';
 import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, ensureRatingPeriod, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, slotsUsed } from '../common/game/production.ts';
@@ -454,6 +454,11 @@ const handlers: Record<number, Handler> = {
     const item = asString(data.item, 'item');
     const action = asString(data.action, 'action');
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有物品 ${item}`);
+    // 大竞技场整届固定物资，不能中途补给（docs/13 §6.2）。
+    const annual = ctx.store.activeAnnualEntry(ctx.player.id);
+    if (annual && annual.unitIds.includes(unit.id) && (action === 'toUnit' || action === 'equip')) {
+      throw new OpError('FORBIDDEN', '大竞技场整届固定物资，报名名单中的角色不能中途补给');
+    }
     const isWeapon = GAME_ITEMS[item].kind === 'weapon';
     if (action === 'equip') {
       if (!unit.weapons.includes(item as never)) throw new OpError('BAD_REQUEST', '该单位没有携带这件武器');
@@ -671,6 +676,8 @@ const handlers: Record<number, Handler> = {
     const unit = typeof data.unitId === 'string' ? ctx.store.unit(ctx.player.id, data.unitId) : null;
     return {
       year,
+      monthLimit: CLASS_PURCHASE_LIMIT,
+      monthUsed: ctx.player.flags.classPurchases?.[periodIdFor(Date.now())] ?? 0,
       classes: (Object.keys(CLASSES) as (keyof typeof CLASSES)[]).map(id => ({
         id, name: CLASSES[id].name, stage: CLASSES[id].stage, route: CLASSES[id].route,
         openYear: classOpenYear(id), open: year >= classOpenYear(id), price: classPrice(id),
@@ -695,6 +702,12 @@ const handlers: Record<number, Handler> = {
     if (unit.classQualifications?.includes(classId)) throw new OpError('FORBIDDEN', '已经拥有该职业资格');
     const price = classPrice(classId);
     if (ctx.player.gold < price) throw new OpError('NOT_ENOUGH_GOLD', `购买 ${CLASSES[classId].name} 需要 ${price} 金币`);
+    // 现实月额度只限制购买新资格；切回已购职业不占额度（docs/00 §4.1）。
+    const month = periodIdFor(Date.now());
+    ctx.player.flags.classPurchases ??= {};
+    const used = ctx.player.flags.classPurchases[month] ?? 0;
+    if (used >= CLASS_PURCHASE_LIMIT) throw new OpError('FORBIDDEN', `本月购买新资格已达上限（${CLASS_PURCHASE_LIMIT} 个）`);
+    ctx.player.flags.classPurchases[month] = used + 1;
     ctx.player.gold -= price;
     unit.classQualifications = [...(unit.classQualifications ?? []), classId];
     ctx.store.saveUnit(unit, ctx.player.id);
@@ -817,6 +830,7 @@ const handlers: Record<number, Handler> = {
       if (unit?.lockedRunId === run.id) { unit.lockedRunId = null; ctx.store.saveUnit(unit, ctx.player.id); }
     }
     ctx.store.saveRun(run);
+    flushRecoveryBag(ctx.store, ctx.player);
     ctx.store.addEvent(ctx.player.id, 'dungeon', '撤离大副本，未带回的掉落作废。', { runId: run.id });
     return { run: runSummary(run) };
   },

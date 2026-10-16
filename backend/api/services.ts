@@ -127,11 +127,11 @@ export function settleArenaDay(store: Store, player: Player, day: ArenaDayRecord
 export interface BattleRewards { gold: number; items: { item: ItemKey; count: number }[]; levelUps: { unit: string; level: number }[]; deaths: string[]; weaponRanks: { unit: string; type: string; rank: string }[] }
 
 // 死亡／退役统一处理（docs/00 §7.1、§7.4）：先冻结遗产来源，再回收装备，最后写纪念名册。
-export function recordDeath(store: Store, player: Player, unit: UnitRecord, cause: LegacyCause, battleId: string | null): string | null {
+export function recordDeath(store: Store, player: Player, unit: UnitRecord, cause: LegacyCause, battleId: string | null, deferred = false): string | null {
   if (unit.status === 'dead') return null;
   const legacy = eligibleForLegacy(unit) ? createLegacy(unit, cause, `legacy-${unit.id}`, player.id) : null;
   if (legacy) store.saveLegacy(legacy);
-  recoverEquipment(store, player, unit);
+  recoverEquipment(store, player, unit, deferred);
   unit.status = 'dead';
   unit.lockedDispatchId = null;
   store.saveUnit(unit, player.id);
@@ -144,11 +144,11 @@ export function recordDeath(store: Store, player: Player, unit: UnitRecord, caus
 }
 
 // 正常退役：达到传承门槛则留下遗产，退役后退出战斗名册（docs/00 §7.4）。
-export function recordRetire(store: Store, player: Player, unit: UnitRecord): string | null {
+export function recordRetire(store: Store, player: Player, unit: UnitRecord, deferred = false): string | null {
   if (unit.status !== 'active') throw new Error('只有现役角色可以退役');
   const legacy = eligibleForLegacy(unit) ? createLegacy(unit, 'retired', `legacy-${unit.id}`, player.id) : null;
   if (legacy) store.saveLegacy(legacy);
-  recoverEquipment(store, player, unit);
+  recoverEquipment(store, player, unit, deferred);
   unit.status = 'retired';
   unit.retiredDay = player.day;
   store.saveUnit(unit, player.id);
@@ -161,11 +161,28 @@ export function recordRetire(store: Store, player: Player, unit: UnitRecord): st
 }
 
 // 回收真实装备并保留当时耐久／剩余次数，不额外复制新品（docs/00 §7.1）。
-function recoverEquipment(store: Store, player: Player, unit: UnitRecord): void {
-  for (const weapon of unit.weapons) store.addInventory(player.id, weapon as ItemKey, 0, 1);
-  for (const item of unit.items) store.addInventory(player.id, item.id as ItemKey, item.uses, 1);
+// deferred：活动途中先入回收袋，活动结束后再入仓库（docs/13 §2.3）。
+function recoverEquipment(store: Store, player: Player, unit: UnitRecord, deferred: boolean): void {
+  if (deferred) {
+    player.flags.recoveryBag ??= [];
+    for (const weapon of unit.weapons) player.flags.recoveryBag.push({ item: weapon as ItemKey, uses: 0 });
+    for (const item of unit.items) player.flags.recoveryBag.push({ item: item.id as ItemKey, uses: item.uses });
+  } else {
+    for (const weapon of unit.weapons) store.addInventory(player.id, weapon as ItemKey, 0, 1);
+    for (const item of unit.items) store.addInventory(player.id, item.id as ItemKey, item.uses, 1);
+  }
   unit.weapons = [];
   unit.items = [];
+}
+
+// 活动结束（单场／整次连战／整届赛事）时把回收袋并入仓库；途中不可接用（docs/00 §7.1）。
+export function flushRecoveryBag(store: Store, player: Player): number {
+  const bag = player.flags.recoveryBag ?? [];
+  if (bag.length === 0) return 0;
+  for (const row of bag) store.addInventory(player.id, row.item, row.uses, 1);
+  player.flags.recoveryBag = [];
+  store.savePlayer(player);
+  return bag.length;
 }
 
 // Writes a finished battle back to the roster: growth, weapon experience, deaths, rewards and the
@@ -214,7 +231,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
         unit.status = 'active';
         store.saveUnit(unit, player.id);
       } else {
-        recordDeath(store, player, unit, 'death', record.id);
+        recordDeath(store, player, unit, 'death', record.id, !!record.runId || !!record.annualId);
         rewards.deaths.push(unit.id);
       }
     }
@@ -287,6 +304,8 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
       for (const drop of run.pendingLoot) store.addInventory(player.id, drop.item as ItemKey, 0, drop.count);
       const gold = 300 + record.state.turn * 8;
       player.gold += gold;
+      // 整次连战结束，回收袋并入仓库（docs/00 §7.1）。
+      flushRecoveryBag(store, player);
       store.addEvent(player.id, 'region', `完整通关 ${region.name} 大副本（已讨伐 ${player.flags.clearedRegions.length} 个地区）。`, { region: run.region, loot: run.pendingLoot, gold });
     } else {
       run.state = 'between_maps';
@@ -296,6 +315,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
   } else {
     run.state = 'failed';
     releaseLocks();
+    flushRecoveryBag(store, player);
   }
   run.carry = carry;
   store.saveRun(run);
@@ -327,8 +347,11 @@ export function handleAnnualOutcome(store: Store, player: Player, record: Battle
   else if (entry.state === 'knockout') knockoutResult(entry, won);
   entry.battleId = null;
   store.saveAnnualEntry(entry);
+  const finished = entry.state === 'champion' || entry.state === 'eliminated';
+  // 整届赛事结束，回收袋并入仓库（docs/00 §7.1）。
+  if (finished) flushRecoveryBag(store, player);
   store.addEvent(player.id, 'festival', `大竞技场第 ${entry.annualIndex} 届：${won ? '胜利' : '失败'}（${entry.state}）。`, { annualIndex: entry.annualIndex, state: entry.state });
-  return { entry, finished: entry.state === 'champion' || entry.state === 'eliminated' };
+  return { entry, finished };
 }
 
 // 后台派遣结算（docs/00 §9.1.1、docs/13 §5.5）：达到 return_day 时只结算一次，奖励只给参与者。
@@ -485,6 +508,7 @@ export function stateView(store: Store, player: Player) {
     rosterCount: active.length,
     units: units.map(unitSummary),
     inventory: store.inventory(player.id).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, uses: row.uses, count: row.count })),
+    recoveryBag: (player.flags.recoveryBag ?? []).map(row => ({ item: row.item, name: GAME_ITEMS[row.item]?.name ?? row.item, uses: row.uses })),
     regions: REGIONS.map(region => ({ ...region, cleared: cleared.includes(region.id) })),
     progress: { cleared: cleared.length, baseLevel: baseLevel(cleared.length) },
     festival: { round: player.flags.festivalRound, year: player.flags.festivalYear, nextDay: (Math.floor(player.day / 120) + 1) * 120 },

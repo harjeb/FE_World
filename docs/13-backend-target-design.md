@@ -338,4 +338,6 @@ boss = min(99, L + 4)
 
 随后用户又确认职业精通／自选天数并行派遣、五格自由装备、轮回保留继承成长、真实伤亡<=2触发补员、活动结束回收、石化盾、赛事补给限制与现实月榜重置。上述内容已更新为目标，不再列为方向候选；是否已落地须对现有代码逐项验收，本轮仅同步设计，不覆盖其他任务正在修改的后端／UI。
 
+2026-10-16 第五轮已把上述第二轮定案的后端落地：`game/mastery.ts`（按 `(cycle,classId)` 精通与节点）、`game/dispatch.ts`（后台并行派遣与唯一占用）、`game/ratings.ts`（现实月榜归档）、`immortal_shield`（1HP 石化盾）、`recoveryBag`（活动结束回收）以及 `GET_MASTERY`／`SWITCH_CLASS`／`EQUIP_SKILLS`／`GET_DISPATCHES`／`START_DISPATCH`／`GET_RATINGS`／`CLAIM_RATING_REWARD` 等 op。仍未落地：各职业节点内容、派遣精确收益／召回、购买额度最终数值、特殊装备技能目录、不朽盾重量与携带量；这些仍按配置／待定处理。
+
 此前独立的 v2 契约、客户端、mock、31项测试及完整原设计保存在本地备份分支 `codex/local-v2-before-remote-20261016`（提交 `464aaae`）。它们未接入当前数字 op 服务端。可参考其中的命令恢复、状态版本与跨图状态设计，不能把两套客户端同时接到页面。合并任务由 Beads `fe-world-fgb` 记录。

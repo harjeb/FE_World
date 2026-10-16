@@ -51,7 +51,14 @@ git diff main...codex/local-v2-before-remote-20261016 -- backend/common/protocol
 - **行动报价**：`PREVIEW_ACTION`／`EXECUTE_ACTION`，报价与 `playerVersion` 绑定，执行时重新校验，过期返回可刷新错误。
 - **年度赛事与主线**：`GET_ANNUAL`／`REGISTER_ANNUAL`／`START_ANNUAL_MATCH`；`GET_STORY`／`COMPLETE_STORY_EVENT`／`CLAIM_REWARD`。
 
-仍未实现：自捏开局、完整八届内容、不朽盾完整石化、耐久与完美锻造、成长率传承是否随轮回清除、职业技能节点结构。观战页仍自动播放历史回放，尚非实时订阅。
+第五轮（第二轮定案）又补齐：
+
+- **职业精通与资格**：`GET_MASTERY`／`SWITCH_CLASS`／`EQUIP_SKILLS`；按 `(cycle, classId)` 累计精通，阈值解锁技能；已购／本命职业营地免费切回，购买新资格受现实月额度限制。
+- **并行派遣**：`GET_DISPATCHES`／`START_DISPATCH`；自选正整数天数，按个人行动日并行，出发冻结职业／武器，返程一次结算素材、武器、经验、职业精通与武器熟练度；占用角色不能参战、换职、轮回、退役或转移装备。
+- **现实月榜**：`GET_RATINGS`／`CLAIM_RATING_REWARD`；Worker 按服务端时区归档旧月、冻结奖励并开启新月，不推进个人日期。
+- **不朽盾**：`immortal_shield` 致命时消耗一枚、保留 1HP 并石化至下个己方阶段；活动结束后装备回仓（`recoveryBag`）。
+
+仍未实现：自捏开局、完整八届内容、不朽盾重量／携带数量、耐久与完美锻造、特殊装备技能目录、各职业节点内容与派遣精确收益。观战页仍自动播放历史回放，尚非实时订阅。
 
 当前仍为演示存档（新账号使用预置军团和日期）。自捏神主角与3人开局、完整八届赛事与章节内容仍需开发；连续副本、遗产继承、轮回、生产已有后端与网页，规则仍按新定案继续调整，完整状态以 [12](12-implementation-gap-checklist.md) 对应条目为准。观战页目前自动播放服务器历史战斗，尚非实时订阅。
 

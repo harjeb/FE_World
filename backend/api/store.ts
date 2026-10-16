@@ -25,6 +25,10 @@ export interface PlayerFlags {
   chapterExpClaimed: number[];
   // 已完成的八章主线（docs/13 §6.3）。
   storyCompleted?: number[];
+  // 回收袋（docs/13 §2.3）：活动途中死亡的装备先放这里，活动结束后再入仓库。
+  recoveryBag?: { item: ItemKey; uses: number }[];
+  // 职业市场月度购买计数（docs/13 §5.4）：key 为现实月，值为当月已购买新资格数。
+  classPurchases?: Record<string, number>;
   recruitFails?: number;
   // 紧急补员：上次领取时的战死人数，防止一次损失重复领取（docs/00 §3.3）。
   emergencyClaimed?: number;

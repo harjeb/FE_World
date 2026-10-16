@@ -78,4 +78,6 @@ export const CLASS_OPEN_YEAR: Record<ClassStage, number> = { 1: 1, 2: 2, 3: 4, 4
 export const CLASS_PRICE: Record<ClassStage, number> = { 1: 500, 2: 1_500, 3: 4_000, 4: 9_000, 5: 20_000 };
 export function classOpenYear(id: ClassId): number { return CLASS_OPEN_YEAR[CLASSES[id].stage]; }
 export function classPrice(id: ClassId): number { return CLASS_PRICE[CLASSES[id].stage]; }
+// 现实月购买新资格的额度（docs/00 §4.1）；切回已购职业不占额度。数值仍是草案。
+export const CLASS_PURCHASE_LIMIT = 3;
 export function initialClassOf(classId: ClassId): ClassId { return initialClass(CLASSES[classId].route); }

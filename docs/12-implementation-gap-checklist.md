@@ -6,7 +6,7 @@
 
 ### 2026-10-16最新定案补充验收
 
-以下在第四轮实现记录之后确认，目标以00／13最新段落为准。本轮只更新设计与验收项，保留原有实现记录；不能把旧TRAIN／SWEEP或三图远征当成已完成并行自动探索。
+以下在第四轮实现记录之后确认，目标以00／13最新段落为准。第五轮已按此实现后端（见下），旧TRAIN／SWEEP仍是武器专项训练与快捷扫荡，并行自动探索是独立系统。
 
 | 内容 | 新验收要求 |
 | --- | --- |
@@ -21,6 +21,24 @@
 | 平衡预算 | 原手动60场＋8届经验表不含新增派遣；须联合核对派遣占用、经验、双精通、掉落、主力／替补培养与总日历 |
 
 派遣精确收益、最大时长／同时人数、召回策略、职业节点与月度购买额度仍待配置，不能把内部类型曲线／年龄抽样规则写成玩家说明。
+
+### 2026-10-16 第五轮后端落地（职业精通、并行派遣、月榜、盾）
+
+第五轮把上表的新验收要求落到后端；仍未落地的是各职业节点内容、派遣精确收益与召回、职业购买额度的最终数值、特殊装备授予技能目录（现有装备表没有成长／技能装备）以及完整八年经济预算。
+
+| 内容 | 后端落地 | 证据 |
+| --- | --- | --- |
+| 职业精通 | `game/mastery.ts`：按 `(cycle, classId)` 累计，阈值解锁节点、学会技能；`applyBattleOutcome` 对野外／赛事有效参战入账；op `GET_MASTERY` | `mastery.test.ts`、`systems.test.ts` |
+| 职业资格 | `BUY_CLASS_QUALIFICATION` 现实月额度 `CLASS_PURCHASE_LIMIT`；`SWITCH_CLASS` 已购／本命职业免费切回，不占额度 | `systems.test.ts` |
+| 五格技能 | `setEquippedSkills`：跨职业自由装备，共 5 格；个人技能与当前职业能力单列；op `EQUIP_SKILLS`；引擎按装备技能聚合 | `mastery.test.ts`、`systems.test.ts` |
+| 并行派遣 | `game/dispatch.ts` + `dispatches` 表；op `GET_DISPATCHES`／`START_DISPATCH`；出发冻结职业／武器，`syncPlayer` 按 return_day 一次结算，收益只给参与者；占用单位不能参战／换职／轮回／退役／转移 | `systems.test.ts` |
+| 轮回保留成长 | `inheritedGrowth` 与 `growthAllocation` 分离；`reincarnate` 保留继承基础，清精通／学习／资格 | `legacy.test.ts` |
+| 免费补员 | `emergencyStatus`：新真实伤亡且现役存活≤2（含神）；解雇／退役／派遣不触发 | `permanent.test.ts`、`ui-support.test.ts` |
+| 装备回收 | `recoveryBag`：活动途中先入袋，单场直接入仓；连战／赛事结束时 `flushRecoveryBag` | `systems.test.ts` |
+| 不朽盾 | `immortal_shield` 物品 + 引擎 `runCombat`：致命消耗一枚、保留1HP、石化至下个己方阶段，连击不再致死，不能手动使用 | `shield.test.ts` |
+| 年度补给限制 | 报名名单中的角色整届不能通过 `TRANSFER_ITEM` 补给 | `systems.test.ts`、`systems.e2e.mjs` |
+| 现实月榜 | `game/ratings.ts` + `rating_periods`／`ratings`／`monthly_rating_rewards`；Worker `settleMonthlyRatings` 归档并冻结奖励；op `GET_RATINGS`／`CLAIM_RATING_REWARD` | `systems.test.ts`、`worker` |
+
 
 - 以 `00-game-design.md` 的永久军团、个人日历方向作为本次比较基线；与旧版专章冲突的内容单列，不能同时作为验收要求。
 - **部分实现**：存在规则、接口或页面，但没有完整闭环，或与当前设计不一致。
@@ -210,4 +228,5 @@ P0 表示应在宣称规则正确/多人可用之前处理；P1 表示核心游�
 - 本轮对清单中尚未修复的条目重新核对了代码证据（轮回/种族/不朽盾/遗产/生产/模拟等仍无实现）。
 - 2026-10-16 第四轮（后端领域，不含 UI）：后端 engine/arena/game/protocol/api 测试 **113 通过，0 失败**（新增 legacy/annual/expedition/production/permanent/quote 共 32 项）；地图生成器 **14 通过，0 失败**；前端 `typecheck` 干净、`build` 成功；e2e `backend-integration` 21/21、`battle-replay` 6/6。
 - 2026-10-16 第五轮（UI 接入）：后端测试 **118 通过，0 失败**（新增 `ui-support` 5 项）；前端 `typecheck` 干净、`build` 成功；e2e `backend-integration` 21/21、`battle-replay` 6/6，新增 `systems.e2e.mjs` 30/30。
+- 2026-10-16 第二轮定案后端（职业精通、并行派遣、五格技能、月榜、盾、回收袋）：后端测试 **133 通过，0 失败**（新增 `mastery` 4 项、`shield` 3 项、`systems` 7 项）；地图生成器 **14 通过，0 失败**；前端 `typecheck` 与 `build` 通过；e2e `systems` 30/30、`backend-integration` 21/21、`battle-replay` 6/6。
 - 未进行生产部署、真实多玩家压力、完整八年游玩或存档迁移测试。清单不提供整体完成百分比；后续实现应逐条补证据并更新状态。

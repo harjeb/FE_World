@@ -5,7 +5,7 @@ import { Store } from './store.ts';
 import { loginOrRegister } from './auth.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
-import { recordRating, settleMonthlyRatings, syncPlayer } from './services.ts';
+import { recordDeath, recordRating, settleMonthlyRatings, flushRecoveryBag, syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { periodIdFor } from '../common/game/ratings.ts';
 import { classMasteryOf } from '../common/game/mastery.ts';
@@ -102,6 +102,21 @@ test('a class can be switched for free once the qualification is owned', () => {
   assert.throws(() => dispatch(ctx, OP.SWITCH_CLASS, { unitId: 'u_erin', classId: 'cavalier' }), /资格/);
 });
 
+test('class qualification purchases are limited per real month, switching back is free', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  player.gold = 1_000_000;
+  for (const classId of ['swordsman', 'cavalier', 'archer']) {
+    dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId });
+  }
+  assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId: 'mage' }), /上限/);
+  // Switching back to an owned class is free and does not consume the monthly quota.
+  dispatch(ctx, OP.SWITCH_CLASS, { unitId: 'u_erin', classId: 'cavalier' });
+  const market = dispatch(ctx, OP.GET_CLASS_MARKET, { unitId: 'u_erin' }) as { monthUsed: number; monthLimit: number };
+  assert.equal(market.monthUsed, 3);
+  assert.equal(market.monthLimit, 3);
+});
+
 test('equipping more than five learned skills is refused', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
@@ -111,4 +126,29 @@ test('equipping more than five learned skills is refused', () => {
   assert.throws(() => dispatch(ctx, OP.EQUIP_SKILLS, { unitId: 'u_erin', skills: ['opening', 'keen', 'nimble', 'hawkeye', 'focus', 'charge'] }), /最多/);
   const ok = dispatch(ctx, OP.EQUIP_SKILLS, { unitId: 'u_erin', skills: ['opening', 'keen'] }) as { equippedSkills: string[] };
   assert.deepEqual(ok.equippedSkills, ['opening', 'keen']);
+});
+
+test('equipment from a death during an activity waits in the recovery bag until it ends', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const unit = store.unit(player.id, 'u_karl')!;
+  unit.level = 20;
+  unit.weapons = ['steel_axe'];
+  unit.items = [{ id: 'vulnerary', uses: 2 }];
+  store.saveUnit(unit, player.id);
+  const axes = store.countInventory(player.id, 'steel_axe');
+  // Deferred recovery (a death inside a dungeon run): the gear is not in the warehouse yet.
+  recordDeath(store, player, unit, 'death', 'battle-x', true);
+  assert.equal(store.countInventory(player.id, 'steel_axe'), axes, 'not available mid-activity');
+  assert.equal((player.flags.recoveryBag ?? []).length, 2);
+  flushRecoveryBag(store, player);
+  assert.equal(store.countInventory(player.id, 'steel_axe'), axes + 1);
+  assert.equal((player.flags.recoveryBag ?? []).length, 0);
+  // An immediate (single-battle) death goes straight to the warehouse.
+  const other = store.unit(player.id, 'u_ig')!;
+  other.weapons = ['steel_axe'];
+  store.saveUnit(other, player.id);
+  const before = store.countInventory(player.id, 'steel_axe');
+  recordDeath(store, player, other, 'death', 'battle-y', false);
+  assert.equal(store.countInventory(player.id, 'steel_axe'), before + 1);
 });
