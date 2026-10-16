@@ -36,6 +36,8 @@
 
 2026-10-16 第四轮（后端领域，不含 UI）：**新增后端闭环**：幂等命令收据与玩家版本、事件游标；年龄按天与自然寿终、主角不衰老；死亡／退役冻结遗产并回收装备、纪念名册；成长与数值两种传承及逐级保底、一代血缘锁；一次轮回（回一级、清技能／熟练度／资格、16 岁、30 点分配）；职业资格按年份购买与跨路线／种族校验；两条生产链（播种炼药、矿石木材锻造）；三图连续副本与跨图状态、地区首通等级锁定；年度大竞技场海选＋64 强；八章主线独立结算；严重损失免费补员。以下状态表按此更新，UI 接入与剩余项仍按原口径。
 
+2026-10-16 第五轮（UI 接入）：第四轮的后端闭环都有了网页入口（三图大副本、年度大竞技场、主线、生产、传承与纪念名册、职业资格、退役与轮回），规则手册与设置不再是占位。接入时修了三处后端偏差（大竞技场替补、轮回吞装备、页面所需的只读字段）。新定案（免费补员条件、轮回保留传承成长、装备整场结束后回仓等）仍未改入后端，页面按当前接口如实显示。详见下方「第五轮 UI 接入」。
+
 | 状态 | 缺口 |
 | --- | --- |
 | 已修复 | G01、G02、G03、G05、G07、G28 |
@@ -115,6 +117,29 @@ P0 表示应在宣称规则正确/多人可用之前处理；P1 表示核心游�
 | 幂等与版本 | `command_receipts`、`dispatch` 收据与冲突、写命令 `player.version`、事件 `cursor` | `permanent.test.ts` |
 | 行动报价 | `PREVIEW_ACTION`／`EXECUTE_ACTION`、`action_quotes` 表；报价绑定 `playerVersion`，执行时重校，过期报错 | `quote.test.ts` |
 
+### 2026-10-16 第五轮 UI 接入
+
+第四轮的 op 都接到网页；页面只读 `useSession()` 与 op 结果，操作经 `session.run` 提交后整体刷新。出发前有真实死亡或多日成本的行动（大副本第 1 图、大竞技场每一场）先 `PREVIEW_ACTION` 再按报价 `EXECUTE_ACTION`，报价过期即失败，不会悄悄改价。
+
+| 缺口 | 网页入口 | 证据 |
+| --- | --- | --- |
+| G20 连续远征 | `#/field/dungeon`（`battle/DungeonPage.tsx`）：选地区与固定名单 → 服务端报价 → 出发；两图之间显示每人带入下一图的 HP 与道具、待带回掉落，可继续或撤离；战斗页在同页进行，结束对话框按远征状态给出下一步。出击页顶部可切换遭遇战／大副本 | e2e「the dungeon shows the server quote first」「setting out opens the first map」「a retreat ends the run and the page says so」 |
+| G22 年度大竞技场 | `#/arena/annual`（`arena/AnnualPage.tsx`）：报名（勾选顺序即出战顺序）、海选／正赛签表、下一场地图与出战人数、报价后开打，比赛在同页进行；竞技场首页与军营有入口 | e2e「registering on the page creates the server entry」「executing the quote opens the match on the same page」「the bracket shows the played qualifier」 |
+| G23 八年主线 | `#/story`（`pages/StoryPage.tsx`）：八章时间线，完成事件与领奖分开；章节标题开放后、本章所得完成后才由 GET_STORY 下发 | e2e「completing the chapter is stored」「claiming pays the shared experience once」；api 测试「story chapters show a title once open…」 |
+| G24 生产 | `#/workshop`（`pages/WorkshopPage.tsx`）：三个工位的订单进度与领取、各配方的材料与阻挡原因；播种标明推进 1 日 | e2e「starting a recipe opens a server order」「planting spends one day」「collecting a ripe order…」 |
+| G17–G19、G25 遗产、纪念、补员 | `#/legacy`（`pages/LegacyPage.tsx`）：遗产列表与兑现（继承者资格、两种模式、成长对比或逐级保底预览、补点权重、传承石库存）、纪念名册、紧急补员资格（GET_MEMORIAL 的 `emergency`） | e2e「retiring stores the memorial and the legacy」「the legacy page lists…」；api 测试「the memorial reports the free emergency recruit status…」 |
+| G13、G19 退役与轮回 | 名册分页 `#/roster/<id>/retire`（`pages/RosterLegacy.tsx`）：两项都先列条件、再二次确认；轮回分配 30 点（单项 10） | e2e「the retire tab explains the legacy conditions」 |
+| G14 职业资格 | 名册分页 `#/roster/<id>/classes`：按路线 × 阶位列出开放年份、价格与已拥有，选中后确认购买；注明转职暂不检查资格 | e2e「buying a qualification on the page stores it and charges the price」 |
+| G30 帮助入口 | `#/rules`（数值取自共享常量与服务端，只写已确定且正在执行的规则）、`#/settings`（Agent 接入令牌与连接地址、战斗显示默认值、退出登录）；导航去掉演示版占位 | e2e「the rules manual reads its numbers from the game data」「settings hands out the Agent token…」 |
+
+接入中发现并修正的后端问题（`api/ui-support.test.ts`）：
+
+- 大竞技场每场结束只保留上场的存活者，报名但未上场的替补从第二场起被丢掉，倒下撤退的主角也被移出；现按报名顺序保留仍在现役的人，上场者带本场剩余物品并恢复满 HP，替补保持原样，死者不复活（`services.ts::handleAnnualOutcome`）。
+- 轮回把携带的武器与道具直接清空；现连同剩余次数退回仓库，校验失败时不写任何东西（`handlers.ts::REINCARNATE_UNIT`）。
+- 页面所需的只读字段：GET_RUN 的 `carry`、GET_MEMORIAL 的 `emergency`（与 EMERGENCY_RECRUIT 共用一份判断）、GET_STORY 的 `title`／`learned`／`bexp`、GET_PRODUCTION 订单的 `recipeId`／`facilityId`；共享 `ROUTE_NAMES`、`festivalMapId`、轮回常量，页面与服务端用同一份规则。
+
+仍按当前后端显示、待按新定案改后端的：免费补员仍是「累计战死 3 人」（新定案为新伤亡后存活现役 <=2）；轮回仍会替换成长传承带来的个人成长（新定案为保留）；阵亡装备仍在死亡时立即回仓（新定案为整场／整次远征／整届结束后）；传承石与轮回核心尚无获取途径，兑现与轮回在页面上会显示缺少道具。
+
 ## 四、外围能力、内容与验证缺口
 
 | ID | 状态 | 缺口 | 证据/下一步 |
@@ -184,4 +209,5 @@ P0 表示应在宣称规则正确/多人可用之前处理；P1 表示核心游�
 - 2026-10-16 第三轮（个人日历文案、竞技场与军营去演示、名册快照）：后端测试 **68 通过，0 失败**；e2e `backend-integration` 15/15、`battle-replay` 6/6。
 - 本轮对清单中尚未修复的条目重新核对了代码证据（轮回/种族/不朽盾/遗产/生产/模拟等仍无实现）。
 - 2026-10-16 第四轮（后端领域，不含 UI）：后端 engine/arena/game/protocol/api 测试 **113 通过，0 失败**（新增 legacy/annual/expedition/production/permanent/quote 共 32 项）；地图生成器 **14 通过，0 失败**；前端 `typecheck` 干净、`build` 成功；e2e `backend-integration` 21/21、`battle-replay` 6/6。
+- 2026-10-16 第五轮（UI 接入）：后端测试 **118 通过，0 失败**（新增 `ui-support` 5 项）；前端 `typecheck` 干净、`build` 成功；e2e `backend-integration` 21/21、`battle-replay` 6/6，新增 `systems.e2e.mjs` 30/30。
 - 未进行生产部署、真实多玩家压力、完整八年游玩或存档迁移测试。清单不提供整体完成百分比；后续实现应逐条补证据并更新状态。

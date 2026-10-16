@@ -1,0 +1,165 @@
+/* 永久军团 pages: 主线、生产、传承、远征、年度大竞技场 and the 职业资格 / 退役与轮回 roster tabs.
+   Same parchment components as the camp and roster artboards (components.css, pages.css). */
+
+.sys-cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.sys-note { padding: 10px 16px; font-size: 13px; line-height: 1.6; color: var(--color-ink-2); }
+.sys-strip { padding: 8px 14px; border-radius: 6px; border: 1px solid #d7c08a; background: var(--color-brass-soft); color: var(--color-brass-deep); font-size: 13px; }
+.sys-rules { padding: 8px 16px 12px 32px; list-style: disc; font-size: 13px; line-height: 1.6; color: var(--color-ink-2); }
+.sys-rules li + li { margin-top: 4px; }
+.pf.dim img { filter: grayscale(1) contrast(0.9); opacity: 0.75; }
+.field-tabs { border-top: 0; border-bottom: 1px solid var(--color-line); padding: 0; }
+.last-run { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 13px; color: var(--color-ink-2); }
+.tm-ord { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--color-blue); color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* An empty slot row is a full-width line, not a cell in the icon / text / actions grid. */
+.eq > li.empty-row { display: block; }
+
+/* Requirement lists: met lines in green with a check, unmet in red with a cross. */
+.checks { padding: 8px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; align-items: center; }
+.checks .mk { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; font-weight: 700; }
+.checks .ok { color: var(--color-green-deep); }
+.checks .no { color: var(--color-red-deep); }
+.checks .ico { width: 16px; height: 16px; }
+
+/* Server quotes (PREVIEW_ACTION) sit under the static facts in the same grid. */
+.facts.quote { margin: 0 16px; padding: 10px 12px; border: 1px dashed #b4c5d0; border-radius: 6px; background: var(--color-blue-soft); }
+
+/* Compact unit lists: run crew, annual entry, 纪念名册. */
+.roster-mini li { display: grid; grid-template-columns: auto 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 14px; border-bottom: 1px solid #e6ddcb; font-size: 14px; }
+.roster-mini li:last-child { border-bottom: 0; }
+.roster-mini li:not(:has(.tm-ord)) { grid-template-columns: 32px minmax(0, 1fr) auto; }
+.roster-mini li.fallen b { color: var(--color-muted); text-decoration: line-through; text-decoration-color: #c9958d; }
+.roster-mini .rm-sub { display: block; font-size: 12px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.roster-mini .rm-hp { display: flex; align-items: center; gap: 8px; min-width: 150px; font-size: 13px; }
+.roster-mini .empty-row { display: block; }
+
+/* 主线 */
+.chapters .chap { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e6ddcb; border-left: 3px solid transparent; }
+.chapters .chap:last-child { border-bottom: 0; }
+.chap.open { border-left-color: var(--color-blue); background: #f2f0e8; }
+.chap.done { border-left-color: var(--color-green); }
+.chap.locked { color: var(--color-muted); }
+.ch-no { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 6px; border: 1px solid #d9cdb5; background: #eae1ce; font-size: 11px; color: var(--color-ink-2); line-height: 1.1; }
+.ch-no b { font-family: var(--font-pixel); font-size: 20px; font-weight: 400; color: var(--color-blue-deep); }
+.chap.locked .ch-no { background: #eee8dc; }
+.chap.locked .ch-no b { color: var(--color-faint); }
+.ch-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 17px; font-weight: 700; }
+.ch-sub { font-size: 13px; color: var(--color-ink-2); margin-top: 2px; }
+.ch-learned { display: flex; gap: 8px; align-items: baseline; margin-top: 6px; font-size: 13px; line-height: 1.6; }
+.ch-acts { display: flex; gap: 6px; }
+
+/* 生产 */
+.mats { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 13px; color: var(--color-ink-2); }
+.mat { display: inline-flex; align-items: center; gap: 6px; }
+.mat b { font-size: 16px; color: var(--color-ink); }
+.work-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.orders .order.ready { background: var(--color-green-soft); }
+.ord-prog { display: flex; align-items: center; gap: 8px; }
+.ord-prog .bar { max-width: 120px; }
+.recipes .sp { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.recipes .short { color: var(--color-red-deep); font-weight: 700; }
+.recipes .why, .claim .why { font-size: 12px; color: var(--color-red-deep); }
+
+/* 传承 */
+.legacies .lg-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; padding: 8px 14px; border-bottom: 1px solid #e6ddcb; cursor: pointer; }
+.legacies .lg-row:hover:not(:disabled) { background: #efe7d6; }
+.legacies .lg-row:focus-visible { outline: 2px solid var(--color-brass); outline-offset: -2px; }
+.legacies .lg-row[aria-pressed='true'] { background: var(--color-blue-soft); box-shadow: inset 3px 0 0 var(--color-blue); }
+.legacies .lg-row:disabled { cursor: default; }
+.legacies .claimed .lg-row { opacity: 0.75; }
+.lg-n { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 15px; font-weight: 700; }
+.lg-n .muted { font-size: 13px; font-weight: 500; }
+.lg-s { display: block; font-size: 12px; color: var(--color-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.claim { display: flex; flex-direction: column; gap: 10px; padding: 12px 0 0; }
+.claim > .field, .claim > .why, .claim > .mode-cards, .claim > .weights { margin: 0 16px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--color-muted); }
+.field select { min-height: 34px; border: 1px solid #cdbfa3; border-radius: 5px; background: var(--color-paper); color: var(--color-ink); font-size: 14px; padding: 0 8px; }
+.mode-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mode { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid #d9cdb5; border-radius: 6px; background: var(--color-paper); font-size: 13px; line-height: 1.5; cursor: pointer; }
+.mode b { font-size: 15px; }
+.mode:hover { border-color: #8c8273; }
+.mode[aria-checked='true'] { border-color: var(--color-blue); background: var(--color-blue-soft); box-shadow: inset 0 0 0 1px var(--color-blue); }
+.mode:focus-visible { outline: 2px solid var(--color-brass); outline-offset: 2px; }
+.st.cmp th, .st.cmp td { padding: 5px 8px; font-size: 13px; text-align: center; }
+.st.cmp th[scope='row'] { text-align: left; }
+.st.cmp td i { margin-left: 4px; min-width: 0; }
+.weights { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13px; }
+.weights > span { flex-basis: 100%; font-size: 12px; }
+.weights label { display: inline-flex; align-items: center; gap: 4px; }
+.weights input { width: 48px; min-height: 28px; border: 1px solid #cdbfa3; border-radius: 5px; background: var(--color-paper); font-size: 13px; padding: 0 4px; }
+
+/* 名册 · 职业资格 */
+.mk { border-collapse: collapse; width: 100%; min-width: 640px; }
+.mk th, .mk td { padding: 6px 8px; border-bottom: 1px solid #e6ddcb; font-size: 13px; text-align: left; vertical-align: top; }
+.mk thead th { font-size: 12px; font-weight: 700; color: var(--color-ink-2); background: #efe7d6; }
+.mk thead small { display: block; font-weight: 500; color: var(--color-muted); }
+.mk th[scope='row'] { white-space: nowrap; font-weight: 700; }
+.mk tr.own-route { background: #f1ede2; }
+.mk-cls { display: inline-flex; align-items: center; gap: 4px; margin: 2px 4px 2px 0; min-height: 26px; padding: 0 8px; border-radius: 13px; border: 1px solid #cdbfa3; background: var(--color-paper); color: var(--color-ink); font-size: 13px; white-space: nowrap; }
+button.mk-cls { cursor: pointer; }
+button.mk-cls:hover { border-color: #8c8273; }
+button.mk-cls[aria-pressed='true'] { background: var(--color-blue); border-color: var(--color-blue); color: #fff; }
+button.mk-cls:focus-visible { outline: 2px solid var(--color-brass); outline-offset: 1px; }
+.mk-cls.owned { border-color: #bacaac; background: var(--color-green-soft); color: var(--color-green-deep); font-weight: 700; }
+.mk-cls.locked { border-style: dashed; color: var(--color-faint); background: transparent; }
+.mk-cls i { font-style: normal; font-size: 11px; padding: 0 4px; border-radius: 3px; background: var(--color-brass-soft); color: var(--color-brass-deep); }
+.mk-buy { border-top: 1px solid var(--color-line-soft); background: var(--color-blue-soft); }
+
+/* 名册 · 轮回分配 */
+.alloc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 8px 16px; }
+.alloc div { display: grid; grid-template-columns: 40px 30px 28px 30px minmax(0, 1fr); gap: 6px; align-items: center; font-size: 13px; }
+.alloc .btn-sm { min-height: 28px; padding: 0; }
+.alloc b { text-align: center; font-size: 15px; }
+.al-k { font-weight: 700; }
+.al-v { color: var(--color-muted); font-size: 12px; white-space: nowrap; }
+
+/* 大副本 */
+.run-map { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 16px; }
+.run-map li { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 6px; border: 1px solid #d9cdb5; background: var(--color-paper); font-size: 13px; }
+.run-map li b { font-size: 15px; }
+.run-map li span { color: var(--color-muted); font-size: 12px; }
+.run-map li.won { border-color: #bacaac; background: var(--color-green-soft); }
+.run-map li.won span { color: var(--color-green-deep); }
+.run-map li.next { border-color: var(--color-blue); box-shadow: inset 0 0 0 1px var(--color-blue); background: var(--color-blue-soft); }
+.run-map li.lost { border-color: #ddb0a8; background: var(--color-red-soft); }
+
+/* 年度大竞技场 */
+.bracket { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; }
+.br-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.br-k { width: 40px; font-size: 13px; font-weight: 700; color: var(--color-ink-2); }
+.br-cell { display: inline-flex; align-items: center; min-height: 30px; padding: 0 10px; border-radius: 5px; border: 1px solid #d9cdb5; background: var(--color-paper); font-size: 12px; white-space: nowrap; }
+.br-cell.played { background: #ece5d7; }
+.br-cell.won { border-color: #bacaac; background: var(--color-green-soft); color: var(--color-green-deep); font-weight: 700; }
+.br-cell.lost { border-color: #ddb0a8; background: var(--color-red-soft); color: var(--color-red-deep); font-weight: 700; }
+.br-cell.next { border-color: var(--color-blue); background: var(--color-blue-soft); color: var(--color-blue-deep); font-weight: 700; box-shadow: inset 0 0 0 1px var(--color-blue); }
+.br-cell.todo { color: var(--color-faint); border-style: dashed; }
+.br-rec { margin-left: 6px; font-size: 13px; font-weight: 700; }
+.br-rec small { font-weight: 500; color: var(--color-muted); }
+.next-match { border-top: 1px solid var(--color-line-soft); }
+.nm-title { padding: 10px 16px 0; font-size: 15px; font-weight: 700; }
+
+/* 规则手册 */
+.rules-toc { margin-top: -2px; }
+a.chip { display: inline-flex; align-items: center; text-decoration: none; }
+a.chip:hover { color: var(--color-ink); }
+.rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+
+/* 设置 */
+.set-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; border-bottom: 1px solid #e6ddcb; font-size: 14px; }
+.set-rows > div:last-child { border-bottom: 0; }
+.token-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.facts code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 13px; padding: 1px 6px; border-radius: 4px; background: var(--color-paper); border: 1px solid var(--color-line-soft); word-break: break-all; }
+
+@media (max-width: 1200px) {
+  .work-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .sys-cols, .rules-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .work-cols, .mode-cards { grid-template-columns: 1fr; }
+  .chapters .chap { grid-template-columns: 48px minmax(0, 1fr); }
+  .chapters .ch-acts { grid-column: 2; }
+  .run-map { grid-template-columns: 1fr; }
+}

@@ -13,6 +13,8 @@
 | 页面状态与业务操作 | `frontend/src/api/session.ts`：`session`、`useSession`、`run`、战斗/整备/竞技场方法 |
 | 服务端入口与规则 | `backend/api/server.ts`、`handlers.ts`、`services.ts` |
 | 永久军团规则 | `backend/common/game/legacy.ts`（传承／保底／轮回）、`annual.ts`（年度赛事）、`expedition.ts`（三图副本）、`production.ts`（生产）、`story.ts`（八章） |
+| 永久军团页面 | `#/field/dungeon` `battle/DungeonPage.tsx`、`#/arena/annual` `arena/AnnualPage.tsx`、`#/story` `pages/StoryPage.tsx`、`#/workshop` `pages/WorkshopPage.tsx`、`#/legacy` `pages/LegacyPage.tsx`、名册分页 `#/roster/<id>/classes`／`retire` `pages/RosterLegacy.tsx`、`#/rules`、`#/settings`；共用件在 `pages/SystemParts.tsx`，样式在 `styles/systems.css` |
+| 页面专用数据 | 纪念名册、职业市场等只有一页用的数据经 `api/useServerData.ts` 读取，`player.version` 变化即重读；远征、年度赛事、主线、生产、遗产随 `session.refresh` 一起读取 |
 | 当前存档 | `backend/api/db.ts`、`store.ts`；SQLite，默认 `backend/data/agent-tactics.db` |
 | 共用战斗与养成 | `backend/common/engine`、`game`、`data`、`arena` |
 
@@ -22,7 +24,7 @@ UI 可以更换布局和样式，读取 `useSession()` 的状态，并经 `sessi
 
 新增定案以00 §4.2.1／9.1.1及13 §5.5为准：职业精通不等于人物等级；自动探索／职业训练可自选天数，按个人行动日后台并行，外出角色不可参与其他战斗，返程有物资、武器、经验及双精通。已学技能跨职业自由装备共5格；已购资格营地免费切回。普通竞技榜按现实月重置，与个人年份／派遣返程分开。这些规则须按对应实现能力接入，不直接假定旧SWEEP／TRAIN或连续副本接口就是新派遣功能。
 
-HTTP 使用 `POST /api/login` 和 `POST /api/op`；Agent 使用 `/ws`。当前不存在 `/api/v2/query`、`/api/v2/commands`、`GET_CAPABILITIES` 或命令收据查询接口。尚未实现幂等键和状态版本校验，因此写操作超时后应刷新服务器状态再确认结果，不能自动原样重发消费、招募或出击指令。
+HTTP 使用 `POST /api/login` 和 `POST /api/op`；Agent 使用 `/ws`。当前不存在 `/api/v2/query`、`/api/v2/commands`、`GET_CAPABILITIES` 或命令收据查询接口。第四轮起写命令可带 `commandId` 取得幂等收据，写命令推进 `player.version`；网页的大副本出发与大竞技场每一场先 `PREVIEW_ACTION` 再按报价 `EXECUTE_ACTION`，其余写操作仍不带 `commandId`，超时后应刷新服务器状态再确认结果，不能自动原样重发消费、招募或出击指令。
 
 ## 保留的本地工作
 
@@ -51,7 +53,9 @@ git diff main...codex/local-v2-before-remote-20261016 -- backend/common/protocol
 
 仍未实现：自捏开局、完整八届内容、不朽盾完整石化、耐久与完美锻造、成长率传承是否随轮回清除、职业技能节点结构。观战页仍自动播放历史回放，尚非实时订阅。
 
-当前仍为演示存档（新账号使用预置军团和日期）。自捏神主角与3人开局、完整八届年度赛事、连续副本、遗产继承、轮回、生产等仍需开发；完整状态以 [12](12-implementation-gap-checklist.md) 对应条目为准。观战页目前自动播放服务器历史战斗，尚非实时订阅。
+当前仍为演示存档（新账号使用预置军团和日期）。自捏神主角与3人开局、完整八届赛事与章节内容仍需开发；连续副本、遗产继承、轮回、生产已有后端与网页，规则仍按新定案继续调整，完整状态以 [12](12-implementation-gap-checklist.md) 对应条目为准。观战页目前自动播放服务器历史战斗，尚非实时订阅。
+
+2026-10-16 第五轮把第四轮的后端闭环接到网页：大副本、年度大竞技场、主线、生产、传承与纪念名册、名册的职业资格与退役／轮回，规则手册与设置（含 Agent 接入令牌）也不再是占位。接入时修正了大竞技场替补被丢弃、轮回吞掉携带装备两处后端偏差，并补了页面所需的只读字段（GET_RUN `carry`、GET_MEMORIAL `emergency`、GET_STORY `title`／`learned`、生产订单 `recipeId`／`facilityId`），细节见 [12](12-implementation-gap-checklist.md)「第五轮 UI 接入」。免费补员条件、轮回保留传承成长、装备整场结束后回仓等新定案尚未改入后端，页面按当前接口如实显示；传承石与轮回核心还没有获取途径。
 
 2026-10-16随后确认的新规则已写入00和13（普通竞技场1日、职业购买／跨路线、一代传承、轮回重置16岁与学习成果、免费紧急补员、固定类型年龄曲线等）。它们尚未改入本篇验证过的远端业务代码。UI应沿用当前接口，待对应后端条目完成后接入，不能仅改按钮文案就宣称规则生效。
 
@@ -75,6 +79,7 @@ Push-Location frontend
 try {
   node test/backend-integration.e2e.mjs
   node test/battle-replay.e2e.mjs
+  node test/systems.e2e.mjs
 } finally {
   Pop-Location
 }
@@ -84,6 +89,8 @@ git diff --check
 本次结果：后端72项、地图14项测试通过；浏览器联调21项、战斗/防守/回放6项检查通过；类型检查、生产构建及差异空白检查通过。浏览器测试自建临时存档，不修改正式存档；未执行真实多玩家压力、完整八年流程或生产部署验收。
 
 2026-10-16 第四轮结果：后端 engine/arena/game/protocol/api 测试 **113 通过，0 失败**；地图生成器 **14 通过，0 失败**；前端 `typecheck` 与 `build` 通过；浏览器 `backend-integration.e2e.mjs` 21/21、`battle-replay.e2e.mjs` 6/6。本轮只改后端与文档，未新增页面。
+
+2026-10-16 第五轮（UI 接入）结果：后端测试 **118 通过，0 失败**；前端 `typecheck` 与 `build` 通过；浏览器 `backend-integration.e2e.mjs` 21/21、`battle-replay.e2e.mjs` 6/6、`systems.e2e.mjs` 30/30。
 
 使用满足版本要求的 Node 后，分别在终端运行：
 

@@ -16,7 +16,11 @@ export default defineConfig({
     port: webPort,
     // The browser talks to the Fastify API through this proxy, so there is no CORS and the built
     // frontend can be served from the API too (docs/07).
-    proxy: { '/api': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true } },
+    // The Agent protocol docs linked from 设置 come from the API as well.
+    proxy: {
+      '/api': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true },
+      '/agent-api': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true },
+    },
   },
   output: { distPath: { root: 'dist' } },
 });

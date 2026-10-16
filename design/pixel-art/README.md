@@ -59,7 +59,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | `lina` | 莉娜 | 天马骑士 | `mira` | 米拉 | 修士 |
 | `owen` | 欧文 | 弓兵 | `roland` | 罗兰 | 骑兵 |
 | `sera` | 塞拉 | 魔道士 | `brock` | 布洛克 | 重甲兵（黑松隘口敌方主将） |
-| `noah` | 诺亚 | 修士 | `grunt_axe` | 灰岩斧兵 | 通用敌兵 |
+| `noah` | 诺亚 | 修士 | `grunt_axe` | 灰岩斧兵 | 通用敌兵（画板用；游戏里的通用敌兵改用[生成的头像](#游戏里生成的头像)） |
 
 头像由脸型、发型、眼睛、眉毛、嘴、服装、配饰和配色拼成，每个角色的配方写在 `PORTRAITS` 里。脸型在 `FACES` 里，分男女。所有脸型共用头顶，任何发型和头带都能配任何脸型；不同的是脸颊以下的轮廓和脖子粗细。配方不写 `face` 时，`fem=True` 的角色用 `oval`，其余用 `standard`。
 
@@ -127,12 +127,20 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | 地图 | `MAPS`，键名即文件名 |
 | 地形画法 | `PAINTERS`、`TERRAIN_ORDER`；新增地形还要同步 03 地形表和 `backend/common/maps/map.ts` |
 | 地图单位 | `UNITS` 字符画，字符对应 `BASE` 调色板；阵营色在 `FACTIONS`，己方发色在 `UNIT_HAIR_ALLY` |
-| 头像 | `PORTRAITS`，组合 `FACES` 脸型、`HAIR_STYLES` 发型、`OUTFITS` 服装、`ACCESSORIES` 配饰和配色；新增脸型只改第 15 行以下，并盖住眼、鼻、嘴的位置 |
+| 头像 | `PORTRAITS`，组合 `FACES` 脸型、`HAIR_STYLES` 发型、`OUTFITS` 服装、`ACCESSORIES` 配饰和配色；新增脸型只改第 15 行以下，并盖住眼、鼻、嘴的位置；部件改动要同步到 `backend/common/portraits/draw.ts` |
 | 图标 | `ICONS16`、`ICONS12` 字符画；训练和金币图标由 `target16()`、`coin12()` 绘制 |
 | 纹章 | `build_crests()` |
 | 交战演出 | `fighter_erin()`、`fighter_axe()`、`spark()`、`backdrop()` |
 
 改完重新生成，先看两张总览图。
+
+## 游戏里生成的头像
+
+没有手绘头像的单位（通用敌兵，以后的随机招募角色）由游戏现场生成头像，代码在 `backend/common/portraits/`：
+
+- `draw.ts` 是本脚本头像部分的 TypeScript 移植，部件、坐标和配色完全相同。`portraits.test.ts` 读取本脚本的 `PORTRAITS`，用 TS 重画每个角色，要求和 `png/por_*.png` 逐像素一致。所以改脸型、发型、服装、配饰或五官时，两边要一起改，否则测试失败。
+- `random.ts` 按种子随机组合部件。先定性别，再抽肤色、发色、瞳色、脸型、发型、五官、胡子、伤疤和眼镜；服装、布料颜色和头饰按职业路线和阵营抽，敌方布料偏红和暗色。每个部件都固定抽一次随机数，所以同一单位换职业或阵营时脸不变，只换衣服和头饰。头盔和兜帽会换成对应的发型；女性不长胡子，蒙面时也不画胡子。
+- 前端 `frontend/src/assets.ts` 的 `portraitFor` 给没有手绘头像的单位生成头像：用单位 id 当种子，服装取它的职业路线，画好后缓存成 data URL。遭遇战的敌兵 id 是 `e0`、`e1`……，所以每场同一位置的敌兵长得一样；要每场不同，可以让后端给生成的单位存一个头像种子。
 
 ## 与随机地图生成器的关系
 

@@ -400,7 +400,7 @@ test('recruit spends days and adds a unit with a growth type and age', () => {
   for (let i = 0; i < 5 && !result.success; i++) result = dispatch(ctx, OP.RECRUIT, { region: 1 }) as typeof result;
   assert.equal(result.success, true);
   assert.ok(['early', 'normal', 'late', 'growth'].includes(result.unit!.growthType));
-  assert.ok(result.unit!.age >= 18 && result.unit!.age <= 45);
+  assert.ok(result.unit!.age >= 12 && result.unit!.age <= 45);
 });
 
 test('the worker settles arena days that the player has moved past', () => {

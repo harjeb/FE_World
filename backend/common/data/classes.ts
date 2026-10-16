@@ -20,6 +20,10 @@ export type ClassRoute = keyof typeof CLASS_PATHS;
 export type ClassId = (typeof CLASS_PATHS)[ClassRoute][number][number];
 export type ClassStage = 1 | 2 | 3 | 4 | 5;
 export const STAGE_NAMES = ['初级', '中级', '上级', '最上级', '神将级'] as const;
+export const ROUTE_NAMES: Record<ClassRoute, string> = {
+  sword: '剑术', axe: '斧战', armor: '重甲', cavalry: '骑乘', flying: '飞行', bow: '弓术',
+  magic: '魔法', healing: '治疗', stealth: '潜行', fist: '格斗', beast: '兽人', dragon: '龙人',
+};
 export const CHARACTER_CAPS = stats(150, 99, 99, 99, 99, 99, 99, 99);
 export interface ClassDef {
   name: string;

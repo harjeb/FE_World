@@ -54,6 +54,12 @@ export interface ReincarnationRecord {
 // 传承资格（docs/00 §7.3）: 普通角色达到 15 级；主角与已接受过遗产的 B 不可作为来源。
 export const LEGACY_MIN_LEVEL = 15;
 
+// 轮回（docs/00 §5.2）：99 级才能轮回，另付金币与一枚轮回核心；额外成长最多 30 个百分点、单项最多 10。
+export const REINCARNATION_LEVEL = 99;
+export const REINCARNATION_GOLD = 5000;
+export const REINCARNATION_POINTS = 30;
+export const REINCARNATION_STAT_MAX = 10;
+
 export function totalStats(stats: Stats): number {
   return STAT_KEYS.reduce((sum, key) => sum + stats[key], 0);
 }
@@ -204,7 +210,7 @@ export function canReincarnate(unit: UnitRecord): string | null {
   if (unit.isProtagonist) return '主角不能轮回';
   if (unit.cycle !== 0) return '每个角色一生只能轮回一次';
   if (unit.status !== 'active') return '只有存活且未锁定的角色可以轮回';
-  if (unit.level < 99) return '必须达到 99 级才能轮回';
+  if (unit.level < REINCARNATION_LEVEL) return `必须达到 ${REINCARNATION_LEVEL} 级才能轮回`;
   if (unit.lockedRunId) return '远征中的角色不能轮回';
   return null;
 }
@@ -220,10 +226,10 @@ export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initia
   const problem = canReincarnate(unit);
   if (problem) throw new Error(problem);
   const total = STAT_KEYS.reduce((sum, key) => sum + Math.max(0, allocation[key] ?? 0), 0);
-  if (total > 30) throw new Error('轮回成长分配最多 30 个百分点');
+  if (total > REINCARNATION_POINTS) throw new Error(`轮回成长分配最多 ${REINCARNATION_POINTS} 个百分点`);
   for (const [key, value] of Object.entries(allocation) as [StatKey, number][]) {
     if (value < 0) throw new Error('轮回分配不能为负');
-    if (value > 10) throw new Error(`单项分配上限为 10 个百分点（${key}）`);
+    if (value > REINCARNATION_STAT_MAX) throw new Error(`单项分配上限为 ${REINCARNATION_STAT_MAX} 个百分点（${key}）`);
   }
   const baseStats = reincarnationBase(unit.character, initialClassId);
   const record: ReincarnationRecord = {

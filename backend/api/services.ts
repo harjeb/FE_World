@@ -286,11 +286,18 @@ export function handleAnnualOutcome(store: Store, player: Player, record: Battle
   const entry = store.annualEntry(player.id, record.annualId);
   if (!entry) return null;
   const won = record.state.result?.winner === 'player';
+  // 下一场的名单：按报名顺序，取上一场仍可用、现在仍在现役的人（docs/13 §6「每轮使用存活报名替补」）。
+  // 上场者带本场剩下的物品与武器、恢复满 HP；没上场的替补保持原样；死者不复活，消耗不补（docs/00 §9.4.2）。
+  // 主角倒下只撤退，仍在现役，下一场照常可用。
+  const firstMatch = entry.qualifierCount === 0 && entry.round === 0;
+  const eligible = new Set(firstMatch ? entry.unitIds : Object.keys(entry.carry));
   const carry: Record<string, RunCarry> = {};
-  for (const unit of record.state.units) {
-    if (unit.side !== 'player' || !unit.alive || !entry.unitIds.includes(unit.id)) continue;
-    // 局间恢复存活者 HP 与短期状态，但不复活死者、不恢复消耗（docs/00 §9.4.2）。
-    carry[unit.id] = { hp: unit.stats.hp, items: unit.items.map(i => ({ ...i })), weapons: [...unit.weapons] };
+  for (const id of entry.unitIds) {
+    const unit = eligible.has(id) ? store.unit(player.id, id) : null;
+    if (!unit || unit.status !== 'active') continue;
+    const fought = record.state.units.find(u => u.side === 'player' && u.id === id);
+    const kept = fought ?? entry.carry[id] ?? unit;
+    carry[id] = { hp: unit.stats.hp, items: kept.items.map(i => ({ ...i })), weapons: [...kept.weapons] };
   }
   entry.carry = carry;
   if (entry.state === 'qualifier') qualifierResult(entry, won);

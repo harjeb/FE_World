@@ -114,9 +114,13 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 
 // 大竞技场 (docs/00 §9.4): the player's squad attacks an official bracket team on an arena map.
 // `round` 1–3 are the qualifiers, 4–9 the knockout rounds. Arena kind: no per-hit experience.
+// 大竞技场每轮的地图：海选 1–3 平原，正赛逐步换成隘口、林地与王城。每场按名单顺序出战前 deploy 人。
+export function festivalMapId(round: number): ArenaMapId {
+  return round <= 3 ? 'plains' : round <= 5 ? 'pass' : round <= 7 ? 'woods' : 'castle';
+}
+
 export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { annualId?: string; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
-  const mapId: ArenaMapId = round <= 3 ? 'plains' : round <= 5 ? 'pass' : round <= 7 ? 'woods' : 'castle';
-  const map = ARENA_MAPS[mapId];
+  const map = ARENA_MAPS[festivalMapId(round)];
   const level = 12 + round * 4;
   const tiles = tilesFromGlyphs(map.rows);
   const count = Math.max(1, Math.min(units.length, map.deploy));

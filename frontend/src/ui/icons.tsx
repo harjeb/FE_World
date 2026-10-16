@@ -33,6 +33,13 @@ export const ChestIcon = () => (
 export const ReportIcon = () => <Icon stroke={1.8}><path d="M7 4h11a2 2 0 0 1 2 2v1H9" /><path d="M7 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7" /><path d="M9 11h7M9 15h5" /></Icon>;
 export const BookIcon = () => <Icon stroke={1.8}><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" /><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" /></Icon>;
 export const SlidersIcon = () => <Icon stroke={1.8}><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></Icon>;
+// 生产 / 主线 / 传承 (permanent-legion pages).
+export const AnvilIcon = () => <Icon stroke={1.8}><path d="M3.5 8h11.5a4 4 0 0 0 4 4H18l-2 3H8l-1-3C4.8 12 3.5 10.5 3.5 8z" /><path d="M9 15l-2 5h10l-2-5" /><path d="M19 5.5l1.5-1.5M17 4V2" /></Icon>;
+export const ScrollIcon = () => (
+  <Icon stroke={1.8}><path d="M7 4h11a2 2 0 0 1 2 2v1h-3" /><path d="M7 4a2 2 0 0 0-2 2v11a3 3 0 0 0 3 3h9a2 2 0 0 0 2-2V7" /><path d="M5 17a3 3 0 0 0 3 3" /><path d="M9 9h6M9 12.5h6M9 16h3" /></Icon>
+);
+export const CandleIcon = () => <Icon stroke={1.8}><path d="M12 3c1.6 1.8 1.6 3.4 0 4.6-1.6-1.2-1.6-2.8 0-4.6z" /><rect x="9" y="9.5" width="6" height="9" rx="1" /><path d="M6 21h12" /></Icon>;
+export const CycleIcon = () => <Icon stroke={1.8}><path d="M4.5 12a7.5 7.5 0 0 1 13-5.1" /><path d="M17.5 3.5v3.5H14" /><path d="M19.5 12a7.5 7.5 0 0 1-13 5.1" /><path d="M6.5 20.5V17H10" /></Icon>;
 export const LockIcon = () => <Icon><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></Icon>;
 export const EyeIcon = () => <Icon><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /></Icon>;
 export const BackIcon = () => <Icon><path d="M15 6l-6 6 6 6" /></Icon>;

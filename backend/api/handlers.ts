@@ -26,12 +26,12 @@ import { seedRng } from '../common/engine/rng.ts';
 import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
 import { activeSnapshot, applyBattleOutcome, bindDefense, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
-import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, reincarnate, totalStats } from '../common/game/legacy.ts';
+import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, slotsUsed } from '../common/game/production.ts';
 import { createRun, DUNGEON_STAGE_DAYS, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
-import { CHAPTER_BEXP, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
+import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 
 export class OpError extends Error {
   code: string;
@@ -82,6 +82,20 @@ function requireBattle(ctx: Context, data: Json): BattleRecord {
   const record = id ? ctx.store.battle(ctx.player.id, id) : ctx.store.activeBattle(ctx.player.id);
   if (!record) throw new OpError('NOT_FOUND', id ? `没有战斗 ${id}` : '当前没有进行中的战斗');
   return record;
+}
+
+// 严重损失补员的资格（docs/00 §3.3）：累计战死 3 人起，每次新损失领一次，需要 2 个名册空位。
+// GET_MEMORIAL 展示它，EMERGENCY_RECRUIT 用同一份判断拦截。
+const EMERGENCY_DEATHS = 3;
+const EMERGENCY_UNITS = 2;
+function emergencyStatus(ctx: Context): { deaths: number; claimedFor: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null } {
+  const deaths = ctx.store.memorials(ctx.player.id).filter(m => m.data.cause === 'death').length;
+  const claimedFor = ctx.player.flags.emergencyClaimed ?? 0;
+  const room = ROSTER_LIMIT - ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length;
+  const blocker = deaths < EMERGENCY_DEATHS ? `尚未达到严重损失（累计战死 ${EMERGENCY_DEATHS} 人）`
+    : deaths <= claimedFor ? '本次损失已经领取过免费补员'
+      : room < EMERGENCY_UNITS ? `名册空间不足（还差 ${EMERGENCY_UNITS - room} 个位置）` : null;
+  return { deaths, claimedFor, threshold: EMERGENCY_DEATHS, units: EMERGENCY_UNITS, room, available: blocker === null, blocker };
 }
 
 // ---- battle helpers ------------------------------------------------------
@@ -584,16 +598,21 @@ const handlers: Record<number, Handler> = {
     const problem = canReincarnate(unit);
     if (problem) throw new OpError('FORBIDDEN', problem);
     if (ctx.store.countInventory(ctx.player.id, 'reincarnation_core') < 1) throw new OpError('NO_SUCH_ITEM', '需要一枚轮回核心');
-    const cost = 5000;
+    const cost = REINCARNATION_GOLD;
     if (ctx.player.gold < cost) throw new OpError('NOT_ENOUGH_GOLD', `轮回需要 ${cost} 金币`);
     const allocation = (data.allocation && typeof data.allocation === 'object' ? data.allocation : {}) as Record<string, number>;
     const initial = initialClassOf(CHARACTERS[unit.character].classId);
+    // 轮回只清学习成果（docs/00 §5.2），不没收装备：携带的武器与道具连同剩余次数回到仓库。
+    // 先记下来，轮回校验通过后再入库，校验失败时什么都不写。
+    const gear = { weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })) };
     let result: ReturnType<typeof reincarnate>;
     try {
       result = reincarnate(unit, allocation as never, initial, DAYS_PER_YEAR, ctx.player.day);
     } catch (error) {
       throw new OpError('FORBIDDEN', error instanceof Error ? error.message : String(error));
     }
+    for (const weapon of gear.weapons) ctx.store.addInventory(ctx.player.id, weapon as ItemKey, 0, 1);
+    for (const item of gear.items) ctx.store.addInventory(ctx.player.id, item.id as ItemKey, item.uses, 1);
     ctx.store.takeInventory(ctx.player.id, 'reincarnation_core', 1);
     ctx.player.gold -= cost;
     ctx.store.saveUnit(unit, ctx.player.id);
@@ -601,28 +620,24 @@ const handlers: Record<number, Handler> = {
     ctx.store.savePlayer(ctx.player);
     ctx.store.addEvent(ctx.player.id, 'reincarnate', `${CHARACTERS[unit.character].name} 完成轮回，回到 ${CLASSES[initial].name} 与 16 岁。`, { unit: unit.id });
     ctx.push(OP.STATE_CHANGED, { reason: 'reincarnate' });
-    return { unit: unitDetail(unit), allocation: result.allocation, baseStats: result.baseStats };
+    return { unit: unitDetail(unit), allocation: result.allocation, baseStats: result.baseStats, returned: gear };
   },
 
   [OP.GET_MEMORIAL]: ctx => ({
     memorials: ctx.store.memorials(ctx.player.id).map(row => row.data),
+    emergency: emergencyStatus(ctx),
   }),
 
   [OP.EMERGENCY_RECRUIT]: ctx => {
+    const { blocker, deaths } = emergencyStatus(ctx);
+    if (blocker) throw new OpError('FORBIDDEN', blocker);
     const units = ctx.store.units(ctx.player.id);
-    const active = units.filter(u => u.status === 'active');
-    const deaths = ctx.store.memorials(ctx.player.id).filter(m => m.data.cause === 'death').length;
-    const claimedFor = ctx.player.flags.emergencyClaimed ?? 0;
-    if (deaths < 3) throw new OpError('FORBIDDEN', '尚未达到严重损失（累计战死 3 人）');
-    if (deaths <= claimedFor) throw new OpError('FORBIDDEN', '本次损失已经领取过免费补员');
-    const room = ROSTER_LIMIT - active.length;
-    if (room < 2) throw new OpError('FORBIDDEN', `名册空间不足（还差 ${2 - room} 个位置）`);
     const owned = new Set(units.map(u => u.character));
     const pool = (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]).filter(c => !owned.has(c));
-    const picks = pool.length >= 2 ? pool : (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]);
+    const picks = pool.length >= EMERGENCY_UNITS ? pool : (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]);
     const rng = seedRng(`emergency:${ctx.player.id}:${deaths}`);
-    const created = [];
-    for (let i = 0; i < 2; i++) {
+    const created: ReturnType<typeof unitSummary>[] = [];
+    for (let i = 0; i < EMERGENCY_UNITS; i++) {
       const character = picks[(rng[i] ?? i) % picks.length];
       const level = Math.max(1, regionLevel(ctx.player.flags.clearedRegions.length, 0) - 4);
       const traits = seedRng(`emergency-traits:${ctx.player.id}:${deaths}:${i}`);
@@ -757,7 +772,7 @@ const handlers: Record<number, Handler> = {
       day: ctx.player.day,
       facilities: FACILITIES.map(f => ({ ...f, used: slotsUsed(open, f.id) })),
       recipes: RECIPES.map(r => ({ id: r.id, name: r.name, facility: r.facility, days: r.days, input: r.input, output: r.output, kind: r.kind })),
-      orders: open.map(o => ({ id: o.id, ...describeOrder(o), startedDay: o.startedDay, quality: o.quality })),
+      orders: open.map(o => ({ id: o.id, recipeId: o.recipeId, facilityId: o.facility, ...describeOrder(o), startedDay: o.startedDay, quality: o.quality })),
       ready: open.filter(o => o.state === 'ready').map(o => o.id),
     };
   },
@@ -1156,12 +1171,17 @@ const handlers: Record<number, Handler> = {
   // ---- eight-chapter story (docs/00 §9.4.2, docs/13 §6.3) --------------
 
   [OP.GET_STORY]: ctx => ({
+    bexp: CHAPTER_BEXP,
     chapters: Array.from({ length: STORY_CHAPTERS }, (_, i) => {
       const chapter = i + 1;
+      const available = chapterAvailable(chapter, ctx.player.day);
+      const completed = (ctx.player.flags.storyCompleted ?? []).includes(chapter);
       return {
-        chapter, openDay: chapterOpenDay(chapter), available: chapterAvailable(chapter, ctx.player.day),
-        completed: (ctx.player.flags.storyCompleted ?? []).includes(chapter),
+        chapter, openDay: chapterOpenDay(chapter), available, completed,
         claimed: ctx.player.flags.chapterExpClaimed.includes(chapter),
+        // 标题开放后才给，完成后的认识完成后才给（不提前剧透）。
+        title: available ? CHAPTERS[i].title : null,
+        learned: completed ? CHAPTERS[i].learned : null,
       };
     }),
   }),

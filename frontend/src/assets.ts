@@ -4,6 +4,8 @@ import { CLASSES } from '@common/data/classes.ts';
 import type { ClassRoute } from '@common/data/classes.ts';
 import type { WeaponType } from '@common/data/types.ts';
 import type { UnitState } from '@common/engine/index.ts';
+import { drawPortrait, SIZE as PORTRAIT_SIZE } from '@common/portraits/draw.ts';
+import { randomPortrait } from '@common/portraits/random.ts';
 import mapPinepass from '../../design/pixel-art/png/map_pinepass.png';
 import mapPlains from '../../design/pixel-art/png/map_plains.png';
 import mapPass from '../../design/pixel-art/png/map_pass.png';
@@ -47,7 +49,6 @@ import porSera from '../../design/pixel-art/png/por_sera.png';
 import porNoah from '../../design/pixel-art/png/por_noah.png';
 import porGustav from '../../design/pixel-art/png/por_gustav.png';
 import porBrock from '../../design/pixel-art/png/por_brock.png';
-import porGruntAxe from '../../design/pixel-art/png/por_grunt_axe.png';
 import porRen from '../../design/pixel-art/png/por_ren.png';
 import porIg from '../../design/pixel-art/png/por_ig.png';
 import porMira from '../../design/pixel-art/png/por_mira.png';
@@ -129,11 +130,27 @@ export function spriteFor(unit: Looks): string {
   return SPRITES[routeOf(unit.classId)][unit.side === 'player' ? 0 : 1];
 }
 
-// Named units have portraits; generic enemies borrow the bandit face only on the axe route.
-export function portraitFor(unit: Looks): string | null {
-  const own = PORTRAITS[unit.character ?? unit.id ?? ''];
-  if (own) return own;
-  return routeOf(unit.classId) === 'axe' ? porGruntAxe : null;
+// Named units have hand-made portraits. Everyone else gets a generated one (backend/common/portraits)
+// seeded by the unit id, so a unit shows the same face everywhere; clothes follow its class route.
+export function portraitFor(unit: Looks): string {
+  return PORTRAITS[unit.character ?? unit.id ?? ''] ?? generatedPortrait(unit.id ?? unit.character ?? 'unit', routeOf(unit.classId), unit.side);
+}
+
+const generated = new Map<string, string>();
+function generatedPortrait(seed: string, route: ClassRoute, side: Looks['side']): string {
+  const key = `${seed}|${route}|${side}`;
+  let url = generated.get(key);
+  if (!url) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = PORTRAIT_SIZE;
+    const ctx = canvas.getContext('2d')!;
+    const image = ctx.createImageData(PORTRAIT_SIZE, PORTRAIT_SIZE);
+    image.data.set(drawPortrait(randomPortrait(seed, { route, side })));
+    ctx.putImageData(image, 0, 0);
+    url = canvas.toDataURL();
+    generated.set(key, url);
+  }
+  return url;
 }
 
 // Side-view sprites (44px, shown at 4x) exist for a few units; the rest use the map sprite at 8x.

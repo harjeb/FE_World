@@ -46,8 +46,8 @@ export const OPS: readonly OpDef[] = [
   { op: 49, name: 'CLAIM_LEGACY', group: '整备', agentNote: '用一个一级新角色兑现一份遗产：mode 取 growth（替换个人成长）或 numeric（逐级保底）；一人一生只接一次。' },
 
   { op: 74, name: 'RETIRE_UNIT', group: '名册', agentNote: '让达到传承门槛的角色正常退役并生成遗产；退役不可逆，不能继续出战。' },
-  { op: 75, name: 'REINCARNATE_UNIT', group: '名册', agentNote: '让 99 级的存活角色轮回一次：回一级、清学习与资格、年龄 16 岁，并分配 30 个百分点成长。' },
-  { op: 76, name: 'GET_MEMORIAL', group: '名册', agentNote: '读取纪念名册：战死、寿终、退役的角色与原因、最终状态与传承关系。' },
+  { op: 75, name: 'REINCARNATE_UNIT', group: '名册', agentNote: '让 99 级的存活角色轮回一次：回一级、清学习与资格、年龄 16 岁，并分配 30 个百分点成长；携带的武器与道具回到仓库。' },
+  { op: 76, name: 'GET_MEMORIAL', group: '名册', agentNote: '读取纪念名册：战死、寿终、退役的角色与原因、最终状态与传承关系；emergency 给出免费补员的资格与阻挡原因。' },
   { op: 77, name: 'EMERGENCY_RECRUIT', group: '整备', agentNote: '严重损失后的免费酒馆补员：不花钱、不推进日期，每次有效资格随机 2 人。' },
   { op: 78, name: 'GET_CLASS_MARKET', group: '名册', agentNote: '读取本账号已开放的职业资格与购买价格（按年份开放，可跨路线）。' },
   { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族与金币，轮回会清除旧资格。' },
@@ -58,7 +58,7 @@ export const OPS: readonly OpDef[] = [
   { op: 93, name: 'COLLECT_PRODUCTION', group: '生产', agentNote: '领取已成熟订单的产出；每单只结算一次，不重抽产出。' },
   { op: 94, name: 'REPAIR_ITEM', group: '生产', agentNote: '花金币与材料维修一件损坏武器，恢复到它已有的最大耐久，不叠第二个完美奖励。' },
 
-  { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、带入物品与下一图报价。' },
+  { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。' },
   { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
@@ -67,7 +67,7 @@ export const OPS: readonly OpDef[] = [
   { op: 111, name: 'REGISTER_ANNUAL', group: '赛事', agentNote: '报名本届大竞技场并锁定名单与快照；一旦淘汰或退赛，当届不能重报。' },
   { op: 112, name: 'START_ANNUAL_MATCH', group: '赛事', agentNote: '开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。' },
 
-  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；名次不阻挡章节。' },
+  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；名次不阻挡章节。章节开放后给标题，完成后给本章得到的认识。' },
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '完成一章主线事件；只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 

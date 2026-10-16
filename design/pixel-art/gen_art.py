@@ -844,9 +844,10 @@ def acc_mustache(p, sp):
         p[(x, 18)] = hair if x > 17 else hairD
     p[(16, 19)] = hairD
     p[(21, 19)] = hair
-    for xy in ((14, 10), (15, 10), (16, 10), (17, 10)):
-        p[xy] = C(sp['skin'][1])
-    p[(11, 17)] = C(sp['skin'][1])
+    # forehead and cheek lines, only on bare skin (not over bangs or a helm)
+    for xy in ((14, 10), (15, 10), (16, 10), (17, 10), (11, 17)):
+        if p.get(xy) == C(sp['skin'][0]):
+            p[xy] = C(sp['skin'][1])
 
 
 def acc_glasses(p, sp):

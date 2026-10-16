@@ -29,6 +29,16 @@ function UnitRow({ unit, picked, locked, protagonist, onToggle }: { unit: Server
   );
 }
 
+// The two ways out of camp: one field battle, or a three-map dungeon with a fixed team.
+export function FieldTabs({ current }: { current: 'field' | 'dungeon' }) {
+  return (
+    <nav className="ptabs field-tabs" aria-label="出击方式">
+      <a className="ptab" href={links.field} aria-current={current === 'field' ? 'page' : undefined}>野外遭遇战 <span className="tag tag-grey">单场</span></a>
+      <a className="ptab" href={links.dungeon} aria-current={current === 'dungeon' ? 'page' : undefined}>三图大副本 <span className="tag tag-grey">连续 3 图</span></a>
+    </nav>
+  );
+}
+
 // 出征准备 (docs/00 §11「出征前展示胜负条件、回合截止、真实死亡风险及携带保命道具」): nothing is
 // spent until 确认出征. Every number here comes from GET_TODAY / GET_STATE.
 export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: string | null; onStart: (region: number, unitIds: string[]) => void }) {
@@ -64,6 +74,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   return (
     <Shell current="field">
       <div className="prep">
+        <FieldTabs current="field" />
         <div className="brief-head">
           <div>
             <div className="eyebrow">出击 · 野外遭遇战</div>

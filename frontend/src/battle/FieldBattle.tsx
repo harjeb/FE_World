@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { OP } from '@common/protocol/ops.ts';
 import type { BattleState } from '@common/engine/index.ts';
-import { call } from '../api/client.ts';
 import { session } from '../api/session.ts';
-import { links } from '../router.ts';
+import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { BattlePage } from './BattlePage.tsx';
 import { fallenLine } from './Dialogs.tsx';
@@ -46,10 +44,13 @@ export function FieldBattle() {
     let alive = true;
     setStage('loading');
     setBuilt(null);
-    call<{ state?: BattleState }>(OP.GET_BATTLE, { full: true }).catch(() => null).then(active => {
+    session.activeBattle().then(active => {
       if (!alive) return;
-      // Only an unfinished field battle resumes here; an arena attack keeps its own page.
-      if (active?.state && !active.state.result && active.state.kind === 'field') {
+      // A dungeon map and a 大竞技场 match continue on their own pages, an arena attack keeps its own
+      // page too; only a plain field battle resumes here.
+      if (active?.mode === 'festival') go(links.annual);
+      else if (active?.state.kind === 'field' && session.get().run?.battleId === active.state.id) go(links.dungeon);
+      else if (active?.state.kind === 'field') {
         setBuilt(build(active.state));
         setStage('battle');
       } else {

@@ -19,7 +19,7 @@ import { links } from '../router.ts';
 import { shortDate } from '../ui/calendar.ts';
 import { asUnit, combatLine } from './profile.ts';
 
-export type ProfileTab = 'stats' | 'growth' | 'promote';
+export type ProfileTab = 'stats' | 'growth' | 'promote' | 'classes' | 'retire';
 
 const STATUS_TAG = { main: 'tag-blue', reserve: 'tag-grey', injured: 'tag-red' } as const;
 export const SLOTS = 5;
@@ -46,6 +46,8 @@ export function ProfileTabs({ entry, current }: { entry: RosterEntry; current: P
       {tab('stats', links.roster(c), '属性与装备')}
       {tab('growth', links.roster(c, 'growth'), '成长记录')}
       {tab('promote', links.promote(c), '转职', entry.promotable ? <span className="tag tag-green">可转职</span> : <span className="tag tag-grey">职业路线</span>)}
+      {tab('classes', links.roster(c, 'classes'), '职业资格')}
+      {tab('retire', links.roster(c, 'retire'), '退役与轮回')}
     </nav>
   );
 }
@@ -55,6 +57,7 @@ export function ProfileHeader({ entry, current }: { entry: RosterEntry; current:
   const def = CHARACTERS[unit.character];
   const slot = defenseSlot(unit.character);
   const skill = def.skill ? SKILLS[def.skill] : null;
+  const srv = serverUnit(unit.id ?? unit.character);
   return (
     <section className="panel" aria-labelledby="who-h">
       <div className="hdr">
@@ -66,6 +69,9 @@ export function ProfileHeader({ entry, current }: { entry: RosterEntry; current:
             <span className="tag tag-grey">{UNIT_TRAITS[unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[def.growthType]}</span>
             <StatusTag entry={entry} />
             {entry.promotable && <span className="tag tag-green">✚ 可转职</span>}
+            {srv?.isProtagonist && <span className="tag tag-brass">主角</span>}
+            {srv?.cycle === 1 && <span className="tag tag-brass">已轮回</span>}
+            {srv?.lineageDepth === 1 && <span className="tag tag-blue">已接受遗产</span>}
           </div>
           <div className="flex items-center gap-2.5" style={{ marginTop: 8, maxWidth: 420 }}>
             <span style={{ fontSize: 13, color: '#4E473D', whiteSpace: 'nowrap' }}>经验</span>

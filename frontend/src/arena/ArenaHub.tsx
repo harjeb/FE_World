@@ -46,7 +46,7 @@ const plan = (d: Defense) => JSON.stringify([d.map, d.commanders, d.bans, d.slot
 // is today's attacks; on any other day it is the last settled arena day plus when the next one comes.
 // Everything comes from GET_ARENA / GET_ARENA_RESULTS / GET_REPLAYS.
 export function ArenaHub() {
-  const { arena: info, results } = useSession();
+  const { arena: info, results, annual } = useSession();
   const day = useArena();
   const nextDefense = useSavedDefense();
   const [replays, setReplays] = useState<ServerReplay[] | null>(null);
@@ -77,8 +77,9 @@ export function ArenaHub() {
           <div className="eyebrow">竞技场{recordDay !== null ? ` · ${dateLabel(recordDay)}` : ''}</div>
           <h1 className="serif" style={{ fontSize: 26, lineHeight: 1.25 }}>{open ? '今日对局与结果' : recordDay !== null ? '上次竞技场结果' : '竞技场'}</h1>
         </div>
-        <div style={{ fontSize: 14, color: '#4E473D' }}>
+        <div className="flex flex-wrap items-center gap-3" style={{ fontSize: 14, color: '#4E473D' }}>
           {open ? '今天是竞技场日 · 推进日期后结算' : <>下一个竞技场日：{plainDate(WORLD.nextArenaDay)}（<b className="num">{toArena}</b> 日后）</>}
+          <a className="btn btn-sm" href={links.annual}>年度大竞技场{annual ? ` · 第 ${annual.annualIndex} 届` : ''}{annual?.windowOpen && !(annual.entry && annual.entry.annualIndex === annual.annualIndex) ? ' · 报名中' : ''} ›</a>
         </div>
       </div>
 

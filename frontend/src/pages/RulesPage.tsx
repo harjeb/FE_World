@@ -1,0 +1,108 @@
+import type { ReactNode } from 'react';
+import { ARENA_MAPS } from '@common/arena/maps.ts';
+import { CLASS_OPEN_YEAR, CLASS_PRICE, STAGE_NAMES } from '@common/data/classes.ts';
+import type { ClassStage } from '@common/data/classes.ts';
+import { ARENA_GOLD } from '@common/game/arena.ts';
+import { ARENA_DAY_OF_MONTH, DAYS_PER_SEASON, SEASONS_PER_YEAR } from '@common/game/calendar.ts';
+import { DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
+import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL } from '@common/game/items.ts';
+import { LEGACY_MIN_LEVEL, REINCARNATION_GOLD, REINCARNATION_LEVEL, REINCARNATION_POINTS, REINCARNATION_STAT_MAX } from '@common/game/legacy.ts';
+import { ROSTER_LIMIT } from '@common/game/model.ts';
+import { useSession } from '../api/session.ts';
+import { links } from '../router.ts';
+import { Shell } from '../shell/Shell.tsx';
+import { itemName } from './SystemParts.tsx';
+
+function Section({ id, title, link, children }: { id: string; title: string; link?: [string, string]; children: ReactNode }) {
+  return (
+    <section className="panel" aria-labelledby={`r-${id}`} id={id}>
+      <div className="ph"><h2 id={`r-${id}`}>{title}</h2>{link && <a className="btn btn-sm btn-ghost" href={link[1]}>{link[0]} ›</a>}</div>
+      <ul className="sys-rules">{children}</ul>
+    </section>
+  );
+}
+
+const STAGES: ClassStage[] = [1, 2, 3, 4, 5];
+
+// 规则手册: the confirmed rules a player acts on, in one place. Numbers come from the shared tables
+// (backend/common) or from the server, so the manual cannot drift from what the game does. Internal
+// growth curves and probabilities stay out on purpose (docs/14).
+export function RulesPage() {
+  const { today, annual, story, production } = useSession();
+  const actions = today?.actions ?? [];
+  const maps = Object.values(ARENA_MAPS);
+  return (
+    <Shell current="rules">
+      <div className="brief-head">
+        <div>
+          <div className="eyebrow">规则手册</div>
+          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>军团作战守则</h1>
+          <p style={{ fontSize: 14, color: '#4E473D' }}>这里只写已经确定、并且游戏里正在执行的规则；数值都直接取自游戏数据。</p>
+        </div>
+      </div>
+      <nav className="chips rules-toc" aria-label="目录">
+        {[['calendar', '日历'], ['battle', '战斗与阵亡'], ['arena', '竞技场'], ['annual', '大竞技场'], ['dungeon', '大副本'], ['craft', '生产'], ['growth', '养成'], ['legacy', '传承与轮回']]
+          .map(([id, label]) => <a key={id} className="chip" href={`#/rules`} onClick={e => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); }}>{label}</a>)}
+      </nav>
+
+      <div className="rules-grid">
+        <Section id="calendar" title="个人日历与行动" link={['军营', links.camp]}>
+          <li>每个军团有自己的日历：一年 {SEASONS_PER_YEAR} 季、每季 {DAYS_PER_SEASON} 日。只有你的行动会推进日期，离线不会。</li>
+          <li>每季第 {ARENA_DAY_OF_MONTH} 日是竞技场日。推进日期离开竞技场日时当天随即结算，没打的进攻按落败计。</li>
+          {actions.map(a => <li key={a.key}>{a.name}：{a.key === 'rest' ? '自选日数' : `${a.costDays} 日`}{a.costGold ? `、${a.costGold} 金币` : ''}。{a.note}。</li>)}
+          <li>整理仓库、买卖、装备、分配公共经验都不推进日期。</li>
+        </Section>
+
+        <Section id="battle" title="战斗与阵亡" link={['出击', links.field]}>
+          <li>野外战斗、大副本和年度大竞技场里，倒下的普通角色永久死亡；神主角倒下只撤退。</li>
+          <li>普通竞技场与练习是模拟战，没有真实伤亡。</li>
+          <li>战死的角色带着的武器与道具回到仓库；达到传承等级的会留下遗产。</li>
+          <li>撤退立即判负，已经获得的经验保留，通关奖励不发。</li>
+        </Section>
+
+        <Section id="arena" title="竞技场" link={['竞技场', links.arena]}>
+          <li>每张地图决定出战人数、禁用人数与回合上限：{maps.map(m => `${m.name} ${m.deploy} 人、禁 ${m.bans}、${m.turnLimit} 回合`).join('；')}。</li>
+          <li>流程：看对手 → 禁用 → 揭晓阵容 → 部署 → 开战。对手的站位在禁用后揭晓，AI 行为始终不公开。</li>
+          <li>积分：胜利 20，无人阵亡 +5，在回合上限一半以内获胜 +5。</li>
+          <li>金币：每胜 {ARENA_GOLD.win}，打完的落败 {ARENA_GOLD.loss}；投降和没打的不发参与金币。</li>
+          <li>防守在报名时锁定，之后改动只用于下一次竞技场。</li>
+        </Section>
+
+        <Section id="annual" title="年度大竞技场" link={['赛程', links.annual]}>
+          <li>每年一届，每届都从海选打起：{annual?.qualifierMatches ?? 3} 场至少赢 {annual?.qualifierWins ?? 2} 场进 64 强正赛，正赛单败 6 轮夺冠。</li>
+          <li>每场推进 {annual?.costDays ?? 2} 日，真实死亡与消耗跨场保留；局间只恢复存活者的 HP。</li>
+          <li>报名锁定名单与快照，按名单顺序出战，第 1 位担任主将；当届出局或退赛不能重报。</li>
+          <li>主线每年开一章，名次、海选和地区进度都不挡章节；每章完成后可领一次团队公共经验 {story?.bexp ?? ''}。</li>
+        </Section>
+
+        <Section id="dungeon" title="三图大副本" link={['大副本', links.dungeon]}>
+          <li>同一支队伍连打 {DUNGEON_STAGES} 张图，每进一张图推进 {DUNGEON_STAGE_DAYS} 日；名单出发后固定，不能补人。</li>
+          <li>HP、道具与武器跨图沿用上一张图结束时的状态，不恢复；出发后的整备改动不会带进远征，远征中的角色不能轮回或购买职业资格。</li>
+          <li>打完一张图可以继续或撤离；只有拿下第 {DUNGEON_STAGES} 张图的首领，掉落和金币才带回，首次完整通关讨伐该地区。</li>
+          <li>敌人等级在出发时锁定。</li>
+        </Section>
+
+        <Section id="craft" title="生产" link={['生产', links.workshop]}>
+          {(production?.recipes ?? []).map(r => (
+            <li key={r.id}>{r.name}：{r.input.map(i => `${itemName(i.item)} ×${i.count}`).join(' + ')} → {itemName(r.output.item)} ×{r.output.count}，{r.days} 日成熟。</li>
+          ))}
+          <li>工位：{(production?.facilities ?? []).map(f => `${f.name} ${f.slots} 个`).join('、')}。播种花 1 日，炼药和锻造开工不耗日。</li>
+          <li>成熟靠推进日期；领取不推进日期，每单只领一次。</li>
+        </Section>
+
+        <Section id="growth" title="养成" link={['名册', links.roster()]}>
+          <li>升级时各项属性按成长率随机增加；成长率是每次升级的概率，不是保证。</li>
+          <li>名册上限 {ROSTER_LIMIT} 人。能力药每人每项最多 {DRUG_LIMIT_PER_STAT} 次、合计 {DRUG_LIMIT_TOTAL} 次，不会超过属性上限。</li>
+          <li>职业资格按年份开放、可以跨路线购买：{STAGES.map(s => `${STAGE_NAMES[s - 1]}第 ${CLASS_OPEN_YEAR[s]} 年 ${CLASS_PRICE[s].toLocaleString()} 金`).join('；')}。</li>
+          <li>转职保留等级、经验与已获得的属性。</li>
+        </Section>
+
+        <Section id="legacy" title="传承与轮回" link={['传承', links.legacy]}>
+          <li>普通角色达到 {LEGACY_MIN_LEVEL} 级后战死、寿终或正常退役，会留下一份遗产；主角不会。</li>
+          <li>遗产交给一名 1 级新角色：成长传承替换个人成长率，数值传承保证属性总和逐级追平来源（超出继承者属性上限的部分不保留）。每人一生只接受一次，接受过的人不能再传。</li>
+          <li>轮回：{REINCARNATION_LEVEL} 级、{REINCARNATION_GOLD.toLocaleString()} 金币与一枚轮回核心。回到 1 级与初始职业、16 岁，清空熟练度、职业资格和学习进度，携带物品回到仓库，另分配 {REINCARNATION_POINTS} 点成长（单项最多 {REINCARNATION_STAT_MAX}）。一生一次。</li>
+        </Section>
+      </div>
+    </Shell>
+  );
+}

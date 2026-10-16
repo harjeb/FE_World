@@ -63,6 +63,8 @@ export function runSummary(run: RunRecord): Record<string, unknown> {
   return {
     id: run.id, region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level,
     unitIds: run.unitIds, survivingIds: survivingIds(run.carry), battleId: run.battleId,
+    // What each survivor brings into the next map: HP and supplies do not recover between maps.
+    carry: run.carry,
     pendingLoot: run.pendingLoot, canContinue: run.state === 'between_maps',
   };
 }

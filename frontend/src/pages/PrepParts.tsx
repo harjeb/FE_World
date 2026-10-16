@@ -35,7 +35,7 @@ export function itemSpec(key: string): string {
     case 'consumable': return item.item ? `回复 ${ITEMS[item.item].heal} HP · 每件 ${item.uses} 次` : '';
     case 'stat': return `${item.stat ? STAT_NAMES[item.stat] : ''}永久 +${item.amount} · 每人每项最多 ${DRUG_LIMIT_PER_STAT} 次，合计 ${DRUG_LIMIT_TOTAL} 次`;
     case 'seal': return '目前转职不消耗转职印（解锁规则待定）';
-    case 'material': return '生产系统还没开放，暂时只能出售';
+    case 'material': return item.note ?? '生产材料：在「生产」里播种、炼药或锻造，也可以出售';
   }
 }
 

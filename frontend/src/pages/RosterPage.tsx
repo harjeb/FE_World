@@ -16,6 +16,7 @@ import type { RosterTab } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { toast } from '../ui/toast.tsx';
 import { charName, EquipmentPanel, GrowthPanels, Portrait, ProfileHeader, StatsPanel, StatusTag, WeaponRanksPanel } from './RosterParts.tsx';
+import { ClassMarketPanel, RetireTab } from './RosterLegacy.tsx';
 
 type Filter = 'all' | RosterStatus | 'promotable';
 type Sort = 'lvDesc' | 'lvAsc' | 'class' | 'joined';
@@ -46,6 +47,7 @@ export function RosterPage({ unit, tab }: { unit: string | null; tab: RosterTab 
   const [type, setType] = useState<GrowthType | 'all'>('all');
   const [sort, setSort] = useState<Sort>('lvDesc');
   const weapons = entry.unit.weapons;
+  const srv = serverUnit(entry.unit.id ?? entry.unit.character);
   const list = visible(filter, cls, type, sort);
   const count = (f: Filter) => ROSTER.filter(e => f === 'all' || (f === 'promotable' ? e.promotable : e.status === f)).length;
 
@@ -107,26 +109,27 @@ export function RosterPage({ unit, tab }: { unit: string | null; tab: RosterTab 
 
         <div className="roster-detail">
           <ProfileHeader entry={entry} current={tab} />
-          {tab === 'stats'
-            ? (
-              <div className="cols2">
-                <StatsPanel entry={entry} weapons={weapons} />
-                <div className="flex min-w-0 flex-col gap-3">
-                  <EquipmentPanel entry={entry} weapons={weapons}
-                    onEquip={id => { const u = serverUnit(entry.unit.id ?? entry.unit.character); if (u) void session.run(OP.TRANSFER_ITEM, { unitId: u.id, item: id, action: 'equip' }); }} />
-                  <WeaponRanksPanel entry={entry} />
-                </div>
+          {tab === 'stats' && (
+            <div className="cols2">
+              <StatsPanel entry={entry} weapons={weapons} />
+              <div className="flex min-w-0 flex-col gap-3">
+                <EquipmentPanel entry={entry} weapons={weapons}
+                  onEquip={id => { const u = serverUnit(entry.unit.id ?? entry.unit.character); if (u) void session.run(OP.TRANSFER_ITEM, { unitId: u.id, item: id, action: 'equip' }); }} />
+                <WeaponRanksPanel entry={entry} />
               </div>
-            )
-            : <GrowthPanels entry={entry} />}
-          <div className="flex justify-end">
+            </div>
+          )}
+          {tab === 'growth' && <GrowthPanels entry={entry} />}
+          {tab === 'classes' && srv && <ClassMarketPanel key={srv.id} unit={srv} />}
+          {tab === 'retire' && srv && <RetireTab key={srv.id} unit={srv} />}
+          {(tab === 'stats' || tab === 'growth') && <div className="flex justify-end">
             <button type="button" className="btn btn-sm btn-danger" onClick={async () => {
               const u = serverUnit(entry.unit.id ?? entry.unit.character);
               if (!u) return;
               try { await session.run(OP.DISMISS, { unitId: u.id }); toast(`已解雇${charName(entry)}`); }
               catch (e) { toast(`解雇失败：${e instanceof Error ? e.message : String(e)}`); }
             }}>解雇{charName(entry)}…</button>
-          </div>
+          </div>}
         </div>
       </div>
     </Shell>

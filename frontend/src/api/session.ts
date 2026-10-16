@@ -6,6 +6,7 @@ import { OP } from '@common/protocol/ops.ts';
 import type { Action, BattleEvent, BattleState } from '@common/engine/index.ts';
 import type { Defense, SnapshotUnit } from '@common/arena/rules.ts';
 import type { CharacterId } from '@common/data/characters.ts';
+import type { StatKey, Stats } from '@common/data/types.ts';
 import { ApiError, call, login as apiLogin, setToken, token } from './client.ts';
 
 export interface ServerUnit {
@@ -35,11 +36,21 @@ export interface ServerUnit {
   growthLog: { level: number; gains: Record<string, number> }[];
   // 能力药 used per stat this round (docs/00: 5 per stat, 20 in total).
   drugCounts: Record<string, number>;
+  // 永久军团 (docs/00 §5、§7): one reincarnation per life, one inherited legacy per life.
+  cycle: 0 | 1;
+  lineageDepth: 0 | 1;
+  isProtagonist: boolean;
+  hasInheritance: boolean;
+  growthAllocation: Partial<Record<StatKey, number>>;
+  classQualifications: string[];
+  lifespanEndDay: number | null;
   snapshot: SnapshotUnit;
 }
 
 export interface ServerState {
   player: { id: string; name: string; legion: string; protagonist: string };
+  // Bumped by every successful write; pages that load their own data refetch when it moves.
+  version: number;
   day: number;
   date: { year: number; season: number; dayOfSeason: number; dayOfMonth: number; label: string };
   gold: number;
@@ -111,6 +122,69 @@ export interface ArenaResults {
   points: number; medals: number;
 }
 
+// GET_RUN: the current or latest three-map dungeon run (docs/00 §8.1.3).
+export interface ServerRun {
+  id: string; region: number; state: 'battle' | 'between_maps' | 'completed' | 'failed' | 'withdrawn';
+  stageIndex: number; level: number; unitIds: string[]; survivingIds: string[]; battleId: string | null;
+  // What each survivor brings into the next map: HP and supplies do not recover in between.
+  carry: Record<string, { hp: number; items: { id: string; uses: number }[]; weapons: string[] }>;
+  pendingLoot: { item: string; count: number }[]; canContinue: boolean;
+}
+
+// GET_ANNUAL: this year's 大竞技场 and the player's entry (docs/00 §9.4).
+export type AnnualState = 'qualifier' | 'knockout' | 'eliminated' | 'champion' | 'withdrawn';
+export interface ServerAnnual {
+  annualIndex: number; windowOpen: boolean; nextOpenDay: number;
+  qualifierMatches: number; qualifierWins: number; costDays: number;
+  entry: {
+    id: string; annualIndex: number; state: AnnualState; qualifierWins: number; qualifierCount: number;
+    round: number; unitIds: string[]; survivingIds: string[]; battleId: string | null;
+  } | null;
+}
+
+// GET_STORY: the eight yearly chapters. Titles arrive once a chapter opens, what was learned once it is done.
+export interface StoryChapter { chapter: number; openDay: number; available: boolean; completed: boolean; claimed: boolean; title: string | null; learned: string | null }
+export interface ServerStory { bexp: number; chapters: StoryChapter[] }
+
+// GET_PRODUCTION: facilities, recipes and the open orders (docs/00 §9.2).
+export type FacilityId = 'garden' | 'apothecary' | 'smithy';
+export interface ProductionOrder {
+  id: string; recipeId: string; facilityId: FacilityId; recipe: string; facility: string; output: string;
+  readyDay: number; state: 'growing' | 'ready'; startedDay: number;
+}
+export interface ServerProduction {
+  day: number;
+  facilities: { id: FacilityId; name: string; slots: number; used: number }[];
+  recipes: { id: string; name: string; facility: FacilityId; days: number; input: { item: string; count: number }[]; output: { item: string; count: number }; kind: 'grow' | 'brew' | 'forge' }[];
+  orders: ProductionOrder[];
+  ready: string[];
+}
+
+// GET_LEGACIES: frozen when a qualifying unit dies, dies of age or retires (docs/00 §7.3).
+export interface ServerLegacy {
+  id: string; sourceUnitId: string; sourceName: string; cause: 'death' | 'retired' | 'age';
+  sourceLevel: number; sourceTotal: number; sourceStats: Stats; sourceGrowth: Stats;
+  state: 'available' | 'claimed'; mode: 'growth' | 'numeric' | null; recipientUnitId: string | null; recipientName: string | null;
+}
+export interface ServerLegacies { minLevel: number; legacies: ServerLegacy[] }
+
+// GET_MEMORIAL: the fallen, those who died of age and the retired, plus the free recruit status.
+export interface ServerMemorial {
+  unitId: string; name: string; character: string; classId: string; level: number;
+  cause: 'death' | 'retired' | 'age'; atDay: number; battleId: string | null; stats: Stats; lineageDepth: number;
+}
+export interface ServerEmergency { deaths: number; claimedFor: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null }
+
+// GET_CLASS_MARKET: every class, when it opens and what a qualification costs (docs/00 §5).
+export interface ClassMarketRow { id: string; name: string; stage: number; route: string; openYear: number; open: boolean; price: number; owned: boolean }
+
+// PREVIEW_ACTION: a quote bound to the player version; EXECUTE_ACTION re-checks it (docs/13 §3.2).
+export interface ActionQuote {
+  quoteId: string; playerVersion: number; action: string; costDays: number; costGold: number;
+  fromDay: number; toDay: number; date: ServerState['date']; risk: 'permadeath' | 'simulation';
+  events: { day: number; kind: 'arena' | 'month' | 'annual' }[]; blockers: string[];
+}
+
 export interface SessionSnapshot {
   ready: boolean;
   loading: boolean;
@@ -125,10 +199,22 @@ export interface SessionSnapshot {
   roster: ServerUnit[];
   // The active arena attack's raw battle state, keyed by opponent id, so a reload can resume.
   battles: Record<string, BattleState>;
+  // 永久军团 systems the camp, the navigation and their own pages read.
+  run: ServerRun | null;
+  annual: ServerAnnual | null;
+  story: ServerStory | null;
+  production: ServerProduction | null;
+  legacies: ServerLegacies | null;
 }
 
+const EMPTY: SessionSnapshot = {
+  ready: false, loading: false, error: null, state: null, today: null, arena: null, results: null, defense: null,
+  defenseLock: { locked: false, lockedDay: null }, roster: [], battles: {},
+  run: null, annual: null, story: null, production: null, legacies: null,
+};
+
 class SessionStore {
-  private snap: SessionSnapshot = { ready: false, loading: false, error: null, state: null, today: null, arena: null, results: null, defense: null, defenseLock: { locked: false, lockedDay: null }, roster: [], battles: {} };
+  private snap: SessionSnapshot = EMPTY;
   private listeners = new Set<() => void>();
 
   subscribe = (listener: () => void) => {
@@ -164,17 +250,22 @@ class SessionStore {
     if (!token()) return;
     this.set({ loading: true, error: null });
     try {
-      const [state, today, arena, defense, roster, results] = await Promise.all([
+      const [state, today, arena, defense, roster, results, run, annual, story, production, legacies] = await Promise.all([
         call<ServerState>(OP.GET_STATE),
         call<ServerToday>(OP.GET_TODAY).catch(() => null),
         call<ServerArena>(OP.GET_ARENA).catch(() => null),
         call<{ defense: Defense | null; locked: boolean; lockedDay: number | null }>(OP.GET_DEFENSE),
         call<{ units: ServerUnit[] }>(OP.GET_ROSTER),
         call<ArenaResults>(OP.GET_ARENA_RESULTS).catch(() => null),
+        call<{ run: ServerRun | null }>(OP.GET_RUN).then(r => r.run).catch(() => null),
+        call<ServerAnnual>(OP.GET_ANNUAL).catch(() => null),
+        call<ServerStory>(OP.GET_STORY).catch(() => null),
+        call<ServerProduction>(OP.GET_PRODUCTION).catch(() => null),
+        call<ServerLegacies>(OP.GET_LEGACIES).catch(() => null),
       ]);
       this.set({
         state, today, arena, defense: defense.defense, defenseLock: { locked: defense.locked, lockedDay: defense.lockedDay },
-        roster: roster.units, results, loading: false, ready: true, error: null,
+        roster: roster.units, results, run, annual, story, production, legacies, loading: false, ready: true, error: null,
       });
     } catch (error) {
       if (error instanceof ApiError && error.code === 'UNAUTHORIZED') {
@@ -189,7 +280,7 @@ class SessionStore {
 
   logout(): void {
     setToken(null);
-    this.set({ ready: false, state: null, today: null, arena: null, results: null, defense: null, roster: [], battles: {} });
+    this.set({ ...EMPTY });
   }
 
   // Runs an op and refreshes the derived views, so a screen never shows stale numbers.
@@ -265,6 +356,33 @@ class SessionStore {
   async replay(replayId: string): Promise<ServerReplayData> {
     const result = await call<{ replayId: string; battle: ServerReplayData; publicAt: number }>(OP.GET_REPLAY, { replayId });
     return result.battle;
+  }
+
+  // ---- 永久军团 ----------------------------------------------------------
+
+  async memorial(): Promise<{ memorials: ServerMemorial[]; emergency: ServerEmergency }> {
+    return call(OP.GET_MEMORIAL);
+  }
+
+  async classMarket(unitId: string): Promise<{ year: number; classes: ClassMarketRow[] }> {
+    return call(OP.GET_CLASS_MARKET, { unitId });
+  }
+
+  // The raw state of the unfinished battle, if any, so a page can resume it exactly. `mode` tells a
+  // 大竞技场 match (festival) from an arena attack, which share the engine's 'arena' kind.
+  async activeBattle(): Promise<{ state: BattleState; mode: string } | null> {
+    const active = await call<{ state?: BattleState; mode?: string }>(OP.GET_BATTLE, { full: true }).catch(() => null);
+    return active?.state && !active.state.result ? { state: active.state, mode: active.mode ?? active.state.kind } : null;
+  }
+
+  // Calendar actions with real death or several days at stake are quoted first (PREVIEW_ACTION) and
+  // then executed by quote id; a stale quote fails instead of silently costing more.
+  async quote(action: string, data: Record<string, unknown> = {}): Promise<ActionQuote> {
+    return call<ActionQuote>(OP.PREVIEW_ACTION, { action, ...data });
+  }
+
+  async execute<T = unknown>(quoteId: string): Promise<T> {
+    return this.run<T>(OP.EXECUTE_ACTION, { quoteId });
   }
 }
 

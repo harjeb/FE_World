@@ -52,7 +52,7 @@ npm test           # 引擎 / 竞技场 / 协议 / API / Worker 测试
 - **浏览器桥**：`POST /api/login`、`POST /api/op`、`GET /api/agent-token`、`GET /api/health`。前端用会话令牌调用同一套 op。
 - **存档**：SQLite 表（账号 / 玩家 / 单位 / 战斗 / 竞技场日 / 快照 / 事件 / 回放 / due_tasks）；行动日懒结算，竞技场日在行动推进越过当天时结算。
 - **MCP 插件**：`mcp/server.ts` 用同一张 op 表生成工具，经 `AGENT_TOKEN` 调 API：`node mcp/server.ts`（stdio）。
-- **永久军团后端**（2026-10-16）：幂等命令收据与玩家版本、事件游标；年龄按天与自然寿终；死亡／退役的装备回收、纪念名册与两种遗产传承（逐级保底、一代血缘锁）；一次轮回；职业资格市场；两条生产链；三图连续副本与地区首通等级锁定；年度大竞技场海选＋64 强；八章主线独立结算；严重损失免费补员。规则在 `backend/common/game/`，UI 接入仍待补。
+- **永久军团后端**（2026-10-16）：幂等命令收据与玩家版本、事件游标；年龄按天与自然寿终；死亡／退役的装备回收、纪念名册与两种遗产传承（逐级保底、一代血缘锁）；一次轮回；职业资格市场；两条生产链；三图连续副本与地区首通等级锁定；年度大竞技场海选＋64 强；八章主线独立结算；严重损失免费补员。规则在 `backend/common/game/`，网页已接入（见下方「前端演示」）。
 - **自走校准**：`node tools/sim/sim.ts` 用规则 AI 跑各地区遭遇战，输出胜率 / 回合数 / 阵亡。
 
 ## 前端演示
@@ -60,12 +60,14 @@ npm test           # 引擎 / 竞技场 / 协议 / API / Worker 测试
 Node.js 22.18+。设计稿里的画面都已做成页面，**已接入服务端**：登录后军营、名册、竞技场、防守、出击与战斗都由服务端数据驱动，战斗指令通过 op 提交。开发时前端 `npm run dev`（8524）把 `/api` 代理到 API（8525）。
 
 - 可以完整操作：出击（出征准备页选地区与队伍，确认后服务端生成遭遇战）、军营行动（扫荡 / 训练 / 休整 / 游历招募，耗日与推进到的日期来自 GET_TODAY）、竞技场（禁用 → 部署 → 进攻 → 服务端计分）、防守设置（保存到服务端）。
-- 仍需补齐：整备、战报、规则手册、生产、纪念名册与年度赛事等页面；部分页面仍是演示数据。后端规则（传承、轮回、职业市场、生产、连续副本、年度赛事、八章主线）已在 op 层实现，见 [14 合并与 UI 接入说明](docs/14-integration-handoff.md)。
+- 永久军团页面：三图大副本（`#/field/dungeon`，出发前读服务端报价）、年度大竞技场（`#/arena/annual`，报名、签表与比赛）、主线（`#/story`）、生产（`#/workshop`）、传承（`#/legacy`，遗产、纪念名册、紧急补员），名册里的职业资格与退役／轮回分页，以及规则手册（`#/rules`）和设置（`#/settings`，含 Agent 接入令牌）。
+- 仍需补齐：自捏主角开局（后端尚无对应 op）、实时观战（目前自动播放最近一场回放）、名册的主力／替补／重伤仍是演示推断；传承石与轮回核心还没有获取途径。
 
 ```bash
 cd frontend && npm install && npm run dev        # http://localhost:8524（需先启动后端）
 cd frontend && npm run build && node test/backend-integration.e2e.mjs  # 浏览器端到端：前端确实连上了后端
 cd frontend && npm run build && node test/battle-replay.e2e.mjs        # 浏览器端到端：战斗指令提交到服务端
+cd frontend && npm run build && node test/systems.e2e.mjs              # 浏览器端到端：永久军团各页面的操作写到服务端
 node --test backend/common/engine/*.test.ts backend/common/arena/*.test.ts backend/common/protocol/*.test.ts backend/api/*.test.ts
 ```
 

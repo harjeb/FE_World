@@ -356,12 +356,12 @@ const ACCESSORIES: Record<Accessory, (p: Pixels, sp: PortraitSpec, f: Face) => v
     p.set(16, 8, gold);
   },
   mustache: (p, sp) => {
-    const hair = C(sp.hair[0]), hairD = C(sp.hair[2]), skinS = C(sp.skin[1]);
+    const hair = C(sp.hair[0]), hairD = C(sp.hair[2]), skin = C(sp.skin[0]), skinS = C(sp.skin[1]);
     for (let x = 16; x < 22; x++) p.set(x, 18, x > 17 ? hair : hairD);
     p.set(16, 19, hairD);
     p.set(21, 19, hair);
-    for (let x = 14; x <= 17; x++) p.set(x, 10, skinS);
-    p.set(11, 17, skinS);
+    // forehead and cheek lines, only on bare skin (not over bangs or a helm)
+    for (const [x, y] of [[14, 10], [15, 10], [16, 10], [17, 10], [11, 17]]) if (same(p.get(x, y), skin)) p.set(x, y, skinS);
   },
   glasses: p => {
     const fr = C('#7A5D2A');

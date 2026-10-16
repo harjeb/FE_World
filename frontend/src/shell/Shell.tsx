@@ -4,11 +4,11 @@ import { todayPoints, useArena } from '../arena/store.ts';
 import { MY_LEGION, MY_POINTS, WORLD } from '../demo/live.ts';
 import { ROSTER } from '../demo/roster.ts';
 import { links } from '../router.ts';
-import { AttackIcon, BookIcon, CampIcon, ChestIcon, FlagIcon, ReportIcon, RosterIcon, SlidersIcon } from '../ui/icons.tsx';
+import { useSession } from '../api/session.ts';
+import { AnvilIcon, AttackIcon, BookIcon, CampIcon, CandleIcon, ChestIcon, FlagIcon, ReportIcon, RosterIcon, ScrollIcon, SlidersIcon } from '../ui/icons.tsx';
 import { plainDate } from '../ui/calendar.ts';
-import { notBuilt } from '../ui/toast.tsx';
 
-export type ShellPage = 'camp' | 'roster' | 'field' | 'prep' | 'arena' | 'reports';
+export type ShellPage = 'camp' | 'roster' | 'field' | 'prep' | 'workshop' | 'arena' | 'story' | 'legacy' | 'reports' | 'rules' | 'settings';
 
 function Stat({ icon, label, children }: { icon?: string; label: string; children: ReactNode }) {
   return (
@@ -47,7 +47,7 @@ function TopBar() {
           <span className="dot" style={{ background: WORLD.agent.online ? '#9BD08A' : '#9A9184' }} />
           {WORLD.agent.online ? `Agent 在线 · ${WORLD.agent.activity}` : 'Agent 离线'}
         </a>
-        <button type="button" className="tb-icon" aria-label="设置" onClick={() => notBuilt('设置')}><SlidersIcon /></button>
+        <a className="tb-icon" href={links.settings} aria-label="设置" title="设置：账号与 Agent 接入"><SlidersIcon /></a>
       </div>
     </header>
   );
@@ -61,18 +61,14 @@ function NavLink({ page, current, href, icon, badge, children }: { page: ShellPa
   );
 }
 
-// Pages without an artboard stay in the navigation, so the frame matches the design, and say so.
-function Missing({ icon, children }: { icon: ReactNode; children: string }) {
-  return (
-    <button type="button" className="nav-item missing" onClick={() => notBuilt(children)} title="演示版没有这个页面">
-      {icon}{children}
-    </button>
-  );
-}
-
 // Page frame for everything except the battle-style pages (battle, 观战, 回放), which have their own bar.
 export function Shell({ current, children }: { current: ShellPage; children: ReactNode }) {
+  const { production, story, legacies } = useSession();
   const promotable = ROSTER.filter(e => e.promotable).length;
+  // Badges only for things waiting on the player: ripe orders, an open chapter or reward, a legacy.
+  const ripe = production?.ready.length ?? 0;
+  const chapterDue = story?.chapters.some(c => c.available && (!c.completed || !c.claimed)) ?? false;
+  const heirs = legacies?.legacies.filter(l => l.state === 'available').length ?? 0;
   return (
     <div className="app-bg">
       <TopBar />
@@ -83,11 +79,14 @@ export function Shell({ current, children }: { current: ShellPage; children: Rea
             <NavLink page="roster" current={current} href={links.roster()} icon={<RosterIcon />} badge={promotable > 0 ? `可转职 ${promotable}` : undefined}>名册</NavLink>
             <NavLink page="field" current={current} href={links.field} icon={<FlagIcon />}>出击</NavLink>
             <NavLink page="prep" current={current} href={links.prep()} icon={<ChestIcon />}>整备</NavLink>
+            <NavLink page="workshop" current={current} href={links.workshop} icon={<AnvilIcon />} badge={ripe > 0 ? `可领取 ${ripe}` : undefined}>生产</NavLink>
             <NavLink page="arena" current={current} href={links.arena} icon={<AttackIcon />} badge={WORLD.isArenaDay ? '今日' : undefined}>竞技场</NavLink>
+            <NavLink page="story" current={current} href={links.story} icon={<ScrollIcon />} badge={chapterDue ? '待处理' : undefined}>主线</NavLink>
+            <NavLink page="legacy" current={current} href={links.legacy} icon={<CandleIcon />} badge={heirs > 0 ? `遗产 ${heirs}` : undefined}>传承</NavLink>
             <NavLink page="reports" current={current} href={links.replay()} icon={<ReportIcon />}>战报</NavLink>
           </nav>
           <div className="rail-foot">
-            <Missing icon={<BookIcon />}>规则手册</Missing>
+            <NavLink page="rules" current={current} href={links.rules} icon={<BookIcon />}>规则手册</NavLink>
             <p className="rail-note">演示版：数据为示例，养成与经济规则尚未确定。</p>
           </div>
         </aside>

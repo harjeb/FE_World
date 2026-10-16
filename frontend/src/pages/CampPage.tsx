@@ -2,26 +2,31 @@ import type { ReactNode } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
 import { CLASSES } from '@common/data/classes.ts';
 import { DAYS_PER_SEASON, SEASONS_PER_YEAR, dateOf } from '@common/game/calendar.ts';
+import { OP } from '@common/protocol/ops.ts';
 import { CRESTS, ICONS, portraitFor } from '../assets.ts';
-import { useSession } from '../api/session.ts';
+import { session, useSession } from '../api/session.ts';
 import { AGENT_PLAN, MY_LEGION, WORLD } from '../demo/live.ts';
 import { ROSTER, ROSTER_LIMIT } from '../demo/roster.ts';
 import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
-import { LockIcon } from '../ui/icons.tsx';
+import { AnvilIcon, CandleIcon, LockIcon, ScrollIcon } from '../ui/icons.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
+import { toast } from '../ui/toast.tsx';
 import { CampActions } from './CampActions.tsx';
 
 const name = (c: string) => CHARACTERS[c as keyof typeof CHARACTERS].name;
 
-interface Task { key: string; icon: ReactNode; title: string; tag?: [string, string]; desc: string; action?: { label: string; href: string; primary?: boolean } }
+interface Task {
+  key: string; icon: ReactNode; title: string; tag?: [string, string]; desc: string;
+  action?: { label: string; href?: string; run?: () => void; primary?: boolean };
+}
 
 const icon = (src: string, size: number) => <img className="px" src={src} width={size} height={size} alt="" />;
 
 // 军营首页 · 作战简报 (Camp artboard) on the personal calendar (docs/00 §2): what is pending today, the
 // day actions, the legion at a glance and what the Agent reported. Everything comes from the session.
 export function CampPage() {
-  const { state, today, arena, results } = useSession();
+  const { state, today, arena, results, run, annual, story, production, legacies } = useSession();
   const date = dateOf(WORLD.day);
   const toArena = WORLD.nextArenaDay - WORLD.day;
   const progress = arena && !arena.settled && arena.isArenaDay ? arena.progress : null;
@@ -39,16 +44,59 @@ export function CampPage() {
 
   const tasks: Task[] = [];
   if (battle) {
-    const href = battle.kind === 'field' ? links.field : battle.mode === 'arena' && battle.opponentId ? links.battle(battle.opponentId) : null;
+    const inRun = battle.kind === 'field' && run?.battleId === battle.id;
+    const href = battle.mode === 'festival' ? links.annual : inRun ? links.dungeon : battle.kind === 'field' ? links.field
+      : battle.mode === 'arena' && battle.opponentId ? links.battle(battle.opponentId) : null;
     tasks.push({
       key: 'battle', icon: icon(ICONS.sortie, 32), title: `进行中的战斗 · ${battle.name}`, tag: [`第 ${battle.turn} 回合`, 'tag-blue'],
-      desc: battle.kind === 'field' ? '野外战斗还没结束，结束前不能再次出击。'
-        : battle.mode === 'festival' ? '大竞技场的这一轮还没打完；网页暂时没有大竞技场页面。' : '这场竞技场进攻还没结束。',
+      desc: battle.mode === 'festival' ? '大竞技场的这一场还没打完，倒下的普通角色会永久死亡。'
+        : inRun ? `大副本第 ${run!.stageIndex + 1} 图还没打完，HP 与道具跨图不恢复。`
+          : battle.kind === 'field' ? '野外战斗还没结束，结束前不能再次出击。' : '这场竞技场进攻还没结束。',
       action: href ? { label: '继续战斗', href, primary: true } : undefined,
     });
   }
+  if (run?.state === 'between_maps') {
+    tasks.push({
+      key: 'run', icon: icon(ICONS.sortie, 32), title: `大副本 · 第 ${run.stageIndex + 1} 图待出发`, tag: [`存活 ${run.survivingIds.length} / ${run.unitIds.length}`, 'tag-brass'],
+      desc: '可以带着现在的 HP 与道具继续，或撤离并放弃未带回的掉落。远征没结束前不能出击或报名大竞技场。',
+      action: { label: '查看远征', href: links.dungeon, primary: true },
+    });
+  }
+  const annualEntry = annual?.entry && annual.entry.annualIndex === annual.annualIndex ? annual.entry : null;
+  if (annual && annualEntry && (annualEntry.state === 'qualifier' || annualEntry.state === 'knockout') && battle?.mode !== 'festival') {
+    tasks.push({
+      key: 'annual', icon: icon(ICONS.medal, 24), title: `第 ${annual.annualIndex} 届大竞技场 · 下一场`, tag: [annualEntry.state === 'qualifier' ? `海选 ${annualEntry.qualifierWins} 胜 ${annualEntry.qualifierCount - annualEntry.qualifierWins} 负` : '正赛', 'tag-blue'],
+      desc: `每场推进 ${annual.costDays} 日，真实死亡；局间只恢复存活者的 HP。`, action: { label: '去赛程', href: links.annual },
+    });
+  } else if (annual && !annualEntry && annual.windowOpen) {
+    tasks.push({
+      key: 'annual', icon: icon(ICONS.medal, 24), title: `第 ${annual.annualIndex} 届大竞技场报名中`, tag: ['报名窗口', 'tag-brass'],
+      desc: '报名锁定名单与快照；海选 3 场至少 2 胜进正赛。名次不影响主线章节。', action: { label: '报名', href: links.annual },
+    });
+  }
+  const chapter = story?.chapters.find(c => c.available && (!c.completed || !c.claimed));
+  if (story && chapter) {
+    tasks.push({
+      key: 'story', icon: <ScrollIcon />, title: `主线第 ${chapter.chapter} 章「${chapter.title}」`, tag: chapter.completed ? ['奖励待领取', 'tag-green'] : ['可完成', 'tag-blue'],
+      desc: chapter.completed ? `已完成，可以领取团队公共经验 ${story.bexp}。` : '章节事件已开放，名次和地区进度都不挡章节。', action: { label: '去主线', href: links.story },
+    });
+  }
+  const ripe = production?.ready.length ?? 0;
+  if (ripe > 0) {
+    tasks.push({ key: 'craft', icon: <AnvilIcon />, title: `生产 · ${ripe} 件已成熟`, desc: '领取不推进日期；领取后工位空出来，可以开下一单。', action: { label: '去领取', href: links.workshop } });
+  }
+  const heirs = legacies?.legacies.filter(l => l.state === 'available').length ?? 0;
+  if (heirs > 0) {
+    tasks.push({ key: 'legacy', icon: <CandleIcon />, title: `传承 · ${heirs} 份遗产待兑现`, desc: '遗产可以交给一名 1 级新角色，选择成长传承或数值传承。', action: { label: '查看遗产', href: links.legacy } });
+  }
   if (!registered) {
-    tasks.push({ key: 'arena', icon: icon(ICONS.medal, 24), title: '竞技场 · 未报名', desc: '没有报名时，到达竞技场日也不会开放；网页暂时没有报名入口。' });
+    tasks.push({
+      key: 'arena', icon: icon(ICONS.medal, 24), title: '竞技场 · 未报名', desc: '没有报名时，到达竞技场日也不会开放。报名会保存当前名册的快照。',
+      action: {
+        label: '报名下一次', primary: true,
+        run: () => void session.run(OP.ARENA_REGISTER).then(() => toast('已报名下一次竞技场'), e => toast(`报名失败：${e instanceof Error ? e.message : String(e)}`)),
+      },
+    });
   } else if (progress) {
     tasks.push({
       key: 'arena', icon: icon(ICONS.medal, 24), title: '今日竞技场', tag: [`进攻 ${progress.done} / ${progress.total}`, left === 0 ? 'tag-green' : 'tag-brass'],
@@ -71,10 +119,14 @@ export function CampPage() {
     });
   }
 
+  const nextChapter = story?.chapters.find(c => !c.available);
+  const nextCrop = production?.orders.filter(o => o.state === 'growing').sort((a, b) => a.readyDay - b.readyDay)[0];
   const dates = ([
     ...(WORLD.isArenaDay ? [[WORLD.day, '今天', '竞技场日：推进日期后结算，没打的进攻按落败计']] : []),
     [WORLD.nextArenaDay, plainDate(WORLD.nextArenaDay), `下一个竞技场日（${toArena} 日后）`],
     [nextSeason, plainDate(nextSeason), `新的一季，商店补货（${nextSeason - WORLD.day} 日后）`],
+    ...(nextChapter ? [[nextChapter.openDay, plainDate(nextChapter.openDay), `主线第 ${nextChapter.chapter} 章开放（${nextChapter.openDay - WORLD.day} 日后）`]] : []),
+    ...(nextCrop ? [[nextCrop.readyDay, plainDate(nextCrop.readyDay), `${nextCrop.recipe}成熟（${nextCrop.readyDay - WORLD.day} 日后）`]] : []),
   ] as [number, string, string][]).sort((a, b) => a[0] - b[0]).map(([, when, what]) => [when, what] as [string, string]);
 
   return (
@@ -108,7 +160,9 @@ export function CampPage() {
                     <div className="t-title"><span className="t-prio">{String(i + 1).padStart(2, '0')}</span>{t.title}{t.tag && <span className={`tag ${t.tag[1]}`}>{t.tag[0]}</span>}</div>
                     <div className="t-desc">{t.desc}</div>
                   </div>
-                  {t.action ? <a className={`btn btn-sm${t.action.primary ? ' btn-primary' : ''}`} href={t.action.href}>{t.action.label}</a> : <span />}
+                  {t.action?.href && <a className={`btn btn-sm${t.action.primary ? ' btn-primary' : ''}`} href={t.action.href}>{t.action.label}</a>}
+                  {t.action?.run && <button type="button" className={`btn btn-sm${t.action.primary ? ' btn-primary' : ''}`} onClick={t.action.run}>{t.action.label}</button>}
+                  {!t.action && <span />}
                 </li>
               ))}
             </ol>
