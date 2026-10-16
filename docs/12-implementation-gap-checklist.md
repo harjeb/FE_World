@@ -165,4 +165,5 @@ P0 表示应在宣称规则正确/多人可用之前处理；P1 表示核心游�
 - 2026-10-16 第二轮（防守显示、成长记录、出征准备、军营行动、贴图）：后端测试 **66 通过，0 失败**；e2e `backend-integration` 9/9、`battle-replay` 6/6。
 - 2026-10-16 第三轮（个人日历文案、竞技场与军营去演示、名册快照）：后端测试 **68 通过，0 失败**；e2e `backend-integration` 15/15、`battle-replay` 6/6。
 - 本轮对清单中尚未修复的条目重新核对了代码证据（轮回/种族/不朽盾/遗产/生产/模拟等仍无实现）。
+- 2026-10-16 第四轮（后端领域，不含 UI）：后端 engine/arena/game/protocol/api 测试 **113 通过，0 失败**（新增 legacy/annual/expedition/production/permanent/quote 共 32 项）；地图生成器 **14 通过，0 失败**；前端 `typecheck` 干净、`build` 成功；e2e `backend-integration` 21/21、`battle-replay` 6/6。
 - 未进行生产部署、真实多玩家压力、完整八年游玩或存档迁移测试。清单不提供整体完成百分比；后续实现应逐条补证据并更新状态。
