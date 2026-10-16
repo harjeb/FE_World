@@ -126,6 +126,20 @@
       "push": false
     },
     {
+      "op": 38,
+      "name": "PREVIEW_ACTION",
+      "group": "日历",
+      "agentNote": "为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；不改变世界。",
+      "push": false
+    },
+    {
+      "op": 39,
+      "name": "EXECUTE_ACTION",
+      "group": "日历",
+      "agentNote": "用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。",
+      "push": false
+    },
+    {
       "op": 40,
       "name": "GET_SHOP",
       "group": "整备",

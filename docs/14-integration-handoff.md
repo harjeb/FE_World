@@ -44,9 +44,10 @@ git diff main...codex/local-v2-before-remote-20261016 -- backend/common/protocol
 - **职业市场**：`GET_CLASS_MARKET`／`BUY_CLASS_QUALIFICATION`，按年份开放、跨路线、种族与主角校验。
 - **生产**：`GET_PRODUCTION`／`PLANT`／`START_PRODUCTION`／`COLLECT_PRODUCTION`；耐久与维修仍 `FEATURE_DISABLED`（docs/13 §7 明确默认关闭）。
 - **连续远征**：`GET_RUN`／`START_DUNGEON`／`CONTINUE_DUNGEON`／`WITHDRAW_RUN`；三图固定名单、跨图状态、完整通关才带回掉落，地区首通等级锁定。
+- **行动报价**：`PREVIEW_ACTION`／`EXECUTE_ACTION`，报价与 `playerVersion` 绑定，执行时重新校验，过期返回可刷新错误。
 - **年度赛事与主线**：`GET_ANNUAL`／`REGISTER_ANNUAL`／`START_ANNUAL_MATCH`；`GET_STORY`／`COMPLETE_STORY_EVENT`／`CLAIM_REWARD`。
 
-仍未实现：自捏开局、完整八届内容、行动报价（`PREVIEW_ACTION`／`EXECUTE_ACTION`）、不朽盾完整石化、耐久与完美锻造、成长率传承是否随轮回清除、职业技能节点结构。观战页仍自动播放历史回放，尚非实时订阅。
+仍未实现：自捏开局、完整八届内容、不朽盾完整石化、耐久与完美锻造、成长率传承是否随轮回清除、职业技能节点结构。观战页仍自动播放历史回放，尚非实时订阅。
 
 当前仍为演示存档（新账号使用预置军团和日期）。自捏神主角与3人开局、完整八届年度赛事、连续副本、遗产继承、轮回、生产等仍需开发；完整状态以 [12](12-implementation-gap-checklist.md) 对应条目为准。观战页目前自动播放服务器历史战斗，尚非实时订阅。
 

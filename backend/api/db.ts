@@ -101,6 +101,9 @@ CREATE TABLE IF NOT EXISTS annual_entries (
   id TEXT PRIMARY KEY, player_id TEXT NOT NULL, annual_index INTEGER NOT NULL, state TEXT NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS annual_player_index ON annual_entries(player_id, annual_index);
+CREATE TABLE IF NOT EXISTS action_quotes (
+  id TEXT PRIMARY KEY, player_id TEXT NOT NULL, player_version INTEGER NOT NULL, data TEXT NOT NULL, created_at INTEGER NOT NULL
+);
 `;
 
 // Adds columns that predate a save file. CREATE TABLE IF NOT EXISTS cannot do this, so an existing

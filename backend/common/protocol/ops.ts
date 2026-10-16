@@ -31,6 +31,8 @@ export const OPS: readonly OpDef[] = [
   { op: 35, name: 'RECRUIT', group: '日历', agentNote: '游历招募：只花行动日，按地区角色池概率遇到新人，失败也推进日期。' },
   { op: 36, name: 'START_MAIN_STAGE', group: '日历', agentNote: '开始大竞技场的下一轮（第 1–3 轮海选，之后淘汰赛），推进日期；普通角色阵亡即永久死亡。返回 battleId。' },
   { op: 37, name: 'SKIP_MAIN_STAGE', group: '日历', agentNote: '把日期推进到下一季第 1 日；只按到达日判断竞技场日，途经的竞技场日不会开放。' },
+  { op: 38, name: 'PREVIEW_ACTION', group: '日历', agentNote: '为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；不改变世界。' },
+  { op: 39, name: 'EXECUTE_ACTION', group: '日历', agentNote: '用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。' },
 
   { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。' },
   { op: 41, name: 'BUY', group: '整备', agentNote: '用金币购买商品；库存有限，买入再卖出会亏损。' },

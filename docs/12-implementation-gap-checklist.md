@@ -95,6 +95,7 @@ P0 表示应在宣称规则正确/多人可用之前处理；P1 表示核心游�
 | G24 生产 | `game/production.ts`；op `GET_PRODUCTION`／`PLANT`／`START_PRODUCTION`／`COLLECT_PRODUCTION`；两条链、有限工位、行动日成熟、唯一领取；耐久／维修仍 `FEATURE_DISABLED` | `production.test.ts` |
 | G25 免费补员 | op `EMERGENCY_RECRUIT`；累计战死 3 人解锁一次、随机 2 人、不花钱／不推进日期、每次损失只领一次 | `permanent.test.ts` |
 | 幂等与版本 | `command_receipts`、`dispatch` 收据与冲突、写命令 `player.version`、事件 `cursor` | `permanent.test.ts` |
+| 行动报价 | `PREVIEW_ACTION`／`EXECUTE_ACTION`、`action_quotes` 表；报价绑定 `playerVersion`，执行时重校，过期报错 | `quote.test.ts` |
 
 ## 四、外围能力、内容与验证缺口
 

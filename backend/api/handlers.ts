@@ -370,6 +370,28 @@ const handlers: Record<number, Handler> = {
     return { day: ctx.player.day, date: dateOf(ctx.player.day) };
   },
 
+  // 行动报价（docs/13 §3.2）：与 playerVersion 绑定，不改变世界；执行时重新校验。
+  [OP.PREVIEW_ACTION]: (ctx, data) => {
+    const action = asString(data.action, 'action');
+    const built = buildQuote(ctx, action, data);
+    const quoteId = `quote-${randomUUID().slice(0, 8)}`;
+    const quote = { quoteId, playerVersion: ctx.player.version ?? 0, ...built };
+    ctx.store.saveQuote(quoteId, ctx.player.id, quote.playerVersion, quote);
+    return quote;
+  },
+
+  [OP.EXECUTE_ACTION]: (ctx, data) => {
+    const quoteId = asString(data.quoteId, 'quoteId');
+    const stored = ctx.store.quote(ctx.player.id, quoteId);
+    if (!stored) throw new OpError('NOT_FOUND', '没有这个报价');
+    if (stored.playerVersion !== (ctx.player.version ?? 0)) throw new OpError('BAD_REQUEST', '报价已过期，请重新预览');
+    const quote = stored.data as { op: number; payload: Record<string, unknown>; blockers: string[] };
+    if (quote.blockers && quote.blockers.length > 0) throw new OpError('FORBIDDEN', quote.blockers.join('；'));
+    const handler = handlers[quote.op];
+    if (!handler) throw new OpError('INTERNAL', '报价对应的操作不存在');
+    return handler(ctx, quote.payload ?? {});
+  },
+
   [OP.GET_SHOP]: ctx => ({
     season: dateOf(ctx.player.day).season,
     items: ctx.store.shop(ctx.player.id).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, price: GAME_ITEMS[row.item].price, stock: row.stock, kind: GAME_ITEMS[row.item].kind })),
@@ -1196,6 +1218,107 @@ const handlers: Record<number, Handler> = {
 
 // Late import to break the model<->services cycle for the few model helpers used above.
 
+// 报价构造：不改变世界，只计算成本、起止日期、风险、途经日期事件与阻挡（docs/13 §3.2）。
+interface ActionQuote {
+  op: number;
+  action: string;
+  payload: Record<string, unknown>;
+  costDays: number;
+  costGold: number;
+  fromDay: number;
+  toDay: number;
+  date: ReturnType<typeof dateOf>;
+  risk: 'permadeath' | 'simulation';
+  events: { day: number; kind: string }[];
+  blockers: string[];
+}
+
+function dateEventsBetween(fromDay: number, toDay: number): { day: number; kind: string }[] {
+  const out: { day: number; kind: string }[] = [];
+  for (let day = fromDay + 1; day <= toDay; day++) {
+    if (day % 120 === 0) out.push({ day, kind: 'annual' });
+    if (day % 30 === 0) out.push({ day, kind: 'month' });
+    if (isArenaDay(day)) out.push({ day, kind: 'arena' });
+  }
+  return out;
+}
+
+function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
+  const player = ctx.player;
+  const fighting = !!ctx.store.activeBattle(player.id);
+  const run = ctx.store.activeRun(player.id);
+  const blockers: string[] = [];
+  let op = 0;
+  let payload: Record<string, unknown> = {};
+  let costDays = 0;
+  let costGold = 0;
+  let risk: 'permadeath' | 'simulation' = 'simulation';
+  switch (action) {
+    case 'sortie': {
+      op = OP.SORTIE;
+      costDays = ACTION_DAYS.sortie;
+      risk = 'permadeath';
+      const region = asNumber(data.region, 'region');
+      payload = { region, unitIds: data.unitIds };
+      if (fighting) blockers.push('已有进行中的战斗');
+      if (isActiveRun(run)) blockers.push('远征进行中');
+      break;
+    }
+    case 'sweep': {
+      op = OP.SWEEP;
+      const region = asNumber(data.region, 'region');
+      const times = Math.max(1, Math.min(10, typeof data.times === 'number' ? data.times : 1));
+      costDays = ACTION_DAYS.sweep * times;
+      payload = { region, times };
+      if (!player.flags.clearedRegions.includes(region)) blockers.push('只能扫荡已讨伐地区');
+      break;
+    }
+    case 'train': {
+      op = OP.TRAIN;
+      costDays = ACTION_DAYS.train;
+      costGold = TRAIN_GOLD;
+      payload = { unitId: data.unitId, weaponType: data.weaponType };
+      if (player.gold < TRAIN_GOLD) blockers.push(`训练需要 ${TRAIN_GOLD} 金币`);
+      break;
+    }
+    case 'rest': {
+      op = OP.REST;
+      costDays = Math.max(1, Math.min(120, typeof data.days === 'number' ? data.days : 1));
+      payload = { days: costDays };
+      break;
+    }
+    case 'recruit': {
+      op = OP.RECRUIT;
+      costDays = ACTION_DAYS.recruit;
+      payload = { region: data.region };
+      if (ctx.store.units(player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT) blockers.push('名册已满');
+      break;
+    }
+    case 'dungeon': {
+      op = OP.START_DUNGEON;
+      costDays = DUNGEON_STAGE_DAYS;
+      risk = 'permadeath';
+      payload = { region: data.region, unitIds: data.unitIds };
+      if (fighting) blockers.push('已有进行中的战斗');
+      if (isActiveRun(run)) blockers.push('已有进行中的远征');
+      break;
+    }
+    case 'annual': {
+      op = OP.START_ANNUAL_MATCH;
+      costDays = ACTION_DAYS.festivalMatch;
+      risk = 'permadeath';
+      if (fighting) blockers.push('已有进行中的战斗');
+      if (isActiveRun(run)) blockers.push('远征进行中');
+      if (!ctx.store.activeAnnualEntry(player.id)) blockers.push('没有进行中的大竞技场报名');
+      break;
+    }
+    default:
+      throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / rest / recruit / dungeon / annual');
+  }
+  const toDay = player.day + costDays;
+  return { op, action, payload, costDays, costGold, fromDay: player.day, toDay, date: dateOf(toDay), risk, events: dateEventsBetween(player.day, toDay), blockers };
+}
+
 function requireArenaDay(ctx: Context, data: Json): ArenaDayRecord {
   const day = typeof data.day === 'number' ? data.day : (isArenaDay(ctx.player.day) ? ctx.player.day : null);
   const record = day !== null ? ctx.store.arenaDay(ctx.player.id, day) : ctx.store.latestArenaDay(ctx.player.id);
@@ -1272,6 +1395,7 @@ const WRITE_OPS = new Set<number>([
   OP.CLAIM_LEGACY, OP.RETIRE_UNIT, OP.REINCARNATE_UNIT, OP.EMERGENCY_RECRUIT, OP.BUY_CLASS_QUALIFICATION,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
+  OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);
 

@@ -537,6 +537,19 @@ export class Store {
     const row = this.db.prepare("SELECT data FROM annual_entries WHERE player_id = ? AND state IN ('qualifier','knockout') ORDER BY annual_index DESC LIMIT 1").get(playerId) as { data: string } | undefined;
     return row ? JSON.parse(row.data) as AnnualEntry : null;
   }
+
+  // ---- action quotes (docs/13 §3.2) -------------------------------------
+
+  saveQuote(id: string, playerId: string, playerVersion: number, data: unknown): void {
+    this.db.prepare('INSERT OR REPLACE INTO action_quotes (id, player_id, player_version, data, created_at) VALUES (?, ?, ?, ?, ?)')
+      .run(id, playerId, playerVersion, JSON.stringify(data), Date.now());
+  }
+
+  quote(playerId: string, id: string): { playerVersion: number; data: Record<string, unknown> } | null {
+    const row = this.db.prepare('SELECT player_version, data FROM action_quotes WHERE player_id = ? AND id = ?').get(playerId, id) as
+      { player_version: number; data: string } | undefined;
+    return row ? { playerVersion: row.player_version, data: JSON.parse(row.data) as Record<string, unknown> } : null;
+  }
 }
 
 function rowToPlayer(row: Record<string, unknown>): Player {
