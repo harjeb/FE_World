@@ -105,3 +105,18 @@ test('recruitment prefers an age that crosses a curve transition inside the main
   const fallback = rollRecruitAge('normal', 0, 0);
   assert.equal(fallback, 12);
 });
+
+test('natural lifespan follows the species and the protagonist never ages', () => {
+  const human = createUnit('erin', 1, 'h', 0, false, { classId: 'gladiator' });
+  const beast = createUnit('erin', 1, 'b', 0, false, { classId: 'beast_fighter' });
+  const dragon = createUnit('erin', 1, 'd', 0, false, { classId: 'dragonkin' });
+  assert.equal(human.species, 'human');
+  assert.equal(beast.species, 'beast');
+  assert.equal(dragon.species, 'dragon');
+  assert.ok(human.lifespanYears >= 80 && human.lifespanYears <= 100);
+  assert.ok(beast.lifespanYears >= 45 && beast.lifespanYears <= 65);
+  assert.ok(dragon.lifespanYears >= 180 && dragon.lifespanYears <= 320);
+  const hero = createUnit('erin', 30, 'hero', 0, false, { age: 20 });
+  hero.isProtagonist = true;
+  assert.equal(ageAt(hero, 10_000, 120), 20, 'the protagonist does not age with the calendar');
+});

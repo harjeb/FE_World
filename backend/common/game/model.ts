@@ -71,11 +71,19 @@ export interface UnitRecord {
   lockedRunId?: string | null;
 }
 
-// Deterministic visible natural lifespan, 80–100 years for humans (docs/00 §3.4).
-function lifespanYearsFor(id: string): number {
+// Deterministic visible natural lifespan per species (docs/00 §3.4): humans 80–100, beasts shorter,
+// dragons much longer. Values are a first draft and need calibration.
+const SPECIES_LIFESPAN: Record<'human' | 'beast' | 'dragon', [number, number]> = {
+  human: [80, 100],
+  beast: [45, 65],
+  dragon: [180, 320],
+};
+
+function lifespanYearsFor(id: string, species: 'human' | 'beast' | 'dragon' = 'human'): number {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
-  return 80 + (h % 21);
+  const [min, max] = SPECIES_LIFESPAN[species];
+  return min + (h % (max - min + 1));
 }
 
 // Default gear per character, mirroring the arena demo kits so a fresh roster is immediately playable.
@@ -105,7 +113,7 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   unit.learningProgress ??= {};
   if (unit.ageEpochDay === undefined) unit.ageEpochDay = unit.joinedDay;
   if (unit.ageBaseDays === undefined) unit.ageBaseDays = (unit.baseAge ?? CHARACTERS[unit.character].age) * DAYS_PER_YEAR;
-  unit.lifespanYears ??= lifespanYearsFor(unit.id);
+  unit.lifespanYears ??= lifespanYearsFor(unit.id, unit.species);
   return unit;
 }
 
@@ -122,6 +130,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
   const cls = CLASSES[classId];
   const growthType = opts.growthType ?? def.growthType;
   const age = opts.age ?? def.age;
+  const species: UnitRecord['species'] = cls.route === 'beast' || cls.route === 'dragon' ? cls.route : 'human';
   const rates = applyGrowthBonus(Object.fromEntries(STAT_KEYS.map(key => [key, Math.max(0, def.growth[key] + cls.growth[key])])) as Stats, growthType, age);
   const stats = {} as Stats;
   for (const key of STAT_KEYS) {
@@ -134,11 +143,11 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     const w = WEAPONS[id as WeaponId]; return w.rank === 'E' && cls.weapons[w.type];
   }) as WeaponId[], ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character];
   return {
-    id, character, classId, species: cls.route === 'beast' || cls.route === 'dragon' ? cls.route : 'human', level, exp: 0, stats, con: def.con, hp: stats.hp,
+    id, character, classId, species, level, exp: 0, stats, con: def.con, hp: stats.hp,
     weapons: [...kit.weapons], items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
     ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
-    lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id), growthLog: [], drugCounts: {},
+    lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, classQualifications: [], learningProgress: {},
     lineageDepth: 0, receivedLegacyId: null,
   };
