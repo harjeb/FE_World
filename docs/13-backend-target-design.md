@@ -9,7 +9,7 @@
 3. 正式野外、地区副本和大竞技场的己方普通角色真实死亡；神主角撤退；普通竞技场与练习暂用模拟副本。历史对手的变化永远不回写原账号。
 4. 一条战斗动作的状态、死亡／盾消耗／耐久、经验、事件与幂等收据同事务提交。
 5. 地区副本固定名单、跨图不自动恢复；年度赛事可使用报名时替补，已死者不能跨轮恢复。
-6. 成长传承和数值传承互斥；每份遗产只使用一次，每名继承者只接一次。数值保底逐级兑现为可用属性，受逐项上限限制。
+6. 成长与数值传承互斥且仅A→B一代；B不能再产可兑现遗产，轮回不清血缘锁。每份遗产只用一次，每人只接一次；数值保底逐级兑现，受逐项上限限制。
 7. 年度比赛成绩不阻挡八章故事；赛事奖励与主线奖励使用不同唯一键。
 8. 第一次讨伐只计不同地区，敌人不随玩家换装备、掉级或轮回自动缩放。
 9. 随机候选、战斗、掉落、签表、成长只能由服务端创建并保存，查询／刷新不重掷。
@@ -37,17 +37,23 @@
 
 | 表 | 核心字段 | 必需约束／索引 |
 | --- | --- | --- |
-| `units` | `id, player_id, template_id, species_id, name, is_protagonist, status, class_id, level, exp, cycle, age_at_day_zero, lifespan_end_day, stats_json, caps_json, growth_json, hp, locked_run_id` | `level BETWEEN 1 AND 99, cycle IN(0,1)`；每玩家主角部分唯一索引；死亡／退役不物理删除 |
-| `unit_skills` | `unit_id, skill_id, source, equipped_slot` | `(unit_id,skill_id) UNIQUE`；装备槽唯一，个人／职业能力单列 |
+| `units` | `id, player_id, template_id, species_id, name, is_protagonist, status, class_id, level, exp, cycle, growth_type, age_base_days, age_epoch_day, lifespan_days, lifespan_end_day, lineage_depth, received_legacy_id, stats_json, caps_json, growth_json, hp, locked_run_id` | `level BETWEEN 1 AND 99, cycle IN(0,1), lineage_depth IN(0,1)`；每玩家主角部分唯一；死亡／退役不物理删除 |
+| `unit_skills` | `unit_id, cycle, skill_id, rank, learned_source, equipped_slot` | `(unit_id,cycle,skill_id) UNIQUE`；习得装备技能槽只允许1–5，轮回清当前学习成果 |
+| `skill_grants` | `unit_id, cycle, skill_id, source_kind, source_id, rank, active` | 按个人、职业、特殊装备分别归因；装备授予不占5格，离开来源即撤销，不当成永久学会 |
+| `unit_class_qualifications` | `unit_id, cycle, class_id, purchased_at_day, receipt_id` | 每轮每职业唯一；年份开放后付金币获得，允许跨路线；轮回不复制旧资格 |
+| `class_learning_progress` | `unit_id, cycle, class_id, unlocked_nodes_json` | 每职业多个节点，技能种类／等级依据来自目录，不能默认为所有职业同一节点 |
+| `class_market_periods` | `player_id, period_index, purchased, rules_version` | 月度购买额度候选；月长、次数和累积方式待定，不能直接把季度库存当月度定案 |
 | `unit_proficiencies` | `unit_id, weapon_type, exp, rank` | `(unit_id,weapon_type) UNIQUE`；保存所有职业资格外的实际熟练度 |
 | `growth_history` | `unit_id, cycle, level, rates_json, random_gains_json, inherited_gains_json, stats_after_json, rng_checkpoint_ref` | `(unit_id,cycle,level) UNIQUE`，首次一级基准另存；历史不可修改 |
 | `unit_drug_usage` | `unit_id, cycle, stat_key, count` | `(unit_id,cycle,stat_key) UNIQUE`；总额由锁住角色后计算，不能只检查单项 |
-| `legacies` | `id, player_id, source_unit_id, cause, source_level, source_stats_json, source_growth_json, state, recipient_unit_id, mode` | `source_unit_id UNIQUE`、`recipient_unit_id UNIQUE WHERE NOT NULL`；只能从available到claimed |
+| `legacies` | `id, player_id, source_unit_id, source_lineage_depth, cause, source_level, source_stats_json, source_growth_json, growth_components_json, state, recipient_unit_id, mode` | `source_unit_id UNIQUE`、`recipient_unit_id UNIQUE WHERE NOT NULL`；来源只能depth=0，冻结装备／被动来源；available→claimed |
 | `inheritance_contracts` | `legacy_id, recipient_unit_id, target_level, initial_total, source_total, clipped_target, caps_json, weights_json, cycle` | `legacy_id UNIQUE, recipient_unit_id UNIQUE`；固定预览中确认的上限／权重；轮回不重发 |
-| `reincarnations` | `unit_id, source_cycle, target_cycle, base_stats_json, growth_allocation_json, receipt_id` | `unit_id UNIQUE`，仅0→1；基础值、药效清除和新额度同事务 |
+| `reincarnations` | `unit_id, source_cycle, target_cycle, base_stats_json, growth_allocation_json, new_age_base_days, receipt_id` | `unit_id UNIQUE`，仅0→1；清技能学习／熟练度／资格，年龄16岁及30点分配同事务，血缘锁保留 |
 | `memorial_records` | `unit_id, cause, at_day, battle_id, final_snapshot_json, lineage_json` | 战死、寿终、退役均记录，原因区分；不能重复产遗产 |
 
-`age_at_day_zero` 允许招募者已有年龄；年龄为 `(age_at_day_zero + players.day)`，主角不衰老。寿终使用固定绝对行动日，不按现实时间扫描。随机角色与固定角色都是单位实例；固定人物额外用 `(player_id, template_id)` 的资格记录阻止再次招到本人。
+年龄先按天计：`age_days = age_base_days + (player.day - age_epoch_day)`，整岁为`floor(age_days / year_length)`，余数用于生日。主角不随日期增加生理年龄，不能取得兽／龙资格。轮回时将普通角色`age_base_days=16*year_length`、`age_epoch_day=当前日`，按寿命规则重算寿终日，不能保留旧绝对日期使其立即寿终。寿命长度是否重抽未定，首稿建议保留长度。固定人物另用账号／模板资格记录阻止复制本人。
+
+`growth_type`固定不变，只查询该类型的年龄曲线，不另叠一套年龄阶段修正。招募先锁类型，再从年龄>=12且尽量在剩余主线时间跨过该曲线一个转折的候选抽样；不要求两段时间相等，可只剩1年快速成长期。通常型等平稳曲线不伪造转折。每类曲线节点、权重、较晚招募和通关后兜底均需配置与校准，现有18–45岁常量不能直接当正式规则。
 
 ### 2.3 物资、经济与生产
 
@@ -55,17 +61,20 @@
 | --- | --- | --- |
 | `wallets` | `player_id, gold, bexp` | 主键player；两余额非负，与players同事务锁定 |
 | `resource_balances` | `player_id, resource_id, quantity` | `(player_id,resource_id) PRIMARY KEY`，数量非负 |
-| `item_instances` | `id, player_id, template_id, location, unit_id, run_id, durability, max_durability, uses_remaining, quality, refinement_resolved, bound` | 单个实例一个location；耐久 `0<=current<=max`；永久完美加成最多一次 |
+| `item_instances` | `id, player_id, template_id, location, unit_id, run_id, durability, max_durability, durability_policy, weight, uses_remaining, quality, refinement_resolved, bound` | 单实例单location；耐久不超上限；无损耗策略仅候选配方启用，不能默认为全部完美成品 |
 | `economy_ledger` | `id, player_id, receipt_id, source_key, asset, delta, balance_after` | `(player_id,source_key,asset) UNIQUE`，来源细化到item或resource；不修改历史流水 |
 | `shop_stock` | `player_id, shop_id, quarter_index, offer_id, remaining, version` | `(player_id,shop_id,quarter_index,offer_id) UNIQUE`，库存非负 |
 | `recruit_encounters` | `id, player_id, region_id, kind, created_day, candidate_json, state, cost_receipt_id` | 同一encounter接受／拒绝只能一次，拒绝后不可再付钱复原同一人 |
 | `recruit_pity` | `player_id, region_id, failures` | `(player_id,region_id) UNIQUE`，付时间后按结果更新 |
+| `recovery_recruit_claims` | `player_id, loss_episode_id, state, candidate_ids_json, claimed_unit_ids_json, receipt_id` | 严重损失可在酒馆免费随机2人；每次资格唯一，候选不重掷；阈值与重复资格规则待定 |
 | `facilities` | `id, player_id, template_id, tier, capacity` | 工位由归属与配置验证 |
 | `production_orders` | `id, player_id, facility_id, recipe_id, state, started_day, ready_day, input_ledger_ref, output_spec_json` | 活跃工位不超容量；产出模板在开工时固定，领取不能重抽 |
 | `refinement_challenges` | `id, order_id, state, rules_version, armed_at, started_at, expires_at, stop_received_at, result_json` | `order_id UNIQUE`；一订单一结果，过期结果固定normal |
 | `reward_claims` | `player_id, source_kind, source_id, reward_key, receipt_id` | `(player_id,source_kind,source_id,reward_key) UNIQUE`；不同commandId也不能重复领奖 |
 
-材料是数量余额，武器、药品、盾、传承石是可锁定实例；不把“同名银剑”当成同一物品。药品有剩余次数，材料不占战斗携带栏。死亡装备先放 `memorial` 冻结，最终回收／损失策略未定前不直接删除或自动发回仓库。
+材料是数量余额，武器、药品、盾、传承石是可锁定实例；不把同名装备当成同一物品。药品有剩余次数，材料不占战斗携带栏。死者装备已确定回收，保留当前耐久；已消耗物品不补发。先冻结遗产成长来源再解绑装备。回收时点待定，目标草案先转独立`recovery_bag`、活动结束后转仓库；它不属于战败没收的pending新掉落，也不能在同一事务复制两份。
+
+严重损失的酒馆补员不花钱、不推进日期，每次有效资格随机2人；领取受活动锁限制。阈值、初始装备与再次资格仍待定，不能仅因重复刷新或主动解雇就再发一批。正式条件未配置前不自行定为无限领取。
 
 ### 2.4 地区、远征与战斗
 
@@ -161,7 +170,7 @@ stateDiagram-v2
 
 ### 4.2 致死一击与不朽盾
 
-每一击按：检查有效攻击／耐久→扣本击耐久→命中／技能／暴击／伤害→祈祷保护→不朽盾保护→最终生命状态。技能精确优先级随规则版本固定。触发盾时消耗一枚真实盾、保留1HP并立即石化；其后勇者／追击不能再造成伤亡。神主角最终生命状态为withdrawn，普通角色为dead或模拟defeated。
+保命盾完整石化效果仍是待确认候选，不能默认已正式启用；已定只能战前携带、不能战斗中补充、有重量。若启用当前候选，每击按：检查有效攻击／耐久→扣耐久→命中／技能／暴击／伤害→祈祷→盾保护→最终生命状态。盾消耗一枚、保留1HP并石化，后续连击不能再致死。神主角为withdrawn，普通角色为dead或模拟defeated。补给／交换接口必须拒绝战斗新增盾。
 
 石化解除用明确的 `expires_at_player_phase` 标记，不用“剩余1回合”猜测当前阶段。阶段开始的持续伤害先在保护仍有效时结算，再解除，保证1HP单位有操作机会。石化占格、不可行动／反击，治疗和光环按当前草案禁用。阶段结束、地图结束和异常清理不能让死者恢复active。
 
@@ -192,25 +201,32 @@ boss = min(99, L + 4)
 
 ### 5.1 成长与上限
 
-九属性使用 `hp,str,mag,skl,spd,lck,def,res,cha`；体格／移动单列。个人成长、职业、年龄、永久仪式加成与临时修正分字段保存，最终率最低0。每项基础增量为 `floor(rate/100)`，再按余数掷一次；超上限裁剪。默认不继承原型的两次空级重掷，是否启用普通空级保护留在规则配置中。
+九属性使用 `hp,str,mag,skl,spd,lck,def,res,cha`；运和幸运同一属性，体格／移动单列。个人基础、职业、固定类型自身年龄曲线、装备、被动与其他临时修正分别保存；类型曲线只算一次。最终率最低0，每项基础增量`floor(rate/100)`，余数再掷一次，超上限裁剪。空级保护是否启用仍留配置，不假定旧重掷已被取消。
+
+幸运和魅力按指定原作职能核对，不能增加魅力招募加成填补未实现战斗用途；精确公式和对应机制需有可核对来源。技能按个人1个可升级、职业N个不同节点、习得装备技能最多5格、特殊装备额外授予不占格分别建模，轮回清习得成果。职业被动离职后生效规则与同名叠加仍需目录明确，不能借标签绕过5格。
 
 分配大量公共经验时逐级循环，依次记录自然成长与传承补点；1→99共98次，99级剩余经验固定0。随机流按角色实例与培养轮次固定，升级指令重试不得重掷。已离队／死亡角色不能接收公共经验。
 
 ### 5.2 遗产兑现
 
-来源达标且战死、寿终或退役后生成一份available遗产，冻结来源基础成长与九属性总量。兑现事务：锁来源遗产、继承者、传承石和钱包→验证一级新角色／未接遗产／资格→计算预览一致的目标→扣道具与资源→写claimed和继承合同→更新继承者。
+来源达标、lineage_depth=0且战死／寿终／退役后才生成一份available遗产。先冻结个人基础＋当时实际装备／有效被动提高的成长率及各来源，再回收装备；九属性总量另存。兑现事务：锁遗产、继承者、道具和钱包→验证一级新角色、未接遗产、depth=0及资格→计算预览目标→扣道具与资源→写claimed／合同→设置继承者depth=1与received_legacy_id。
 
-- 成长模式替换基础成长向量；不把来源职业、年龄、临时状态与本人轮回奖励永久化。继承修正另加并按成长上限裁剪。
+- 成长模式替换基础向量，含来源当时装备／有效被动提供的成长；排除职业、年龄曲线、临时战斗状态和单列轮回奖励。只复制合成数值，不授予实际技能／装备；逐项来源仅用于审计，不作为光环再叠加一次。
+- 职业数据自身成长向量与职业授予的成长被动分来源；后者若有效，按被动计入，不因其来自职业就漏掉，也不能同时在两项重复算。
 - 数值模式设 `C=sum(recipient_caps)`、`target=min(source_total,C)`、一级总量S0、来源等级Ld；每级下限 `F(l)=S0+ceil(max(0,target-S0)*(l-1)/(Ld-1))`。先自然成长，再补差额，不修改随机率。
 - 采用正整数权重，对尚有容量的属性按“当前已分补点／权重最小者”逐点分配，相同则按固定StatKey顺序；权重全零拒绝。每次重新选择尚有容量项，绝不丢弃剩余补点；同一级可向同项补多点。
 - `Ld=1`直接补到 `max(S0,target)`；`target<=S0`无需补。每级与当前轮次唯一记录阻止重复兑现；来源200、总容量180时到对应等级只保证180，没有隐藏余额。
-- 一个来源只能一份遗产，一个接受者只能一种模式；退役后寿终不再产第二份。后代再传时记录其实际总量，不把上一份遗产再加一次。
+- 一个来源一份遗产，一个接受者一种模式。仅A→B，B无论死亡、退役、寿终或轮回都不能再产可兑现遗产；两模式共用锁，不能先数值后成长延续到C。纪念仍保存但不可领取。
 
 ### 5.3 轮回与退役
 
-轮回只允许存活、未锁定、99级且cycle=0角色。一次事务扣资源、保存轮回记录、清第一轮成长／药效／数值继承补点、恢复固定一级基准、cycle变1、按新cycle开放药剂额度；保留身份、年龄、寿命、已学技能／熟练度与职业资格，但实际职业仍满足新等级门槛。
+轮回仅存活、未锁定、99级且cycle=0角色可用。一次事务扣资源、保存记录、清第一轮成长／药效／数值继承补点、恢复固定一级基准、cycle变1并开放新药剂额度。清已学技能、熟练度、职业资格和学习进度，回初始职业；个人技能回身份初始形态。年龄重置16岁并重算寿终日；身份、历史、血缘锁及已用轮回次数不清，额外仅30个百分点成长分配。已清资格不退金币／月度次数，账号世界年份及市场开放状态不倒退。
 
-成长率遗产保留为基础成长，个人轮回奖励独立分配且不跨代；数值遗产旧合同标记已结束，不在第二轮重新补。退役后不能参战、培养或再次传承；主角不可成为遗产来源，普通解雇不自动等于可传承退役。
+成长率遗产暂沿用保留为基础来源的草案，此项实现前须明示；个人轮回奖励单列且不跨代。数值旧合同结束，不在第二轮重新补。特殊装备的技能依据当前实际穿戴重新授予，不算保留已学技能；不能把装备历史转成永久学习成果。退役不可参战，主角不可产遗产，普通解雇不自动成为合资格退役。
+
+### 5.4 职业市场与跨路线
+
+按个人年份开放可购买职业，购买向当前角色／培养轮次发放资格；允许跨路线但仍校验已购资格、种族和活动锁，神主角不能买兽／龙资格。月度购买次数是候选，周期长度、额度和是否累积未定，不能擅自把30日季度当成已确定月份。角色轮回清个人资格，不重置账号市场时期或返还额度；未来实现需覆盖跨路线、重复购买与跨月结算。
 
 ## 6. 年度大竞技场与普通竞技场
 
@@ -222,7 +238,7 @@ boss = min(99, L + 4)
 
 ### 6.2 海选与64强
 
-草案为三场海选至少两胜，打完三场后判断资格；未通过为eliminated。正赛64队单败，晋级64→32→16→8→4→2→1；全签表63个节点，玩家只打六轮。其他节点用规则AI模拟并保存结果，Worker重试不换胜者。
+已确认三场海选至少两胜，打完三场判断，未通过为eliminated；正赛64队单败，64→32→16→8→4→2→1。全签表63节点，玩家只打六轮；其他节点由规则AI模拟并保存，重试不换胜者。
 
 每届均从海选开始，前冠军无跳过资格。年度已报名entry一旦退赛／淘汰，当届不能重报；下一届重新海选。当前玩家可在每轮使用存活报名替补，不能招新或给报名名单外角色换入；局间仅恢复存活者HP和短期状态，永不恢复已死者／消耗盾／耐久。
 
@@ -236,7 +252,7 @@ boss = min(99, L + 4)
 
 ### 6.4 普通竞技场
 
-每次三日，独立报名和快照副本；金币、积分取正式胜负，等级经验0，不能偷取真实对手装备。模拟消耗不写真实资产。重复参赛持续付个人时间；免费练习不发经济奖励。匹配按精确同日，榜单可按较宽进度段统计，两者字段分开。评分变更以match结果唯一结算，防守被多次挑战不自动发金币。
+已确认随时报名、每场1日、独立报名和快照副本；金币、积分取有效胜负，等级经验0。非致死，药品／耐久模拟消耗不写真实资产，不能取得对手真实装备。开始对局只扣一次日数，重连不重复扣；奖励按1日成本重算金币效率。免费练习无经济收益。匹配精确同日，榜单可按较宽进度段统计；评分按match结果唯一结算，防守被多次挑战不自动发金币。
 
 ## 7. 完美锻造与其他小活动
 
@@ -245,6 +261,8 @@ boss = min(99, L + 4)
 网络延迟容错、Agent操作、前后端计时同步和输入体验仍需原型验证；首版 `features.refinement.enabled=false`，不能上线一个客户端随便报结果即可多发耐久的接口。启用后必须先通过双提交、超时、断线与延迟分布测试；时间校正上限由规则版本固定，不能由客户端扩大。
 
 状态 `armed→running→resolved`；SKIP或超时固定normal；结果只写一次。生产订单领取必须等待挑战resolved或显式跳过；本件武器最多得到一次最大耐久+5，新品当前耐久同步+5。维修恢复到已有最大值，不能叠第二个完美奖励；失败不损坏已支付的正常成品。
+
+无耐久损耗成品、指定材料＋完美结果的配方均为新增候选，默认不启用。若启用，开工先固定材料和durability_policy，再按唯一结果结算；不以极大耐久表示无损耗，不允许领取后追加材料反复重判。不能因为小游戏完美就默认所有武器无损耗。
 
 小游戏的现实秒数不增加个人日历，且不存在脱离订单反复产材料的奖励入口。免费练习可以反复，但经济收益0。
 
@@ -266,7 +284,14 @@ boss = min(99, L + 4)
 | 多级公共经验、连续空级、容量180的200点遗产 | 每级及时补，终点180且无单项超限，无重载重复补点 |
 | 两个请求同时抢一份遗产或两模式兑现 | 唯一约束与事务保证只能一位、一种模式 |
 | 同一角色退役后再寿终 | 保留历史，不生成第二份遗产 |
+| B继承后轮回、退役或换另一种传承石 | 血缘深度保持1，不产可传给C的遗产，也不能再次接收 |
+| 来源携带成长装备且同时死亡回收 | 先冻结基础＋装备／被动成长，回收保持原耐久；两者都只结算一次 |
 | 轮回时药剂额度和属性 | 第一轮药效移除，额度重置一次；旧数值遗产不重新补 |
+| 轮回后的技能、资格、年龄与血缘 | 清学习／熟练度／资格，个人技能初始形态，16岁并重算寿终，30点分配、血缘锁保留 |
+| 随机招募最低年龄及曲线转折 | 所有候选>=12岁，固定类型不变、曲线只算一次；1年快＋7年平稳合法 |
+| 酒馆免费补员重复请求 | 每次有效严重损失资格最多随机2人，候选不重掷，不扣钱／日，不能在连战中换入 |
+| 跨路线购买、轮回与月份边界 | 先年份开放再购买，种族校验不绕过；轮回不退额度，月度规则未定不自行启用 |
+| 普通竞技场超时重连 | 同场只推进1日、无真实伤亡／消耗，赛果与奖励只结一次 |
 | 第八届海选出局／主动退赛 | 主线事件照常可完成，真实死亡不恢复 |
 | 历史对手被多玩家打败 | 原账号单位／日期／金币不变 |
 | 尚有精工挑战时重复领取／STOP | 一次结果、一件成品、最多+5，无零时间无限产物 |
