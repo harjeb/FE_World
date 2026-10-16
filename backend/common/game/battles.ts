@@ -31,6 +31,8 @@ export interface BattleRecord {
   dungeon?: boolean;
   runId?: string;
   stageIndex?: number;
+  // 年度大竞技场的报名（docs/13 §6）。
+  annualId?: string;
   // Arena attacks remember which day and opponent they belong to so the result can settle.
   opponentId?: string;
   arenaDay?: number;
@@ -112,13 +114,18 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 
 // 大竞技场 (docs/00 §9.4): the player's squad attacks an official bracket team on an arena map.
 // `round` 1–3 are the qualifiers, 4–9 the knockout rounds. Arena kind: no per-hit experience.
-export function createFestivalBattle(units: UnitRecord[], round: number, seed: string): BattleRecord {
+export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { annualId?: string; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
   const mapId: ArenaMapId = round <= 3 ? 'plains' : round <= 5 ? 'pass' : round <= 7 ? 'woods' : 'castle';
   const map = ARENA_MAPS[mapId];
   const level = 12 + round * 4;
   const tiles = tilesFromGlyphs(map.rows);
   const count = Math.max(1, Math.min(units.length, map.deploy));
-  const playerUnits = units.slice(0, count).map((u, i) => toBattleUnit(u, 'player', u.id, map.attackerZone[i], { boss: i === 0 }));
+  const playerUnits = units.slice(0, count).map((u, i) => {
+    const carry = opts.carry?.[u.id];
+    const extra: Partial<UnitState> = { boss: i === 0 };
+    if (carry) { extra.hp = Math.max(1, carry.hp); extra.items = carry.items.map(it => ({ ...it })); extra.weapons = [...carry.weapons]; }
+    return toBattleUnit(u, 'player', u.id, map.attackerZone[i], extra);
+  });
   const classes = pickClasses(`${seed}:festival`, Math.min(map.deploy, map.defenderZone.length), ENEMY_CLASSES);
   const enemies = classes.map((classId, i) => createEnemy(`d${i}`, {
     classId, level, pos: map.defenderZone[i], boss: i === 0, name: i === 0 ? `第 ${round} 轮主将` : undefined,
@@ -133,7 +140,7 @@ export function createFestivalBattle(units: UnitRecord[], round: number, seed: s
   };
   return {
     id: state.id, playerId: '', kind: 'arena', mode: 'festival', name: state.name, goalText: map.goalText,
-    initial: structuredClone(state), state, events: [], actions: [], seed, createdAt: Date.now(), updatedAt: Date.now(),
+    annualId: opts.annualId, initial: structuredClone(state), state, events: [], actions: [], seed, createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 

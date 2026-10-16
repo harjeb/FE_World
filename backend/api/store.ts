@@ -8,6 +8,7 @@ import type { UnitRecord } from '../common/game/model.ts';
 import type { LegacyRecord } from '../common/game/legacy.ts';
 import type { ProductionOrder } from '../common/game/production.ts';
 import type { RunRecord } from '../common/game/expedition.ts';
+import type { AnnualEntry } from '../common/game/annual.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import { isArenaDay } from '../common/game/calendar.ts';
@@ -20,6 +21,8 @@ export interface PlayerFlags {
   festivalRound: number;
   festivalYear: number;
   chapterExpClaimed: number[];
+  // 已完成的八章主线（docs/13 §6.3）。
+  storyCompleted?: number[];
   recruitFails?: number;
   // 紧急补员：上次领取时的战死人数，防止一次损失重复领取（docs/00 §3.3）。
   emergencyClaimed?: number;
@@ -505,6 +508,34 @@ export class Store {
   latestRun(playerId: string): RunRecord | null {
     const row = this.db.prepare('SELECT data FROM runs WHERE player_id = ? ORDER BY updated_at DESC LIMIT 1').get(playerId) as { data: string } | undefined;
     return row ? JSON.parse(row.data) as RunRecord : null;
+  }
+
+  // ---- annual arena entries (docs/13 §2.5) ------------------------------
+
+  saveAnnualEntry(entry: AnnualEntry): void {
+    entry.updatedAt = Date.now();
+    this.db.prepare('INSERT OR REPLACE INTO annual_entries (id, player_id, annual_index, state, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(entry.id, entry.playerId, entry.annualIndex, entry.state, JSON.stringify(entry), entry.createdAt, entry.updatedAt);
+  }
+
+  annualEntry(playerId: string, id: string): AnnualEntry | null {
+    const row = this.db.prepare('SELECT data FROM annual_entries WHERE player_id = ? AND id = ?').get(playerId, id) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as AnnualEntry : null;
+  }
+
+  annualEntryFor(playerId: string, annualIndex: number): AnnualEntry | null {
+    const row = this.db.prepare('SELECT data FROM annual_entries WHERE player_id = ? AND annual_index = ?').get(playerId, annualIndex) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as AnnualEntry : null;
+  }
+
+  latestAnnualEntry(playerId: string): AnnualEntry | null {
+    const row = this.db.prepare('SELECT data FROM annual_entries WHERE player_id = ? ORDER BY annual_index DESC LIMIT 1').get(playerId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as AnnualEntry : null;
+  }
+
+  activeAnnualEntry(playerId: string): AnnualEntry | null {
+    const row = this.db.prepare("SELECT data FROM annual_entries WHERE player_id = ? AND state IN ('qualifier','knockout') ORDER BY annual_index DESC LIMIT 1").get(playerId) as { data: string } | undefined;
+    return row ? JSON.parse(row.data) as AnnualEntry : null;
   }
 }
 

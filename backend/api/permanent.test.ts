@@ -191,3 +191,22 @@ test('recordRetire leaves the unit in the memorial but not the active roster', (
   assert.equal(store.units(player.id).filter(u => u.status === 'active').length, 11);
   assert.equal(store.memorials(player.id).length, 1);
 });
+
+test('write commands bump the player version and events expose a cursor', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const before = (dispatch(ctx, OP.GET_STATE, {}) as { version: number }).version;
+  dispatch(ctx, OP.TRAIN, { unitId: 'u_erin', weaponType: 'sword' });
+  const after = (dispatch(ctx, OP.GET_STATE, {}) as { version: number }).version;
+  assert.equal(after, before + 1);
+  // A replayed command must not advance the version a second time.
+  dispatch(ctx, OP.TRAIN, { unitId: 'u_erin', weaponType: 'sword', commandId: 'bump-1' });
+  const v = player.version;
+  dispatch(ctx, OP.TRAIN, { unitId: 'u_erin', weaponType: 'sword', commandId: 'bump-1' });
+  assert.equal(player.version, v);
+  const events = dispatch(ctx, OP.GET_EVENTS, {}) as { events: unknown[]; cursor: string };
+  assert.ok(events.events.length > 0);
+  assert.equal(typeof events.cursor, 'string');
+  const incremental = dispatch(ctx, OP.GET_EVENTS, { cursor: events.cursor }) as { events: unknown[] };
+  assert.equal(incremental.events.length, 0);
+});

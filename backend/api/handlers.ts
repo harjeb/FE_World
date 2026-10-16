@@ -25,11 +25,13 @@ import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { seedRng } from '../common/engine/rng.ts';
 import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, handleRunOutcome, recordDeath, recordRetire, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, slotsUsed } from '../common/game/production.ts';
 import { createRun, DUNGEON_STAGE_DAYS, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
+import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
+import { CHAPTER_BEXP, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 
 export class OpError extends Error {
   code: string;
@@ -171,6 +173,7 @@ function applyAction(ctx: Context, record: BattleRecord, action: Action): { stat
 function finishBattle(ctx: Context, record: BattleRecord): void {
   const rewards = applyBattleOutcome(ctx.store, ctx.player, record);
   const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
+  const annualOutcome = handleAnnualOutcome(ctx.store, ctx.player, record);
   if (record.mode === 'arena' && record.opponentId && record.arenaDay !== undefined) {
     const day = ctx.store.arenaDay(ctx.player.id, record.arenaDay);
     if (day) {
@@ -179,7 +182,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     }
   }
   ctx.store.addEvent(ctx.player.id, 'battle-end', `${record.name} 结束：${record.state.result?.winner === 'player' ? '胜利' : '失败'}。`, {
-    battleId: record.id, deaths: rewards.deaths, gold: rewards.gold, runState: runOutcome?.run.state ?? null,
+    battleId: record.id, deaths: rewards.deaths, gold: rewards.gold, runState: runOutcome?.run.state ?? null, annualState: annualOutcome?.entry.state ?? null,
   });
   ctx.push(OP.STATE_CHANGED, { reason: 'battle-end', battleId: record.id });
 }
@@ -189,9 +192,13 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
 const handlers: Record<number, Handler> = {
   [OP.GET_STATE]: ctx => stateView(ctx.store, ctx.player),
 
-  [OP.GET_EVENTS]: (ctx, data) => ({
-    events: ctx.store.events(ctx.player.id, typeof data.sinceId === 'number' ? data.sinceId : 0),
-  }),
+  [OP.GET_EVENTS]: (ctx, data) => {
+    // 事件游标是十进制字符串（docs/13 §2.1）：可传 cursor 或旧的 sinceId。
+    const since = typeof data.sinceId === 'number' ? data.sinceId : (typeof data.cursor === 'string' ? Number(data.cursor) : 0);
+    const events = ctx.store.events(ctx.player.id, Number.isFinite(since) ? since : 0);
+    const cursor = events.length > 0 ? String(events[events.length - 1].id) : String(since || 0);
+    return { events, cursor };
+  },
 
   [OP.GET_AGENT_INFO]: ctx => ({
     online: ctx.agentModel !== null,
@@ -1067,6 +1074,102 @@ const handlers: Record<number, Handler> = {
     return { battleId: battle.id, battle: battleView(battle, false) };
   },
 
+  // ---- annual arena (docs/00 §9.4, docs/13 §6) -------------------------
+
+  [OP.GET_ANNUAL]: ctx => {
+    const annualIndex = annualIndexFor(ctx.player.day);
+    const entry = ctx.store.annualEntryFor(ctx.player.id, annualIndex) ?? ctx.store.latestAnnualEntry(ctx.player.id);
+    return {
+      annualIndex,
+      windowOpen: annualWindowOpen(ctx.player.day),
+      nextOpenDay: (annualIndex + 1) * 120,
+      qualifierMatches: ANNUAL_QUALIFIER_MATCHES,
+      qualifierWins: ANNUAL_QUALIFIER_WINS,
+      costDays: ACTION_DAYS.festivalMatch,
+      entry: entry ? annualSummary(entry) : null,
+    };
+  },
+
+  [OP.REGISTER_ANNUAL]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
+    const annualIndex = annualIndexFor(ctx.player.day);
+    if (!annualWindowOpen(ctx.player.day)) throw new OpError('FORBIDDEN', '大竞技场报名窗口未开放（每年最后三日）');
+    if (ctx.store.annualEntryFor(ctx.player.id, annualIndex)) throw new OpError('FORBIDDEN', '本届已经报名；淘汰或退赛后当届不能重报');
+    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
+    const units = (ids.length > 0 ? ids.map(id => requireUnit(ctx.store, ctx.player, id)) : ctx.store.units(ctx.player.id))
+      .filter(u => u.status === 'active');
+    if (units.length === 0) throw new OpError('BAD_REQUEST', '没有可报名的单位');
+    const entry = createAnnualEntry(`annual-${annualIndex}-${randomUUID().slice(0, 8)}`, ctx.player.id, annualIndex, units.map(u => u.id));
+    ctx.store.saveAnnualEntry(entry);
+    ctx.store.saveSnapshot(ctx.player.id, ctx.player.day, snapshotData(ctx.store, ctx.player));
+    ctx.store.addEvent(ctx.player.id, 'festival', `报名第 ${annualIndex} 届大竞技场（${units.length} 人）。`, { annualIndex });
+    ctx.push(OP.STATE_CHANGED, { reason: 'annual-register' });
+    return { entry: annualSummary(entry) };
+  },
+
+  [OP.START_ANNUAL_MATCH]: ctx => {
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    const entry = ctx.store.activeAnnualEntry(ctx.player.id);
+    if (!entry) throw new OpError('NOT_FOUND', '没有进行中的大竞技场报名');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
+    // 第一场用报名名单；之后只能用原名单中仍存活者（docs/00 §9.4.2）。
+    const sourceIds = entry.qualifierCount === 0 && entry.round === 0 ? entry.unitIds : Object.keys(entry.carry);
+    const units = sourceIds.map(id => ctx.store.unit(ctx.player.id, id)).filter((u): u is NonNullable<typeof u> => !!u && u.status === 'active');
+    if (units.length === 0) throw new OpError('FORBIDDEN', '没有可出战的报名队员，只能退赛');
+    const round = nextFestivalRound(entry);
+    const seed = randomUUID().slice(0, 8);
+    const record = createFestivalBattle(units, round, seed, { annualId: entry.id, carry: entry.carry });
+    record.playerId = ctx.player.id;
+    ctx.player.day += ACTION_DAYS.festivalMatch;
+    syncPlayer(ctx.store, ctx.player);
+    ctx.store.saveBattle(record);
+    entry.battleId = record.id;
+    ctx.store.saveAnnualEntry(entry);
+    ctx.store.addEvent(ctx.player.id, 'festival', `大竞技场第 ${annualIndexFor(ctx.player.day)} 届第 ${round} 轮开始。`, { battleId: record.id });
+    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+    return { entry: annualSummary(entry), round, battleId: record.id, battle: battleView(record, false) };
+  },
+
+  // ---- eight-chapter story (docs/00 §9.4.2, docs/13 §6.3) --------------
+
+  [OP.GET_STORY]: ctx => ({
+    chapters: Array.from({ length: STORY_CHAPTERS }, (_, i) => {
+      const chapter = i + 1;
+      return {
+        chapter, openDay: chapterOpenDay(chapter), available: chapterAvailable(chapter, ctx.player.day),
+        completed: (ctx.player.flags.storyCompleted ?? []).includes(chapter),
+        claimed: ctx.player.flags.chapterExpClaimed.includes(chapter),
+      };
+    }),
+  }),
+
+  [OP.COMPLETE_STORY_EVENT]: (ctx, data) => {
+    const chapter = asNumber(data.chapter, 'chapter');
+    if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+    ctx.player.flags.storyCompleted ??= [];
+    if (!ctx.player.flags.storyCompleted.includes(chapter)) ctx.player.flags.storyCompleted.push(chapter);
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'story', `完成主线第 ${chapter} 章。`, { chapter });
+    ctx.push(OP.STATE_CHANGED, { reason: 'story' });
+    return { chapter, completed: true };
+  },
+
+  [OP.CLAIM_REWARD]: (ctx, data) => {
+    const key = asString(data.rewardKey, 'rewardKey');
+    const match = /^chapter:(\d+)$/.exec(key);
+    if (!match) throw new OpError('NOT_FOUND', '没有这个奖励键');
+    const chapter = Number(match[1]);
+    if (!(ctx.player.flags.storyCompleted ?? []).includes(chapter)) throw new OpError('FORBIDDEN', '该章尚未完成');
+    // 唯一奖励键：重复请求不会重复发（docs/13 §2.5）。
+    if (ctx.player.flags.chapterExpClaimed.includes(chapter)) throw new OpError('FORBIDDEN', '该奖励已经领取过');
+    ctx.player.flags.chapterExpClaimed.push(chapter);
+    ctx.player.bexp += CHAPTER_BEXP;
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'reward' });
+    return { rewardKey: key, bexp: CHAPTER_BEXP, total: ctx.player.bexp };
+  },
+
   // ---- agent narrative ---------------------------------------------------
 
   [OP.AGENT_REPORT_PLAN]: (ctx, data) => {
@@ -1137,7 +1240,7 @@ export function dispatch(ctx: Context, op: number, data: Json): unknown {
   }
   // 幂等命令收据 (docs/13 §1.4、§2.1)：带 commandId 的写命令超时重发返回原结果，换负载则报冲突。
   const commandId = typeof data.commandId === 'string' && data.commandId.length > 0 ? data.commandId : null;
-  if (!commandId) return handler(ctx, data);
+  if (!commandId) return runHandler(ctx, op, handler, data);
   const payloadHash = commandHash(op, data);
   const existing = ctx.store.receipt(ctx.player.id, commandId);
   if (existing) {
@@ -1146,10 +1249,31 @@ export function dispatch(ctx: Context, op: number, data: Json): unknown {
     }
     return existing.response;
   }
-  const result = handler(ctx, data);
+  const result = runHandler(ctx, op, handler, data);
   ctx.store.saveReceipt(ctx.player.id, commandId, op, payloadHash, result);
   return result;
 }
+
+// 写命令成功后推进玩家版本，供预览／执行绑定（docs/13 §2.1）。
+function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unknown {
+  const result = handler(ctx, data);
+  if (WRITE_OPS.has(op)) {
+    ctx.player.version = (ctx.player.version ?? 0) + 1;
+    ctx.store.savePlayer(ctx.player);
+  }
+  return result;
+}
+
+// 会改变玩家状态的 op：成功后 version +1。
+const WRITE_OPS = new Set<number>([
+  OP.SORTIE, OP.SWEEP, OP.TRAIN, OP.REST, OP.RECRUIT, OP.START_MAIN_STAGE, OP.SKIP_MAIN_STAGE,
+  OP.BUY, OP.SELL, OP.TRANSFER_ITEM, OP.USE_ITEM, OP.PROMOTE, OP.ASSIGN_BEXP, OP.DISMISS,
+  OP.SET_DEFENSE, OP.ARENA_REGISTER, OP.ARENA_BAN, OP.ARENA_ATTACK, OP.SURRENDER, OP.START_SPARRING,
+  OP.CLAIM_LEGACY, OP.RETIRE_UNIT, OP.REINCARNATE_UNIT, OP.EMERGENCY_RECRUIT, OP.BUY_CLASS_QUALIFICATION,
+  OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
+  OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
+  OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
+]);
 
 // 负载摘要包含操作与数据（去掉 commandId），不包含连接 seq（docs/13 §2.1）。
 function commandHash(op: number, data: Json): string {

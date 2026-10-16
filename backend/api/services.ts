@@ -9,7 +9,9 @@ import { addWeaponExp, ageAt, effectiveCaps, growthRates, lifespanEndDayOf, toSn
 import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
 import { carryFromBattle, DUNGEON_STAGES, stageLoot } from '../common/game/expedition.ts';
-import type { RunRecord } from '../common/game/expedition.ts';
+import type { RunCarry, RunRecord } from '../common/game/expedition.ts';
+import { knockoutResult, qualifierResult } from '../common/game/annual.ts';
+import type { AnnualEntry } from '../common/game/annual.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, baseLevel, regionLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
@@ -211,7 +213,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     }
     player.gold += rewards.gold;
   }
-  if (record.mode === 'festival') {
+  if (record.mode === 'festival' && !record.annualId) {
     const year = dateOf(player.day).year;
     if (won) {
       player.flags.festivalRound += 1;
@@ -278,6 +280,27 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
   return { run, completed };
 }
 
+// 年度大竞技场结算（docs/13 §6）：海选三场至少两胜，正赛六轮单败；局间只恢复存活者 HP。
+export function handleAnnualOutcome(store: Store, player: Player, record: BattleRecord): { entry: AnnualEntry; finished: boolean } | null {
+  if (!record.annualId) return null;
+  const entry = store.annualEntry(player.id, record.annualId);
+  if (!entry) return null;
+  const won = record.state.result?.winner === 'player';
+  const carry: Record<string, RunCarry> = {};
+  for (const unit of record.state.units) {
+    if (unit.side !== 'player' || !unit.alive || !entry.unitIds.includes(unit.id)) continue;
+    // 局间恢复存活者 HP 与短期状态，但不复活死者、不恢复消耗（docs/00 §9.4.2）。
+    carry[unit.id] = { hp: unit.stats.hp, items: unit.items.map(i => ({ ...i })), weapons: [...unit.weapons] };
+  }
+  entry.carry = carry;
+  if (entry.state === 'qualifier') qualifierResult(entry, won);
+  else if (entry.state === 'knockout') knockoutResult(entry, won);
+  entry.battleId = null;
+  store.saveAnnualEntry(entry);
+  store.addEvent(player.id, 'festival', `大竞技场第 ${entry.annualIndex} 届：${won ? '胜利' : '失败'}（${entry.state}）。`, { annualIndex: entry.annualIndex, state: entry.state });
+  return { entry, finished: entry.state === 'champion' || entry.state === 'eliminated' };
+}
+
 // Compact roster summary for GET_STATE / GET_ROSTER.
 export function unitSummary(unit: UnitRecord) {
   const cls = CLASSES[unit.classId];
@@ -325,6 +348,7 @@ export function stateView(store: Store, player: Player) {
   const cleared = player.flags.clearedRegions;
   return {
     player: { id: player.id, name: player.name, legion: player.legion, protagonist: player.protagonist },
+    version: player.version ?? 0,
     day: player.day,
     date,
     gold: player.gold,
