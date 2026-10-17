@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { CLASSES, CLASS_PATHS, initialClassOf, ROUTE_NAMES, STAGE_NAMES } from '@common/data/classes.ts';
+import { CLASSES, CLASS_PATHS, initialClass, initialClassOf, ROUTE_NAMES, STAGE_NAMES } from '@common/data/classes.ts';
 import type { ClassId, ClassRoute } from '@common/data/classes.ts';
 import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
 import type { StatKey } from '@common/data/types.ts';
@@ -30,13 +30,14 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
   const gold = state?.gold ?? 0;
   const owned = data.classes.filter(c => c.owned);
   const head = STAGES.map(s => data.classes.find(c => c.stage === s));
-  const chosen = data.classes.find(c => c.id === pick && c.open && !c.owned) ?? null;
+  const chosen = data.classes.find(c => c.id === pick && c.open && !c.owned && !c.eligibilityReason) ?? null;
   const excluded = ROUTES.filter(r => !allowed(unit, r));
 
   const cell = (c: ClassMarketRow) => {
     const current = c.id === unit.classId;
     if (c.owned) return <span key={c.id} className="mk-cls owned" title="已拥有资格">✓ {c.name}{current && <i>当前</i>}</span>;
-    if (!c.open) return <span key={c.id} className="mk-cls locked" title={`第 ${c.openYear} 年开放`}>{c.name}{current && <i>当前</i>}</span>;
+    if (c.eligibilityReason && !c.unavailableReason) return <span key={c.id} className="mk-cls locked" title={c.eligibilityReason}>{c.name}{current && <i>当前</i>}</span>;
+    if (!c.open) return <span key={c.id} className="mk-cls locked" title={c.unavailableReason ?? `第 ${c.openYear} 年开放`}>{c.name}{c.unavailableReason && <i>待实现</i>}{current && <i>当前</i>}</span>;
     return (
       <button key={c.id} type="button" className="mk-cls" aria-pressed={pick === c.id} onClick={() => setPick(c.id)}>
         {c.name}{current && <i>当前</i>}
@@ -67,7 +68,7 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
       </div>
       {excluded.length > 0 && (
         <p className="pfoot">
-          {unit.species === 'human' ? `${excluded.map(r => ROUTE_NAMES[r]).join('、')}路线需要对应种族${unit.isProtagonist ? '；主角不能使用兽、龙职业' : ''}。` : `${unit.name}只能购买${ROUTE_NAMES[unit.species]}路线的资格。`}
+          {unit.species === 'human' ? `${excluded.map(r => ROUTE_NAMES[r]).join('、')}路线需要对应种族${unit.isProtagonist ? '；主角不能使用兽、龙职业' : ''}。` : `${unit.name}只能沿${ROUTE_NAMES[unit.species]}路线逐阶进阶，不能跳阶、降阶或跨种族转职。`}
         </p>
       )}
       {chosen && (
@@ -84,7 +85,7 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
           </button>
         </div>
       )}
-      <p className="pfoot">资格按年份开放，可以跨路线购买；轮回会清空已购资格，不退款。现在转职仍沿相邻职业进行，暂不检查资格。</p>
+      <p className="pfoot">资格按年份开放，转职需要对应资格。人类可以跨路线购买、切换已购职业；兽人与龙人只能沿本族路线逐阶进阶。轮回清空资格，不退款。</p>
     </section>
   );
 }
@@ -142,7 +143,7 @@ function ReincarnatePanel({ unit }: { unit: ServerUnit }) {
   const cores = stock(state, 'reincarnation_core');
   const inRun = !!run && (run.state === 'battle' || run.state === 'between_maps') && run.unitIds.includes(unit.id);
   const used = STAT_KEYS.reduce((n, k) => n + alloc[k], 0);
-  const initial = CLASSES[initialClassOf(CHARACTERS[unit.character].classId)].name;
+  const initial = CLASSES[unit.species === 'human' ? initialClassOf(CHARACTERS[unit.character].classId) : initialClass(unit.species)].name;
   const prior = STAT_KEYS.some(k => (unit.growthAllocation[k] ?? 0) !== 0);
   const ready = unit.level >= REINCARNATION_LEVEL && unit.cycle === 0 && !unit.isProtagonist && !inRun && cores > 0 && state.gold >= REINCARNATION_GOLD;
   const bump = (k: StatKey, d: number) => setAlloc(a => {

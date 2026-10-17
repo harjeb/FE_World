@@ -1,5 +1,4 @@
-import { CLASSES } from '../data/classes.ts';
-import type { ClassId } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
 import type { WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { Action, BattleEvent, BattleState, UnitState } from '../engine/types.ts';
@@ -48,7 +47,7 @@ export interface BattleRecord {
 
 const REGION_THEMES: Theme[] = ['grassland', 'forest', 'mountain', 'town', 'grassland', 'city', 'mountain', 'mountain', 'grassland', 'mountain', 'palace', 'palace'];
 
-const ENEMY_CLASSES = Object.keys(CLASSES) as ClassId[];
+const ENEMY_CLASSES = CATALOG_CLASS_IDS.filter(id => CLASSES[id].stage > 0 && !classUnavailableReason(id));
 
 // The fixed rules of a random encounter. GET_TODAY sends the same numbers, so the page and the Agent
 // see them before committing the days (docs/00 §11「出征前展示胜负条件、回合截止」).

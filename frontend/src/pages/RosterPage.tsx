@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { CLASSES } from '@common/data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import { OP } from '@common/protocol/ops.ts';
@@ -25,15 +25,15 @@ type Sort = 'lvDesc' | 'lvAsc' | 'class' | 'joined';
 const traitOf = (c: RosterEntry['unit']['character']): GrowthType => UNIT_TRAITS[c]?.growthType ?? CHARACTERS[c].growthType;
 
 const FILTERS: [Filter, string][] = [['all', '全部'], ['main', '主力'], ['reserve', '替补'], ['injured', '重伤'], ['promotable', '可转职']];
-const CLASS_ORDER = Object.keys(CLASSES) as ClassId[];
+const CLASS_ORDER = CATALOG_CLASS_IDS;
 
 function visible(filter: Filter, cls: ClassId | 'all', type: GrowthType | 'all', sort: Sort): RosterEntry[] {
   const list = ROSTER.filter(e => (filter === 'all' || (filter === 'promotable' ? e.promotable : e.status === filter))
-    && (cls === 'all' || e.unit.classId === cls) && (type === 'all' || traitOf(e.unit.character) === type));
+    && (cls === 'all' || canonicalClassId(e.unit.classId) === cls) && (type === 'all' || traitOf(e.unit.character) === type));
   const by: Record<Sort, (a: RosterEntry, b: RosterEntry) => number> = {
     lvDesc: (a, b) => b.unit.level - a.unit.level || a.order - b.order,
     lvAsc: (a, b) => a.unit.level - b.unit.level || a.order - b.order,
-    class: (a, b) => CLASS_ORDER.indexOf(a.unit.classId) - CLASS_ORDER.indexOf(b.unit.classId) || b.unit.level - a.unit.level,
+    class: (a, b) => CLASS_ORDER.indexOf(canonicalClassId(a.unit.classId)) - CLASS_ORDER.indexOf(canonicalClassId(b.unit.classId)) || b.unit.level - a.unit.level,
     joined: (a, b) => a.order - b.order,
   };
   return list.sort(by[sort]);

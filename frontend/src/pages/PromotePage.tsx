@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { CLASSES } from '@common/data/classes.ts';
+import { CLASSES, classUnavailableReason, hasClassQualification } from '@common/data/classes.ts';
+import type { ClassId } from '@common/data/classes.ts';
 import { GROWTH_TYPE_NAMES } from '@common/data/growth-types.ts';
 import { MOVE_TYPE_NAMES, STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
@@ -91,7 +92,8 @@ export function PromotePage({ unit }: { unit: string }) {
   const name = CHARACTERS[entry.unit.character].name;
   const [busy, setBusy] = useState(false);
   const live = serverUnit(entry.unit.id ?? entry.unit.character);
-  const ready = !!live && live.status === 'active' && !!chosen;
+  const qualified = !!live && !!chosen && hasClassQualification(live.classQualifications as ClassId[], chosen.to);
+  const ready = !!live && live.status === 'active' && !!chosen && qualified && !classUnavailableReason(chosen.to);
   return (
     <Shell current="roster">
       <section className="panel" aria-labelledby="who-h">
@@ -103,14 +105,15 @@ export function PromotePage({ unit }: { unit: string }) {
               <span className="tag tag-grey">{cls.name} · {cls.stage} 阶 · Lv {entry.unit.level}</span>
               <span className="tag tag-grey">{UNIT_TRAITS[entry.unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[entry.unit.character].growthType]}</span>
             </div>
-            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>逐阶晋升，保留总等级与经验。人物最高 Lv99，HP 上限150，其他属性上限99。</div>
+            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>查看推荐职业，保留总等级与经验。人物最高 Lv99，HP 上限150，其他属性上限99。</div>
           </div>
         </div>
         <ProfileTabs entry={entry} current="promote" />
         <div className="cond">
-          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? '可预览下一阶职业' : '已达第五阶，无后续转职。'}</span>
+          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? '可预览推荐职业' : '此推荐路径暂无后续职业，可在职业资格中选择其他职业。'}</span>
           <span>任何职业均可升至 Lv99。转职保留等级、经验和已有属性，只改变后续成长。</span>
-          <span>职业解锁规则待定；当前开发版暂不设置等级门槛或消耗材料。</span>
+          <span>按年份开放后购买资格，已购资格可免费切换；推荐路径不是购买其他职业的前置条件。</span>
+          {chosen && !qualified && <a href={links.roster(entry.unit.id ?? entry.unit.character, 'classes')}>尚未拥有该资格，前往职业资格购买。</a>}
         </div>
       </section>
 

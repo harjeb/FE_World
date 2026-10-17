@@ -34,7 +34,7 @@ export function LevelUpDialog({ show }: { show: LevelShow }) {
               return (
                 <div key={key} className={gain > 0 ? 'up' : ''}>
                   <span>{STAT_NAMES[key]}</span>
-                  <span><b>{unit.stats[key] + gain}</b>{gain > 0 && <em>+{gain}</em>}</span>
+                  <span><b>{(unit.stats[key] ?? 0) + gain}</b>{gain > 0 && <em>+{gain}</em>}</span>
                 </div>
               );
             })}

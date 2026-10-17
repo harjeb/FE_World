@@ -1,11 +1,10 @@
-import { CLASSES } from '../data/classes.ts';
-import type { ClassId, ClassRoute } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classChangeReason } from '../data/classes.ts';
+import type { CatalogClassId, ClassId, ClassRoute } from '../data/classes.ts';
 import type { SkillId } from '../data/skills.ts';
 import type { UnitRecord } from './model.ts';
 
-// 职业精通（docs/00 §4.2.1、docs/13 §5.5）：按 (cycle, classId) 独立累计，由有效参战或职业训练提供；
-// 人物总等级不直接解锁职业节点。达到节点阈值时学会对应技能，可跨职业自由装备，共用 5 格。
-// 数值仍是草案，集中在这里方便一次校准。
+// Mastery is separate from character level. Nodes remain provisional game content,
+// not a claim that the reference game's complete class/mastery skills are implemented.
 
 export const SKILL_SLOTS = 5;
 // 有效参战与职业训练的进度；投降、空图或零日不产生（由调用方只对有效来源入账）。
@@ -42,8 +41,8 @@ const NODE_NAMES: Record<SkillId, string> = {
   shelter: '庇护', steadfast: '坚守', keen: '锐眼', grit: '斗志', prayer: '祈愿', charge: '冲阵',
 };
 
-export const MASTERY_NODES: Record<ClassId, MasteryNode[]> = Object.fromEntries(
-  (Object.keys(CLASSES) as ClassId[]).map(classId => {
+export const MASTERY_NODES: Record<CatalogClassId, MasteryNode[]> = Object.fromEntries(
+  CATALOG_CLASS_IDS.map(classId => {
     const cls = CLASSES[classId];
     const pool = ROUTE_SKILLS[cls.route];
     const [first, second] = STAGE_THRESHOLDS[cls.stage] ?? STAGE_THRESHOLDS[1];
@@ -52,32 +51,38 @@ export const MASTERY_NODES: Record<ClassId, MasteryNode[]> = Object.fromEntries(
       { id: `${classId}-2`, threshold: second, skill: pool[1] ?? pool[0], name: NODE_NAMES[pool[1] ?? pool[0]] },
     ]];
   }),
-) as Record<ClassId, MasteryNode[]>;
+) as Record<CatalogClassId, MasteryNode[]>;
 
 export function masteryNodesFor(classId: ClassId): MasteryNode[] {
-  return MASTERY_NODES[classId] ?? [];
+  return MASTERY_NODES[canonicalClassId(classId)] ?? [];
 }
 
 export function classMasteryOf(unit: UnitRecord, classId: ClassId = unit.classId): number {
-  return unit.classMastery?.[classId] ?? 0;
+  const canonical = canonicalClassId(classId);
+  return Math.max(0, ...Object.entries(unit.classMastery ?? {})
+    .filter(([id]) => canonicalClassId(id as ClassId) === canonical).map(([, value]) => value ?? 0));
 }
 
 export function unlockedNodes(unit: UnitRecord, classId: ClassId = unit.classId): string[] {
-  return unit.learningProgress?.[classId] ?? [];
+  const canonical = canonicalClassId(classId);
+  return [...new Set(Object.entries(unit.learningProgress ?? {})
+    .filter(([id]) => canonicalClassId(id as ClassId) === canonical)
+    .flatMap(([id, nodes]) => (nodes ?? []).map(node => node.startsWith(id + '-') ? canonical + node.slice(id.length) : node)))];
 }
 
 // 给当前职业加精通；返回本次新解锁的节点。只应传有效参战／训练来源。
 export function gainMastery(unit: UnitRecord, amount: number, classId: ClassId = unit.classId): MasteryNode[] {
   if (amount <= 0) return [];
+  classId = canonicalClassId(classId);
   unit.classMastery ??= {};
   unit.learningProgress ??= {};
   unit.learnedSkills ??= [];
   unit.equippedSkills ??= [];
-  unit.classMastery[classId] = (unit.classMastery[classId] ?? 0) + amount;
+  unit.classMastery[classId] = classMasteryOf(unit, classId) + amount;
   const unlocked: MasteryNode[] = [];
   for (const node of masteryNodesFor(classId)) {
     if (unit.classMastery[classId]! < node.threshold) continue;
-    const known = unit.learningProgress[classId] ?? [];
+    const known = unlockedNodes(unit, classId);
     if (known.includes(node.id)) continue;
     unit.learningProgress[classId] = [...known, node.id];
     if (!unit.learnedSkills.includes(node.skill)) unit.learnedSkills.push(node.skill);
@@ -99,6 +104,9 @@ export function setEquippedSkills(unit: UnitRecord, skills: SkillId[]): string |
 
 // 换职后当前职业自带能力重算，但已学技能与精通保留（docs/00 §4.2）。
 export function switchClass(unit: UnitRecord, classId: ClassId): void {
+  const problem = classChangeReason(unit, classId);
+  if (problem) throw new Error(problem);
+  classId = canonicalClassId(classId);
   unit.classId = classId;
   for (const type of Object.keys(CLASSES[classId].weapons) as (keyof typeof CLASSES[ClassId]['weapons'])[]) {
     unit.ranks[type] ??= 'E';

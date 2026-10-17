@@ -121,7 +121,7 @@ test('the class market gates by year, species and gold', () => {
   const ctx = ctxFor(store, accountId, player);
   const market = dispatch(ctx, OP.GET_CLASS_MARKET, { unitId: 'u_erin' }) as { year: number; classes: { id: string; open: boolean; openYear: number; price: number }[] };
   assert.equal(market.year, 2);
-  const stage3 = market.classes.find(c => c.id === 'sword_hero')!;
+  const stage3 = market.classes.find(c => c.id === 'shido')!;
   assert.equal(stage3.open, false);
   const stage2 = market.classes.find(c => c.id === 'swordsman')!;
   assert.equal(stage2.open, true);

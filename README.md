@@ -34,6 +34,10 @@
 | [12 功能实现缺口](docs/12-implementation-gap-checklist.md) | 已有实现、部分闭环与待办的核对清单 |
 | [13 后端后续目标设计](docs/13-backend-target-design.md) | 未实现草案：继承保底、轮回、连战、生产、事务与幂等边界 |
 | [14 合并与 UI 接入说明](docs/14-integration-handoff.md) | 当前接口入口、本地备份、功能边界与验证命令 |
+| [15 职业目录与武器权限](docs/15-class-catalog.md) | 77项职业／身份、来源、武器权限及兽龙专属进阶 |
+| [16 职业成长测算](docs/16-class-growth-balance.md) | 原表对照、加强理由、八年培养试算与复现命令 |
+| **[17 职业成长调整方案（审阅版）](docs/17-class-growth-review.md)** | **九属性成长与合计、累计增幅及低阶力量+5方案** |
+| [18 酒馆小游戏草案](docs/18-tavern-minigames-draft.md) | 摇盅猜大小、青蛙赛跑及经济／后端候选，未实现 |
 
 ## 服务端（API · Worker · Agent 协议）
 

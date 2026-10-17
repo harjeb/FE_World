@@ -20,7 +20,6 @@ const TEMPLATES: Partial<Record<ClassId, Template>> = {
   cleric: { base: stats(16, 0, 5, 3, 5, 7, 1, 6), weapons: ['heal'], ranks: { staff: 'D' }, name: '修士' },
   swordmaster: { base: stats(26, 9, 0, 13, 14, 4, 6, 2), weapons: ['steel_sword'], ranks: { sword: 'B' }, name: '剑圣' },
   assassin: { base: stats(24, 10, 0, 11, 15, 4, 5, 2), weapons: ['killing_edge'], ranks: { sword: 'B' }, name: '刺客' },
-  warrior: { base: stats(32, 12, 0, 8, 7, 3, 8, 1), weapons: ['steel_axe', 'steel_bow'], ranks: { axe: 'B', bow: 'C' }, name: '勇士' },
   berserker: { base: stats(34, 14, 0, 6, 8, 2, 7, 0), weapons: ['steel_axe'], ranks: { axe: 'B' }, name: '狂战士' },
   general: { base: stats(34, 12, 0, 7, 3, 3, 17, 4), weapons: ['steel_lance', 'hand_axe'], ranks: { lance: 'B', axe: 'C' }, name: '将军' },
   fortress: { base: stats(36, 11, 0, 6, 3, 3, 16, 7), weapons: ['steel_lance'], ranks: { lance: 'B' }, name: '要塞' },

@@ -96,6 +96,7 @@ const signed = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`;
 export function StatsPanel({ entry, weapons }: { entry: RosterEntry; weapons: WeaponId[] }) {
   const { unit } = entry;
   const def = CHARACTERS[unit.character], cls = CLASSES[unit.classId];
+  const current = serverUnit(unit.id ?? unit.character);
   const line = combatLine(asUnit(unit, weapons));
   // 成长类型/年龄的全属性修正（docs/02）：合计成长率要含这一项。
   const bonus = UNIT_TRAITS[unit.character]?.growthBonus ?? 0;
@@ -107,13 +108,15 @@ export function StatsPanel({ entry, weapons }: { entry: RosterEntry; weapons: We
           <thead><tr><th scope="col" style={{ textAlign: 'left' }}>属性</th><th scope="col">当前</th><th scope="col">上限</th><th scope="col">个人</th><th scope="col">职业·{cls.name}</th><th scope="col">合计成长</th></tr></thead>
           <tbody>
             {STAT_KEYS.map(key => {
-              const total = Math.max(0, def.growth[key] + cls.growth[key] + bonus);
+              const personal = current?.inheritedGrowth ? current.inheritedGrowth[key] ?? 0 : def.growth[key];
+              const allocated = current?.growthAllocation?.[key] ?? 0;
+              const total = Math.max(0, Math.max(0, personal + allocated + cls.growth[key]) + bonus);
               return (
                 <tr key={key}>
                   <th scope="row">{STAT_NAMES[key]}</th>
-                  <td className="v">{unit.stats[key]}</td>
+                  <td className="v">{unit.stats[key] ?? 0}</td>
                   <td className="cap">{cls.caps[key]}</td>
-                  <td className="g">{pct(def.growth[key])}</td>
+                  <td className="g">{pct(personal + allocated)}</td>
                   <td className="g">{signed(cls.growth[key])}</td>
                   <td className="tot"><b>{total}%</b><span className="gbar" aria-hidden="true"><i style={{ width: `${Math.min(100, total)}%` }} /></span></td>
                 </tr>
@@ -280,7 +283,7 @@ export function GrowthPanels({ entry }: { entry: RosterEntry }) {
                   <tr key={s.label} className={now ? 'now' : undefined}>
                     <th scope="row">{s.label}</th>
                     <td>{now ? <b>{s.unit.level}</b> : s.unit.level}</td>
-                    {STAT_KEYS.map(k => <td key={k}>{now ? <b>{s.unit.stats[k]}</b> : s.unit.stats[k]}</td>)}
+                    {STAT_KEYS.map(k => <td key={k}>{now ? <b>{s.unit.stats[k] ?? 0}</b> : s.unit.stats[k] ?? 0}</td>)}
                   </tr>
                 );
               })}

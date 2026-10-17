@@ -143,6 +143,12 @@ try {
     const snaps = await page.evaluate(`document.querySelector('#snap-h').closest('.panel').innerText.replace(/\\s+/g, ' ')`);
     check('roster compares real arena snapshots', snaps.includes('2 年 3 季 30 日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
 
+    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_erin`, '#eq-h');
+    const charm = await page.evaluate(`(() => { const row = [...document.querySelectorAll('tbody tr')].find(r => r.querySelector('th')?.innerText === '魅力'); return row ? [...row.querySelectorAll('td')].map(td => td.innerText.trim()) : null; })()`);
+    const erin = await api(page, 21, { unitId: 'u_erin' });
+    check('roster shows independent charm values, cap and growth from the server',
+      charm?.[0] === String(erin.stats.cha) && charm?.[1] === String(erin.caps.cha) && charm?.at(-1) === `${erin.growth.cha}%`, JSON.stringify(charm));
+
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster`, '.panel');
     const roster = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
     check('roster shows the server units', roster.includes('艾琳') && roster.includes('维克托') && roster.includes('12'), roster.slice(0, 120));

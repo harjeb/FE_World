@@ -21,7 +21,7 @@
 .flow-sep { color: #b9ae98; }
 
 .listscroll { overflow-x: auto; }
-.thead, .drow { display: grid; grid-template-columns: 46px minmax(96px, 128px) repeat(8, minmax(24px, 1fr)) minmax(92px, 150px) 84px; gap: 6px; align-items: center; min-width: 700px; }
+.thead, .drow { display: grid; grid-template-columns: 46px minmax(96px, 128px) repeat(9, minmax(24px, 1fr)) minmax(92px, 150px) 84px; gap: 6px; align-items: center; min-width: 730px; }
 .thead { padding: 6px 12px; font-size: 12px; color: var(--color-muted); background: #efe7d6; border-bottom: 1px solid var(--color-line-soft); }
 .thead span { text-align: center; }
 .thead span:nth-child(-n + 2) { text-align: left; }

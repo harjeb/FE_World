@@ -2,7 +2,7 @@ import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
 import { CLASSES } from '../data/classes.ts';
 import type { ClassId } from '../data/classes.ts';
-import { rankAtLeast } from '../data/types.ts';
+import { rankAtLeast, withCharm } from '../data/types.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
@@ -131,7 +131,7 @@ function fromSnapshot(snap: SnapshotUnit, side: Side, id: string, pos: Point, ex
   const character = CHARACTERS[snap.character];
   return {
     id, name: character.name, side, character: snap.character, classId: snap.classId,
-    level: snap.level, exp: 0, stats: { ...snap.stats }, con: snap.con, hp: snap.stats.hp,
+    level: snap.level, exp: 0, stats: withCharm(snap.stats), con: snap.con, hp: snap.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...snap.weapons], items: snap.items.map(i => ({ ...i })), ranks: { ...snap.ranks },
     skill: character.skill, acted: false, alive: true, ...extra,
   };

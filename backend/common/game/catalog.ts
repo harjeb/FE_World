@@ -1,4 +1,4 @@
-import { CLASSES } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASS_ALIASES, CLASSES, canonicalClassId, classUnavailableReason } from '../data/classes.ts';
 import { CHARACTERS } from '../data/characters.ts';
 import { PROMOTIONS } from '../data/promotions.ts';
 import { SKILLS } from '../data/skills.ts';
@@ -11,7 +11,7 @@ import { REGIONS } from './calendar.ts';
 import { AGE_BANDS, GROWTH_BONUS, GROWTH_TYPE_NAMES, GROWTH_TYPE_NOTES } from '../data/growth-types.ts';
 
 // Static data (docs/06 op 23): versioned so an Agent can cache it and only refetch on change.
-export const CATALOG_VERSION = 2;
+export const CATALOG_VERSION = 8;
 
 export function catalog() {
   return {
@@ -20,9 +20,14 @@ export function catalog() {
     ranks: RANKS,
     moveTypes: MOVE_TYPE_NAMES,
     weaponTypes: WEAPON_TYPE_NAMES,
+    classIds: CATALOG_CLASS_IDS,
+    classAliases: CLASS_ALIASES,
     classes: Object.fromEntries(Object.entries(CLASSES).map(([id, c]) => [id, {
       name: c.name, tier: c.tier, stage: c.stage, route: c.route, moveType: c.moveType, move: c.move, weapons: c.weapons,
       growth: c.growth, caps: c.caps, maxLevel: c.maxLevel,
+      canonicalId: canonicalClassId(id as keyof typeof CLASSES), source: c.source, sourceUrl: c.sourceUrl,
+      armored: c.armored, studies: c.studies, trainingBonus: c.trainingBonus,
+      unavailableReason: classUnavailableReason(id as keyof typeof CLASSES),
     }])),
     weapons: Object.fromEntries(Object.entries(WEAPONS).map(([id, w]) => [id, { ...w }])),
     skills: SKILLS,

@@ -177,14 +177,17 @@ try {
     // 职业资格: pick a class, confirm, and the server records the qualification and the price.
     await page.open(`${BASE}/#/roster/u_victor/classes`, '#mk-h');
     const gold0 = (await api(page, OP.GET_STATE)).gold;
-    const picked = await page.evaluate(`(() => { const b = [...document.querySelectorAll('.mk button.mk-cls')].find(b => b.innerText.trim() === '剑士'); if (!b) return false; b.click(); return true; })()`);
+    const picked = await page.evaluate(`(() => { const b = [...document.querySelectorAll('.mk button.mk-cls')].find(b => b.innerText.trim() === '剑客'); if (!b) return false; b.click(); return true; })()`);
     await until(async () => (await page.text()).includes('确认购买'));
     await press(page, 'section[aria-labelledby=mk-h]', '职业资格', '确认购买');
     const market = async () => (await api(page, OP.GET_CLASS_MARKET, { unitId: 'u_victor' })).classes.find(c => c.id === 'swordsman');
     check('buying a qualification on the page stores it and charges the price',
       picked && await until(async () => (await market()).owned) && (await api(page, OP.GET_STATE)).gold === gold0 - (await market()).price,
       `gold ${gold0} → ${(await api(page, OP.GET_STATE)).gold}`);
-    check('the bought class shows as owned', await until(async () => (await page.text()).includes('✓ 剑士')), 'cell');
+    check('the bought class shows as owned', await until(async () => (await page.text()).includes('✓ 剑客')), 'cell');
+    await page.open(`${BASE}/#/roster/u_victor/promote`, '#who-h');
+    check('the promotion page requires ownership and explains how to buy a qualification',
+      (await page.text()).includes('尚未拥有该资格') && await page.evaluate(`document.querySelector('.promo-confirm button').disabled`), 'unowned qualification');
 
     // 退役与传承: lift 欧文 past the legacy level, retire him on the page, see the legacy and the memorial.
     await api(page, OP.ASSIGN_BEXP, { unitId: 'u_owen', amount: 600 });

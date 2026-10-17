@@ -47,10 +47,10 @@ test('learned skills are freely equipped across classes, shared across five slot
 test('switching class keeps mastery and learned skills but recomputes the class growth', () => {
   const unit = createUnit('erin', 20, 'm3', 0, false, { classId: 'gladiator', age: 20 });
   gainMastery(unit, 20);
-  const before = growthRates(unit).str;
+  const before = growthRates(unit);
   switchClass(unit, 'swordsman');
   assert.equal(unit.classId, 'swordsman');
   assert.equal(classMasteryOf(unit, 'gladiator'), 20, 'old class mastery is kept');
   assert.ok(unit.learnedSkills.includes('opening'));
-  assert.notEqual(growthRates(unit).str, before);
+  assert.notDeepEqual(growthRates(unit), before, 'changing class must recompute the full growth vector even when strength matches');
 });

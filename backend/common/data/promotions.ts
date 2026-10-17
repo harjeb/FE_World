@@ -1,4 +1,4 @@
-import { CLASSES, CLASS_PATHS } from './classes.ts';
+import { CLASSES, CLASS_PATHS, canonicalClassId } from './classes.ts';
 import type { ClassId, ClassRoute, ClassDef } from './classes.ts';
 import { stats } from './types.ts';
 
@@ -13,7 +13,7 @@ export interface Promotion extends Pick<ClassDef, 'name' | 'moveType' | 'move' |
   fit: string;
 }
 export const PROMOTIONS: Promotion[] = [];
-// shortcut: unlock policy is undecided; development builds allow each adjacent transition without costs.
+// Human paths are suggestions; beast and dragon promotions must follow their own chain.
 for (const route of Object.keys(CLASS_PATHS) as ClassRoute[]) {
   for (const path of CLASS_PATHS[route]) for (let i = 1; i < path.length; i++) {
     const from = path[i - 1], to = path[i];
@@ -26,4 +26,6 @@ for (const route of Object.keys(CLASS_PATHS) as ClassRoute[]) {
     });
   }
 }
-export function promotionsFor(classId: ClassId): Promotion[] { return PROMOTIONS.filter(p => p.from === classId); }
+export function promotionsFor(classId: ClassId): Promotion[] {
+  return PROMOTIONS.filter(p => p.from === canonicalClassId(classId)).map(p => ({ ...p, from: classId }));
+}

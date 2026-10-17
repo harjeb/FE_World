@@ -1,30 +1,33 @@
-import { stats, STAT_KEYS } from './types.ts';
+import { FW_CLASS_REFERENCE } from './class-reference.ts';
+import { CLASS_GROWTH } from './class-growth.ts';
+import type { GrowthVector } from './class-growth.ts';
+import { stats } from './types.ts';
 import type { MoveType, Rank, Stats, WeaponType } from './types.ts';
 
-// IDs already stored in saves are retained. Each path advances exactly one stage.
+// Human routes suggest study paths; species routes are closed promotion chains.
 export const CLASS_PATHS = {
-  sword: [['gladiator', 'swordsman', 'sword_hero', 'swordmaster', 'sword_lord']],
-  axe: [['axe_fighter', 'fighter', 'warrior', 'berserker', 'war_lord']],
-  armor: [['lancer', 'knight', 'general', 'fortress', 'iron_lord']],
-  cavalry: [['squire', 'cavalier', 'paladin', 'great_knight', 'rider_lord'], ['squire', 'cavalier', 'paladin', 'ranger_commander', 'rider_lord']],
-  flying: [['wing_recruit', 'pegasus', 'falcon', 'sky_commander', 'wing_lord'], ['wing_recruit', 'wing_soldier', 'dragon_knight', 'dragon_commander', 'wing_lord']],
-  bow: [['hunter', 'archer', 'sniper', 'marksman', 'bow_lord'], ['hunter', 'archer', 'sniper', 'bow_knight', 'bow_lord']],
-  magic: [['adept', 'mage', 'sage', 'archsage', 'magic_lord'], ['adept', 'mage', 'warlock', 'druid', 'magic_lord'], ['adept', 'mage', 'mage_knight', 'archsage', 'magic_lord']],
-  healing: [['acolyte', 'cleric', 'bishop', 'saint', 'holy_lord'], ['acolyte', 'cleric', 'bishop', 'valkyrie', 'holy_lord']],
-  stealth: [['scout', 'thief', 'ranger', 'assassin', 'shadow_lord']],
-  fist: [['fist_recruit', 'brawler', 'monk', 'fist_master', 'fist_lord']],
+  sword: [['gladiator', 'swordsman', 'shido', 'swordmaster', 'blade'], ['gladiator', 'mercenary', 'hero']],
+  axe: [['gladiator', 'fighter', 'hero', 'battlemaster', 'everlord'], ['gladiator', 'fighter', 'berserker']],
+  armor: [['lancer', 'knight', 'dreadnought', 'fortress'], ['lancer', 'knight', 'cataphract', 'great_knight'], ['lancer', 'knight', 'general']],
+  cavalry: [['ornius_rider', 'cavalier', 'paladin', 'orichaldia', 'divine_cavalier'], ['ornius_rider', 'armored_ornius', 'divine_ornius', 'high_epitaph']],
+  flying: [['ornius_rider', 'pegasus', 'dragon_knight', 'dragon_commander'], ['ornius_rider', 'pegasus', 'falcon']],
+  bow: [['hunter', 'archer', 'sniper', 'marksman'], ['hunter', 'rogue', 'forest_knight', 'bow_knight'], ['hunter', 'rogue', 'ranger', 'shadow_seeker', 'calamity']],
+  magic: [['adept', 'mage', 'sage', 'druid', 'saint'], ['adept', 'mage', 'blacksmith', 'high_epitaph'], ['adept', 'mage', 'dark_knight'], ['adept', 'mage', 'mage_knight']],
+  healing: [['adept', 'cleric', 'bishop', 'wiseman', 'saint'], ['adept', 'cleric', 'troubadour', 'valkyrie'], ['adept', 'cleric', 'guardian', 'sentinel', 'storm_lancer']],
+  stealth: [['hunter', 'thief', 'assassin', 'shadow_seeker'], ['hunter', 'ninja']],
+  fist: [['gladiator', 'brawler', 'monk', 'fist_deity']],
   beast: [['beast_cub', 'beast_fighter', 'beast_hero', 'beast_guard', 'beast_lord']],
   dragon: [['awakened', 'dragonkin', 'ancient_guard', 'dragon_sage', 'dragon_lord']],
 } as const;
 export type ClassRoute = keyof typeof CLASS_PATHS;
-export type ClassId = (typeof CLASS_PATHS)[ClassRoute][number][number];
-export type ClassStage = 1 | 2 | 3 | 4 | 5;
+export type ClassStage = 0 | 1 | 2 | 3 | 4 | 5;
+export type ClassStudy = 'sword' | 'lance' | 'axe' | 'bow' | 'fist' | 'whiteMagic' | 'blackMagic' | 'infantry' | 'armor' | 'riding' | 'flying';
 export const STAGE_NAMES = ['初级', '中级', '上级', '最上级', '神将级'] as const;
 export const ROUTE_NAMES: Record<ClassRoute, string> = {
   sword: '剑术', axe: '斧战', armor: '重甲', cavalry: '骑乘', flying: '飞行', bow: '弓术',
   magic: '魔法', healing: '治疗', stealth: '潜行', fist: '格斗', beast: '兽人', dragon: '龙人',
 };
-export const CHARACTER_CAPS = stats(150, 99, 99, 99, 99, 99, 99, 99);
+export const CHARACTER_CAPS = stats(150, 99, 99, 99, 99, 99, 99, 99, 99);
 export interface ClassDef {
   name: string;
   tier: 'base' | 'promoted';
@@ -32,52 +35,164 @@ export interface ClassDef {
   route: ClassRoute;
   moveType: MoveType;
   move: number;
+  armored: boolean;
+  // S is the current global rank ceiling, not a rank granted by changing class.
   weapons: Partial<Record<WeaponType, Rank>>;
+  studies: readonly ClassStudy[];
+  // The selected page currently has empty EXP-bonus cells. Unknown bonuses stay absent.
+  trainingBonus: Partial<Record<ClassStudy, number>>;
   growth: Stats;
   caps: Stats;
   maxLevel: number;
+  source: 'fortunes-weave' | 'legacy' | 'species';
+  sourceUrl: string;
+  // Keep the original nine source rates independently of the game's targeted buffs.
+  referenceGrowth?: readonly number[];
+  pendingMechanics: readonly string[];
 }
-const ROUTES: Record<ClassRoute, { names: string[][]; weapon: WeaponType; moveType: MoveType; move: number; growth: Stats }> = {
-  sword: { names: [['角斗士','剑士','剑豪','剑圣','剑神将']], weapon: 'sword', moveType: 'foot', move: 5, growth: stats(5,5,0,10,10,0,-5,0) },
-  axe: { names: [['战士','斧斗士','勇士','狂战士','战神将']], weapon: 'axe', moveType: 'foot', move: 5, growth: stats(10,15,-5,5,0,0,5,-5) },
-  armor: { names: [['枪兵','重甲兵','将军','要塞骑士','铁壁神将']], weapon: 'lance', moveType: 'armored', move: 4, growth: stats(10,5,-5,5,-10,0,15,-5) },
-  cavalry: { names: [['侍骑','轻骑兵','圣骑士','大骑士','骑神将'],['侍骑','轻骑兵','圣骑士','游骑统领','骑神将']], weapon: 'lance', moveType: 'mounted', move: 7, growth: stats(5,5,0,5,5,0,5,0) },
-  flying: { names: [['雏翼骑手','天马骑士','隼骑士','天翼统领','翼神将'],['雏翼骑手','翼兵','龙骑士','龙骑统领','翼神将']], weapon: 'lance', moveType: 'flying', move: 7, growth: stats(0,5,0,5,10,0,-5,10) },
-  bow: { names: [['猎人','弓兵','狙击手','神射手','弓神将'],['猎人','弓兵','狙击手','弓骑士','弓神将']], weapon: 'bow', moveType: 'foot', move: 5, growth: stats(0,5,-5,15,5,0,0,0) },
-  magic: { names: [['术士','魔道士','贤者','大贤者','法神将'],['术士','魔道士','咒术师','德鲁伊','法神将'],['术士','魔道士','魔剑士','大贤者','法神将']], weapon: 'tome', moveType: 'foot', move: 5, growth: stats(0,-5,15,5,0,0,-5,10) },
-  healing: { names: [['学徒','修士','主教','圣导师','圣神将'],['学徒','修士','主教','女武神','圣神将']], weapon: 'staff', moveType: 'foot', move: 5, growth: stats(0,-5,10,0,0,5,-5,15) },
-  stealth: { names: [['斥候','盗贼','游侠','暗影行者','影神将']], weapon: 'dagger', moveType: 'foot', move: 5, growth: stats(0,0,-5,10,15,5,-5,0) },
-  fist: { names: [['拳徒','格斗家','武僧','拳宗','武神将']], weapon: 'fist', moveType: 'foot', move: 5, growth: stats(5,10,-5,5,5,0,5,-5) },
-  beast: { names: [['幼战士','兽战士','兽勇士','兽王卫','兽神将']], weapon: 'beast', moveType: 'foot', move: 5, growth: stats(10,10,-10,5,5,0,5,-5) },
-  dragon: { names: [['觉醒者','龙人','古龙卫','龙贤者','龙神将']], weapon: 'dragon', moveType: 'foot', move: 4, growth: stats(10,0,10,0,-5,0,5,10) },
+
+const REFERENCE_ROUTES: Record<(typeof FW_CLASS_REFERENCE)[number]['id'], ClassRoute> = {
+  commoner: 'sword', noble: 'sword', gladiator: 'sword', hunter: 'bow', lancer: 'armor',
+  ornius_rider: 'cavalry', adept: 'magic', swordsman: 'sword', fighter: 'axe', brawler: 'fist',
+  archer: 'bow', rogue: 'stealth', knight: 'armor', cavalier: 'cavalry', charioteer: 'bow',
+  armored_ornius: 'cavalry', pegasus: 'flying', mage: 'magic', cleric: 'healing', shido: 'sword',
+  warrior: 'axe', sniper: 'bow', forest_knight: 'bow', dreadnought: 'armor', paladin: 'cavalry',
+  sage: 'magic', bishop: 'healing', divine_ornius: 'cavalry', dragon_knight: 'flying',
+  troubadour: 'healing', guardian: 'healing', blacksmith: 'magic', cataphract: 'armor',
+  ranger: 'stealth', dancer: 'sword', elephant_rider: 'cavalry', swordmaster: 'sword',
+  high_epitaph: 'magic', battlemaster: 'axe', monk: 'fist', marksman: 'bow', bow_knight: 'bow',
+  shadow_seeker: 'stealth', sentinel: 'healing', fortress: 'armor', orichaldia: 'cavalry',
+  great_knight: 'cavalry', falcon: 'flying', dragon_commander: 'flying', druid: 'magic',
+  wiseman: 'healing', valkyrie: 'healing', blade: 'sword', apsara: 'sword', everlord: 'axe',
+  fist_deity: 'fist', calamity: 'bow', storm_lancer: 'healing', divine_cavalier: 'cavalry', saint: 'healing',
 };
+const PENDING_MECHANICS: Partial<Record<keyof typeof REFERENCE_ROUTES, string[]>> = {
+  charioteer: ['战车直线范围攻击'],
+  dancer: ['舞蹈再行动'],
+  apsara: ['舞蹈再行动'],
+};
+const STUDY_WEAPON: Partial<Record<ClassStudy, WeaponType>> = {
+  sword: 'sword', lance: 'lance', axe: 'axe', bow: 'bow', fist: 'fist', blackMagic: 'tome', whiteMagic: 'staff',
+};
+interface ExtraClass {
+  name: string; stage: ClassStage; route: ClassRoute; moveType: MoveType; move: number;
+  weapons: WeaponType[]; source: 'legacy' | 'species'; sourceUrl: string; armored?: boolean;
+}
+const SACRED_STONES = 'https://www.nintendo.co.jp/n08/be8j/unit/class/page03.html';
+const AWAKENING = 'https://serenesforest.net/awakening/classes/introduction/';
+const FATES = 'https://serenesforest.net/fire-emblem-fates/hoshidan-classes/';
+const HEROES = 'https://new-guide.fire-emblem-heroes.com/en-US/feh-1090.html';
+// Prior-game roles use explicit access sets. Their tier and growth are adaptations for this game.
+const EXTRA_CLASSES = {
+  mercenary: { name: '佣兵', stage: 2, route: 'sword', moveType: 'foot', move: 5, weapons: ['sword'], source: 'legacy', sourceUrl: SACRED_STONES },
+  hero: { name: '勇者', stage: 3, route: 'sword', moveType: 'foot', move: 5, weapons: ['sword','axe'], source: 'legacy', sourceUrl: AWAKENING },
+  berserker: { name: '狂战士', stage: 3, route: 'axe', moveType: 'foot', move: 5, weapons: ['axe'], source: 'legacy', sourceUrl: SACRED_STONES },
+  thief: { name: '盗贼', stage: 2, route: 'stealth', moveType: 'foot', move: 5, weapons: ['sword'], source: 'legacy', sourceUrl: AWAKENING },
+  assassin: { name: '刺客', stage: 3, route: 'stealth', moveType: 'foot', move: 6, weapons: ['sword','bow'], source: 'legacy', sourceUrl: AWAKENING },
+  ninja: { name: '忍者', stage: 2, route: 'stealth', moveType: 'foot', move: 5, weapons: ['dagger'], source: 'legacy', sourceUrl: FATES },
+  master_ninja: { name: '上忍', stage: 3, route: 'stealth', moveType: 'foot', move: 6, weapons: ['dagger','sword'], source: 'legacy', sourceUrl: FATES },
+  mechanist: { name: '机关师', stage: 3, route: 'stealth', moveType: 'mounted', move: 6, weapons: ['dagger','bow'], source: 'legacy', sourceUrl: FATES },
+  general: { name: '将军', stage: 3, route: 'armor', moveType: 'armored', move: 4, armored: true, weapons: ['lance','axe'], source: 'legacy', sourceUrl: AWAKENING },
+  mage_knight: { name: '神军师', stage: 3, route: 'magic', moveType: 'foot', move: 5, weapons: ['sword','tome'], source: 'legacy', sourceUrl: AWAKENING },
+  dark_knight: { name: '黑暗骑士', stage: 3, route: 'magic', moveType: 'mounted', move: 6, weapons: ['sword','tome'], source: 'legacy', sourceUrl: AWAKENING },
+  war_cleric: { name: '战斗修士', stage: 3, route: 'healing', moveType: 'foot', move: 5, weapons: ['axe','staff'], source: 'legacy', sourceUrl: 'https://www.nintendo.co.jp/3ds/afej/system/heishu_b20.html' },
+  beast_cub: { name: '幼战士', stage: 1, route: 'beast', moveType: 'foot', move: 5, weapons: ['beast'], source: 'species', sourceUrl: HEROES },
+  beast_fighter: { name: '兽战士', stage: 2, route: 'beast', moveType: 'foot', move: 5, weapons: ['beast'], source: 'species', sourceUrl: HEROES },
+  beast_hero: { name: '兽勇士', stage: 3, route: 'beast', moveType: 'foot', move: 6, weapons: ['beast'], source: 'species', sourceUrl: HEROES },
+  beast_guard: { name: '兽王卫', stage: 4, route: 'beast', moveType: 'foot', move: 6, weapons: ['beast'], source: 'species', sourceUrl: HEROES },
+  beast_lord: { name: '兽神将', stage: 5, route: 'beast', moveType: 'foot', move: 6, weapons: ['beast'], source: 'species', sourceUrl: HEROES },
+  awakened: { name: '觉醒者', stage: 1, route: 'dragon', moveType: 'foot', move: 4, weapons: ['dragon'], source: 'species', sourceUrl: HEROES },
+  dragonkin: { name: '龙人', stage: 2, route: 'dragon', moveType: 'foot', move: 4, weapons: ['dragon'], source: 'species', sourceUrl: HEROES },
+  ancient_guard: { name: '古龙卫', stage: 3, route: 'dragon', moveType: 'foot', move: 5, weapons: ['dragon'], source: 'species', sourceUrl: HEROES },
+  dragon_sage: { name: '龙贤者', stage: 4, route: 'dragon', moveType: 'foot', move: 5, weapons: ['dragon'], source: 'species', sourceUrl: HEROES },
+  dragon_lord: { name: '龙神将', stage: 5, route: 'dragon', moveType: 'foot', move: 5, weapons: ['dragon'], source: 'species', sourceUrl: HEROES },
+} satisfies Record<string, ExtraClass>;
+
+// Old save/snapshot identifiers remain readable without a database rewrite or duplicate market rows.
+export const CLASS_ALIASES = {
+  warrior: 'hero',
+  sword_hero: 'shido', sword_lord: 'blade', axe_fighter: 'gladiator', war_lord: 'everlord',
+  iron_lord: 'fortress', squire: 'ornius_rider', rider_lord: 'divine_cavalier', ranger_commander: 'forest_knight',
+  wing_recruit: 'ornius_rider', wing_soldier: 'pegasus', sky_commander: 'falcon', wing_lord: 'falcon',
+  bow_lord: 'calamity', warlock: 'sage', archsage: 'wiseman', magic_lord: 'saint', acolyte: 'adept', holy_lord: 'saint',
+  scout: 'hunter', shadow_lord: 'calamity', fist_recruit: 'gladiator', fist_master: 'monk', fist_lord: 'fist_deity',
+} as const;
+// Known canonical IDs include read-only retired definitions; select from CATALOG_CLASS_IDS.
+export type CatalogClassId = (typeof FW_CLASS_REFERENCE)[number]['id'] | keyof typeof EXTRA_CLASSES;
+export type ClassId = CatalogClassId | keyof typeof CLASS_ALIASES;
+export function canonicalClassId(id: ClassId): CatalogClassId {
+  return CLASS_ALIASES[id as keyof typeof CLASS_ALIASES] ?? id as CatalogClassId;
+}
+export function hasClassQualification(qualifications: readonly ClassId[], id: ClassId): boolean {
+  return qualifications.some(owned => canonicalClassId(owned) === canonicalClassId(id));
+}
+// Retain definitions for old saves and replays, but never offer retired classes as live content.
+export const RETIRED_CLASS_IDS = ['master_ninja', 'mechanist', 'war_cleric', 'elephant_rider'] as const;
+export const CATALOG_CLASS_IDS: CatalogClassId[] = [
+  ...FW_CLASS_REFERENCE.map(cls => cls.id), ...Object.keys(EXTRA_CLASSES) as (keyof typeof EXTRA_CLASSES)[],
+].filter(id => id !== 'warrior' && !(RETIRED_CLASS_IDS as readonly string[]).includes(id));
 export const CLASSES = {} as Record<ClassId, ClassDef>;
-for (const route of Object.keys(CLASS_PATHS) as ClassRoute[]) {
-  const spec = ROUTES[route];
-  CLASS_PATHS[route].forEach((path, branch) => path.forEach((id, index) => {
-    if (CLASSES[id]) return;
-    const stage = (index + 1) as ClassStage;
-    const weapons: ClassDef['weapons'] = { [spec.weapon]: (['D','C','A','S','S'] as Rank[])[index] };
-    if (route === 'cavalry') weapons.sword = stage >= 3 ? 'A' : 'D';
-    if (route === 'healing' && stage >= 3) weapons.tome = 'A';
-    if (route === 'magic' && stage >= 3) weapons.staff = 'B';
-    if (id === 'mage_knight' || id === 'assassin') weapons.sword = 'A';
-    if (id === 'dragon_knight' || id === 'dragon_commander' || id === 'warrior' || id === 'great_knight') weapons.axe = 'A';
-    if (id === 'warrior') weapons.bow = 'A';
-    const mounted = id === 'bow_knight' || id === 'valkyrie';
-    CLASSES[id] = { name: spec.names[branch][index], tier: stage <= 2 ? 'base' : 'promoted', stage, route,
-      moveType: mounted ? 'mounted' : spec.moveType, move: mounted ? 8 : spec.move + (stage >= 3 ? 1 : 0),
-      weapons, growth: Object.fromEntries(STAT_KEYS.map(key => [key, spec.growth[key] > 0 ? Math.min(20, spec.growth[key] + index * 2) : spec.growth[key]])) as Stats, caps: { ...CHARACTER_CAPS }, maxLevel: 99 };
-  }));
+const access = (types: readonly WeaponType[]): ClassDef['weapons'] =>
+  Object.fromEntries(types.map(type => [type, 'S'])) as ClassDef['weapons'];
+function classGrowth(id: CatalogClassId): Stats {
+  const values: GrowthVector = CLASS_GROWTH[id].values;
+  return stats(...values);
+}
+for (const ref of FW_CLASS_REFERENCE) {
+  const types = ref.skills.flatMap(skill => STUDY_WEAPON[skill] ? [STUDY_WEAPON[skill]!] : []);
+  CLASSES[ref.id] = {
+    name: ref.name, tier: ref.stage <= 2 ? 'base' : 'promoted', stage: ref.stage,
+    route: REFERENCE_ROUTES[ref.id], moveType: ref.moveType, move: ref.move, armored: ref.armored,
+    weapons: access(types), studies: ref.skills, trainingBonus: {}, growth: classGrowth(ref.id),
+    caps: { ...CHARACTER_CAPS }, maxLevel: 99, source: 'fortunes-weave',
+    sourceUrl: 'https://fire-emblem-fw.site/classes.html#' + ref.referenceId,
+    referenceGrowth: ref.growth, pendingMechanics: PENDING_MECHANICS[ref.id] ?? [],
+  };
+}
+for (const [id, extra] of Object.entries(EXTRA_CLASSES) as [keyof typeof EXTRA_CLASSES, ExtraClass][]) {
+  CLASSES[id] = {
+    ...extra, tier: extra.stage <= 2 ? 'base' : 'promoted', armored: extra.armored ?? false,
+    weapons: access(extra.weapons), studies: [], trainingBonus: {}, pendingMechanics: [],
+    growth: classGrowth(id), caps: { ...CHARACTER_CAPS }, maxLevel: 99,
+  };
+}
+for (const [oldId, id] of Object.entries(CLASS_ALIASES) as [keyof typeof CLASS_ALIASES, CatalogClassId][]) {
+  CLASSES[oldId] = CLASSES[id];
 }
 export function classDef(id: ClassId): ClassDef { return CLASSES[id]; }
 export function initialClass(route: ClassRoute): ClassId { return CLASS_PATHS[route][0][0]; }
+export function initialClassOf(classId: ClassId): ClassId { return initialClass(CLASSES[classId].route); }
+export function classUnavailableReason(id: ClassId): string | null {
+  if ((RETIRED_CLASS_IDS as readonly string[]).includes(id)) return '该职业已移除，仅保留旧存档读取兼容';
+  const cls = CLASSES[id];
+  return cls.pendingMechanics.length ? '尚未实现：' + cls.pendingMechanics.join('、') : null;
+}
 
-// 职业市场（docs/00 §4.1、docs/13 §5.4）：按个人年份开放，可跨路线购买。数值待校准。
-export const CLASS_OPEN_YEAR: Record<ClassStage, number> = { 1: 1, 2: 2, 3: 4, 4: 6, 5: 8 };
-export const CLASS_PRICE: Record<ClassStage, number> = { 1: 500, 2: 1_500, 3: 4_000, 4: 9_000, 5: 20_000 };
+export function classSpecies(id: ClassId): 'human' | 'beast' | 'dragon' {
+  const route = CLASSES[id].route;
+  return route === 'beast' || route === 'dragon' ? route : 'human';
+}
+
+export function classChangeReason(
+  unit: { classId: ClassId; species: 'human' | 'beast' | 'dragon'; isProtagonist?: boolean }, target: ClassId,
+): string | null {
+  target = canonicalClassId(target);
+  const unavailable = classUnavailableReason(target);
+  if (unavailable) return unavailable;
+  const required = classSpecies(target);
+  if (unit.isProtagonist && required !== 'human') return '主角不能使用兽／龙职业';
+  if (unit.species !== required) return '该职业需要匹配种族';
+  if (unit.species === 'human') return null;
+  const chain: readonly ClassId[] = CLASS_PATHS[unit.species][0];
+  const current = canonicalClassId(unit.classId);
+  const index = chain.indexOf(current);
+  if (index < 0 || (target !== current && target !== chain[index + 1])) return '特殊职业只能进阶到本族下一阶，不能跳阶或降阶';
+  return null;
+}
+
+// Purchase policy belongs to this game; source-game exams, seals and stat bonuses are not imposed.
+export const CLASS_OPEN_YEAR: Record<ClassStage, number> = { 0: 1, 1: 1, 2: 2, 3: 4, 4: 6, 5: 8 };
+export const CLASS_PRICE: Record<ClassStage, number> = { 0: 0, 1: 500, 2: 1_500, 3: 4_000, 4: 9_000, 5: 20_000 };
 export function classOpenYear(id: ClassId): number { return CLASS_OPEN_YEAR[CLASSES[id].stage]; }
 export function classPrice(id: ClassId): number { return CLASS_PRICE[CLASSES[id].stage]; }
-// 现实月购买新资格的额度（docs/00 §4.1）；切回已购职业不占额度。数值仍是草案。
 export const CLASS_PURCHASE_LIMIT = 3;
-export function initialClassOf(classId: ClassId): ClassId { return initialClass(CLASSES[classId].route); }

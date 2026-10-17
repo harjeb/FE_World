@@ -21,6 +21,51 @@ function ctxFor(store: Store, accountId: string, player: Player): Context {
   return { store, accountId, player, agentModel: null, push: () => {} };
 }
 
+test('the class market lists canonical classes and blocks unfinished class mechanics before charging', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  player.day = 840;
+  player.gold = 100_000;
+  const market = dispatch(ctx, OP.GET_CLASS_MARKET, { unitId: 'u_erin' }) as {
+    classes: { id: string; open: boolean; unavailableReason: string | null; weapons: Record<string, string> }[];
+  };
+  assert.equal(market.classes.length, 75);
+  assert.equal(new Set(market.classes.map(c => c.id)).size, 75);
+  assert.equal(market.classes.some(c => c.id === 'sword_lord'), false);
+  assert.deepEqual(Object.keys(market.classes.find(c => c.id === 'bow_knight')!.weapons).sort(), ['bow', 'sword']);
+  for (const classId of ['dancer', 'charioteer', 'apsara']) {
+    const row = market.classes.find(c => c.id === classId)!;
+    assert.equal(row.open, false);
+    assert.ok(row.unavailableReason);
+    assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId }), /尚未实现/);
+  }
+  assert.equal(player.gold, 100_000);
+  assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId: 'commoner' }), /不作为购买/);
+  assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId: '__proto__' }), /没有职业/);
+});
+
+test('old qualification aliases cannot be purchased twice and remain valid for free switching', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  player.day = 840;
+  player.gold = 100_000;
+  const unit = store.unit(player.id, 'u_erin')!;
+  unit.classQualifications = ['sword_lord'];
+  store.saveUnit(unit, player.id);
+  assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: unit.id, classId: 'blade' }), /已经拥有/);
+  const switched = dispatch(ctx, OP.SWITCH_CLASS, { unitId: unit.id, classId: 'sword_lord' }) as { classId: string };
+  assert.equal(switched.classId, 'blade');
+  assert.equal(player.gold, 100_000);
+});
+
+test('weapon training refuses unavailable weapons without spending gold or personal days', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const before = { gold: player.gold, day: player.day };
+  assert.throws(() => dispatch(ctx, OP.TRAIN, { unitId: 'u_erin', weaponType: 'bow' }), /可训练/);
+  assert.deepEqual({ gold: player.gold, day: player.day }, before);
+});
+
 test('a dispatch runs in parallel on the personal calendar and settles once', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);

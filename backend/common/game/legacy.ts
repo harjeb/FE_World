@@ -1,7 +1,7 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { ClassId } from '../data/classes.ts';
-import { CLASSES } from '../data/classes.ts';
-import { STAT_KEYS } from '../data/types.ts';
+import { CLASSES, canonicalClassId, classSpecies, classUnavailableReason, initialClass } from '../data/classes.ts';
+import { STAT_KEYS, withCharm } from '../data/types.ts';
 import type { StatKey, Stats } from '../data/types.ts';
 import { effectiveCaps } from './model.ts';
 import type { UnitRecord } from './model.ts';
@@ -61,7 +61,13 @@ export const REINCARNATION_POINTS = 30;
 export const REINCARNATION_STAT_MAX = 10;
 
 export function totalStats(stats: Stats): number {
-  return STAT_KEYS.reduce((sum, key) => sum + stats[key], 0);
+  return STAT_KEYS.reduce((sum, key) => sum + (stats[key] ?? 0), 0);
+}
+
+export function normalizeLegacy(legacy: LegacyRecord): LegacyRecord {
+  legacy.sourceStats = withCharm(legacy.sourceStats);
+  legacy.sourceGrowth = withCharm(legacy.sourceGrowth);
+  return legacy;
 }
 
 export function eligibleForLegacy(unit: UnitRecord): boolean {
@@ -218,6 +224,12 @@ export interface ReincarnationResult {
 export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initialClassId: ClassId, daysPerYear: number, day: number): ReincarnationResult {
   const problem = canReincarnate(unit);
   if (problem) throw new Error(problem);
+  const unavailable = classUnavailableReason(initialClassId);
+  if (unavailable) throw new Error(unavailable);
+  if (classSpecies(initialClassId) !== unit.species ||
+      (unit.species !== 'human' && canonicalClassId(initialClassId) !== initialClass(unit.species))) {
+    throw new Error('轮回必须回到本族初始职业');
+  }
   const total = STAT_KEYS.reduce((sum, key) => sum + Math.max(0, allocation[key] ?? 0), 0);
   if (total > REINCARNATION_POINTS) throw new Error(`轮回成长分配最多 ${REINCARNATION_POINTS} 个百分点`);
   for (const [key, value] of Object.entries(allocation) as [StatKey, number][]) {

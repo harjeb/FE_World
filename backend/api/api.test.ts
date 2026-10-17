@@ -59,9 +59,46 @@ test('a new account gets a playable seeded roster and state', () => {
 test('catalog carries the static tables with a version', () => {
   const { store, accountId, player } = setup();
   const catalog = dispatch(ctxFor(store, accountId, player), OP.GET_CATALOG, {}) as { version: number; weapons: Record<string, unknown>; promotions: unknown[] };
-  assert.equal(catalog.version, 2);
+  assert.equal(catalog.version, 8);
   assert.ok(Object.keys(catalog.weapons).length > 20);
   assert.ok(catalog.promotions.length >= 48);
+});
+
+test('old saved units and frozen legacies expose charm without rewriting other stats', () => {
+  const db = openDb(':memory:');
+  const store = new Store(db);
+  const { accountId, player } = loginOrRegister(store, 'old-charm', undefined, '旧存档');
+  const unit = store.unit(player.id, 'u_erin')!;
+  const old = JSON.parse(JSON.stringify(unit));
+  delete old.stats.cha;
+  const before = structuredClone(old.stats);
+  db.prepare('UPDATE units SET data = ? WHERE player_id = ? AND id = ?').run(JSON.stringify(old), player.id, old.id);
+  const detail = dispatch(ctxFor(store, accountId, player), OP.GET_UNIT, { unitId: old.id }) as { snapshot: { stats: Record<string, number> } };
+  const { cha, ...retained } = detail.snapshot.stats;
+  assert.equal(cha, 0);
+  assert.deepEqual(retained, before);
+  const legacy = { id: 'old-legacy', playerId: player.id, sourceUnitId: old.id, sourceName: '旧角色',
+    sourceCharacter: 'erin', sourceLineageDepth: 0, cause: 'retired', sourceLevel: 15, sourceStats: before,
+    sourceGrowth: { ...before }, state: 'available', recipientUnitId: null, mode: null, createdAt: 1 };
+  db.prepare('INSERT INTO legacies (id, player_id, source_unit_id, data, created_at) VALUES (?, ?, ?, ?, ?)')
+    .run(legacy.id, player.id, old.id, JSON.stringify(legacy), 1);
+  assert.equal(store.legacy(player.id, legacy.id)!.sourceStats.cha, 0);
+  assert.equal(store.legacy(player.id, legacy.id)!.sourceGrowth.cha, 0);
+});
+
+test('old active battle projections show charm while stored battle RNG data stays untouched', () => {
+  const { store, accountId, player } = setup();
+  const record = createFieldBattle([store.unit(player.id, 'u_erin')!], { region: 1, cleared: 0, seed: 'old-charm-api' });
+  record.playerId = player.id;
+  for (const unit of [...record.state.units, ...record.initial.units]) delete (unit.stats as Partial<typeof unit.stats>).cha;
+  store.saveBattle(record);
+  const before = JSON.stringify(store.battle(player.id, record.id)!.state);
+  const view = dispatch(ctxFor(store, accountId, player), OP.GET_BATTLE, { battleId: record.id, full: true, detail: true }) as {
+    state: { units: { stats: Record<string, number> }[] }; units: { stats: Record<string, number> }[];
+  };
+  assert.equal(view.state.units[0].stats.cha, 0);
+  assert.equal(view.units[0].stats.cha, 0);
+  assert.equal(JSON.stringify(store.battle(player.id, record.id)!.state), before);
 });
 
 test('a field sortie spends days and can be played to a result', () => {
@@ -205,6 +242,9 @@ test('the defense view follows the live roster after a promotion', () => {
   type View = { defense: { slots: { unit: { character: string; classId: string } }[] } };
   const before = (dispatch(ctx, OP.GET_DEFENSE, {}) as View).defense.slots.find(s => s.unit.character === 'noah')!;
   assert.equal(before.unit.classId, 'cleric');
+  player.day = 360;
+  player.gold = 100_000;
+  dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_noah', classId: 'bishop' });
   dispatch(ctx, OP.PROMOTE, { unitId: 'u_noah', promotion: 'bishop' });
   const after = (dispatch(ctx, OP.GET_DEFENSE, {}) as View).defense.slots.find(s => s.unit.character === 'noah')!;
   assert.equal(after.unit.classId, 'bishop');
@@ -375,7 +415,7 @@ test('roster summary carries the real fields the pages read', () => {
   assert.equal(typeof erin.weaponExp, 'object');
 });
 
-test('development promotion has no level gate or cost and preserves earned progress', () => {
+test('the promotion compatibility endpoint requires a purchased qualification and preserves earned progress', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   assert.throws(() => dispatch(ctx, OP.PROMOTE, { unitId: 'u_erin', promotion: '剑圣' }), /没有转职方向/);
@@ -383,9 +423,13 @@ test('development promotion has no level gate or cost and preserves earned progr
   unit.level = 1;
   unit.exp = 42;
   store.saveUnit(unit, player.id);
+  assert.throws(() => dispatch(ctx, OP.PROMOTE, { unitId: unit.id, promotion: 'sword_hero' }), /尚未购买/);
+  player.day = 360;
+  player.gold = 100_000;
+  dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: unit.id, classId: 'sword_hero' });
   const before = store.inventory(player.id);
   const promoted = dispatch(ctx, OP.PROMOTE, { unitId: unit.id, promotion: 'sword_hero' }) as { classId: string; level: number; exp: number };
-  assert.equal(promoted.classId, 'sword_hero');
+  assert.equal(promoted.classId, 'shido');
   assert.equal(promoted.level, 1);
   assert.equal(promoted.exp, 42);
   assert.deepEqual(store.unit(player.id, unit.id)!.stats, unit.stats);

@@ -6,7 +6,7 @@ import type { SnapshotUnit } from '@common/arena/rules.ts';
 import { CHARACTERS } from '@common/data/characters.ts';
 import type { CharacterId } from '@common/data/characters.ts';
 import { CLASSES } from '@common/data/classes.ts';
-import { STAT_KEYS } from '@common/data/types.ts';
+import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import { portraitFor, spriteFor, weaponIcon } from '../assets.ts';
 import { go, links } from '../router.ts';
@@ -60,7 +60,7 @@ export function BanPage({ id }: { id: string }) {
           <div className="listscroll">
             <div className="thead" aria-hidden="true">
               <span /><span>角色</span>
-              {STAT_KEYS.map(k => <span key={k}>{{ hp: 'HP', str: '力', mag: '魔', skl: '技', spd: '速', lck: '运', def: '防', res: '魔防' }[k]}</span>)}
+              {STAT_KEYS.map(k => <span key={k}>{STAT_NAMES[k]}</span>)}
               <span>武器</span><span />
             </div>
             <ul aria-label="防守方角色">
@@ -74,7 +74,7 @@ export function BanPage({ id }: { id: string }) {
                       <span className="dn">{name}</span>
                       <span className="dc">{CLASSES[u.classId].name} · Lv {u.level}</span>
                     </span>
-                    {STAT_KEYS.map(k => <span key={k} className="s">{u.stats[k]}</span>)}
+                    {STAT_KEYS.map(k => <span key={k} className="s">{u.stats[k] ?? 0}</span>)}
                     <span className="wpns" title={u.weapons.map(w => WEAPONS[w].name).join('、')}>
                       {u.weapons.map(w => <img key={w} className="px" src={weaponIcon(WEAPONS[w].type)} width={16} height={16} alt={WEAPONS[w].name} />)}
                       <span className="wnames">{u.weapons.map(w => WEAPONS[w].name).join(' ')}</span>

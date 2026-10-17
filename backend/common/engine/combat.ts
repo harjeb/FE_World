@@ -73,6 +73,7 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
   const w = me.weapon, fw = foe.weapon;
   const tri = w && fw ? triangle(w.type, fw.type) : 0;
   const effective = !!w?.effective?.includes(classOf(foe.unit).moveType)
+    || (classOf(foe.unit).armored && !!w?.effective?.includes('armored'))
     || !!w?.effectiveRoutes?.some(route => route === classOf(foe.unit).route);
   const mods = skillMods(state, me), foeMods = skillMods(state, foe);
   const magic = w?.type === 'tome' || w?.type === 'dragon';

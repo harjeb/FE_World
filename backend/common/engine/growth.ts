@@ -41,9 +41,11 @@ export function rollLevelUp(state: BattleState, unit: UnitState): { gains: Parti
   const rates = growthRates(unit);
   if (!rates) return { gains: {}, rerolls: 0 };
   const caps = classOf(unit).caps;
+  // Historical battle JSON has no charm field. Keep its original rolls/RNG intact.
+  const keys = STAT_KEYS.filter(key => key !== 'cha' || Number.isFinite(unit.stats.cha));
   const roll = () => {
     const gains: Partial<Stats> = {};
-    for (const key of STAT_KEYS) {
+    for (const key of keys) {
       const room = caps[key] - unit.stats[key];
       if (room <= 0) continue;
       let gain = Math.floor(rates[key] / 100);
@@ -53,7 +55,7 @@ export function rollLevelUp(state: BattleState, unit: UnitState): { gains: Parti
     }
     return gains;
   };
-  const anyRoom = STAT_KEYS.some(key => unit.stats[key] < caps[key]);
+  const anyRoom = keys.some(key => unit.stats[key] < caps[key]);
   let gains = roll(), rerolls = 0;
   while (Object.keys(gains).length === 0 && anyRoom && rerolls < 2) {
     gains = roll();

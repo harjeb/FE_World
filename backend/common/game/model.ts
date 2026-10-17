@@ -1,11 +1,11 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
-import { CLASSES } from '../data/classes.ts';
+import { CLASSES, classChangeReason, classSpecies } from '../data/classes.ts';
 import type { ClassId } from '../data/classes.ts';
 import { applyGrowthBonus } from '../data/growth-types.ts';
 import type { GrowthType } from '../data/growth-types.ts';
 import type { Promotion } from '../data/promotions.ts';
-import { RANKS, STAT_KEYS } from '../data/types.ts';
+import { RANKS, STAT_KEYS, withCharm } from '../data/types.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
@@ -114,7 +114,10 @@ const KITS: Record<CharacterId, { weapons: WeaponId[]; ranks: Partial<Record<Wea
 
 export function normalizeUnit(unit: UnitRecord): UnitRecord {
   // Old IDs, levels and earned attributes stay intact; only absent progression fields are filled.
-  unit.species ??= 'human';
+  unit.stats = withCharm(unit.stats);
+  if (unit.inheritedGrowth) unit.inheritedGrowth.cha ??= 0;
+  if (unit.inheritance) unit.inheritance.caps = withCharm(unit.inheritance.caps);
+  unit.species ??= classSpecies(unit.classId);
   unit.cycle ??= 0;
   unit.lineageDepth ??= 0;
   unit.receivedLegacyId ??= null;
@@ -153,9 +156,12 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
       ? Math.min(cls.caps[key], def.base[key] + Math.floor(rate * Math.max(0, level - def.level) / 100))
       : def.base[key];
   }
-  const kit = opts.classId ? { weapons: Object.keys(WEAPONS).filter(id => {
-    const w = WEAPONS[id as WeaponId]; return w.rank === 'E' && cls.weapons[w.type];
-  }) as WeaponId[], ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character];
+  const startingWeapons = (Object.keys(cls.weapons) as WeaponType[]).flatMap(type => {
+    const first = (Object.keys(WEAPONS) as WeaponId[]).find(id => WEAPONS[id].type === type && WEAPONS[id].rank === 'E');
+    return first ? [first] : [];
+  }).slice(0, 5);
+  const kit = opts.classId ? { weapons: startingWeapons,
+    ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character];
   return {
     id, character, classId, species, level, exp: 0, stats, con: def.con, hp: stats.hp,
     weapons: [...kit.weapons], items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
@@ -258,7 +264,9 @@ export function gainExperience(unit: UnitRecord, amount: number, rng: RngState):
 
 // Promotion preserves total level, experience and permanent attributes.
 export function promote(unit: UnitRecord, promotion: Promotion): void {
-  if (unit.classId !== promotion.from || CLASSES[promotion.to].stage !== CLASSES[unit.classId].stage + 1) throw new Error('必须逐阶转职');
+  const problem = classChangeReason(unit, promotion.to);
+  if (problem) throw new Error(problem);
+  if (unit.classId !== promotion.from || CLASSES[promotion.to].stage <= CLASSES[unit.classId].stage) throw new Error('无效的职业进阶方向');
   unit.classId = promotion.to;
   unit.promotedFrom = promotion.from;
   for (const type of Object.keys(CLASSES[unit.classId].weapons) as WeaponType[]) unit.ranks[type] ??= 'E';
@@ -266,7 +274,7 @@ export function promote(unit: UnitRecord, promotion: Promotion): void {
 
 export function toSnapshot(unit: UnitRecord): SnapshotUnit {
   return {
-    id: unit.id, character: unit.character, classId: unit.classId, level: unit.level, stats: { ...unit.stats },
+    id: unit.id, character: unit.character, classId: unit.classId, level: unit.level, stats: withCharm(unit.stats),
     con: unit.con, weapons: [...unit.weapons], ranks: { ...unit.ranks }, items: unit.items.map(i => ({ ...i })),
   };
 }
@@ -276,7 +284,7 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
 export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Point, extra: Partial<UnitState> = {}): UnitState {
   return {
     id, name: CHARACTERS[unit.character].name, side, character: unit.character, classId: unit.classId,
-    level: unit.level, exp: unit.exp, stats: { ...unit.stats }, con: unit.con, hp: unit.stats.hp,
+    level: unit.level, exp: unit.exp, stats: withCharm(unit.stats), con: unit.con, hp: unit.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
     ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
@@ -298,6 +306,7 @@ export function rankFromExp(exp: number): Rank {
 // Weapon experience raises the rank when it crosses a threshold (docs/04.3「熟练度通过实际使用提升」).
 // `classId` overrides the class whose weapon cap applies (used by training a class off-field).
 export function addWeaponExp(unit: UnitRecord, type: WeaponType, amount: number, classId: ClassId = unit.classId): Rank | null {
+  if (!CLASSES[classId].weapons[type] || !Number.isFinite(amount) || amount <= 0) return null;
   const before = unit.ranks[type] ?? 'E';
   const exp = Math.max(unit.weaponExp[type] ?? 0, RANK_EXP[before]) + amount;
   unit.weaponExp[type] = exp;

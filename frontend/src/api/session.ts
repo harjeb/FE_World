@@ -42,6 +42,7 @@ export interface ServerUnit {
   isProtagonist: boolean;
   hasInheritance: boolean;
   growthAllocation: Partial<Record<StatKey, number>>;
+  inheritedGrowth: Partial<Stats> | null;
   classQualifications: string[];
   lifespanEndDay: number | null;
   snapshot: SnapshotUnit;
@@ -176,7 +177,7 @@ export interface ServerMemorial {
 export interface ServerEmergency { deaths: number; claimedFor: number; survivors: number; threshold: number; units: number; room: number; available: boolean; blocker: string | null }
 
 // GET_CLASS_MARKET: every class, when it opens and what a qualification costs (docs/00 §5).
-export interface ClassMarketRow { id: string; name: string; stage: number; route: string; openYear: number; open: boolean; price: number; owned: boolean }
+export interface ClassMarketRow { id: string; name: string; stage: number; route: string; openYear: number; open: boolean; price: number; owned: boolean; unavailableReason?: string | null; eligibilityReason?: string | null }
 
 // PREVIEW_ACTION: a quote bound to the player version; EXECUTE_ACTION re-checks it (docs/13 §3.2).
 export interface ActionQuote {

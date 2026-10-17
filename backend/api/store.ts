@@ -6,6 +6,7 @@ import { SHOP_STOCK } from '../common/game/items.ts';
 import { createUnit, normalizeUnit } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import type { LegacyRecord } from '../common/game/legacy.ts';
+import { normalizeLegacy } from '../common/game/legacy.ts';
 import type { ProductionOrder } from '../common/game/production.ts';
 import type { RunRecord } from '../common/game/expedition.ts';
 import type { AnnualEntry } from '../common/game/annual.ts';
@@ -201,6 +202,7 @@ export class Store {
   }
 
   saveUnit(unit: UnitRecord, playerId: string, position?: number): void {
+    normalizeUnit(unit);
     const existing = this.db.prepare('SELECT position FROM units WHERE player_id = ? AND id = ?').get(playerId, unit.id) as { position: number } | undefined;
     if (existing) {
       this.db.prepare('UPDATE units SET data = ? WHERE player_id = ? AND id = ?').run(JSON.stringify(unit), playerId, unit.id);
@@ -447,17 +449,17 @@ export class Store {
 
   legacy(playerId: string, legacyId: string): LegacyRecord | null {
     const row = this.db.prepare('SELECT data FROM legacies WHERE player_id = ? AND id = ?').get(playerId, legacyId) as { data: string } | undefined;
-    return row ? JSON.parse(row.data) as LegacyRecord : null;
+    return row ? normalizeLegacy(JSON.parse(row.data) as LegacyRecord) : null;
   }
 
   legacyBySource(playerId: string, sourceUnitId: string): LegacyRecord | null {
     const row = this.db.prepare('SELECT data FROM legacies WHERE player_id = ? AND source_unit_id = ?').get(playerId, sourceUnitId) as { data: string } | undefined;
-    return row ? JSON.parse(row.data) as LegacyRecord : null;
+    return row ? normalizeLegacy(JSON.parse(row.data) as LegacyRecord) : null;
   }
 
   legacies(playerId: string): LegacyRecord[] {
     return (this.db.prepare('SELECT data FROM legacies WHERE player_id = ? ORDER BY created_at DESC').all(playerId) as { data: string }[])
-      .map(row => JSON.parse(row.data) as LegacyRecord);
+      .map(row => normalizeLegacy(JSON.parse(row.data) as LegacyRecord));
   }
 
   saveReincarnation(playerId: string, unitId: string, data: unknown): void {
