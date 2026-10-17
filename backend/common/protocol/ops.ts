@@ -80,6 +80,10 @@ export const OPS: readonly OpDef[] = [
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '完成一章主线事件；只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
+  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖。' },
+  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。' },
+  { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
+
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器。' },
   { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器打某个目标：双方伤害、命中、必杀、出手次数与击杀概率。' },

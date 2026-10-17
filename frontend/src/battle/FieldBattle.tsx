@@ -23,7 +23,7 @@ export function FieldBattle() {
     return {
       key: state.id,
       initial: state,
-      meta: { region: state.name.split(' · ')[0], goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : '全灭敌军', extraLabel: '行动日消耗', extraValue: cost ? `${cost} 日` : '—' },
+      meta: { region: state.name.split(' · ')[0], goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : state.goal.kind === 'seize' ? '主将压制目标点' : state.goal.kind === 'defend' ? `坚守 ${state.turnLimit} 回合` : '全灭敌军', extraLabel: '行动日消耗', extraValue: cost ? `${cost} 日` : '—' },
       surrender: false,
       apply: action => session.applyBattle(state.id, action),
       exit: { label: '返回军营', href: links.camp },

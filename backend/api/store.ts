@@ -31,6 +31,10 @@ export interface PlayerFlags {
   // 职业市场月度购买计数（docs/13 §5.4）：key 为现实月，值为当月已购买新资格数。
   classPurchases?: Record<string, number>;
   recruitFails?: number;
+  // 地区任务与声望（docs/20）：已完成任务、已领奖任务、各地区声望。
+  questsDone?: string[];
+  questRewardsClaimed?: string[];
+  regionReputation?: Record<number, number>;
   // 紧急补员：上次领取时的战死人数，防止一次损失重复领取（docs/00 §3.3）。
   emergencyClaimed?: number;
   // 最近一次 Agent 连接上报时间 (docs/06)，用于区分在线/离线。

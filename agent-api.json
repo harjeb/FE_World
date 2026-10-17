@@ -406,6 +406,27 @@
       "push": false
     },
     {
+      "op": 123,
+      "name": "GET_QUESTS",
+      "group": "任务",
+      "agentNote": "读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖。",
+      "push": false
+    },
+    {
+      "op": 124,
+      "name": "START_QUEST",
+      "group": "任务",
+      "agentNote": "接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。",
+      "push": false
+    },
+    {
+      "op": 125,
+      "name": "CLAIM_QUEST_REWARD",
+      "group": "任务",
+      "agentNote": "领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。",
+      "push": false
+    },
+    {
       "op": 50,
       "name": "GET_BATTLE",
       "group": "战斗",

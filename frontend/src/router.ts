@@ -36,6 +36,7 @@ export type Route =
   | { page: 'annual' }
   | { page: 'workshop' }
   | { page: 'story' }
+  | { page: 'quests' }
   | { page: 'legacy' }
   | { page: 'rules' }
   | { page: 'settings' }
@@ -49,6 +50,7 @@ export function parseRoute(hash: string): Route {
     case 'field': return second === 'dungeon' ? { page: 'dungeon' } : { page: 'field' };
     case 'workshop': return { page: 'workshop' };
     case 'story': return { page: 'story' };
+    case 'quests': return { page: 'quests' };
     case 'legacy': return { page: 'legacy' };
     case 'rules': return { page: 'rules' };
     case 'settings': return { page: 'settings' };
@@ -81,6 +83,7 @@ export const links = {
   annual: '#/arena/annual',
   workshop: '#/workshop',
   story: '#/story',
+  quests: '#/quests',
   legacy: '#/legacy',
   rules: '#/rules',
   settings: '#/settings',

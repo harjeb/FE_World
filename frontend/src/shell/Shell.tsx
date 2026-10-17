@@ -5,10 +5,10 @@ import { MY_LEGION, MY_POINTS, WORLD } from '../demo/live.ts';
 import { ROSTER } from '../demo/roster.ts';
 import { links } from '../router.ts';
 import { useSession } from '../api/session.ts';
-import { AnvilIcon, AttackIcon, BookIcon, CampIcon, CandleIcon, ChestIcon, FlagIcon, ReportIcon, RosterIcon, ScrollIcon, SlidersIcon } from '../ui/icons.tsx';
+import { AnvilIcon, AttackIcon, BookIcon, CampIcon, CandleIcon, ChestIcon, FlagIcon, QuestIcon, ReportIcon, RosterIcon, ScrollIcon, SlidersIcon } from '../ui/icons.tsx';
 import { plainDate } from '../ui/calendar.ts';
 
-export type ShellPage = 'camp' | 'roster' | 'field' | 'prep' | 'workshop' | 'arena' | 'story' | 'legacy' | 'reports' | 'rules' | 'settings';
+export type ShellPage = 'camp' | 'roster' | 'field' | 'prep' | 'workshop' | 'arena' | 'story' | 'quests' | 'legacy' | 'reports' | 'rules' | 'settings';
 
 function Stat({ icon, label, children }: { icon?: string; label: string; children: ReactNode }) {
   return (
@@ -82,6 +82,7 @@ export function Shell({ current, children }: { current: ShellPage; children: Rea
             <NavLink page="workshop" current={current} href={links.workshop} icon={<AnvilIcon />} badge={ripe > 0 ? `可领取 ${ripe}` : undefined}>生产</NavLink>
             <NavLink page="arena" current={current} href={links.arena} icon={<AttackIcon />} badge={WORLD.isArenaDay ? '今日' : undefined}>竞技场</NavLink>
             <NavLink page="story" current={current} href={links.story} icon={<ScrollIcon />} badge={chapterDue ? '待处理' : undefined}>主线</NavLink>
+            <NavLink page="quests" current={current} href={links.quests} icon={<QuestIcon />}>任务</NavLink>
             <NavLink page="legacy" current={current} href={links.legacy} icon={<CandleIcon />} badge={heirs > 0 ? `遗产 ${heirs}` : undefined}>传承</NavLink>
             <NavLink page="reports" current={current} href={links.replay()} icon={<ReportIcon />}>战报</NavLink>
           </nav>

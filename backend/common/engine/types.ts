@@ -55,8 +55,9 @@ export interface UnitState {
 }
 
 // boss: defeat the commander (全灭 also wins); rout: only defeating every enemy wins;
-// seize: the player's commander stands on the throne and seizes it (压制王座, docs/03 and 05).
-export type Goal = { kind: 'boss'; target: string } | { kind: 'rout' } | { kind: 'seize'; throne: Point };
+// seize: the player's commander stands on the throne and seizes it (压制王座, docs/03 and 05);
+// defend: hold out until turnLimit is reached (坚守, docs/20).
+export type Goal = { kind: 'boss'; target: string } | { kind: 'rout' } | { kind: 'seize'; throne: Point } | { kind: 'defend'; turns: number };
 
 export interface BattleState {
   engineVersion: 1;

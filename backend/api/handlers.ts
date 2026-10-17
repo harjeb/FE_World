@@ -37,6 +37,8 @@ import { withCharm } from '../common/data/types.ts';
 import { createRun, DUNGEON_STAGE_DAYS, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
+import { QUEST_DAY_COST, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS } from '../common/game/quests.ts';
+import { reputationTier } from '../common/game/reputation.ts';
 
 export class OpError extends Error {
   code: string;
@@ -194,6 +196,15 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
   const rewards = applyBattleOutcome(ctx.store, ctx.player, record);
   const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
   const annualOutcome = handleAnnualOutcome(ctx.store, ctx.player, record);
+  // 地区任务胜利即标记完成；奖励用 CLAIM_QUEST_REWARD 另领（docs/20 §7）。
+  if (record.questId && record.state.result?.winner === 'player') {
+    ctx.player.flags.questsDone ??= [];
+    if (!ctx.player.flags.questsDone.includes(record.questId)) {
+      ctx.player.flags.questsDone.push(record.questId);
+      ctx.store.savePlayer(ctx.player);
+      ctx.store.addEvent(ctx.player.id, 'quest', `完成任务「${questById(record.questId)?.name ?? record.questId}」，奖励待领取。`, { questId: record.questId });
+    }
+  }
   if (record.mode === 'arena' && record.opponentId && record.arenaDay !== undefined) {
     const day = ctx.store.arenaDay(ctx.player.id, record.arenaDay);
     if (day) {
@@ -1374,6 +1385,76 @@ const handlers: Record<number, Handler> = {
     return { rewardKey: key, bexp: CHAPTER_BEXP, total: ctx.player.bexp };
   },
 
+  // ---- 地区任务与声望（docs/20） ------------------------------------------
+
+  [OP.GET_QUESTS]: ctx => {
+    const done = new Set(ctx.player.flags.questsDone ?? []);
+    const claimed = new Set(ctx.player.flags.questRewardsClaimed ?? []);
+    const reputation = ctx.player.flags.regionReputation ?? {};
+    return {
+      regions: QUEST_REGIONS.map(region => {
+        const rep = reputation[region] ?? 0;
+        return {
+          region, name: regionById(region).name, reputation: rep, tier: reputationTier(rep),
+          quests: questsForRegion(region).map(q => ({
+            id: q.id, name: q.name, objective: q.objective, kind: q.kind, tier: q.tier,
+            costDays: QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, reward: q.reward,
+            requires: q.requires ?? null,
+            done: done.has(q.id), claimed: claimed.has(q.id),
+            available: questAvailable(q, { done, reputation: rep }),
+          })),
+        };
+      }),
+    };
+  },
+
+  [OP.START_QUEST]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
+    const quest = questById(asString(data.questId, 'questId'));
+    if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
+    const done = new Set(ctx.player.flags.questsDone ?? []);
+    if (!questAvailable(quest, { done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0 })) {
+      throw new OpError('FORBIDDEN', '任务尚未解锁或已完成');
+    }
+    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
+    const units = ids.length > 0
+      ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
+      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, 6);
+    const busy = units.find(u => u.lockedRunId || u.lockedDispatchId);
+    if (busy) throw new OpError('FORBIDDEN', `${CHARACTERS[busy.character].name} 正在远征或派遣中`);
+    const ready = units.filter(u => u.status === 'active');
+    if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
+    const seed = randomUUID().slice(0, 8);
+    const record = createFieldBattle(ready, { region: quest.region, cleared: ctx.player.flags.clearedRegions.length, day: ctx.player.day, seed, quest });
+    record.playerId = ctx.player.id;
+    ctx.player.day += QUEST_DAY_COST[quest.tier];
+    syncPlayer(ctx.store, ctx.player);
+    ctx.store.saveBattle(record);
+    ctx.store.addEvent(ctx.player.id, 'quest', `接取任务「${quest.name}」（${regionById(quest.region).name}）。`, { battleId: record.id, questId: quest.id });
+    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+    return { battleId: record.id, questId: quest.id, goalText: record.goalText, battle: battleView(record, false), state: publicState(record.state) };
+  },
+
+  [OP.CLAIM_QUEST_REWARD]: (ctx, data) => {
+    const quest = questById(asString(data.questId, 'questId'));
+    if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
+    if (!(ctx.player.flags.questsDone ?? []).includes(quest.id)) throw new OpError('FORBIDDEN', '任务尚未完成');
+    // 唯一奖励键：重复请求不会重复发（docs/20 §7）。
+    ctx.player.flags.questRewardsClaimed ??= [];
+    if (ctx.player.flags.questRewardsClaimed.includes(quest.id)) throw new OpError('FORBIDDEN', '该任务奖励已经领取过');
+    ctx.player.flags.questRewardsClaimed.push(quest.id);
+    ctx.player.gold += quest.reward.gold;
+    for (const [item, count] of quest.reward.items ?? []) ctx.store.addInventory(ctx.player.id, item, 0, count);
+    ctx.player.flags.regionReputation ??= {};
+    const before = ctx.player.flags.regionReputation[quest.region] ?? 0;
+    const after = before + quest.reward.reputation;
+    ctx.player.flags.regionReputation[quest.region] = after;
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'quest-reward' });
+    return { questId: quest.id, gold: quest.reward.gold, items: quest.reward.items ?? [], reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
+  },
+
   // ---- agent narrative ---------------------------------------------------
 
   [OP.AGENT_REPORT_PLAN]: (ctx, data) => {
@@ -1578,6 +1659,7 @@ const WRITE_OPS = new Set<number>([
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
+  OP.START_QUEST, OP.CLAIM_QUEST_REWARD,
   OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);

@@ -147,6 +147,17 @@ export interface ServerAnnual {
 export interface StoryChapter { chapter: number; openDay: number; available: boolean; completed: boolean; claimed: boolean; title: string | null; learned: string | null }
 export interface ServerStory { bexp: number; chapters: StoryChapter[] }
 
+// GET_QUESTS: regional quests and reputation (docs/20).
+export interface QuestView {
+  id: string; name: string; objective: string; kind: 'rout' | 'seize' | 'defend';
+  tier: 'short' | 'standard' | 'region'; costDays: number; turnLimit: number;
+  reward: { gold: number; reputation: number; items?: [string, number][] };
+  requires: { quest?: string; reputation?: number } | null;
+  done: boolean; claimed: boolean; available: boolean;
+}
+export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; quests: QuestView[] }
+export interface ServerQuests { regions: QuestRegion[] }
+
 // GET_PRODUCTION: facilities, recipes and the open orders (docs/00 §9.2).
 export type FacilityId = 'garden' | 'apothecary' | 'smithy';
 export interface ProductionOrder {
@@ -204,6 +215,7 @@ export interface SessionSnapshot {
   run: ServerRun | null;
   annual: ServerAnnual | null;
   story: ServerStory | null;
+  quests: ServerQuests | null;
   production: ServerProduction | null;
   legacies: ServerLegacies | null;
 }
@@ -211,7 +223,7 @@ export interface SessionSnapshot {
 const EMPTY: SessionSnapshot = {
   ready: false, loading: false, error: null, state: null, today: null, arena: null, results: null, defense: null,
   defenseLock: { locked: false, lockedDay: null }, roster: [], battles: {},
-  run: null, annual: null, story: null, production: null, legacies: null,
+  run: null, annual: null, story: null, quests: null, production: null, legacies: null,
 };
 
 class SessionStore {
@@ -251,7 +263,7 @@ class SessionStore {
     if (!token()) return;
     this.set({ loading: true, error: null });
     try {
-      const [state, today, arena, defense, roster, results, run, annual, story, production, legacies] = await Promise.all([
+      const [state, today, arena, defense, roster, results, run, annual, story, quests, production, legacies] = await Promise.all([
         call<ServerState>(OP.GET_STATE),
         call<ServerToday>(OP.GET_TODAY).catch(() => null),
         call<ServerArena>(OP.GET_ARENA).catch(() => null),
@@ -261,12 +273,13 @@ class SessionStore {
         call<{ run: ServerRun | null }>(OP.GET_RUN).then(r => r.run).catch(() => null),
         call<ServerAnnual>(OP.GET_ANNUAL).catch(() => null),
         call<ServerStory>(OP.GET_STORY).catch(() => null),
+        call<ServerQuests>(OP.GET_QUESTS).catch(() => null),
         call<ServerProduction>(OP.GET_PRODUCTION).catch(() => null),
         call<ServerLegacies>(OP.GET_LEGACIES).catch(() => null),
       ]);
       this.set({
         state, today, arena, defense: defense.defense, defenseLock: { locked: defense.locked, lockedDay: defense.lockedDay },
-        roster: roster.units, results, run, annual, story, production, legacies, loading: false, ready: true, error: null,
+        roster: roster.units, results, run, annual, story, quests, production, legacies, loading: false, ready: true, error: null,
       });
     } catch (error) {
       if (error instanceof ApiError && error.code === 'UNAUTHORIZED') {

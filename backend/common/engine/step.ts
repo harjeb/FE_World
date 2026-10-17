@@ -112,8 +112,7 @@ function checkResult(state: BattleState, events: BattleEvent[]): void {
   else if (!seize && living(state, 'enemy').length === 0) finish(state, events, 'player', '全歼敌军');
   else if (living(state, 'player').length === 0) finish(state, events, 'enemy', '我方全部退出战斗');
   // Only the commander can seize, so losing it ends the attack.
-  else if (seize && !living(state, 'player').some(u => u.boss)) finish(state, events, 'enemy', '我方主将被击败，无法压制王座');
-}
+  else if (seize && !living(state, 'player').some(u => u.boss)) finish(state, events, 'enemy', '我方主将被击败，无法压制王座');}
 
 function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void {
   state.phase = side;
@@ -137,7 +136,9 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
   }
   if (state.result) return;
   if (state.turn >= state.turnLimit) {
-    finish(state, events, 'enemy', `${state.turnLimit} 回合内未达成胜利条件`);
+    // 坚守图撑到回合上限即胜（docs/20）；其余图超过回合上限算失败。
+    if (state.goal.kind === 'defend') finish(state, events, 'player', `坚守 ${state.turnLimit} 回合`);
+    else finish(state, events, 'enemy', `${state.turnLimit} 回合内未达成胜利条件`);
     return;
   }
   state.turn += 1;

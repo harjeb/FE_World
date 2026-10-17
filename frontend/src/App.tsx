@@ -17,6 +17,7 @@ import { RosterPage } from './pages/RosterPage.tsx';
 import { RulesPage } from './pages/RulesPage.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
 import { StoryPage } from './pages/StoryPage.tsx';
+import { QuestsPage } from './pages/QuestsPage.tsx';
 import { WorkshopPage } from './pages/WorkshopPage.tsx';
 import { useRoute } from './router.ts';
 import { Toasts } from './ui/toast.tsx';
@@ -34,6 +35,7 @@ function Page() {
     case 'annual': return <AnnualPage />;
     case 'workshop': return <WorkshopPage />;
     case 'story': return <StoryPage />;
+    case 'quests': return <QuestsPage />;
     case 'legacy': return <LegacyPage />;
     case 'rules': return <RulesPage />;
     case 'settings': return <SettingsPage />;

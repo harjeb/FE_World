@@ -15,6 +15,7 @@ import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
 import { createEnemy, pickClasses } from './enemies.ts';
 import { enemyLevel, regionById } from './calendar.ts';
+import type { Quest } from './quests.ts';
 
 export interface BattleRecord {
   id: string;
@@ -30,6 +31,8 @@ export interface BattleRecord {
   dungeon?: boolean;
   runId?: string;
   stageIndex?: number;
+  // 地区任务（docs/20）：目标、回合上限与名字来自任务定义。
+  questId?: string;
   // 年度大竞技场的报名（docs/13 §6）。
   annualId?: string;
   // Arena attacks remember which day and opponent they belong to so the result can settle.
@@ -66,6 +69,8 @@ export interface FieldBattleOptions {
   stageIndex?: number;
   runId?: string;
   carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }>;
+  // 地区任务：覆盖目标、回合上限与图名（docs/20）。
+  quest?: Quest;
 }
 
 const DUNGEON_STAGE_NAMES = ['探路', '消耗战', '首领战'];
@@ -96,18 +101,25 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     name: i === 0 ? `${region.name}守将` : undefined,
   }));
   const tiles = map.tiles;
-  const name = dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
+  const quest = options.quest;
+  const name = quest ? `${region.name} · ${quest.name}`
+    : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
+  const goal: BattleState['goal'] = quest
+    ? quest.kind === 'seize' ? { kind: 'seize', throne: map.objective.position }
+      : quest.kind === 'defend' ? { kind: 'defend', turns: quest.turnLimit }
+        : { kind: 'rout' }
+    : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
     engineVersion: 1, id: `field-${options.seed}-${stage}`, kind: 'field', name,
     map: { width: tiles[0].length, height: tiles.length, tiles },
-    units: [...playerUnits, ...enemies], turn: 1, turnLimit: FIELD_BATTLE.turnLimit, phase: 'player',
-    goal: { kind: 'boss', target: 'e0' },
+    units: [...playerUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
+    goal,
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
-    dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined,
-    goalText: FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
+    dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
+    goalText: quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
     createdAt: Date.now(), updatedAt: Date.now(),
   };
 }

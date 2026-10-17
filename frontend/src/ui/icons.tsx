@@ -27,6 +27,7 @@ export const RosterIcon = () => (
   <Icon stroke={1.8}><circle cx="9" cy="8" r="3.2" /><path d="M3.5 19c.6-3 2.8-4.8 5.5-4.8s4.9 1.8 5.5 4.8" /><path d="M15.5 5.2a3 3 0 0 1 0 5.6" /><path d="M17.5 14.6c1.6.6 2.7 2.1 3 4.4" /></Icon>
 );
 export const FlagIcon = () => <Icon stroke={1.8}><path d="M5 21V4" /><path d="M5 4h12l-2.5 4L17 12H5" /></Icon>;
+export const QuestIcon = () => <Icon stroke={1.8}><path d="M6 21V4" /><path d="M6 5l9 2.5L6 10z" /><path d="M6 14l9 2.5L6 19z" /></Icon>;
 export const ChestIcon = () => (
   <Icon stroke={1.8}><rect x="3.5" y="9" width="17" height="11" rx="1.5" /><path d="M3.5 13h17" /><path d="M6 9V6.5A2.5 2.5 0 0 1 8.5 4h7A2.5 2.5 0 0 1 18 6.5V9" /><path d="M11 12h2v3h-2z" /></Icon>
 );
