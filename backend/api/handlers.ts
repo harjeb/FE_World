@@ -34,10 +34,11 @@ import { createDispatch, dispatchSummary, DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS,
 import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
 import type { WeaponType } from '../common/data/types.ts';
 import { withCharm } from '../common/data/types.ts';
-import { createRun, DUNGEON_STAGE_DAYS, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
+import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS } from '../common/game/quests.ts';
+import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { reputationTier } from '../common/game/reputation.ts';
 
 export class OpError extends Error {
@@ -145,6 +146,7 @@ export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0
     kind: record.kind,
     mode: record.mode,
     name: record.name,
+    costDays: record.costDays ?? null,
     turn: state.turn,
     turnLimit: state.turnLimit,
     phase: state.phase,
@@ -827,7 +829,7 @@ const handlers: Record<number, Handler> = {
     // 下一张只能使用原名单中仍存活、未离队的角色（docs/00 §8.1.3）。
     const units = survivingIds(run.carry).map(id => ctx.store.unit(ctx.player.id, id)).filter((u): u is NonNullable<typeof u> => !!u && u.status === 'active');
     if (units.length === 0) throw new OpError('FORBIDDEN', '没有存活的队员，只能撤离');
-    ctx.player.day += DUNGEON_STAGE_DAYS;
+    ctx.player.day += run.stageDays ?? DUNGEON_STAGE_DAYS;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
     const record = createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry });
@@ -1402,6 +1404,7 @@ const handlers: Record<number, Handler> = {
         const rep = reputation[region] ?? 0;
         return {
           region, name: regionById(region).name, reputation: rep, tier: reputationTier(rep),
+          shop: regionShop(region, rep),
           quests: questsForRegion(region).map(q => ({
             id: q.id, name: q.name, objective: q.objective, kind: q.kind, tier: q.tier,
             costDays: QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, reward: q.reward,
@@ -1432,6 +1435,23 @@ const handlers: Record<number, Handler> = {
     const ready = units.filter(u => u.status === 'active');
     if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
     const seed = randomUUID().slice(0, 8);
+    // 地区远征（tier region）：三图连战，完成整本才标记任务（docs/20 §2）。
+    if (quest.tier === 'region') {
+      const level = enemyLevel(ctx.player.day, regionById(quest.region).offset);
+      const stageDays = QUEST_DAY_COST.region / DUNGEON_STAGES;
+      const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, quest.region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length, { questId: quest.id, stageDays });
+      for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
+      ctx.player.day += stageDays;
+      syncPlayer(ctx.store, ctx.player);
+      const record = createFieldBattle(ready, { region: quest.region, cleared: run.clearedAtStart, seed, level, stageIndex: 0, runId: run.id });
+      record.playerId = ctx.player.id;
+      run.battleId = record.id;
+      ctx.store.saveRun(run);
+      ctx.store.saveBattle(record);
+      ctx.store.addEvent(ctx.player.id, 'quest', `接取地区远征「${quest.name}」（${regionById(quest.region).name}，三图）。`, { runId: run.id, questId: quest.id });
+      ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+      return { battleId: record.id, questId: quest.id, run: runSummary(run), goalText: record.goalText, battle: battleView(record, false) };
+    }
     const record = createFieldBattle(ready, { region: quest.region, cleared: ctx.player.flags.clearedRegions.length, day: ctx.player.day, seed, quest });
     record.playerId = ctx.player.id;
     ctx.player.day += QUEST_DAY_COST[quest.tier];
@@ -1456,9 +1476,36 @@ const handlers: Record<number, Handler> = {
     const before = ctx.player.flags.regionReputation[quest.region] ?? 0;
     const after = before + quest.reward.reputation;
     ctx.player.flags.regionReputation[quest.region] = after;
+    // 固定人物加入（docs/20 §5）：唯一性；名册满时不领、保留待领取状态。
+    const recruited: { character: string; name: string; unitId: string }[] = [];
+    if (quest.recruit) {
+      const units = ctx.store.units(ctx.player.id);
+      const owned = units.some(u => u.character === quest.recruit);
+      const active = units.filter(u => u.status === 'active').length;
+      if (!owned && active < ROSTER_LIMIT) {
+        const unit = createUnit(quest.recruit, CHARACTERS[quest.recruit].level, `u_${quest.recruit}`, ctx.player.day, true);
+        ctx.store.addUnit(ctx.player.id, unit);
+        recruited.push({ character: quest.recruit, name: CHARACTERS[quest.recruit].name, unitId: unit.id });
+      }
+    }
     ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'quest-reward' });
-    return { questId: quest.id, gold: quest.reward.gold, items: quest.reward.items ?? [], reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
+    return { questId: quest.id, gold: quest.reward.gold, items: quest.reward.items ?? [], recruited, reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
+  },
+
+  [OP.BUY_QUEST_ITEM]: (ctx, data) => {
+    const region = asNumber(data.region, 'region');
+    const item = asString(data.item, 'item');
+    const found = shopEntry(region, item);
+    if (!found) throw new OpError('NOT_FOUND', '该地区不出售这件物品');
+    const reputation = ctx.player.flags.regionReputation?.[region] ?? 0;
+    if (reputation < found.entry.reputation) throw new OpError('FORBIDDEN', `需要 ${regionById(region).name} 声望 ${found.entry.reputation}`);
+    if (ctx.player.gold < found.price) throw new OpError('NOT_ENOUGH_GOLD', `购买需要 ${found.price} 金币`);
+    ctx.player.gold -= found.price;
+    ctx.store.addInventory(ctx.player.id, found.entry.item, 0, 1);
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'quest-shop' });
+    return { region, item: found.entry.item, name: GAME_ITEMS[found.entry.item].name, price: found.price, gold: ctx.player.gold };
   },
 
   // ---- agent narrative ---------------------------------------------------
@@ -1665,7 +1712,7 @@ const WRITE_OPS = new Set<number>([
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
-  OP.START_QUEST, OP.CLAIM_QUEST_REWARD,
+  OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM,
   OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);

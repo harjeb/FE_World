@@ -37,8 +37,11 @@ export function QuestsPage() {
     return q.name;
   }, name => `开始任务「${name}」，进入战斗。`);
 
-  const claim = (q: QuestView) => act(`c${q.id}`, () => session.run<{ gold: number; reputation: { after: number; tier: { name: string } } }>(OP.CLAIM_QUEST_REWARD, { questId: q.id }),
-    r => `领取「${q.name}」：金币 +${r.gold}，声望 ${r.reputation.after}（${r.reputation.tier.name}）`);
+  const claim = (q: QuestView) => act(`c${q.id}`, () => session.run<{ gold: number; reputation: { after: number; tier: { name: string } }; recruited?: { name: string }[] }>(OP.CLAIM_QUEST_REWARD, { questId: q.id }),
+    r => `领取「${q.name}」：金币 +${r.gold}，声望 ${r.reputation.after}（${r.reputation.tier.name}）${r.recruited?.length ? `，${r.recruited.map(u => u.name).join('、')} 加入名册` : ''}`);
+
+  const buy = (region: number, item: string) => act(`b${region}-${item}`, () => session.run<{ name: string; price: number }>(OP.BUY_QUEST_ITEM, { region, item }),
+    r => `购买 ${r.name}（-${r.price} 金币）`);
 
   return (
     <Shell current="quests">
@@ -51,7 +54,7 @@ export function QuestsPage() {
       </div>
 
       <div className="sys-cols">
-        {quests.regions.map(region => <RegionPanel key={region.region} region={region} busy={busy} onStart={start} onClaim={claim} />)}
+        {quests.regions.map(region => <RegionPanel key={region.region} region={region} busy={busy} onStart={start} onClaim={claim} onBuy={buy} />)}
         <div className="colstack">
           <section className="panel" aria-labelledby="qr-h">
             <div className="ph"><h2 id="qr-h">声望</h2></div>
@@ -68,9 +71,9 @@ export function QuestsPage() {
   );
 }
 
-function RegionPanel({ region, busy, onStart, onClaim }: {
+function RegionPanel({ region, busy, onStart, onClaim, onBuy }: {
   region: QuestRegion; busy: string | null;
-  onStart: (q: QuestView) => void; onClaim: (q: QuestView) => void;
+  onStart: (q: QuestView) => void; onClaim: (q: QuestView) => void; onBuy: (region: number, item: string) => void;
 }) {
   const next = region.tier.next;
   return (
@@ -81,6 +84,18 @@ function RegionPanel({ region, busy, onStart, onClaim }: {
           声望 <b className="num">{region.reputation}</b> · {region.tier.name}{next !== null ? ` · 下一档 ${next}` : ''}
         </span>
       </div>
+      {region.shop.length > 0 && (
+        <ul className="sys-rules">
+          {region.shop.map(s => (
+            <li key={s.item}>
+              {s.name} · {s.price} 金币 · 需声望 {s.reputation}
+              {s.unlocked
+                ? <button type="button" className="btn btn-sm btn-ghost" style={{ marginLeft: 8 }} disabled={busy !== null} onClick={() => onBuy(region.region, s.item)}>{busy === `b${region.region}-${s.item}` ? '购买中…' : '购买'}</button>
+                : <span className="tag tag-grey" style={{ marginLeft: 8 }}>声望不足</span>}
+            </li>
+          ))}
+        </ul>
+      )}
       <ol className="chapters">
         {region.quests.map(q => {
           const phase = phaseOf(q);

@@ -427,6 +427,13 @@
       "push": false
     },
     {
+      "op": 126,
+      "name": "BUY_QUEST_ITEM",
+      "group": "任务",
+      "agentNote": "用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。",
+      "push": false
+    },
+    {
       "op": 50,
       "name": "GET_BATTLE",
       "group": "战斗",

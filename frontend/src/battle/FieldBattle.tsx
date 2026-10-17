@@ -28,8 +28,8 @@ export function FieldBattle() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const build = (state: BattleState): BattleSession => {
-    const cost = session.get().today?.actions.find(a => a.key === 'sortie')?.costDays;
+  const build = (state: BattleState, costDays?: number | null): BattleSession => {
+    const cost = costDays ?? session.get().today?.actions.find(a => a.key === 'sortie')?.costDays;
     return {
       key: state.id,
       initial: state,
@@ -61,7 +61,7 @@ export function FieldBattle() {
       if (active?.mode === 'festival') go(links.annual);
       else if (active?.state.kind === 'field' && session.get().run?.battleId === active.state.id) go(links.dungeon);
       else if (active?.state.kind === 'field') {
-        setBuilt(build(active.state));
+        setBuilt(build(active.state, active.costDays));
         setStage('battle');
       } else {
         setStage('prep');

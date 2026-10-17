@@ -307,6 +307,14 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
       // 整次连战结束，回收袋并入仓库（docs/00 §7.1）。
       flushRecoveryBag(store, player);
       store.addEvent(player.id, 'region', `完整通关 ${region.name} 大副本（已讨伐 ${player.flags.clearedRegions.length} 个地区）。`, { region: run.region, loot: run.pendingLoot, gold });
+      // 地区远征任务：三图全部完成才标记完成，奖励仍用 CLAIM_QUEST_REWARD 另领（docs/20 §2）。
+      if (run.questId) {
+        player.flags.questsDone ??= [];
+        if (!player.flags.questsDone.includes(run.questId)) {
+          player.flags.questsDone.push(run.questId);
+          store.addEvent(player.id, 'quest', '地区远征完成，任务奖励待领取。', { questId: run.questId });
+        }
+      }
     } else {
       run.state = 'between_maps';
       run.stageIndex += 1;

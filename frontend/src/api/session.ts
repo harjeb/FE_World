@@ -155,7 +155,7 @@ export interface QuestView {
   requires: { quest?: string; reputation?: number } | null;
   done: boolean; claimed: boolean; available: boolean;
 }
-export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; quests: QuestView[] }
+export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean }[]; quests: QuestView[] }
 export interface ServerQuests { regions: QuestRegion[] }
 
 // GET_PRODUCTION: facilities, recipes and the open orders (docs/00 §9.2).
@@ -384,9 +384,9 @@ class SessionStore {
 
   // The raw state of the unfinished battle, if any, so a page can resume it exactly. `mode` tells a
   // 大竞技场 match (festival) from an arena attack, which share the engine's 'arena' kind.
-  async activeBattle(): Promise<{ state: BattleState; mode: string } | null> {
-    const active = await call<{ state?: BattleState; mode?: string }>(OP.GET_BATTLE, { full: true }).catch(() => null);
-    return active?.state && !active.state.result ? { state: active.state, mode: active.mode ?? active.state.kind } : null;
+  async activeBattle(): Promise<{ state: BattleState; mode: string; costDays: number | null } | null> {
+    const active = await call<{ state?: BattleState; mode?: string; costDays?: number | null }>(OP.GET_BATTLE, { full: true }).catch(() => null);
+    return active?.state && !active.state.result ? { state: active.state, mode: active.mode ?? active.state.kind, costDays: active.costDays ?? null } : null;
   }
 
   // Calendar actions with real death or several days at stake are quoted first (PREVIEW_ACTION) and

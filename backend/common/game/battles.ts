@@ -15,7 +15,8 @@ import type { CharacterId } from '../data/characters.ts';
 import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
 import { createEnemy, pickClasses } from './enemies.ts';
-import { enemyLevel, regionById } from './calendar.ts';
+import { enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
+import { QUEST_DAY_COST } from './quests.ts';
 import type { Quest } from './quests.ts';
 
 export interface BattleRecord {
@@ -34,6 +35,8 @@ export interface BattleRecord {
   stageIndex?: number;
   // 地区任务（docs/20）：目标、回合上限与名字来自任务定义。
   questId?: string;
+  // 实际耗日（任务短/标准/远征不同），供战斗页显示（docs/20）。
+  costDays?: number;
   // 年度大竞技场的报名（docs/13 §6）。
   annualId?: string;
   // Arena attacks remember which day and opponent they belong to so the result can settle.
@@ -126,6 +129,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
+    costDays: quest ? QUEST_DAY_COST[quest.tier] : ACTION_DAYS.sortie,
     goalText: quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
     createdAt: Date.now(), updatedAt: Date.now(),
   };

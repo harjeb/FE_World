@@ -149,3 +149,45 @@ test('a quest cannot start while another battle is in progress', () => {
   dispatch(ctx, OP.START_QUEST, { questId: 'gw1', unitIds: ['u_erin', 'u_victor'] });
   assert.throws(() => dispatch(ctx, OP.START_QUEST, { questId: 'ih1', unitIds: ['u_erin'] }), /进行中的战斗/);
 });
+
+test('the reputation shop gates items by reputation and spends gold once unlocked', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; shop: { item: string; price: number; unlocked: boolean }[] }[] };
+  const shop = view.regions.find(r => r.region === 2)!.shop;
+  const bow = shop.find(e => e.item === 'killer_bow')!;
+  assert.equal(bow.unlocked, false, 'killer_bow needs reputation 100');
+  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: 'killer_bow' }), /声望/);
+  player.flags.regionReputation = { 2: 100 };
+  player.gold = 100_000;
+  store.savePlayer(player);
+  const bought = dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: 'killer_bow' }) as { price: number; gold: number };
+  assert.equal(bought.price, bow.price);
+  assert.equal(player.gold, 100_000 - bow.price);
+  assert.ok(store.countInventory(player.id, 'killer_bow') > 0);
+  // 购买不扣声望。
+  assert.equal(player.flags.regionReputation[2], 100);
+});
+
+test('a region expedition runs three maps and only marks the quest done at the end', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'];
+  empower(store, player, ids);
+  player.flags.questsDone = ['gw1', 'gw2', 'gw3', 'gw4', 'gw5'];
+  player.flags.regionReputation = { 2: 100 };
+  store.savePlayer(player);
+  const day = player.day;
+  const started = dispatch(ctx, OP.START_QUEST, { questId: 'gw6', unitIds: ids }) as { battleId: string; run: { stageIndex: number; state: string } };
+  assert.equal(started.run.stageIndex, 0);
+  assert.equal(player.day, day + 2, 'region expedition pays 2 days per map');
+  assert.equal(playOut(ctx, started.battleId), 'player');
+  assert.ok(!(player.flags.questsDone ?? []).includes('gw6'), 'stage one does not complete the quest');
+  const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
+  assert.equal(player.day, day + 4);
+  assert.equal(playOut(ctx, second.battleId), 'player');
+  const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
+  assert.equal(player.day, day + 6);
+  assert.equal(playOut(ctx, third.battleId), 'player');
+  assert.ok(player.flags.questsDone!.includes('gw6'), 'finishing all three maps completes the quest');
+});

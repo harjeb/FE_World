@@ -1,4 +1,5 @@
 import type { ItemKey } from './items.ts';
+import type { CharacterId } from '../data/characters.ts';
 
 // 地区任务（docs/20「地区任务、战斗目标与声望」）。首版三地：绿林(2)、铁丘(3)、水乡(5)。
 //
@@ -20,6 +21,8 @@ export interface Quest {
   need?: number;
   requires?: { quest?: string; reputation?: number };
   reward: QuestReward;
+  // 固定人物加入（docs/20 §5）：领取奖励时加入名册；已拥有则跳过（唯一性）。
+  recruit?: CharacterId;
 }
 
 // 耗日：短 1 / 标准 2 / 地区远征每图 2（共 6）（用户定案：任务只带 1–2 天耗时，每年不止 8 张图）。
@@ -29,8 +32,8 @@ const short = (id: string, region: number, name: string, objective: string, kind
   ({ id, region, name, objective, kind, tier: 'short', turnLimit: 12, need, requires, reward: { gold: 800, reputation: 20 } });
 const standard = (id: string, region: number, name: string, objective: string, kind: QuestKind, requires?: Quest['requires'], need?: number): Quest =>
   ({ id, region, name, objective, kind, tier: 'standard', turnLimit: 20, need, requires, reward: { gold: 1_600, reputation: 40 } });
-const region6 = (id: string, region: number, name: string, objective: string, items: [ItemKey, number][], requires?: Quest['requires']): Quest =>
-  ({ id, region, name, objective, kind: 'rout', tier: 'region', turnLimit: 24, requires, reward: { gold: 4_000, reputation: 100, items } });
+const region6 = (id: string, region: number, name: string, objective: string, items: [ItemKey, number][], requires: Quest['requires'], recruit?: CharacterId): Quest =>
+  ({ id, region, name, objective, kind: 'rout', tier: 'region', turnLimit: 24, requires, recruit, reward: { gold: 4_000, reputation: 100, items } });
 
 export const QUESTS: Quest[] = [
   // 绿林：木、弓、轻装（docs/20 §6）。
@@ -39,21 +42,21 @@ export const QUESTS: Quest[] = [
   standard('gw3', 2, '抢回被截木材', '带 2 箱木材撤离', 'gather', { quest: 'gw2' }, 2),
   short('gw4', 2, '接应落单猎手', '全队抵达撤离点', 'escape', { quest: 'gw3', reputation: 100 }, 1),
   standard('gw5', 2, '防守林间营地', '坚守营地', 'defend', { quest: 'gw4', reputation: 100 }),
-  region6('gw6', 2, '林间远征', '清剿林中据点', [['killer_bow', 1], ['wood', 8]], { quest: 'gw5', reputation: 100 }),
+  region6('gw6', 2, '林间远征', '清剿林中据点', [['killer_bow', 1], ['wood', 8]], { quest: 'gw5', reputation: 100 }, 'ren'),
   // 铁丘：矿、重甲、破甲（docs/20 §6）。
   short('ih1', 3, '矿道清障', '讨伐矿道敌兵', 'rout'),
   standard('ih2', 3, '占领矿道入口', '压制入口', 'seize', { quest: 'ih1' }),
   standard('ih3', 3, '防守运输站', '坚守运输站', 'defend', { quest: 'ih2' }),
   short('ih4', 3, '撤离被困矿工', '护送矿工抵达撤离点', 'escort', { quest: 'ih3', reputation: 100 }),
   standard('ih5', 3, '抢运矿石', '带 2 箱矿石撤离', 'gather', { quest: 'ih4', reputation: 100 }, 2),
-  region6('ih6', 3, '矿区远征', '清剿矿场守军', [['killer_lance', 1], ['ore', 8]], { quest: 'ih5', reputation: 100 }),
+  region6('ih6', 3, '矿区远征', '清剿矿场守军', [['killer_lance', 1], ['ore', 8]], { quest: 'ih5', reputation: 100 }, 'ig'),
   // 水乡：药草、恢复、治疗（docs/20 §6）。
   short('wl1', 5, '渡口求援', '全队抵达撤离点', 'escape'),
   standard('wl2', 5, '护送伤员撤离', '护送伤员抵达撤离点', 'escort', { quest: 'wl1' }),
   standard('wl3', 5, '保卫药草田', '坚守药草田', 'defend', { quest: 'wl2' }),
   short('wl4', 5, '抢救补给箱', '带 2 箱补给撤离', 'gather', { quest: 'wl3', reputation: 100 }, 2),
   standard('wl5', 5, '占领被封渡口', '压制渡口', 'seize', { quest: 'wl4', reputation: 100 }),
-  region6('wl6', 5, '渡口远征', '清剿渡口守军', [['recover', 1], ['herb', 8]], { quest: 'wl5', reputation: 100 }),
+  region6('wl6', 5, '渡口远征', '清剿渡口守军', [['recover', 1], ['herb', 8]], { quest: 'wl5', reputation: 100 }, 'mira'),
 ];
 
 export function questById(id: string): Quest | undefined {

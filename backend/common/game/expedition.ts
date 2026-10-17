@@ -23,14 +23,18 @@ export interface RunRecord {
   battleId: string | null;
   carry: Record<string, RunCarry>;
   pendingLoot: { item: string; count: number }[];
+  // 地区远征任务（docs/20）：完成后标记该任务；每图日数可覆盖（任务远征 2 日/图）。
+  questId?: string;
+  stageDays?: number;
   createdAt: number;
   updatedAt: number;
 }
 
-export function createRun(id: string, playerId: string, region: number, unitIds: string[], level: number, clearedAtStart: number): RunRecord {
+export function createRun(id: string, playerId: string, region: number, unitIds: string[], level: number, clearedAtStart: number, opts: { questId?: string; stageDays?: number } = {}): RunRecord {
   return {
     id, playerId, region, state: 'battle', unitIds: [...unitIds], stageIndex: 0,
-    level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], createdAt: Date.now(), updatedAt: Date.now(),
+    level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
+    createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 
