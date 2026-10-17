@@ -18,6 +18,7 @@ export interface ActionOptions {
   heal: { weapon: WeaponId; targets: UnitState[] }[];
   items: number[];
   seize: boolean;
+  escape: boolean;
 }
 
 // Everything the unit could do after moving to `to`; only applicable actions are listed (docs/08).
@@ -32,7 +33,15 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
   const items = unit.hp < unit.stats.hp
     ? unit.items.map((_, i) => i).filter(i => !(ITEMS[unit.items[i].id] as { shield?: boolean }).shield)
     : [];
-  return { attack, heal, items, seize: canSeize(state, unit, to) };
+  return { attack, heal, items, seize: canSeize(state, unit, to), escape: canEscape(state, unit, to) };
+}
+
+// 撤离: any player unit (or the escort NPC) standing on an exit tile may leave the map (docs/20 §2).
+export function canEscape(state: BattleState, unit: UnitState, at: Point): boolean {
+  const goal = state.goal;
+  if (unit.side !== 'player') return false;
+  if (goal.kind !== 'escape' && goal.kind !== 'gather' && goal.kind !== 'escort') return false;
+  return goal.exits.some(e => e[0] === at[0] && e[1] === at[1]);
 }
 
 // 压制: only the player's commander, standing on the goal's throne (docs/03).

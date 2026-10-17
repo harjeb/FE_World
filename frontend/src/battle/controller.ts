@@ -102,10 +102,10 @@ export class BattleController {
     else if (!this.blocked) this.set({ mode: back(this.snap.mode), notice: null });
   }
 
-  chooseAction(kind: 'attack' | 'heal' | 'item' | 'wait' | 'seize'): void {
+  chooseAction(kind: 'attack' | 'heal' | 'item' | 'wait' | 'seize' | 'escape'): void {
     const mode = this.snap.mode;
     if (this.blocked || !('to' in mode)) return;
-    if (kind === 'wait' || kind === 'seize') {
+    if (kind === 'wait' || kind === 'seize' || kind === 'escape') {
       void this.commit({ type: 'act', unit: mode.unit, to: mode.to, act: kind });
       return;
     }

@@ -3,7 +3,7 @@ import { actionOptions, forecast, terrainAt, unitById } from '@common/engine/ind
 import type { BattleState } from '@common/engine/index.ts';
 import { TERRAINS } from '@common/maps/map.ts';
 import { VULNERARY, weaponIcon } from '../assets.ts';
-import { AttackIcon, BagIcon, HealIcon, SeizeIcon, WaitIcon } from '../ui/icons.tsx';
+import { AttackIcon, BagIcon, HealIcon, RetreatIcon, SeizeIcon, WaitIcon } from '../ui/icons.tsx';
 import type { BattleController } from './controller.ts';
 import { displayName } from './names.ts';
 import type { Mode } from './selection.ts';
@@ -23,6 +23,8 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
   const target = kind ? (mode as { target: string | null }).target : null;
   const goal = state.goal;
   const onThrone = goal.kind === 'seize' && goal.throne[0] === mode.to[0] && goal.throne[1] === mode.to[1];
+  const onExit = (goal.kind === 'escape' || goal.kind === 'gather' || goal.kind === 'escort')
+    && goal.exits.some(e => e[0] === mode.to[0] && e[1] === mode.to[1]);
 
   return (
     <section className="panel" aria-label="行动与武器">
@@ -32,6 +34,11 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
           {options.seize && (
             <button type="button" className="btn btn-sm btn-primary" onClick={() => ctl.chooseAction('seize')}>
               <SeizeIcon />压制
+            </button>
+          )}
+          {options.escape && (
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => ctl.chooseAction('escape')}>
+              <RetreatIcon />撤离
             </button>
           )}
           {options.attack.length > 0 && (
@@ -56,6 +63,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
         {mode.kind === 'action' && (
           <p style={{ fontSize: 12, color: '#6A6256' }}>
             {options.seize ? '压制王座会立即赢下这场战斗。' : onThrone ? '只有主将能压制王座。' : ''}
+            {options.escape ? '站上撤离点的单位可以撤离，带出的物资才算带回。' : onExit ? '只有站在撤离点上的单位才能撤离。' : ''}
             待机会立即提交移动；也可以直接点地图上红色范围内的敌人。
           </p>
         )}

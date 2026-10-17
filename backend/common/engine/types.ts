@@ -44,6 +44,12 @@ export interface UnitState {
   shields?: number;
   shieldsUsed?: number;
   petrified?: boolean;
+  // 友方 NPC（护卫对象）：不归玩家操作，每个己方阶段自动向撤离点移动（docs/20 §2）。
+  npc?: boolean;
+  // 已从战场撤离（不算死亡，结算时视为存活）。
+  escaped?: boolean;
+  // 携带的物资箱数量（抢物资任务）。
+  carried?: number;
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
   boss?: boolean;
   behavior?: Behavior;
@@ -56,8 +62,17 @@ export interface UnitState {
 
 // boss: defeat the commander (全灭 also wins); rout: only defeating every enemy wins;
 // seize: the player's commander stands on the throne and seizes it (压制王座, docs/03 and 05);
-// defend: hold out until turnLimit is reached (坚守, docs/20).
-export type Goal = { kind: 'boss'; target: string } | { kind: 'rout' } | { kind: 'seize'; throne: Point } | { kind: 'defend'; turns: number };
+// defend: hold out until turnLimit is reached (坚守, docs/20);
+// escape: N player units reach an exit and evacuate; gather: carry N supply boxes off the map;
+// escort: the allied NPC reaches an exit alive (docs/20 §2).
+export type Goal =
+  | { kind: 'boss'; target: string }
+  | { kind: 'rout' }
+  | { kind: 'seize'; throne: Point }
+  | { kind: 'defend'; turns: number }
+  | { kind: 'escape'; exits: Point[]; need: number }
+  | { kind: 'gather'; exits: Point[]; need: number }
+  | { kind: 'escort'; exits: Point[]; npc: string };
 
 export interface BattleState {
   engineVersion: 1;
@@ -71,6 +86,8 @@ export interface BattleState {
   turnLimit: number;
   phase: Side;
   goal: Goal;
+  // 场上未拾取的物资箱（gather 任务）。
+  boxes?: Point[];
   // Combat rolls and level-up rolls use separate streams (docs/02).
   rng: RngState;
   growthRng: RngState;
@@ -83,7 +100,8 @@ export type ActAction =
   | ActBase & { act: 'attack'; target: string; weapon: WeaponId }
   | ActBase & { act: 'heal'; target: string; weapon: WeaponId }
   | ActBase & { act: 'item'; item: number }
-  | ActBase & { act: 'seize' };
+  | ActBase & { act: 'seize' }
+  | ActBase & { act: 'escape' };
 // retreat: 全军撤退 in field battles (docs/06 op 56); surrender: 投降 in arena attacks (op 67).
 // Both end the battle as a loss.
 export type Action = ActAction | { type: 'endPhase' } | { type: 'retreat' } | { type: 'surrender' };
@@ -100,6 +118,8 @@ export type BattleEvent =
   | { t: 'levelUp'; unit: string; level: number; gains: Partial<Stats>; rerolls: number }
   | { t: 'wait'; unit: string }
   | { t: 'seize'; unit: string }
+  | { t: 'loot'; unit: string; boxes: number }
+  | { t: 'escape'; unit: string }
   | { t: 'phase'; side: Side; turn: number }
   | { t: 'end'; winner: Side; reason: string };
 

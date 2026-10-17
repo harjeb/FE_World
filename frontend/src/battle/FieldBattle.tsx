@@ -8,6 +8,16 @@ import { fallenLine } from './Dialogs.tsx';
 import type { BattleSession } from './session.ts';
 import { SortiePrep } from './SortiePrep.tsx';
 
+const GOAL_TEXT: Record<BattleState['goal']['kind'], (s: BattleState) => string> = {
+  boss: () => '击败敌方主将或全灭',
+  rout: () => '全灭敌军',
+  seize: () => '主将压制目标点',
+  defend: s => `坚守 ${s.turnLimit} 回合`,
+  escape: s => `撤离 ${s.goal.kind === 'escape' ? s.goal.need : 1} 人到撤离点`,
+  gather: s => `带 ${s.goal.kind === 'gather' ? s.goal.need : 1} 箱物资撤离`,
+  escort: () => '护送对象抵达撤离点',
+};
+
 // 出击 is a real server battle (docs/00 §8.1.2). The page resumes an unfinished field battle; otherwise
 // it shows 出征准备 and spends nothing until the player confirms there. Every command then goes
 // through UNIT_ACT, and the result writes back to the roster.
@@ -23,7 +33,7 @@ export function FieldBattle() {
     return {
       key: state.id,
       initial: state,
-      meta: { region: state.name.split(' · ')[0], goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : state.goal.kind === 'seize' ? '主将压制目标点' : state.goal.kind === 'defend' ? `坚守 ${state.turnLimit} 回合` : '全灭敌军', extraLabel: '行动日消耗', extraValue: cost ? `${cost} 日` : '—' },
+      meta: { region: state.name.split(' · ')[0], goal: GOAL_TEXT[state.goal.kind](state), extraLabel: '行动日消耗', extraValue: cost ? `${cost} 日` : '—' },
       surrender: false,
       apply: action => session.applyBattle(state.id, action),
       exit: { label: '返回军营', href: links.camp },

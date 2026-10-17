@@ -1,7 +1,8 @@
 import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
 import type { WeaponType } from '../data/types.ts';
+import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
-import type { Action, BattleEvent, BattleState, UnitState } from '../engine/types.ts';
+import type { Action, BattleEvent, BattleState, Point, UnitState } from '../engine/types.ts';
 import { seedRng } from '../engine/rng.ts';
 import { generateMap } from '../maps/generate.ts';
 import type { Theme } from '../maps/themes.ts';
@@ -85,9 +86,11 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const level = dungeon ? Math.min(99, base + stage * 2) : base;
   const theme = REGION_THEMES[(options.region - 1) % REGION_THEMES.length];
   const count = Math.max(1, Math.min(FIELD_BATTLE.maxUnits, units.length));
+  const quest = options.quest;
+  // 护卫任务多留一个己方出生点给被护送者（unitsPerSide 封顶 8）。
   const map = generateMap({
     seed: `${options.seed}:map:${stage}`, width: options.width ?? 20, height: options.height ?? 20,
-    unitsPerSide: count, theme,
+    unitsPerSide: Math.min(8, count + (quest?.kind === 'escort' ? 1 : 0)), theme,
   });
   const playerUnits = units.slice(0, count).map((u, i) => {
     const carry = options.carry?.[u.id];
@@ -101,19 +104,23 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     name: i === 0 ? `${region.name}守将` : undefined,
   }));
   const tiles = map.tiles;
-  const quest = options.quest;
+  const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
   const name = quest ? `${region.name} · ${quest.name}`
     : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
+  const exit = map.objective.position;
   const goal: BattleState['goal'] = quest
-    ? quest.kind === 'seize' ? { kind: 'seize', throne: map.objective.position }
+    ? quest.kind === 'seize' ? { kind: 'seize', throne: exit }
       : quest.kind === 'defend' ? { kind: 'defend', turns: quest.turnLimit }
-        : { kind: 'rout' }
+        : quest.kind === 'escape' ? { kind: 'escape', exits: [exit], need: quest.need ?? 1 }
+          : quest.kind === 'gather' ? { kind: 'gather', exits: [exit], need: quest.need ?? 1 }
+            : quest.kind === 'escort' ? { kind: 'escort', exits: [exit], npc: 'npc0' }
+              : { kind: 'rout' }
     : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
     engineVersion: 1, id: `field-${options.seed}-${stage}`, kind: 'field', name,
     map: { width: tiles[0].length, height: tiles.length, tiles },
-    units: [...playerUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
-    goal,
+    units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
+    goal, boxes: quest?.kind === 'gather' ? gatherBoxes(exit, tiles[0].length, tiles.length) : undefined,
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   return {
@@ -180,8 +187,9 @@ export function summarizeOutcome(record: BattleRecord): BattleOutcome {
   return {
     winner: state.result?.winner ?? 'enemy',
     reason: state.result?.reason ?? '',
-    deaths: playerUnits.filter(u => !u.alive).map(u => u.id),
-    survivors: playerUnits.filter(u => u.alive).map(u => u.id),
+    // 成功撤离的单位退出战场但不是战死；护卫 NPC 也不算玩家伤亡。
+    deaths: playerUnits.filter(u => !u.alive && !u.escaped && !u.npc).map(u => u.id),
+    survivors: playerUnits.filter(u => (u.alive || u.escaped) && !u.npc).map(u => u.id),
   };
 }
 
@@ -201,5 +209,25 @@ export function weaponsUsed(record: BattleRecord): Map<string, Set<WeaponType>> 
 }
 
 export function unitsForDeployment(record: BattleRecord): UnitState[] {
-  return record.state.units.filter(u => u.side === 'player');
+  return record.state.units.filter(u => u.side === 'player' && !u.npc);
+}
+
+// 护卫任务里的被护送者：玩家方 NPC，不占名册、不永久入队，由引擎自动走向撤离点（docs/20 §2）。
+function createEscortNpc(id: string, pos: Point, level: number): UnitState {
+  const base = stats(18, 2, 4, 3, 6, 6, 2, 6, 5);
+  return {
+    id, name: '被护送者', side: 'player', classId: 'cleric', level, exp: 0,
+    stats: base, con: 5, hp: base.hp, pos: [pos[0], pos[1]], weapons: [], items: [], ranks: {},
+    npc: true, acted: true, alive: true,
+  };
+}
+
+// 物资箱放在撤离点附近：拿到箱子并撤离才算带回（docs/20 §2）。
+function gatherBoxes(exit: Point, width: number, height: number): Point[] {
+  const out: Point[] = [];
+  for (const [dx, dy] of [[0, 0], [-1, 0], [0, -1], [0, 1], [-2, 0]] as [number, number][]) {
+    const p: Point = [exit[0] + dx, exit[1] + dy];
+    if (p[0] > 0 && p[1] > 0 && p[0] < width - 1 && p[1] < height - 1) out.push(p);
+  }
+  return out;
 }

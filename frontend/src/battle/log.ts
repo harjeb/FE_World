@@ -57,6 +57,12 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       case 'seize':
         push(`${name(e.unit)} 压制了王座。`, mark(e.unit));
         break;
+      case 'loot':
+        push(`${name(e.unit)} 拾取物资箱（共 ${e.boxes} 箱）。`, mark(e.unit));
+        break;
+      case 'escape':
+        push(`${name(e.unit)} 撤离了战场。`, mark(e.unit));
+        break;
       case 'heal':
         if (e.source === 'terrain') push(`${name(e.target)} 在据点回复 ${e.amount} HP。`, 'g');
         else if (e.source === 'item') push(`${name(e.target)} 使用伤药，回复 ${e.amount} HP。`, mark(e.target));

@@ -128,8 +128,13 @@ export function asciiMap(state: BattleState): { w: number; h: number; ascii: str
 }
 
 function goalText(state: BattleState): string {
-  if (state.goal.kind === 'boss') return `击败主将（${state.goal.target}）`;
-  if (state.goal.kind === 'seize') return `压制王座 [${state.goal.throne.join(',')}]`;
+  const goal = state.goal;
+  if (goal.kind === 'boss') return `击败主将（${goal.target}）`;
+  if (goal.kind === 'seize') return `压制王座 [${goal.throne.join(',')}]`;
+  if (goal.kind === 'defend') return `坚守 ${state.turnLimit} 回合`;
+  if (goal.kind === 'escape') return `撤离 ${goal.need} 人到撤离点 [${goal.exits.map(e => e.join(',')).join(' ')}]`;
+  if (goal.kind === 'gather') return `带 ${goal.need} 箱物资撤离 [${goal.exits.map(e => e.join(',')).join(' ')}]`;
+  if (goal.kind === 'escort') return `护送对象抵达撤离点 [${goal.exits.map(e => e.join(',')).join(' ')}]`;
   return '全灭敌军';
 }
 
@@ -1030,8 +1035,9 @@ const handlers: Record<number, Handler> = {
     else if (act === 'heal') action = { type: 'act', unit, to, act: 'heal', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never };
     else if (act === 'item') action = { type: 'act', unit, to, act: 'item', item: asNumber(data.item, 'item') };
     else if (act === 'seize') action = { type: 'act', unit, to, act: 'seize' };
+    else if (act === 'escape') action = { type: 'act', unit, to, act: 'escape' };
     else if (act === 'wait') action = { type: 'act', unit, to, act: 'wait' };
-    else throw new OpError('BAD_REQUEST', 'action 取 attack / heal / item / seize / wait');
+    else throw new OpError('BAD_REQUEST', 'action 取 attack / heal / item / seize / escape / wait');
     const { state, events } = applyAction(ctx, record, action);
     return { battleId: record.id, result: state.result ?? null, events, state: publicState(state), battle: battleView(record, false, record.events.length - events.length) };
   },

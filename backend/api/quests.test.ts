@@ -69,7 +69,7 @@ test('a quest pays its days once, marks done on a win, and its first reward is c
 
   const day = player.day;
   const started = dispatch(ctx, OP.START_QUEST, { questId: 'gw1', unitIds: ids }) as { battleId: string; goalText: string };
-  assert.equal(player.day, day + 4, 'short quest costs 4 days, paid once');
+  assert.equal(player.day, day + 1, 'short quest costs 1 day, paid once');
   assert.equal(playOut(ctx, started.battleId), 'player');
 
   const afterWin = questView(ctx, 2);
@@ -87,26 +87,27 @@ test('a quest pays its days once, marks done on a win, and its first reward is c
   assert.equal(questView(ctx, 2).quests.find(q => q.id === 'gw1')!.claimed, true);
 });
 
-test('quest objectives reach the engine: seize maps get a throne, defend maps survive the turn limit', () => {
+test('quest objectives reach the engine: seize, defend, escape, gather and escort', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   empower(store, player, ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah']);
-  // gw2（占领）只需 gw1 完成；gw5（坚守）需要 gw1–gw4。
-  player.flags.questsDone = ['gw1'];
+  const start = (questId: string) => dispatch(ctx, OP.START_QUEST, { questId, unitIds: ['u_erin'] }) as { battleId: string };
+  const retreat = (battleId: string) => dispatch(ctx, OP.RETREAT, { battleId });
+
+  // 占领：ih2 需要 ih1。
+  player.flags.questsDone = ['ih1'];
+  store.savePlayer(player);
+  const seize = start('ih2');
+  const seizeGoal = store.battle(player.id, seize.battleId)!.state.goal;
+  assert.equal(seizeGoal.kind, 'seize');
+  assert.ok(seizeGoal.kind === 'seize' && seizeGoal.throne.length === 2);
+  retreat(seize.battleId);
+
+  // 坚守：gw5 需要 gw1–gw4 + 声望 100。
+  player.flags.questsDone = ['gw1', 'gw2', 'gw3', 'gw4'];
   player.flags.regionReputation = { 2: 100 };
   store.savePlayer(player);
-
-  const seize = dispatch(ctx, OP.START_QUEST, { questId: 'gw2', unitIds: ['u_erin'] }) as { battleId: string };
-  const seizeBattle = store.battle(player.id, seize.battleId)!;
-  assert.equal(seizeBattle.state.goal.kind, 'seize');
-  assert.ok(seizeBattle.state.goal.kind === 'seize' && seizeBattle.state.goal.throne.length === 2);
-  assert.equal(seizeBattle.questId, 'gw2');
-  // 撤退结束这一场，避免下一场撞上“已有进行中的战斗”。
-  dispatch(ctx, OP.RETREAT, { battleId: seize.battleId });
-
-  player.flags.questsDone = ['gw1', 'gw2', 'gw3', 'gw4'];
-  store.savePlayer(player);
-  const defend = dispatch(ctx, OP.START_QUEST, { questId: 'gw5', unitIds: ['u_erin'] }) as { battleId: string };
+  const defend = start('gw5');
   const defendBattle = store.battle(player.id, defend.battleId)!;
   assert.equal(defendBattle.state.goal.kind, 'defend');
   assert.equal(defendBattle.state.turnLimit, 20);
@@ -115,6 +116,30 @@ test('quest objectives reach the engine: seize maps get a throne, defend maps su
     dispatch(ctx, OP.END_PHASE, { battleId: defend.battleId });
   }
   assert.equal(store.battle(player.id, defend.battleId)!.state.result!.winner, 'player');
+
+  // 撤离：wl1 无前置。
+  const escape = start('wl1');
+  const escapeGoal = store.battle(player.id, escape.battleId)!.state.goal;
+  assert.equal(escapeGoal.kind, 'escape');
+  assert.ok(escapeGoal.kind === 'escape' && escapeGoal.exits.length > 0);
+  retreat(escape.battleId);
+
+  // 抢物资：gw3 需要 gw1、gw2；地图上应有物资箱。
+  player.flags.questsDone = ['gw1', 'gw2'];
+  store.savePlayer(player);
+  const gather = start('gw3');
+  const gatherBattle = store.battle(player.id, gather.battleId)!;
+  assert.equal(gatherBattle.state.goal.kind, 'gather');
+  assert.ok((gatherBattle.state.boxes ?? []).length >= 1, 'gather maps place boxes');
+  retreat(gather.battleId);
+
+  // 护送：gw2 需要 gw1；生成玩家方 NPC。
+  player.flags.questsDone = ['gw1'];
+  store.savePlayer(player);
+  const escort = start('gw2');
+  const escortBattle = store.battle(player.id, escort.battleId)!;
+  assert.equal(escortBattle.state.goal.kind, 'escort');
+  assert.ok(escortBattle.state.units.some(u => u.npc && u.side === 'player'), 'escort maps add a player NPC');
 });
 
 test('a quest cannot start while another battle is in progress', () => {

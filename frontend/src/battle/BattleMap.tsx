@@ -111,6 +111,8 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
   // planned destination already sits there.
   const goal = view.goal;
   const throne = goal.kind === 'seize' ? goal.throne : null;
+  const exits = goal.kind === 'escape' || goal.kind === 'gather' || goal.kind === 'escort' ? goal.exits : [];
+  const boxes = view.boxes ?? [];
   const isThrone = (at: Point | null | undefined) => !!throne && !!at && at[0] === throne[0] && at[1] === throne[1];
   const throneTag = !!throne && !(ghostElsewhere && isThrone(ghost?.at))
     && (isThrone(hover) || (!!selected && selected.side === 'player' && !!selected.boss));
@@ -132,6 +134,10 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
           {settings.grid && <div className="gridlines" />}
           {overlays?.path && <PathArrow path={overlays.path} cell={cell} width={width} height={height} />}
           {throne && <span className="throne-mark" style={{ left: throne[0] * cell, top: throne[1] * cell }} aria-hidden="true" />}
+          {exits.map(([x, y], i) => <span key={`exit-${i}`} className="throne-mark" style={{ left: x * cell, top: y * cell }} aria-hidden="true" />)}
+          {boxes.map(([x, y], i) => (
+            <span key={`box-${i}`} aria-hidden="true" style={{ position: 'absolute', left: x * cell + cell / 4, top: y * cell + cell / 4, width: cell / 2, height: cell / 2, background: '#C08A3A', border: '2px solid #2B2421', borderRadius: 3, boxSizing: 'border-box' }} />
+          ))}
           <UnitLayer view={view} cell={cell} selected={selectedId} ghostElsewhere={ghostElsewhere} fading={snap.fading} />
           {ghost && ghostElsewhere && <Ghost unit={ghost.unit} at={ghost.at} cell={cell} />}
           {ghost && ghostElsewhere && !target && mode.kind !== 'move' && <MapTag at={ghost.at} cell={cell} view={view} className="mt-brass">预览落点</MapTag>}

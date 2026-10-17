@@ -32,6 +32,9 @@ export function Legend({ snap, ctl }: { snap: Snapshot; ctl: BattleController })
       <span className="lg"><span className="acted-mark" style={{ position: 'static', width: 16, height: 16, boxShadow: 'none' }}>✓</span>已行动</span>
       <span className="lg"><span className="relative inline-block" style={{ width: 14, height: 18 }}><BossFlag size={14} /></span>敌方主将</span>
       {state.goal.kind === 'seize' && <span className="lg"><span className="throne-sw" aria-hidden="true" />王座：我方主将压制即胜</span>}
+      {(state.goal.kind === 'escape' || state.goal.kind === 'gather' || state.goal.kind === 'escort') && <span className="lg"><span className="throne-sw" aria-hidden="true" />撤离点：站上去即可撤离</span>}
+      {state.goal.kind === 'gather' && <span className="lg">物资箱：拾取并带出才算带回</span>}
+      {state.goal.kind === 'escort' && <span className="lg">护卫对象：会自动走向撤离点，阵亡即败</span>}
       <span className="lg" style={{ color: '#6A6256' }}>底座：<b style={{ color: '#34556B' }}>● 己方</b> · <b style={{ color: '#A84940' }}>◆ 敌方</b></span>
       <span className="ml-auto flex flex-wrap items-center gap-2">
         <button type="button" className="toggle" aria-pressed={settings.threat} onClick={() => ctl.setSetting('threat', !settings.threat)}>

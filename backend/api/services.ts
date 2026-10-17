@@ -196,7 +196,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   for (const battleUnit of record.state.units.filter(u => u.side === 'player')) {
     const unit = units.find(u => u.id === battleUnit.id);
     if (!unit) continue;
-    if (battleUnit.alive) {
+    if (battleUnit.alive || battleUnit.escaped) {
       if (record.kind === 'field') {
         unit.level = battleUnit.level;
         unit.exp = battleUnit.exp;
