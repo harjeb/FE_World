@@ -99,3 +99,13 @@ test('every class carries a level-1 base and con derived from its route', () => 
   assert.ok(CLASSES.swordsman.base.skl > CLASSES.commoner.base.skl);
   assert.ok(CLASSES.knight.base.def > CLASSES.swordsman.base.def, '重甲路线基础防御更高');
 });
+
+test('a unit created in a promoted class scales from that class base, not the character base', () => {
+  const lv1 = createUnit('erin', 1, 'y', 0, true, { classId: 'swordmaster' });
+  const lv20 = createUnit('erin', 20, 'x', 0, true, { classId: 'swordmaster' });
+  assert.equal(lv1.con, CLASSES.swordmaster.con, '体格取职业');
+  for (const key of Object.keys(lv1.stats) as (keyof typeof lv1.stats)[]) {
+    assert.equal(lv1.stats[key], CLASSES.swordmaster.base[key], `${key} 1 级等于上级职业基础值`);
+    assert.ok(lv20.stats[key] >= lv1.stats[key], `${key} 等级越高不低于 1 级`);
+  }
+});

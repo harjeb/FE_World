@@ -152,15 +152,19 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
   const growthType = opts.growthType ?? def.growthType;
   const age = opts.age ?? def.age;
   const species: UnitRecord['species'] = cls.route === 'beast' || cls.route === 'dragon' ? cls.route : 'human';
-  // 自捏主角可传入自定的 1 级基础值与个人成长向量（opts.base / opts.personalGrowth），其余单位用角色表默认。
+  // 自捏主角可传入自定的 1 级基础值与个人成长向量（opts.base / opts.personalGrowth）。
+  // 指定职业（opts.classId）时用该职业的 1 级基础值与体格，从 1 级推导，包括上级职业；
+  // 不指定则用角色表默认（有名有姓的预设角色保留手写 base）。
+  const classBased = opts.base !== undefined || opts.classId !== undefined;
   const personal = opts.personalGrowth ?? def.growth;
-  const base = opts.base ?? def.base;
+  const base = opts.base ?? (classBased ? cls.base : def.base);
+  const baseLevel = classBased ? 1 : def.level;
   const rates = applyGrowthBonus(Object.fromEntries(STAT_KEYS.map(key => [key, Math.max(0, personal[key] + cls.growth[key])])) as Stats, growthType, age);
   const stats = {} as Stats;
   for (const key of STAT_KEYS) {
     const rate = rates[key];
     stats[key] = expected
-      ? Math.min(cls.caps[key], base[key] + Math.floor(rate * Math.max(0, level - def.level) / 100))
+      ? Math.min(cls.caps[key], base[key] + Math.floor(rate * Math.max(0, level - baseLevel) / 100))
       : base[key];
   }
   const startingWeapons = (Object.keys(cls.weapons) as WeaponType[]).flatMap(type => {
@@ -170,7 +174,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
   const kit = opts.classId ? { weapons: startingWeapons,
     ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character];
   return {
-    id, character, classId, species, level, exp: 0, stats, con: def.con, hp: stats.hp,
+    id, character, classId, species, level, exp: 0, stats, con: classBased ? cls.con : def.con, hp: stats.hp,
     weapons: [...kit.weapons], items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
     ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,

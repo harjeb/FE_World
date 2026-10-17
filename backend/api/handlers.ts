@@ -1565,7 +1565,6 @@ const handlers: Record<number, Handler> = {
     // 1 级基础值随机（以职业 1 级基础值 + 个人成长率折算），再按成长率推导到起始等级的收益。
     const base = rollProtagonistBase(CLASSES[cls.classId].base, tendency.growth, seedRng(`protagonist:${ctx.player.id}`));
     const hero = createUnit(cls.character, level, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType, age: 16, base, personalGrowth: tendency.growth });
-    hero.con = CLASSES[cls.classId].con;
     hero.name = name;
     hero.sex = sex;
     hero.portrait = portrait;
