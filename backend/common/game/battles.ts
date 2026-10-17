@@ -111,14 +111,21 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const name = quest ? `${region.name} · ${quest.name}`
     : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
   const exit = map.objective.position;
-  const goal: BattleState['goal'] = quest
-    ? quest.kind === 'seize' ? { kind: 'seize', throne: exit }
-      : quest.kind === 'defend' ? { kind: 'defend', turns: quest.turnLimit }
-        : quest.kind === 'escape' ? { kind: 'escape', exits: [exit], need: quest.need ?? 1 }
-          : quest.kind === 'gather' ? { kind: 'gather', exits: [exit], need: quest.need ?? 1 }
-            : quest.kind === 'escort' ? { kind: 'escort', exits: [exit], npc: 'npc0' }
-              : { kind: 'rout' }
-    : { kind: 'boss', target: 'e0' };
+  // 连续副本每图目标不同（docs/00 §8.1.3）：探路压制、消耗战全灭、首领战斩首。
+  const dungeonGoal: BattleState['goal'] =
+    stage === 0 ? { kind: 'seize', throne: exit }
+      : stage === 1 ? { kind: 'rout' }
+        : { kind: 'boss', target: 'e0' };
+  const goal: BattleState['goal'] = dungeon
+    ? dungeonGoal
+    : quest
+      ? quest.kind === 'seize' ? { kind: 'seize', throne: exit }
+        : quest.kind === 'defend' ? { kind: 'defend', turns: quest.turnLimit }
+          : quest.kind === 'escape' ? { kind: 'escape', exits: [exit], need: quest.need ?? 1 }
+            : quest.kind === 'gather' ? { kind: 'gather', exits: [exit], need: quest.need ?? 1 }
+              : quest.kind === 'escort' ? { kind: 'escort', exits: [exit], npc: 'npc0' }
+                : { kind: 'rout' }
+      : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
     engineVersion: 1, id: `field-${options.seed}-${stage}`, kind: 'field', name,
     map: { width: tiles[0].length, height: tiles.length, tiles },
@@ -130,7 +137,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
     costDays: quest ? QUEST_DAY_COST[quest.tier] : ACTION_DAYS.sortie,
-    goalText: quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
+    goalText: dungeon ? (stage === 0 ? '压制指定地点' : stage === 1 ? '消灭全部敌军' : '击败敌方主将') : quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
     createdAt: Date.now(), updatedAt: Date.now(),
   };
 }

@@ -73,6 +73,13 @@ export const QUEST_REGIONS = [2, 3, 5];
 // 剧情奖励人物（地区远征）：开局自选同伴时排除，避免与奖励重复。
 export const QUEST_RECRUITS: CharacterId[] = QUESTS.flatMap(q => (q.recruit ? [q.recruit] : []));
 
+// 固定人物加入时的台词（docs/20 §5）。
+export const RECRUIT_LINES: Partial<Record<CharacterId, string>> = {
+  ren: '「我的剑从今往后听你调遣。」',
+  ig: '「有仗打就叫我，别的不必多说。」',
+  mira: '「愿我的祈祷护住你们每一个人。」',
+};
+
 // 任务是否可接：前置任务已完成，且当地声望达标（docs/20 §4）。
 export function questAvailable(quest: Quest, state: { done: ReadonlySet<string>; reputation: number }): boolean {
   if (state.done.has(quest.id)) return false;

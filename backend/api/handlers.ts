@@ -39,7 +39,7 @@ import { withCharm } from '../common/data/types.ts';
 import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
-import { QUEST_DAY_COST, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS } from '../common/game/quests.ts';
+import { QUEST_DAY_COST, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
 import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { reputationTier } from '../common/game/reputation.ts';
 
@@ -1503,7 +1503,7 @@ const handlers: Record<number, Handler> = {
     }
     ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'quest-reward' });
-    return { questId: quest.id, gold: quest.reward.gold, items: quest.reward.items ?? [], recruited, reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
+    return { questId: quest.id, gold: quest.reward.gold, items: quest.reward.items ?? [], recruited, recruitLine: quest.recruit ? RECRUIT_LINES[quest.recruit] ?? null : null, reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
   },
 
   [OP.BUY_QUEST_ITEM]: (ctx, data) => {

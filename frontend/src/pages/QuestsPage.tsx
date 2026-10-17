@@ -37,8 +37,8 @@ export function QuestsPage() {
     return q.name;
   }, name => `开始任务「${name}」，进入战斗。`);
 
-  const claim = (q: QuestView) => act(`c${q.id}`, () => session.run<{ gold: number; reputation: { after: number; tier: { name: string } }; recruited?: { name: string }[] }>(OP.CLAIM_QUEST_REWARD, { questId: q.id }),
-    r => `领取「${q.name}」：金币 +${r.gold}，声望 ${r.reputation.after}（${r.reputation.tier.name}）${r.recruited?.length ? `，${r.recruited.map(u => u.name).join('、')} 加入名册` : ''}`);
+  const claim = (q: QuestView) => act(`c${q.id}`, () => session.run<{ gold: number; reputation: { after: number; tier: { name: string } }; recruited?: { name: string }[]; recruitLine?: string | null }>(OP.CLAIM_QUEST_REWARD, { questId: q.id }),
+    r => `领取「${q.name}」：金币 +${r.gold}，声望 ${r.reputation.after}（${r.reputation.tier.name}）${r.recruited?.length ? `，${r.recruited.map(u => u.name).join('、')} 加入名册` : ''}${r.recruitLine ? ` ${r.recruitLine}` : ''}`);
 
   const buy = (region: number, item: string) => act(`b${region}-${item}`, () => session.run<{ name: string; price: number }>(OP.BUY_QUEST_ITEM, { region, item }),
     r => `购买 ${r.name}（-${r.price} 金币）`);
@@ -49,7 +49,7 @@ export function QuestsPage() {
         <div>
           <div className="eyebrow">地区任务 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>地区任务与声望</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>短任务 4 日、标准任务 8 日。胜利后任务标记完成，金币、物资与声望分开领取；声望永久保留，不因购买扣除。</p>
+          <p style={{ fontSize: 14, color: '#4E473D' }}>短任务 1 日、标准任务 2 日、地区远征每图 2 日（共 6 日）。胜利后任务标记完成，金币、物资与声望分开领取；声望永久保留，不因购买扣除。</p>
         </div>
       </div>
 

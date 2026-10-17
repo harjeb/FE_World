@@ -209,13 +209,16 @@ test('a region expedition runs three maps and only marks the quest done at the e
   const started = dispatch(ctx, OP.START_QUEST, { questId: 'gw6', unitIds: ids }) as { battleId: string; run: { stageIndex: number; state: string } };
   assert.equal(started.run.stageIndex, 0);
   assert.equal(player.day, day + 2, 'region expedition pays 2 days per map');
+  assert.equal(store.battle(player.id, started.battleId)!.state.goal.kind, 'seize', 'map 1 探路 = seize');
   assert.equal(playOut(ctx, started.battleId), 'player');
   assert.ok(!(player.flags.questsDone ?? []).includes('gw6'), 'stage one does not complete the quest');
   const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 4);
+  assert.equal(store.battle(player.id, second.battleId)!.state.goal.kind, 'rout', 'map 2 消耗战 = rout');
   assert.equal(playOut(ctx, second.battleId), 'player');
   const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 6);
+  assert.equal(store.battle(player.id, third.battleId)!.state.goal.kind, 'boss', 'map 3 首领战 = boss');
   assert.equal(playOut(ctx, third.battleId), 'player');
   assert.ok(player.flags.questsDone!.includes('gw6'), 'finishing all three maps completes the quest');
 });
