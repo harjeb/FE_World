@@ -1,6 +1,6 @@
 import { CLASS_GROWTH } from '../data/class-growth.ts';
 import type { GrowthRole } from '../data/class-growth.ts';
-import { canonicalClassId, initialClass } from '../data/classes.ts';
+import { canonicalClassId, CLASS_PATHS, initialClass } from '../data/classes.ts';
 import type { ClassId, ClassRoute } from '../data/classes.ts';
 import { STAT_KEYS } from '../data/types.ts';
 import type { StatKey, Stats } from '../data/types.ts';
@@ -80,6 +80,12 @@ export function regionRoutes(regionId: number): ClassRoute[] {
 export const RECRUIT_LEVEL_CAP = 30;
 export function recruitLevel(day: number): number {
   return Math.min(RECRUIT_LEVEL_CAP, 1 + Math.floor(Math.max(0, day) / 8));
+}
+// 招募职业阶段（用户定案「上级也允许」）：等级越高越可能拿到上级职业。
+// Lv1–9 初级、10–19 二级、20–29 三级、30+ 四级，取该路线第一条进阶链。
+export function recruitClass(route: ClassRoute, level: number): ClassId {
+  const path = CLASS_PATHS[route][0];
+  return path[Math.min(path.length - 1, Math.floor(Math.max(0, level) / 10))];
 }
 // 酒馆解锁（用户定案「第二年」）：一年 120 天。注意演示存档 SEED_DAY=209 已在第二年，
 // 对新演示账号等于开局就解锁；正式开局按个人日历走。

@@ -15,6 +15,7 @@ import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
 import { createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
+import { recruitClass } from '../common/game/random-recruit.ts';
 import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { promotionsFor } from '../common/data/promotions.ts';
@@ -382,8 +383,9 @@ const handlers: Record<number, Handler> = {
     const growthType = rollGrowthType(traits[0] % 100);
     const remainingYears = Math.max(0, MAINLINE_YEARS - (dateOf(ctx.player.day).year - 1));
     const age = rollRecruitAge(growthType, remainingYears, traits[1]);
-    const unit = createUnit(character, level, `u_${character}_${ctx.player.day}`, ctx.player.day, true, { growthType, age,
-      classId: initialClass((Object.keys(CLASS_PATHS) as (keyof typeof CLASS_PATHS)[])[regionById(region).id - 1]) });
+    // 等级决定职业阶段：Lv1–9 初级、10–19 二级、20–29 三级、30+ 四级（上级职业同样允许）。
+    const route = (Object.keys(CLASS_PATHS) as (keyof typeof CLASS_PATHS)[])[regionById(region).id - 1];
+    const unit = createUnit(character, level, `u_${character}_${ctx.player.day}`, ctx.player.day, true, { growthType, age, classId: recruitClass(route, level) });
     ctx.store.addUnit(ctx.player.id, unit);
     syncPlayer(ctx.store, ctx.player);
     ctx.store.addEvent(ctx.player.id, 'recruit', `在 ${regionById(region).name} 遇到 ${CHARACTERS[character].name}（Lv${level}，${GROWTH_TYPE_NAMES[growthType]}，${age} 岁）。`, { unit: unit.id });

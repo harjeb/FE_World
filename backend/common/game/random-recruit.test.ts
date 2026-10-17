@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CLASS_GROWTH } from '../data/class-growth.ts';
-import { initialClass } from '../data/classes.ts';
+import { CLASSES, initialClass } from '../data/classes.ts';
 import { STAT_KEYS } from '../data/types.ts';
 import { seedRng } from '../engine/rng.ts';
-import { RECRUIT_GROWTH_CAP, RECRUIT_UNLOCK_DAY, generateRecruit, recruitLevel, regionRoutes, rollPersonalGrowth } from './random-recruit.ts';
+import { RECRUIT_GROWTH_CAP, RECRUIT_UNLOCK_DAY, generateRecruit, recruitClass, recruitLevel, regionRoutes, rollPersonalGrowth } from './random-recruit.ts';
 
 test('recruit generation is deterministic per seed', () => {
   assert.deepEqual(generateRecruit('abc'), generateRecruit('abc'));
@@ -86,4 +86,17 @@ test('recruit level ramps to 30 by the end of year two and then holds', () => {
   assert.equal(recruitLevel(240), 30);
   assert.equal(recruitLevel(5000), 30);
   assert.equal(RECRUIT_UNLOCK_DAY, 120);
+});
+
+test('recruit class follows level, allowing promoted classes', () => {
+  // 剑术第一条链：gladiator → swordsman → shido → swordmaster → blade
+  assert.equal(recruitClass('sword', 1), 'gladiator');
+  assert.equal(recruitClass('sword', 9), 'gladiator');
+  assert.equal(recruitClass('sword', 10), 'swordsman');
+  assert.equal(recruitClass('sword', 20), 'shido');
+  assert.equal(recruitClass('sword', 30), 'swordmaster');
+  assert.equal(recruitClass('sword', 99), 'blade');
+  // 短链封顶到末阶，不越界。
+  assert.equal(recruitClass('axe', 99), 'everlord');
+  assert.ok(CLASSES[recruitClass('sword', 30)].tier === 'promoted');
 });
