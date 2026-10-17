@@ -38,19 +38,18 @@ export type CharacterId = keyof typeof TABLE;
 export const CHARACTERS: Record<CharacterId, CharacterDef> = TABLE;
 export const CHARACTER_IDS = Object.keys(TABLE) as CharacterId[];
 
-// 自捏主角（docs/00 「神主角」、docs/13 §开局）：先选职业，职业自带 1 级基础数值与体格，
-// 再自定姓名、成长类型与培养倾向，并用固定预算分配九属性点。
-// base 顺序同 STAT_KEYS：HP/力/魔/技/速/运/防/魔防/魅力（首版数值，可校准）。
-export interface ProtagonistClass { classId: ClassId; name: string; character: CharacterId; con: number; base: Stats }
+// 自捏主角（docs/00 「神主角」、docs/13 §开局）：先选职业（数值取 CLASSES[classId].base/.con），
+// 再自定姓名、成长类型与培养倾向，并用固定预算分配九属性点。character 只作形象与技能锚点。
+export interface ProtagonistClass { classId: ClassId; name: string; character: CharacterId }
 export const PROTAGONIST_CLASSES: ProtagonistClass[] = [
-  { classId: 'swordsman', name: '剑士', character: 'erin', con: 6, base: stats(18, 5, 0, 7, 7, 4, 4, 2, 5) },
-  { classId: 'fighter', name: '战士', character: 'karl', con: 11, base: stats(22, 6, 0, 4, 4, 2, 4, 0, 5) },
-  { classId: 'cavalier', name: '骑兵', character: 'victor', con: 9, base: stats(21, 6, 0, 6, 6, 3, 7, 2, 5) },
-  { classId: 'archer', name: '弓手', character: 'owen', con: 7, base: stats(17, 5, 0, 7, 6, 3, 3, 1, 5) },
-  { classId: 'mage', name: '法师', character: 'sera', con: 4, base: stats(15, 0, 5, 4, 5, 3, 1, 4, 5) },
-  { classId: 'cleric', name: '僧侣', character: 'noah', con: 5, base: stats(15, 0, 4, 3, 5, 6, 1, 6, 5) },
-  { classId: 'pegasus', name: '天马骑士', character: 'lina', con: 5, base: stats(16, 4, 1, 6, 9, 6, 3, 6, 5) },
-  { classId: 'knight', name: '重甲骑士', character: 'gustav', con: 12, base: stats(24, 7, 0, 4, 2, 2, 11, 1, 5) },
+  { classId: 'swordsman', name: '剑士', character: 'erin' },
+  { classId: 'fighter', name: '战士', character: 'karl' },
+  { classId: 'cavalier', name: '骑兵', character: 'victor' },
+  { classId: 'archer', name: '弓手', character: 'owen' },
+  { classId: 'mage', name: '法师', character: 'sera' },
+  { classId: 'cleric', name: '僧侣', character: 'noah' },
+  { classId: 'pegasus', name: '天马骑士', character: 'lina' },
+  { classId: 'knight', name: '重甲骑士', character: 'gustav' },
 ];
 // 九属性分配预算：总计 18 点，单项 0–6（首版数值，docs/00 标注待校准）。
 export const PROTAGONIST_ALLOCATION_BUDGET = 18;

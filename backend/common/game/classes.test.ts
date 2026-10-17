@@ -89,3 +89,13 @@ test('dragon weapons use magic and resistance; race effectiveness excludes drago
   foe.classId = 'dragon_knight';
   assert.equal(forecast(state, me.id, me.pos, 'dragonslayer', foe.id).attacker.effective, false);
 });
+
+test('every class carries a level-1 base and con derived from its route', () => {
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    assert.ok(cls.base && cls.con > 0, `${id} has a base and con`);
+    for (const value of Object.values(cls.base)) assert.ok(Number.isInteger(value) && value >= 0, `${id} base is a non-negative integer`);
+  }
+  // 同路线、成长更高的职业基础值不低于成长更低的：剑客的技成长高于平民。
+  assert.ok(CLASSES.swordsman.base.skl > CLASSES.commoner.base.skl);
+  assert.ok(CLASSES.knight.base.def > CLASSES.swordsman.base.def, '重甲路线基础防御更高');
+});

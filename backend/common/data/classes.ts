@@ -1,7 +1,7 @@
 import { FW_CLASS_REFERENCE } from './class-reference.ts';
 import { CLASS_GROWTH } from './class-growth.ts';
 import type { GrowthVector } from './class-growth.ts';
-import { stats } from './types.ts';
+import { stats, STAT_KEYS } from './types.ts';
 import type { MoveType, Rank, Stats, WeaponType } from './types.ts';
 
 // Human routes suggest study paths; species routes are closed promotion chains.
@@ -28,6 +28,36 @@ export const ROUTE_NAMES: Record<ClassRoute, string> = {
   magic: '魔法', healing: '治疗', stealth: '潜行', fist: '格斗', beast: '兽人', dragon: '龙人',
 };
 export const CHARACTER_CAPS = stats(150, 99, 99, 99, 99, 99, 99, 99, 99);
+// 职业 1 级基础值设计（docs/00「神主角」）：每条路线一个底，再按职业成长率每 5 点加 1（成长可为负，负值不加）。
+// 顺序同 STAT_KEYS：HP/力/魔/技/速/运/防/魔防/魅力。首版数值，可校准。
+const ROUTE_BASE: Record<ClassRoute, Stats> = {
+  sword: stats(16, 4, 0, 6, 6, 3, 3, 1, 5),
+  axe: stats(18, 5, 0, 3, 3, 2, 4, 0, 5),
+  armor: stats(20, 5, 0, 3, 2, 2, 9, 1, 5),
+  cavalry: stats(17, 5, 0, 5, 5, 3, 6, 2, 5),
+  flying: stats(14, 3, 0, 5, 8, 5, 2, 5, 5),
+  bow: stats(15, 4, 0, 6, 5, 3, 2, 1, 5),
+  magic: stats(13, 0, 4, 3, 4, 3, 1, 4, 5),
+  healing: stats(13, 0, 3, 2, 4, 5, 1, 5, 5),
+  stealth: stats(14, 3, 0, 6, 7, 4, 2, 2, 5),
+  fist: stats(17, 4, 0, 5, 5, 3, 3, 2, 5),
+  beast: stats(18, 5, 0, 4, 5, 3, 4, 1, 3),
+  dragon: stats(20, 5, 3, 4, 4, 3, 6, 5, 3),
+};
+const ROUTE_CON: Record<ClassRoute, number> = {
+  sword: 6, axe: 11, armor: 12, cavalry: 9, flying: 5, bow: 7, magic: 4, healing: 5, stealth: 6, fist: 6, beast: 8, dragon: 9,
+};
+
+// 职业基础值 = 路线底 + 成长率加成。同一职业的所有单位共用（自捏主角再叠加个人随机与分配）。
+export function classBase(route: ClassRoute, growth: Stats): Stats {
+  const floor = ROUTE_BASE[route];
+  const out = {} as Stats;
+  for (const key of STAT_KEYS) out[key] = floor[key] + Math.max(0, Math.floor(growth[key] / 5));
+  return out;
+}
+export function classCon(route: ClassRoute): number {
+  return ROUTE_CON[route];
+}
 export interface ClassDef {
   name: string;
   tier: 'base' | 'promoted';
@@ -36,6 +66,9 @@ export interface ClassDef {
   moveType: MoveType;
   move: number;
   armored: boolean;
+  // 该职业 1 级基础数值与体格（自捏主角用）：按路线给底，再按职业成长率加成。
+  base: Stats;
+  con: number;
   // S is the current global rank ceiling, not a rank granted by changing class.
   weapons: Partial<Record<WeaponType, Rank>>;
   studies: readonly ClassStudy[];
@@ -144,6 +177,7 @@ for (const ref of FW_CLASS_REFERENCE) {
     name: ref.name, tier: ref.stage <= 2 ? 'base' : 'promoted', stage: ref.stage,
     route: REFERENCE_ROUTES[ref.id], moveType: ref.moveType, move: ref.move, armored: ref.armored,
     weapons: access(types), studies: ref.skills, trainingBonus: {}, growth: classGrowth(ref.id),
+    base: classBase(REFERENCE_ROUTES[ref.id], classGrowth(ref.id)), con: classCon(REFERENCE_ROUTES[ref.id]),
     caps: { ...CHARACTER_CAPS }, maxLevel: 99, source: 'fortunes-weave',
     sourceUrl: 'https://fire-emblem-fw.site/classes.html#' + ref.referenceId,
     referenceGrowth: ref.growth, pendingMechanics: PENDING_MECHANICS[ref.id] ?? [],
@@ -153,7 +187,7 @@ for (const [id, extra] of Object.entries(EXTRA_CLASSES) as [keyof typeof EXTRA_C
   CLASSES[id] = {
     ...extra, tier: extra.stage <= 2 ? 'base' : 'promoted', armored: extra.armored ?? false,
     weapons: access(extra.weapons), studies: [], trainingBonus: {}, pendingMechanics: [],
-    growth: classGrowth(id), caps: { ...CHARACTER_CAPS }, maxLevel: 99,
+    growth: classGrowth(id), base: classBase(extra.route, classGrowth(id)), con: classCon(extra.route), caps: { ...CHARACTER_CAPS }, maxLevel: 99,
   };
 }
 for (const [oldId, id] of Object.entries(CLASS_ALIASES) as [keyof typeof CLASS_ALIASES, CatalogClassId][]) {
