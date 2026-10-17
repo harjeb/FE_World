@@ -38,6 +38,8 @@
 | [16 职业成长测算](docs/16-class-growth-balance.md) | 原表对照、加强理由、八年培养试算与复现命令 |
 | **[17 职业成长调整方案（审阅版）](docs/17-class-growth-review.md)** | **九属性成长与合计、累计增幅及低阶力量+5方案** |
 | [18 酒馆小游戏草案](docs/18-tavern-minigames-draft.md) | 摇盅猜大小、青蛙赛跑及经济／后端候选，未实现 |
+| [19 经验与日期平衡](docs/19-experience-time-balance.md) | 前快后慢的培养目标、日期敌军、16主力与替补的年度预算 |
+| [20 地区任务与声望](docs/20-region-quests-reputation.md) | 占领、护送、资源撤离、地区声望与装备／人物解锁方案，待实现 |
 
 ## 服务端（API · Worker · Agent 协议）
 

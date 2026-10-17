@@ -11,7 +11,7 @@ import { CHARACTERS } from '../common/data/characters.ts';
 import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
-import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
+import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
 import { createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, rankFromExp, ROSTER_LIMIT, toSnapshot, useDrug } from '../common/game/model.ts';
@@ -261,7 +261,7 @@ const handlers: Record<number, Handler> = {
       ],
       sortieRegions: REGIONS.map(region => ({
         id: region.id, name: region.name, resource: region.resource,
-        cleared: cleared.includes(region.id), level: regionLevel(cleared.length, region.offset),
+        cleared: cleared.includes(region.id), level: enemyLevel(ctx.player.day, region.offset),
       })),
       festival: { open: date.dayOfMonth >= 28 || ctx.player.flags.festivalRound > 0, round: ctx.player.flags.festivalRound, costDays: ACTION_DAYS.festivalMatch },
       nextArenaDay: nextArenaDay(ctx.player.day),
@@ -285,9 +285,7 @@ const handlers: Record<number, Handler> = {
     if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
     // 种子由服务器生成，不采用客户端提交的 seed，避免预选随机结果 (docs/03)。
     const seed = randomUUID().slice(0, 8);
-    // 已通关地区使用首次通关时锁定的等级档，重打不追涨 (docs/00 §8.1.2)。
-    const lockedLevel = ctx.player.flags.firstClearLevel?.[region];
-    const record = createFieldBattle(ready, { region, cleared: ctx.player.flags.clearedRegions.length, seed, level: lockedLevel });
+    const record = createFieldBattle(ready, { region, cleared: ctx.player.flags.clearedRegions.length, day: ctx.player.day, seed });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.sortie;
     syncPlayer(ctx.store, ctx.player);
@@ -378,7 +376,7 @@ const handlers: Record<number, Handler> = {
     if (active.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
     const round = (ctx.player.flags.festivalRound ?? 0) + 1;
     const seed = randomUUID().slice(0, 8);
-    const record = createFestivalBattle(active, round, seed);
+    const record = createFestivalBattle(active, round, seed, { day: Math.floor(ctx.player.day / DAYS_PER_YEAR) * DAYS_PER_YEAR });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.festivalMatch;
     syncPlayer(ctx.store, ctx.player);
@@ -790,7 +788,7 @@ const handlers: Record<number, Handler> = {
     const ready = units.filter(u => u.status === 'active' && !u.lockedRunId && !u.lockedDispatchId);
     if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
     // 出发时锁定等级、名单与物品；只有实际创建 run 才锁配置（docs/13 §4.4）。
-    const level = regionLevel(ctx.player.flags.clearedRegions.length, regionById(region).offset);
+    const level = enemyLevel(ctx.player.day, regionById(region).offset);
     const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length);
     for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
     ctx.player.day += DUNGEON_STAGE_DAYS;
@@ -1320,7 +1318,7 @@ const handlers: Record<number, Handler> = {
     if (units.length === 0) throw new OpError('FORBIDDEN', '没有可出战的报名队员，只能退赛');
     const round = nextFestivalRound(entry);
     const seed = randomUUID().slice(0, 8);
-    const record = createFestivalBattle(units, round, seed, { annualId: entry.id, carry: entry.carry });
+    const record = createFestivalBattle(units, round, seed, { day: entry.annualIndex * DAYS_PER_YEAR, annualId: entry.id, carry: entry.carry });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.festivalMatch;
     syncPlayer(ctx.store, ctx.player);

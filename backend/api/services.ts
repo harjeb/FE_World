@@ -20,7 +20,7 @@ import { knockoutResult, qualifierResult } from '../common/game/annual.ts';
 import type { AnnualEntry } from '../common/game/annual.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
-import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, baseLevel, regionLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
+import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, enemyLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
 import { summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
@@ -248,7 +248,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     if (!player.flags.clearedRegions.includes(region.id)) {
       player.flags.clearedRegions.push(region.id);
       player.flags.firstClearLevel ??= {};
-      if (player.flags.firstClearLevel[region.id] === undefined) player.flags.firstClearLevel[region.id] = regionLevel(player.flags.clearedRegions.length - 1, region.offset);
+      if (player.flags.firstClearLevel[region.id] === undefined) player.flags.firstClearLevel[region.id] = record.initial.units.find(u => u.side === 'enemy')!.level;
       store.addEvent(player.id, 'region', `首次讨伐 ${region.name}（已讨伐 ${player.flags.clearedRegions.length} 个地区）。`, { region: region.id });
     }
     player.gold += rewards.gold;
@@ -510,7 +510,7 @@ export function stateView(store: Store, player: Player) {
     inventory: store.inventory(player.id).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, uses: row.uses, count: row.count })),
     recoveryBag: (player.flags.recoveryBag ?? []).map(row => ({ item: row.item, name: GAME_ITEMS[row.item]?.name ?? row.item, uses: row.uses })),
     regions: REGIONS.map(region => ({ ...region, cleared: cleared.includes(region.id) })),
-    progress: { cleared: cleared.length, baseLevel: baseLevel(cleared.length) },
+    progress: { cleared: cleared.length, baseLevel: enemyLevel(player.day) },
     festival: { round: player.flags.festivalRound, year: player.flags.festivalYear, nextDay: (Math.floor(player.day / 120) + 1) * 120 },
     agentPlan: store.notes(player.id, 'plan')[0]?.text ?? null,
     agentLastSeen: player.flags.agentLastSeen ?? null,

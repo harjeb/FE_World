@@ -1,6 +1,6 @@
 import { CLASS_GROWTH } from '../data/class-growth.ts';
 import type { GrowthRole } from '../data/class-growth.ts';
-import { initialClass } from '../data/classes.ts';
+import { canonicalClassId, initialClass } from '../data/classes.ts';
 import type { ClassId, ClassRoute } from '../data/classes.ts';
 import { STAT_KEYS } from '../data/types.ts';
 import type { StatKey, Stats } from '../data/types.ts';
@@ -151,7 +151,7 @@ function pickClass(rng: RngState, species: RandomRecruit['species'], allowed: Cl
   if (species === 'dragon') return 'awakened';
   const human = allowed.filter(r => r !== 'beast' && r !== 'dragon');
   const table = ARCHETYPE_ROUTES
-    .map(a => ({ value: a.value.filter(r => human.includes(r)), weight: a.weight }))
+    .map(a => ({ value: a.value.filter(r => allowed.includes(r)), weight: a.weight }))
     .filter(a => a.value.length > 0);
   if (table.length === 0) return initialClass(human[0] ?? 'sword');
   const routes = pickWeighted(rng, table);
@@ -184,7 +184,7 @@ export function generateRecruit(seed: string, allowed: ClassRoute[] = ALL_ROUTES
   ];
   const species = raceTable.length ? pickWeighted(rng, raceTable) : 'human';
   const classId = pickClass(rng, species, allowed);
-  const role = CLASS_GROWTH[classId].role;
+  const role = CLASS_GROWTH[canonicalClassId(classId)].role;
   const sex = nextU32(rng) % 2 === 0 ? 'male' : 'female';
   const rolled = rollPersonalGrowth(role, rng);
   return { species, classId, role, sex, name: rollName(rng, species, sex), ...rolled };

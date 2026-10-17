@@ -101,17 +101,20 @@ test('withdrawing forfeits pending loot but keeps deaths and consumption', () =>
   for (const id of ids) assert.equal(store.unit(player.id, id)!.lockedRunId ?? null, null);
 });
 
-test('a cleared region replays at its first-clear level instead of the current formula', () => {
+test('a cleared region uses departure date rather than its historical first-clear level', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   // Pretend region 3 was first cleared at level 20.
   player.flags.clearedRegions = [1, 2, 3];
   player.flags.firstClearLevel = { 3: 20 };
+  player.day = 240;
   store.savePlayer(player);
+  const preview = dispatch(ctx, OP.GET_TODAY, {}) as { sortieRegions: { id: number; level: number }[] };
   const sortie = dispatch(ctx, OP.SORTIE, { region: 3, unitIds: ['u_erin', 'u_victor'] }) as { battleId: string };
   const battle = store.battle(player.id, sortie.battleId)!;
   const enemy = battle.state.units.find(u => u.side === 'enemy')!;
-  assert.equal(enemy.level, 20, 'replay keeps the locked level');
+  assert.equal(enemy.level, 36, 'day 240 base 35 plus region offset 1');
+  assert.equal(preview.sortieRegions.find(r => r.id === 3)!.level, enemy.level);
 });
 
 test('a second dungeon cannot start while one is active', () => {

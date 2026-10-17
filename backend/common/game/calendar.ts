@@ -71,7 +71,19 @@ export const REGIONS: RegionDef[] = [
   { id: 12, name: '天门', offset: 2, resource: '轮回线索' },
 ];
 
-// docs/00 §8.1.2: base grows with the number of cleared regions, never with the party's level.
+// 各年末培养目标：前期快、后期慢；敌军按日期插值，不读取队伍等级。
+export const ENEMY_YEAR_LEVELS = [1, 20, 35, 47, 57, 66, 74, 81, 87] as const;
+export function enemyLevel(day: number, offset = 0): number {
+  const elapsed = Math.max(0, day) / DAYS_PER_YEAR;
+  const year = Math.floor(elapsed);
+  const last = ENEMY_YEAR_LEVELS.length - 1;
+  const level = year >= last
+    ? ENEMY_YEAR_LEVELS[last] + Math.floor((elapsed - last) * 4)
+    : ENEMY_YEAR_LEVELS[year] + Math.floor((ENEMY_YEAR_LEVELS[year + 1] - ENEMY_YEAR_LEVELS[year]) * (elapsed - year));
+  return Math.max(1, Math.min(95, level + offset));
+}
+
+// 保留旧的讨伐数曲线供资源与旧招募使用，不再决定敌军等级。
 export function baseLevel(cleared: number): number {
   return Math.min(93, 5 + 8 * cleared);
 }

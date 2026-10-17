@@ -14,7 +14,7 @@ import type { CharacterId } from '../data/characters.ts';
 import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
 import { createEnemy, pickClasses } from './enemies.ts';
-import { encounterLevel, regionById } from './calendar.ts';
+import { enemyLevel, regionById } from './calendar.ts';
 
 export interface BattleRecord {
   id: string;
@@ -56,10 +56,11 @@ export const FIELD_BATTLE = { maxUnits: 8, turnLimit: 20, goalText: '击败敌�
 export interface FieldBattleOptions {
   region: number;
   cleared: number;
+  day?: number;
   seed: string;
   width?: number;
   height?: number;
-  // 锁定的敌人等级；省略时按当前讨伐数计算。连续副本三张图共用出发时的等级（docs/13 §4.3）。
+  // 省略时按出发日期计算；连续副本三张图共用出发时的等级。
   level?: number;
   // 连续副本的图号与跨图携带状态（HP、物品、武器）。
   stageIndex?: number;
@@ -69,13 +70,13 @@ export interface FieldBattleOptions {
 
 const DUNGEON_STAGE_NAMES = ['探路', '消耗战', '首领战'];
 
-// A random encounter (docs/00 §8.1.2): level locked from the cleared-region count before the fight.
+// A random encounter: level locked from the departure date before the fight.
 // 连续副本复用同一函数，只是等级、图名和跨图携带不同（docs/00 §8.1.3）。
 export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptions): BattleRecord {
   const region = regionById(options.region);
   const dungeon = options.stageIndex !== undefined;
   const stage = options.stageIndex ?? 0;
-  const base = options.level ?? encounterLevel(options.cleared, region.offset, 0);
+  const base = options.level ?? enemyLevel(options.day ?? 0, region.offset);
   const level = dungeon ? Math.min(99, base + stage * 2) : base;
   const theme = REGION_THEMES[(options.region - 1) % REGION_THEMES.length];
   const count = Math.max(1, Math.min(FIELD_BATTLE.maxUnits, units.length));
@@ -118,9 +119,9 @@ export function festivalMapId(round: number): ArenaMapId {
   return round <= 3 ? 'plains' : round <= 5 ? 'pass' : round <= 7 ? 'woods' : 'castle';
 }
 
-export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { annualId?: string; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
+export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; annualId?: string; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
   const map = ARENA_MAPS[festivalMapId(round)];
-  const level = 12 + round * 4;
+  const level = Math.min(99, enemyLevel(opts.day ?? 0) + Math.floor((round - 1) / 2));
   const tiles = tilesFromGlyphs(map.rows);
   const count = Math.max(1, Math.min(units.length, map.deploy));
   const playerUnits = units.slice(0, count).map((u, i) => {

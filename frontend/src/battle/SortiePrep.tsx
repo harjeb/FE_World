@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { baseLevel } from '@common/game/calendar.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { portraitFor, spriteFor } from '../assets.ts';
@@ -63,7 +62,6 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   const target = today.sortieRegions.find(r => r.id === region) ?? today.sortieRegions[0];
   const picked = active.filter(u => team.includes(u.id));
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
-  const step = baseLevel(cleared + 1) - baseLevel(cleared);
   const top = Math.max(0, ...picked.map(u => u.level));
   const avg = picked.length > 0 ? Math.round(picked.reduce((sum, u) => sum + u.level, 0) / picked.length) : 0;
   const lead = active.find(u => u.character === state.player.protagonist);
@@ -99,7 +97,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
                 </button>
               ))}
             </div>
-            <p className="pfoot">首次在未讨伐的地区获胜即讨伐该地区；每多讨伐一个地区，各地区敌人等级 +{step}。</p>
+            <p className="pfoot">首次获胜解锁地区。敌军按出发日期成长，前期快、后期慢：第一年结束约20级；同一场战斗内等级不变。</p>
           </section>
 
           <section className="panel" aria-labelledby="tm-h">

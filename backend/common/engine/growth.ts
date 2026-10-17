@@ -7,9 +7,13 @@ import { classOf, effectiveLevel } from './units.ts';
 import type { BattleEvent, BattleState, UnitState } from './types.ts';
 
 // docs/03「经验」. Δ = foe effective level − own effective level.
+export const OVERLEVEL_EXP_GAP = 5;
+
 export function combatExp(unit: UnitState, foe: UnitState, dealtDamage: boolean, killed: boolean): number {
-  if (!dealtDamage && !killed) return 1;
+  if (!dealtDamage && !killed) return 0;
   const delta = effectiveLevel(foe) - effectiveLevel(unit);
+  // 包括首领击杀在内，总经验只给1点，不能在降档后再叠击杀奖励。
+  if (delta <= -OVERLEVEL_EXP_GAP) return 1;
   let exp = Math.max(1, Math.floor((31 + delta) / 3));
   if (killed) exp += Math.max(0, 20 + delta * 3) + (foe.boss ? 40 : 0);
   return Math.min(100, exp);

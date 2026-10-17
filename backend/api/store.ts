@@ -18,7 +18,7 @@ import { isArenaDay } from '../common/game/calendar.ts';
 
 export interface PlayerFlags {
   clearedRegions: number[];
-  // 每个地区首次通关时锁定的敌人等级（docs/00 §8.1.2）：重打不追涨。
+  // 历史首次通关等级记录；新出征按日期计算，不再用此值锁重打难度。
   firstClearLevel?: Record<number, number>;
   shopMonth: number;
   festivalRound: number;
