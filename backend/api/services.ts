@@ -539,7 +539,7 @@ export function stateView(store: Store, player: Player) {
       pool: companionPool().map(id => ({ id, name: CHARACTERS[id].name, classId: CHARACTERS[id].classId, level: DEMO_LEVEL[id] ?? CHARACTERS[id].level })),
       chosen: player.flags.companions ?? null,
       protagonist: {
-        classes: PROTAGONIST_CLASSES.map(c => ({ classId: c.classId, name: c.name, base: c.base })),
+        classes: PROTAGONIST_CLASSES.map(c => ({ classId: c.classId, name: c.name, character: c.character, con: c.con })),
         tendencies: Object.entries(PROTAGONIST_TENDENCIES).map(([id, t]) => ({ id, name: t.name })),
         portraits: CHARACTER_IDS.map(id => ({ id, name: CHARACTERS[id].name })),
         budget: PROTAGONIST_ALLOCATION_BUDGET,

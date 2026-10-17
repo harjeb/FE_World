@@ -1537,7 +1537,7 @@ const handlers: Record<number, Handler> = {
     const tendencyKey = asString(p.tendency, 'protagonist.tendency');
     const tendency = PROTAGONIST_TENDENCIES[tendencyKey];
     if (!tendency) throw new OpError('BAD_REQUEST', '培养倾向不合法');
-    const portrait = (p.portrait === undefined ? cls.base : asString(p.portrait, 'protagonist.portrait')) as CharacterId;
+    const portrait = (p.portrait === undefined ? cls.character : asString(p.portrait, 'protagonist.portrait')) as CharacterId;
     if (!CHARACTER_IDS.includes(portrait)) throw new OpError('BAD_REQUEST', '形象预设不合法');
     const allocation = (p.allocation ?? {}) as Record<string, unknown>;
     let spent = 0;
@@ -1554,17 +1554,18 @@ const handlers: Record<number, Handler> = {
     const ids = raw.map(value => asString(value, 'companions'));
     if (ids.length !== 2) throw new OpError('BAD_REQUEST', '必须正好选择 2 名同伴');
     if (new Set(ids).size !== 2) throw new OpError('BAD_REQUEST', '两名同伴不能重复');
-    const pool = startingCompanionPool(cls.base);
+    const pool = startingCompanionPool(cls.character);
     for (const id of ids) {
       if (!pool.includes(id as CharacterId)) throw new OpError('FORBIDDEN', `${id} 不能作为开局同伴`);
     }
     // 先移除占位主角，再建自捏主角与同伴（同一请求内一次写入）。
     const placeholder = ctx.store.units(ctx.player.id).find(u => u.isProtagonist);
     if (placeholder) ctx.store.removeUnit(ctx.player.id, placeholder.id);
-    const level = DEMO_LEVEL[cls.base] ?? 1;
-    // 1 级基础值随机（以职业 1 级最低值 + 个人成长率折算），固定等级用成长率推导升级收益。
-    const base = rollProtagonistBase(CHARACTERS[cls.base].base, tendency.growth, seedRng(`protagonist:${ctx.player.id}`));
-    const hero = createUnit(cls.base, level, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType, age: 16, base, personalGrowth: tendency.growth });
+    const level = DEMO_LEVEL[cls.character] ?? 1;
+    // 1 级基础值随机（以职业 1 级基础值 + 个人成长率折算），再按成长率推导到起始等级的收益。
+    const base = rollProtagonistBase(cls.base, tendency.growth, seedRng(`protagonist:${ctx.player.id}`));
+    const hero = createUnit(cls.character, level, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType, age: 16, base, personalGrowth: tendency.growth });
+    hero.con = cls.con;
     hero.name = name;
     hero.sex = sex;
     hero.portrait = portrait;
@@ -1579,7 +1580,7 @@ const handlers: Record<number, Handler> = {
     for (const id of ids) {
       ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, DEMO_LEVEL[id] ?? CHARACTERS[id as CharacterId].level, `u_${id}`, ctx.player.day, true));
     }
-    ctx.player.protagonist = cls.base;
+    ctx.player.protagonist = cls.character;
     ctx.player.flags.companions = ids as CharacterId[];
     ctx.player.flags.setupCompleted = true;
     ctx.store.savePlayer(ctx.player);

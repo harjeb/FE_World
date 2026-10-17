@@ -76,7 +76,7 @@ export interface ServerState {
     pool: { id: string; name: string; classId: string; level: number }[];
     chosen: string[] | null;
     protagonist: {
-      classes: { classId: string; name: string; base: string }[];
+      classes: { classId: string; name: string; character: string; con: number }[];
       tendencies: { id: string; name: string }[];
       portraits: { id: string; name: string }[];
       budget: number;

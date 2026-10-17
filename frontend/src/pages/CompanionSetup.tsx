@@ -27,7 +27,7 @@ export function CompanionSetup() {
 
   const opts = state.setup.protagonist;
   const cls = opts.classes.find(c => c.classId === classId) ?? opts.classes[0];
-  const chosenPortrait = portrait || cls.base;
+  const chosenPortrait = portrait || cls.character;
   const used = STAT_KEYS.reduce((sum, k) => sum + alloc[k], 0);
   const bump = (k: StatKey, d: number) => setAlloc(a => {
     const next = Math.max(0, Math.min(opts.maxPerStat, a[k] + d));
@@ -35,10 +35,10 @@ export function CompanionSetup() {
   });
   const changeClass = (id: string) => {
     setClassId(id);
-    const base = opts.classes.find(c => c.classId === id)?.base;
+    const base = opts.classes.find(c => c.classId === id)?.character;
     if (base) setPicked(p => p.filter(x => x !== base));
   };
-  const pool = state.setup.pool.filter(c => c.id !== cls.base);
+  const pool = state.setup.pool.filter(c => c.id !== cls.character);
   const toggle = (id: string) => setPicked(cur => (cur.includes(id) ? cur.filter(x => x !== id) : cur.length < 2 ? [...cur, id] : cur));
   const trimmed = name.trim();
   const ready = trimmed.length >= 2 && trimmed.length <= 12 && picked.length === 2;
