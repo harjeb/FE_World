@@ -68,6 +68,8 @@ export interface ServerState {
   festival: { round: number; year: number; nextDay: number };
   agentPlan: string | null;
   agentLastSeen: number | null;
+  // 开局自选同伴：新账号只发主角，needed 为 true 时要先选两名同伴（docs/20 §5.1）。
+  setup: { needed: boolean; pool: { id: string; name: string; classId: string; level: number }[]; chosen: string[] | null };
 }
 
 export interface ServerOpponent {
@@ -348,6 +350,11 @@ class SessionStore {
 
   async setDefense(defense: Defense): Promise<void> {
     await this.run(OP.SET_DEFENSE, { defense });
+  }
+
+  // 开局自选两名同伴；只能选一次。
+  async chooseCompanions(characters: string[]): Promise<{ companions: string[] }> {
+    return this.run<{ companions: string[] }>(OP.CHOOSE_COMPANIONS, { characters });
   }
 
   // ---- replays -----------------------------------------------------------

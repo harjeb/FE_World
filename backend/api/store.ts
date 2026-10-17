@@ -5,6 +5,7 @@ import type { ItemKey } from '../common/game/items.ts';
 import { SHOP_STOCK } from '../common/game/items.ts';
 import { createUnit, normalizeUnit } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
+import type { CharacterId } from '../common/data/characters.ts';
 import type { LegacyRecord } from '../common/game/legacy.ts';
 import { normalizeLegacy } from '../common/game/legacy.ts';
 import type { ProductionOrder } from '../common/game/production.ts';
@@ -35,6 +36,8 @@ export interface PlayerFlags {
   questsDone?: string[];
   questRewardsClaimed?: string[];
   regionReputation?: Record<number, number>;
+  // 开局自选的两名同伴（docs/20 §5.1）：未设置表示还没选；选过之后即使减员也不再要求重选。
+  companions?: CharacterId[];
   // 紧急补员：上次领取时的战死人数，防止一次损失重复领取（docs/00 §3.3）。
   emergencyClaimed?: number;
   // 最近一次 Agent 连接上报时间 (docs/06)，用于区分在线/离线。
@@ -75,6 +78,9 @@ const SEED_LEVELS: [string, number][] = [
   ['erin', 11], ['victor', 11], ['gustav', 10], ['lina', 10], ['owen', 10], ['noah', 9],
   ['karl', 9], ['sera', 9], ['ren', 9], ['roland', 9], ['ig', 8], ['mira', 8],
 ];
+// 演示等级表：开局主角与自选同伴按此等级加入，保证界面立即可玩。
+export const DEMO_LEVEL: Record<string, number> = Object.fromEntries(SEED_LEVELS);
+export const PROTAGONIST: CharacterId = 'erin';
 
 // The prototype's fixed moment: the arena day that ends game month 7 (docs/11「演示页面」). A new
 // player starts here with a trained roster so every screen is immediately playable.
@@ -136,17 +142,14 @@ export class Store {
   createPlayer(accountId: string, name: string, legion: string): Player {
     const id = randomUUID();
     const flags: PlayerFlags = { clearedRegions: [1, 2], shopMonth: Math.floor(SEED_DAY / 30), festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
-    const defense = this.seedDefense(id, legion);
     this.db.prepare(`INSERT INTO players
       (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, version, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, accountId, name, legion, SEED_DAY, SEED_GOLD, SEED_BEXP, 1317, 0, 1, 'erin', JSON.stringify(defense), JSON.stringify(flags), 0, Date.now());
-    let position = 0;
-    for (const [character, level] of SEED_LEVELS) {
-      const unit = createUnit(character as UnitRecord['character'], level, `u_${character}`, SEED_DAY, true);
-      if (character === 'erin') unit.isProtagonist = true;
-      this.saveUnit(unit, id, position++);
-    }
+      .run(id, accountId, name, legion, SEED_DAY, SEED_GOLD, SEED_BEXP, 1317, 0, 1, PROTAGONIST, JSON.stringify(null), JSON.stringify(flags), 0, Date.now());
+    // 开局只有主角一人；两名同伴由玩家在初始界面自选（docs/20 §5.1）。
+    const unit = createUnit(PROTAGONIST, DEMO_LEVEL[PROTAGONIST] ?? 1, `u_${PROTAGONIST}`, SEED_DAY, true);
+    unit.isProtagonist = true;
+    this.saveUnit(unit, id, 0);
     this.addInventory(id, 'vulnerary', 3, 5);
     this.addInventory(id, 'herb', 0, 6);
     this.addInventory(id, 'ore', 0, 4);
@@ -155,21 +158,6 @@ export class Store {
     this.refillShop(id, flags.shopMonth);
     this.addEvent(id, 'account', '军团建立：灰鸦军团。', {});
     return this.getPlayer(id)!;
-  }
-
-  private seedDefense(playerId: string, legion: string): Defense {
-    const levels: Record<string, number> = Object.fromEntries(SEED_LEVELS);
-    const at = (character: string, pos: [number, number], behavior: Defense['slots'][number]['behavior']) => ({
-      unit: toSnap(character, levels[character]), pos, behavior,
-    });
-    return {
-      id: `mine-${playerId}`, legion, points: 1317, record: '本季防守 8 胜 5 负', map: 'pass',
-      slots: [
-        at('victor', [14, 4], 'hold'), at('gustav', [13, 5], 'guard'), at('owen', [13, 3], 'opportunist'),
-        at('sera', [14, 6], 'opportunist'), at('noah', [15, 5], 'healer'), at('erin', [11, 6], 'aggressive'),
-      ],
-      commanders: ['victor', 'gustav'], bans: ['lina'],
-    };
   }
 
   getPlayer(id: string): Player | null {
@@ -656,11 +644,6 @@ function rowToPlayer(row: Record<string, unknown>): Player {
 }
 
 // Local snapshot helper for the seeded defense.
-function toSnap(character: string, level: number) {
-  const unit = createUnit(character as UnitRecord['character'], level, `seed-${character}`, SEED_DAY, true);
-  return { character: unit.character, classId: unit.classId, level: unit.level, stats: unit.stats, con: unit.con, weapons: unit.weapons, ranks: unit.ranks, items: unit.items };
-}
-
 export function isPlayerArenaDay(player: Player): boolean {
   return player.registered && isArenaDay(player.day);
 }

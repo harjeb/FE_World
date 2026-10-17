@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 import { loginOrRegister } from './auth.ts';
+import { seedFullRoster, seedDefense } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { applyBattleOutcome, syncPlayer, stateView } from './services.ts';
@@ -17,6 +18,8 @@ import type { Player } from './store.ts';
 function setup() {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'tester', undefined, '测试军团');
+  seedFullRoster(store, player);
+  seedDefense(store, player);
   return { store, accountId, player: syncPlayer(store, player) };
 }
 
@@ -54,6 +57,27 @@ test('a new account gets a playable seeded roster and state', () => {
   assert.equal((state.date as { label: string }).label.includes('竞技场日'), true);
   const roster = dispatch(ctx, OP.GET_ROSTER, {}) as { count: number };
   assert.equal(roster.count, 12);
+});
+
+test('a fresh account starts with only the protagonist and picks two companions once', () => {
+  const store = new Store(openDb(':memory:'));
+  const { accountId, player } = loginOrRegister(store, 'fresh', undefined, '新军团');
+  const ctx = ctxFor(store, accountId, player);
+  type View = { units: unknown[]; setup: { needed: boolean; pool: { id: string }[] } };
+  const fresh = stateView(store, player) as View;
+  assert.equal(fresh.units.length, 1);
+  assert.equal(fresh.setup.needed, true);
+  const pool = fresh.setup.pool.map(c => c.id);
+  assert.ok(pool.includes('victor'));
+  assert.ok(!pool.includes('erin'), '主角不能当同伴');
+  assert.ok(!pool.includes('ren'), '剧情奖励人物不能当同伴');
+  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor'] }), /2 名/);
+  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor', 'victor'] }), /重复/);
+  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor', 'ren'] }), /不能作为开局同伴/);
+  const chosen = dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor', 'lina'] }) as { companions: string[] };
+  assert.deepEqual(chosen.companions, ['victor', 'lina']);
+  assert.equal((stateView(store, player) as View).units.length, 3);
+  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['karl', 'owen'] }), /已经选过/);
 });
 
 test('catalog carries the static tables with a version', () => {

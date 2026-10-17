@@ -36,3 +36,4 @@ const TABLE = {
 } satisfies Record<string, CharacterDef>;
 export type CharacterId = keyof typeof TABLE;
 export const CHARACTERS: Record<CharacterId, CharacterDef> = TABLE;
+export const CHARACTER_IDS = Object.keys(TABLE) as CharacterId[];

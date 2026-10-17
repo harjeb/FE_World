@@ -10,6 +10,7 @@ import { DeployPage } from './arena/DeployPage.tsx';
 import { DungeonPage } from './battle/DungeonPage.tsx';
 import { FieldBattle } from './battle/FieldBattle.tsx';
 import { CampPage } from './pages/CampPage.tsx';
+import { CompanionSetup } from './pages/CompanionSetup.tsx';
 import { LegacyPage } from './pages/LegacyPage.tsx';
 import { PrepPage } from './pages/PrepPage.tsx';
 import { PromotePage } from './pages/PromotePage.tsx';
@@ -76,11 +77,12 @@ function Login() {
 }
 
 export default function App() {
-  const { ready, loading } = useSession();
+  const { ready, loading, state } = useSession();
   useEffect(() => {
     if (token() && !session.get().ready && !session.get().loading) void session.refresh();
   }, []);
   if (!ready) return <>{loading ? <div className="app-bg" style={{ padding: 24 }}>载入中…</div> : <Login />}</>;
+  if (state?.setup.needed) return <><CompanionSetup /><Toasts /></>;
   return (
     <>
       <Page />

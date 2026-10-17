@@ -8,6 +8,7 @@ import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES } from '../common/data/classes.ts';
 import { CHARACTERS } from '../common/data/characters.ts';
+import type { CharacterId } from '../common/data/characters.ts';
 import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
@@ -25,7 +26,8 @@ import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { seedRng } from '../common/engine/rng.ts';
 import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { DEMO_LEVEL } from './store.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, slotsUsed } from '../common/game/production.ts';
@@ -1508,6 +1510,29 @@ const handlers: Record<number, Handler> = {
     return { region, item: found.entry.item, name: GAME_ITEMS[found.entry.item].name, price: found.price, gold: ctx.player.gold };
   },
 
+  // 开局自选同伴（docs/20 §5.1）：只能选一次，恰好两人，排除主角与剧情奖励人物。
+  [OP.CHOOSE_COMPANIONS]: (ctx, data) => {
+    if (ctx.player.flags.companions) throw new OpError('FORBIDDEN', '已经选过开局同伴了');
+    const raw = Array.isArray(data.characters) ? data.characters : [];
+    const ids = raw.map(value => asString(value, 'characters'));
+    if (ids.length !== 2) throw new OpError('BAD_REQUEST', '必须正好选择 2 名同伴');
+    if (new Set(ids).size !== 2) throw new OpError('BAD_REQUEST', '两名同伴不能重复');
+    const pool = startingCompanionPool(ctx.player.protagonist);
+    const active = ctx.store.units(ctx.player.id).filter(u => u.status === 'active');
+    for (const id of ids) {
+      if (!pool.includes(id as CharacterId)) throw new OpError('FORBIDDEN', `${id} 不能作为开局同伴`);
+      if (active.some(u => u.character === id)) throw new OpError('FORBIDDEN', `${CHARACTERS[id as CharacterId].name} 已在名册中`);
+    }
+    if (active.length + ids.length > ROSTER_LIMIT) throw new OpError('ROSTER_FULL', '名册空间不足');
+    for (const id of ids) {
+      ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, DEMO_LEVEL[id] ?? CHARACTERS[id as CharacterId].level, `u_${id}`, ctx.player.day, true));
+    }
+    ctx.player.flags.companions = ids as CharacterId[];
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'companions' });
+    return { companions: ids, state: stateView(ctx.store, ctx.player) };
+  },
+
   // ---- agent narrative ---------------------------------------------------
 
   [OP.AGENT_REPORT_PLAN]: (ctx, data) => {
@@ -1712,7 +1737,7 @@ const WRITE_OPS = new Set<number>([
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
-  OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM,
+  OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.CHOOSE_COMPANIONS,
   OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);

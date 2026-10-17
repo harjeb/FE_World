@@ -434,6 +434,13 @@
       "push": false
     },
     {
+      "op": 127,
+      "name": "CHOOSE_COMPANIONS",
+      "group": "任务",
+      "agentNote": "开局自选两名同伴（不能是剧情奖励人物 ren/ig/mira，也不能重复）；只能选一次。",
+      "push": false
+    },
+    {
       "op": 50,
       "name": "GET_BATTLE",
       "group": "战斗",

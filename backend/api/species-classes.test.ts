@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 import { loginOrRegister } from './auth.ts';
+import { seedFullRoster } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, canonicalClassId } from '../common/data/classes.ts';
@@ -17,6 +18,7 @@ import { createEnemy } from '../common/game/enemies.ts';
 function setup(classId: ClassId) {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'species-classes', undefined, '测试军团');
+  seedFullRoster(store, player);
   player.day = 840;
   player.gold = 100_000;
   const unit = createUnit('erin', 1, 'special-recruit', player.day, false, { classId });

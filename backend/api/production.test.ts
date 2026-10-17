@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 import { loginOrRegister } from './auth.ts';
+import { seedFullRoster } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
@@ -12,6 +13,7 @@ import type { Player } from './store.ts';
 function setup() {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'production', undefined, '测试军团');
+  seedFullRoster(store, player);
   return { store, accountId, player: syncPlayer(store, player) };
 }
 

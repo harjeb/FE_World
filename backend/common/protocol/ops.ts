@@ -84,6 +84,7 @@ export const OPS: readonly OpDef[] = [
   { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。' },
+  { op: 127, name: 'CHOOSE_COMPANIONS', group: '任务', agentNote: '开局自选两名同伴（不能是剧情奖励人物 ren/ig/mira，也不能重复）；只能选一次。' },
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器。' },

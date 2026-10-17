@@ -1,5 +1,5 @@
 import type { CharacterId } from '../common/data/characters.ts';
-import { CHARACTERS } from '../common/data/characters.ts';
+import { CHARACTERS, CHARACTER_IDS } from '../common/data/characters.ts';
 import { CLASSES } from '../common/data/classes.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
@@ -25,9 +25,11 @@ import { summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
+import { QUEST_RECRUITS } from '../common/game/quests.ts';
 import type { Defense, SnapshotUnit } from '../common/arena/rules.ts';
 import type { Store, Player, SnapshotData } from './store.ts';
 import { SEED_DAY } from './store.ts';
+import { DEMO_LEVEL } from './store.ts';
 
 export const ROSTER_LIMIT = 18;
 
@@ -493,6 +495,16 @@ function characterName(character: CharacterId): string {
 const CHARACTER_NAMES = Object.fromEntries(Object.entries(CHARACTERS).map(([id, c]) => [id, c.name])) as Record<CharacterId, string>;
 
 // The whole visible state, shared by GET_STATE and the browser's camp page.
+// 开局可自选的同伴：全部预设角色，去掉主角与剧情奖励人物（ren/ig/mira）。
+export function startingCompanionPool(protagonist: string): CharacterId[] {
+  return CHARACTER_IDS.filter(id => id !== protagonist && !QUEST_RECRUITS.includes(id));
+}
+
+// 新账号只发主角，需要先选两名同伴；老存档（已有多人）不再要求。
+export function setupNeeded(player: Player, activeCount: number): boolean {
+  return !player.flags.companions && activeCount <= 1;
+}
+
 export function stateView(store: Store, player: Player) {
   const units = store.units(player.id);
   const active = units.filter(u => u.status === 'active');
@@ -522,6 +534,11 @@ export function stateView(store: Store, player: Player) {
     festival: { round: player.flags.festivalRound, year: player.flags.festivalYear, nextDay: (Math.floor(player.day / 120) + 1) * 120 },
     agentPlan: store.notes(player.id, 'plan')[0]?.text ?? null,
     agentLastSeen: player.flags.agentLastSeen ?? null,
+    setup: {
+      needed: setupNeeded(player, active.length),
+      pool: startingCompanionPool(player.protagonist).map(id => ({ id, name: CHARACTERS[id].name, classId: CHARACTERS[id].classId, level: DEMO_LEVEL[id] ?? CHARACTERS[id].level })),
+      chosen: player.flags.companions ?? null,
+    },
     seed: { day: SEED_DAY },
   };
 }
