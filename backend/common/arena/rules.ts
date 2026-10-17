@@ -17,6 +17,10 @@ import type { ArenaMap, ArenaMapId } from './maps.ts';
 export interface SnapshotUnit {
   id?: string;
   character: CharacterId;
+  // 自捏主角的显示名与形象预设（其余角色缺省）。
+  name?: string;
+  sex?: 'male' | 'female';
+  portrait?: CharacterId;
   classId: ClassId;
   level: number;
   stats: Stats;
@@ -74,7 +78,7 @@ export function validateDefense(defense: Defense): string[] {
   if (spots.some(s => !zone.has(s))) errors.push('站位必须在防守出生区内');
   if (new Set(spots).size !== spots.length) errors.push('站位不能重复');
   for (const slot of defense.slots) {
-    if (slot.behavior === 'healer' && !canHeal(slot.unit)) errors.push(`${CHARACTERS[slot.unit.character].name} 不会用杖，不能设为治疗优先`);
+    if (slot.behavior === 'healer' && !canHeal(slot.unit)) errors.push(`${slot.unit.name ?? CHARACTERS[slot.unit.character].name} 不会用杖，不能设为治疗优先`);
   }
   if (defense.commanders.length < 1 || defense.commanders.length > 3 || defense.commanders.some(c => !characters.includes(c))) {
     errors.push('主将与备选必须是防守名单中的 1–3 人');

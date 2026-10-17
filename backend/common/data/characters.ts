@@ -37,3 +37,28 @@ const TABLE = {
 export type CharacterId = keyof typeof TABLE;
 export const CHARACTERS: Record<CharacterId, CharacterDef> = TABLE;
 export const CHARACTER_IDS = Object.keys(TABLE) as CharacterId[];
+
+// 自捏主角（docs/00 「神主角」、docs/13 §开局）：先选职业，取该职业代表角色的基础数值与形象，
+// 再自定姓名、成长类型与培养倾向，并用固定预算分配九属性点。
+export interface ProtagonistClass { classId: ClassId; name: string; base: CharacterId }
+export const PROTAGONIST_CLASSES: ProtagonistClass[] = [
+  { classId: 'swordsman', name: '剑士', base: 'erin' },
+  { classId: 'fighter', name: '战士', base: 'karl' },
+  { classId: 'cavalier', name: '骑兵', base: 'victor' },
+  { classId: 'archer', name: '弓手', base: 'owen' },
+  { classId: 'mage', name: '法师', base: 'sera' },
+  { classId: 'cleric', name: '僧侣', base: 'noah' },
+  { classId: 'pegasus', name: '天马骑士', base: 'lina' },
+  { classId: 'knight', name: '重甲骑士', base: 'gustav' },
+];
+// 九属性分配预算：总计 18 点，单项 0–6（首版数值，docs/00 标注待校准）。
+export const PROTAGONIST_ALLOCATION_BUDGET = 18;
+export const PROTAGONIST_ALLOCATION_MAX = 6;
+// 培养倾向：选择个人成长向量（基础值，后续再加职业成长）。
+export const PROTAGONIST_TENDENCIES: Record<string, { name: string; growth: Stats }> = {
+  balanced: { name: '均衡', growth: stats(60, 40, 40, 45, 45, 40, 30, 30, 20) },
+  might: { name: '力量', growth: stats(75, 60, 5, 40, 35, 30, 40, 15, 20) },
+  skill: { name: '技巧', growth: stats(55, 35, 10, 65, 60, 45, 20, 25, 20) },
+  magic: { name: '魔力', growth: stats(50, 10, 65, 45, 45, 30, 15, 45, 20) },
+  guard: { name: '守护', growth: stats(75, 45, 5, 35, 25, 25, 55, 35, 20) },
+};

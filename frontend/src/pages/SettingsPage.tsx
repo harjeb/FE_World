@@ -27,7 +27,8 @@ export function SettingsPage() {
   const [view, setView] = useState<Settings>(loadSettings);
   if (!state) return null;
   const update = (patch: Partial<Settings>) => setView(v => { const next = { ...v, ...patch }; saveSettings(next); return next; });
-  const protagonist = CHARACTERS[state.player.protagonist as keyof typeof CHARACTERS]?.name ?? state.player.protagonist;
+  const hero = state.units.find(u => u.isProtagonist);
+  const protagonist = hero?.name ?? CHARACTERS[state.player.protagonist as keyof typeof CHARACTERS]?.name ?? state.player.protagonist;
 
   return (
     <Shell current="settings">

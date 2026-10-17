@@ -13,6 +13,8 @@ export interface ServerUnit {
   id: string;
   character: CharacterId;
   name: string;
+  sex: 'male' | 'female' | null;
+  portrait: CharacterId | null;
   classId: string;
   className: string;
   tier: string;
@@ -69,7 +71,18 @@ export interface ServerState {
   agentPlan: string | null;
   agentLastSeen: number | null;
   // 开局自选同伴：新账号只发主角，needed 为 true 时要先选两名同伴（docs/20 §5.1）。
-  setup: { needed: boolean; pool: { id: string; name: string; classId: string; level: number }[]; chosen: string[] | null };
+  setup: {
+    needed: boolean;
+    pool: { id: string; name: string; classId: string; level: number }[];
+    chosen: string[] | null;
+    protagonist: {
+      classes: { classId: string; name: string; base: string }[];
+      tendencies: { id: string; name: string }[];
+      portraits: { id: string; name: string }[];
+      budget: number;
+      maxPerStat: number;
+    };
+  };
 }
 
 export interface ServerOpponent {
@@ -352,9 +365,12 @@ class SessionStore {
     await this.run(OP.SET_DEFENSE, { defense });
   }
 
-  // 开局自选两名同伴；只能选一次。
-  async chooseCompanions(characters: string[]): Promise<{ companions: string[] }> {
-    return this.run<{ companions: string[] }>(OP.CHOOSE_COMPANIONS, { characters });
+  // 完成自捏开局：自建主角 + 两名同伴，只能提交一次。
+  async completeSetup(protagonist: {
+    name: string; sex: 'male' | 'female'; classId: string; growthType: string;
+    tendency: string; portrait: string; allocation: Record<string, number>;
+  }, companions: string[]): Promise<{ companions: string[] }> {
+    return this.run<{ companions: string[] }>(OP.COMPLETE_SETUP, { protagonist, companions });
   }
 
   // ---- replays -----------------------------------------------------------

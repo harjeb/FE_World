@@ -59,25 +59,36 @@ test('a new account gets a playable seeded roster and state', () => {
   assert.equal(roster.count, 12);
 });
 
-test('a fresh account starts with only the protagonist and picks two companions once', () => {
+test('a fresh account starts with a placeholder protagonist and completes a self-made setup once', () => {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'fresh', undefined, '新军团');
   const ctx = ctxFor(store, accountId, player);
-  type View = { units: unknown[]; setup: { needed: boolean; pool: { id: string }[] } };
+  type View = { units: { id: string; name: string; character: string }[]; setup: { needed: boolean; pool: { id: string }[]; protagonist: { budget: number; maxPerStat: number } } };
   const fresh = stateView(store, player) as View;
-  assert.equal(fresh.units.length, 1);
+  assert.equal(fresh.units.length, 1, '开局只有占位主角');
   assert.equal(fresh.setup.needed, true);
+  assert.ok(fresh.setup.protagonist.budget > 0);
   const pool = fresh.setup.pool.map(c => c.id);
   assert.ok(pool.includes('victor'));
-  assert.ok(!pool.includes('erin'), '主角不能当同伴');
   assert.ok(!pool.includes('ren'), '剧情奖励人物不能当同伴');
-  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor'] }), /2 名/);
-  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor', 'victor'] }), /重复/);
-  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor', 'ren'] }), /不能作为开局同伴/);
-  const chosen = dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['victor', 'lina'] }) as { companions: string[] };
-  assert.deepEqual(chosen.companions, ['victor', 'lina']);
-  assert.equal((stateView(store, player) as View).units.length, 3);
-  assert.throws(() => dispatch(ctx, OP.CHOOSE_COMPANIONS, { characters: ['karl', 'owen'] }), /已经选过/);
+  const hero = { name: '星见', sex: 'female', classId: 'mage', growthType: 'normal', tendency: 'magic', portrait: 'sera', allocation: { mag: 4, spd: 3 } };
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, name: '甲' }, companions: ['victor', 'lina'] }), /2–12/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, classId: 'beast' }, companions: ['victor', 'lina'] }), /职业/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { mag: 99 } }, companions: ['victor', 'lina'] }), /0–6/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor'] }), /2 名/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'victor'] }), /重复/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'ren'] }), /不能作为开局同伴/);
+  const done = dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'lina'] }) as { protagonist: { name: string; classId: string }; companions: string[] };
+  assert.equal(done.protagonist.name, '星见');
+  assert.equal(done.protagonist.classId, 'mage');
+  assert.deepEqual(done.companions, ['victor', 'lina']);
+  const after = stateView(store, player) as View;
+  assert.equal(after.units.length, 3);
+  assert.equal(after.setup.needed, false);
+  const heroUnit = after.units.find(u => u.id === 'u_protagonist')!;
+  assert.equal(heroUnit.name, '星见');
+  assert.equal(heroUnit.character, 'sera');
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['karl', 'owen'] }), /已经完成/);
 });
 
 test('catalog carries the static tables with a version', () => {

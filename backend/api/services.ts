@@ -1,11 +1,11 @@
 import type { CharacterId } from '../common/data/characters.ts';
-import { CHARACTERS, CHARACTER_IDS } from '../common/data/characters.ts';
+import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_MAX, PROTAGONIST_CLASSES, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import { CLASSES } from '../common/data/classes.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
-import { addWeaponExp, ageAt, effectiveCaps, gainExperience, growthRates, lifespanEndDayOf, toSnapshot } from '../common/game/model.ts';
+import { addWeaponExp, ageAt, effectiveCaps, gainExperience, growthRates, lifespanEndDayOf, toSnapshot, unitName } from '../common/game/model.ts';
 import { gainMastery, MASTERY_PER_BATTLE, MASTERY_PER_TRAIN_DAY, MASTERY_PER_WIN } from '../common/game/mastery.ts';
 import { dispatchMaterials, dispatchWeapons } from '../common/game/dispatch.ts';
 import type { DispatchResult } from '../common/game/dispatch.ts';
@@ -138,10 +138,10 @@ export function recordDeath(store: Store, player: Player, unit: UnitRecord, caus
   unit.lockedDispatchId = null;
   store.saveUnit(unit, player.id);
   store.saveMemorial({
-    unitId: unit.id, playerId: player.id, name: CHARACTERS[unit.character].name, character: unit.character,
+    unitId: unit.id, playerId: player.id, name: unitName(unit), character: unit.character,
     classId: unit.classId, level: unit.level, cause, atDay: player.day, battleId, stats: unit.stats, lineageDepth: unit.lineageDepth,
   });
-  store.addEvent(player.id, 'death', `${CHARACTERS[unit.character].name}${cause === 'age' ? '寿终' : '战死'}。`, { unit: unit.id, cause, legacy: legacy?.id ?? null });
+  store.addEvent(player.id, 'death', `${unitName(unit)}${cause === 'age' ? '寿终' : '战死'}。`, { unit: unit.id, cause, legacy: legacy?.id ?? null });
   return legacy?.id ?? null;
 }
 
@@ -155,10 +155,10 @@ export function recordRetire(store: Store, player: Player, unit: UnitRecord, def
   unit.retiredDay = player.day;
   store.saveUnit(unit, player.id);
   store.saveMemorial({
-    unitId: unit.id, playerId: player.id, name: CHARACTERS[unit.character].name, character: unit.character,
+    unitId: unit.id, playerId: player.id, name: unitName(unit), character: unit.character,
     classId: unit.classId, level: unit.level, cause: 'retired', atDay: player.day, battleId: null, stats: unit.stats, lineageDepth: unit.lineageDepth,
   });
-  store.addEvent(player.id, 'retire', `${CHARACTERS[unit.character].name} 退役。`, { unit: unit.id, legacy: legacy?.id ?? null });
+  store.addEvent(player.id, 'retire', `${unitName(unit)} 退役。`, { unit: unit.id, legacy: legacy?.id ?? null });
   return legacy?.id ?? null;
 }
 
@@ -458,7 +458,7 @@ export function unitSummary(unit: UnitRecord) {
   const cls = CLASSES[unit.classId];
   const band = ageBandOf(unit.age);
   return {
-    id: unit.id, character: unit.character, name: characterName(unit.character), classId: unit.classId,
+    id: unit.id, character: unit.character, name: unitName(unit), sex: unit.sex ?? null, portrait: unit.portrait ?? null, classId: unit.classId,
     className: cls.name, tier: cls.tier, stage: cls.stage, route: cls.route, species: unit.species, ranks: unit.ranks, level: unit.level, exp: unit.exp, hp: unit.hp, maxHp: unit.stats.hp,
     status: unit.status, equipped: unit.weapons[0] ?? null, items: unit.items.map(i => GAME_ITEMS[i.id as ItemKey]?.name ?? i.id),
     joinedDay: unit.joinedDay, weaponExp: unit.weaponExp, growthLog: unit.growthLog, drugCounts: unit.drugCounts,
@@ -489,20 +489,20 @@ export function unitDetail(unit: UnitRecord) {
   };
 }
 
-function characterName(character: CharacterId): string {
-  return CHARACTERS[character]?.name ?? character;
-}
-const CHARACTER_NAMES = Object.fromEntries(Object.entries(CHARACTERS).map(([id, c]) => [id, c.name])) as Record<CharacterId, string>;
 
 // The whole visible state, shared by GET_STATE and the browser's camp page.
 // 开局可自选的同伴：全部预设角色，去掉主角与剧情奖励人物（ren/ig/mira）。
-export function startingCompanionPool(protagonist: string): CharacterId[] {
-  return CHARACTER_IDS.filter(id => id !== protagonist && !QUEST_RECRUITS.includes(id));
+export function companionPool(exclude: string[] = []): CharacterId[] {
+  return CHARACTER_IDS.filter(id => !exclude.includes(id) && !QUEST_RECRUITS.includes(id));
 }
 
-// 新账号只发主角，需要先选两名同伴；老存档（已有多人）不再要求。
+export function startingCompanionPool(protagonist: string): CharacterId[] {
+  return companionPool([protagonist]);
+}
+
+// 新账号只发占位主角，需要先完成自捏开局；老存档（已有多人）不再要求。
 export function setupNeeded(player: Player, activeCount: number): boolean {
-  return !player.flags.companions && activeCount <= 1;
+  return !player.flags.setupCompleted && !player.flags.companions && activeCount <= 1;
 }
 
 export function stateView(store: Store, player: Player) {
@@ -536,8 +536,15 @@ export function stateView(store: Store, player: Player) {
     agentLastSeen: player.flags.agentLastSeen ?? null,
     setup: {
       needed: setupNeeded(player, active.length),
-      pool: startingCompanionPool(player.protagonist).map(id => ({ id, name: CHARACTERS[id].name, classId: CHARACTERS[id].classId, level: DEMO_LEVEL[id] ?? CHARACTERS[id].level })),
+      pool: companionPool().map(id => ({ id, name: CHARACTERS[id].name, classId: CHARACTERS[id].classId, level: DEMO_LEVEL[id] ?? CHARACTERS[id].level })),
       chosen: player.flags.companions ?? null,
+      protagonist: {
+        classes: PROTAGONIST_CLASSES.map(c => ({ classId: c.classId, name: c.name, base: c.base })),
+        tendencies: Object.entries(PROTAGONIST_TENDENCIES).map(([id, t]) => ({ id, name: t.name })),
+        portraits: CHARACTER_IDS.map(id => ({ id, name: CHARACTERS[id].name })),
+        budget: PROTAGONIST_ALLOCATION_BUDGET,
+        maxPerStat: PROTAGONIST_ALLOCATION_MAX,
+      },
     },
     seed: { day: SEED_DAY },
   };

@@ -38,6 +38,8 @@ export interface PlayerFlags {
   regionReputation?: Record<number, number>;
   // 开局自选的两名同伴（docs/20 §5.1）：未设置表示还没选；选过之后即使减员也不再要求重选。
   companions?: CharacterId[];
+  // 自捏开局是否已完成（docs/00「神主角」）：完成后不再要求重选，也不允许重开刷初始。
+  setupCompleted?: boolean;
   // 紧急补员：上次领取时的战死人数，防止一次损失重复领取（docs/00 §3.3）。
   emergencyClaimed?: number;
   // 最近一次 Agent 连接上报时间 (docs/06)，用于区分在线/离线。
@@ -146,7 +148,7 @@ export class Store {
       (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, version, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .run(id, accountId, name, legion, SEED_DAY, SEED_GOLD, SEED_BEXP, 1317, 0, 1, PROTAGONIST, JSON.stringify(null), JSON.stringify(flags), 0, Date.now());
-    // 开局只有主角一人；两名同伴由玩家在初始界面自选（docs/20 §5.1）。
+    // 开局先发一名占位主角；玩家在初始界面自捏神主角并选两名同伴（docs/00「神主角」、docs/13 §开局）。
     const unit = createUnit(PROTAGONIST, DEMO_LEVEL[PROTAGONIST] ?? 1, `u_${PROTAGONIST}`, SEED_DAY, true);
     unit.isProtagonist = true;
     this.saveUnit(unit, id, 0);

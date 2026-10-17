@@ -435,9 +435,9 @@
     },
     {
       "op": 127,
-      "name": "CHOOSE_COMPANIONS",
+      "name": "COMPLETE_SETUP",
       "group": "任务",
-      "agentNote": "开局自选两名同伴（不能是剧情奖励人物 ren/ig/mira，也不能重复）；只能选一次。",
+      "agentNote": "完成开局：自建神主角（姓名/性别/形象/职业/成长倾向/九属性分配）并选两名同伴（不能是剧情奖励人物，也不能重复）；只能提交一次。",
       "push": false
     },
     {

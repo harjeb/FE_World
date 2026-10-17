@@ -11,7 +11,7 @@ import { tilesFromGlyphs } from '@common/maps/map.ts';
 export function asUnit(s: SnapshotUnit, weapons: WeaponId[] = s.weapons): UnitState {
   const c = CHARACTERS[s.character];
   return {
-    id: s.character, name: c.name, side: 'player', character: s.character, classId: s.classId, level: s.level, exp: 0,
+    id: s.character, name: s.name ?? c.name, side: 'player', character: s.character, portrait: s.portrait ?? undefined, classId: s.classId, level: s.level, exp: 0,
     stats: { ...s.stats }, con: s.con, hp: s.stats.hp, pos: [0, 0], weapons: [...weapons],
     items: s.items.map(i => ({ ...i })), ranks: { ...s.ranks }, skill: c.skill, acted: false, alive: true,
   };

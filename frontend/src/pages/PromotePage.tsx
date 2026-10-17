@@ -89,7 +89,7 @@ export function PromotePage({ unit }: { unit: string }) {
   const [pick, setPick] = useState(0);
   const chosen = options[Math.min(pick, options.length - 1)];
   const cls = CLASSES[entry.unit.classId];
-  const name = CHARACTERS[entry.unit.character].name;
+  const name = entry.unit.name;
   const [busy, setBusy] = useState(false);
   const live = serverUnit(entry.unit.id ?? entry.unit.character);
   const qualified = !!live && !!chosen && hasClassQualification(live.classQualifications as ClassId[], chosen.to);

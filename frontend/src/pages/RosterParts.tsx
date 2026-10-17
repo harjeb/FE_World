@@ -24,7 +24,7 @@ export type ProfileTab = 'stats' | 'growth' | 'promote' | 'classes' | 'retire';
 const STATUS_TAG = { main: 'tag-blue', reserve: 'tag-grey', injured: 'tag-red' } as const;
 export const SLOTS = 5;
 
-export const charName = (e: RosterEntry) => CHARACTERS[e.unit.character].name;
+export const charName = (e: RosterEntry) => e.unit.name ?? CHARACTERS[e.unit.character].name;
 
 export function StatusTag({ entry }: { entry: RosterEntry }) {
   return <span className={`tag ${STATUS_TAG[entry.status]}`}>{entry.status === 'main' ? '● ' : ''}{STATUS_TEXT[entry.status]}</span>;

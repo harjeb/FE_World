@@ -25,6 +25,10 @@ import type { SnapshotUnit } from '../arena/rules.ts';
 export interface UnitRecord {
   id: string;
   character: CharacterId;
+  // 自捏主角覆盖（docs/00 「神主角」）：显示名、性别与形象预设；其余角色沿用 CHARACTERS[character]。
+  name?: string;
+  sex?: 'male' | 'female';
+  portrait?: CharacterId;
   classId: ClassId;
   species: 'human' | 'beast' | 'dragon';
   level: number;
@@ -276,14 +280,20 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
   return {
     id: unit.id, character: unit.character, classId: unit.classId, level: unit.level, stats: withCharm(unit.stats),
     con: unit.con, weapons: [...unit.weapons], ranks: { ...unit.ranks }, items: unit.items.map(i => ({ ...i })),
+    name: unitName(unit), sex: unit.sex, portrait: unit.portrait,
   };
+}
+
+// 单位显示名：自捏主角用自己的名字，其余角色用预设名。
+export function unitName(unit: UnitRecord): string {
+  return unit.name ?? CHARACTERS[unit.character].name;
 }
 
 // Builds the engine unit. Battle stats are a copy, so the record survives a lost battle (the caller
 // decides whether death is permanent, docs/00 §7.1).
 export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Point, extra: Partial<UnitState> = {}): UnitState {
   return {
-    id, name: CHARACTERS[unit.character].name, side, character: unit.character, classId: unit.classId,
+    id, name: unitName(unit), side, character: unit.character, portrait: unit.portrait, classId: unit.classId,
     level: unit.level, exp: unit.exp, stats: withCharm(unit.stats), con: unit.con, hp: unit.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
     ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,

@@ -36,8 +36,8 @@ export function useAct(): { busy: string | null; act: <T>(key: string, run: () =
   return { busy, act };
 }
 
-export function Face({ character, classId, size = 40, dim = false }: { character: string; classId: string; size?: number; dim?: boolean }) {
-  const looks = { classId: classId as ClassId, side: 'player' as const, character };
+export function Face({ character, classId, portrait, size = 40, dim = false }: { character: string; classId: string; portrait?: string | null; size?: number; dim?: boolean }) {
+  const looks = { classId: classId as ClassId, side: 'player' as const, character, portrait: portrait ?? undefined };
   return (
     <span className={`pf ally${dim ? ' dim' : ''}`} style={{ width: size, height: size }}>
       <img className="px" src={portraitFor(looks) ?? spriteFor(looks)} width={size + 8} height={size + 8} alt="" style={{ margin: '-4px 0 0 -4px' }} />
@@ -46,7 +46,7 @@ export function Face({ character, classId, size = 40, dim = false }: { character
 }
 
 export const UnitFace = ({ unit, size, dim }: { unit: ServerUnit; size?: number; dim?: boolean }) =>
-  <Face character={unit.character} classId={unit.classId} size={size} dim={dim} />;
+  <Face character={unit.character} classId={unit.classId} portrait={unit.portrait} size={size} dim={dim} />;
 
 // Check-box team list (出征准备 look). `max` caps the picks; `why` explains a row that cannot be picked.
 // With `ordered`, picks are numbered in the order they were ticked and the first one leads.

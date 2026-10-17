@@ -95,7 +95,7 @@ export function RosterPage({ unit, tab }: { unit: string | null; tab: RosterTab 
                     <span className="mark" aria-hidden="true" />
                     <span className="pf ally" style={{ width: 46, height: 46 }}><Portrait entry={e} size={64} /></span>
                     <span className="min-w-0">
-                      <span className="r-name">{CHARACTERS[c].name} <span className="gt">· {UNIT_TRAITS[c]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[c].growthType]}{UNIT_TRAITS[c] ? ` · ${UNIT_TRAITS[c].age} 岁` : ''}</span>{e.promotable && <span className="mini-up" title="可转职">✚</span>}</span>
+                      <span className="r-name">{e.unit.name ?? CHARACTERS[c].name} <span className="gt">· {UNIT_TRAITS[c]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[c].growthType]}{UNIT_TRAITS[c] ? ` · ${UNIT_TRAITS[c].age} 岁` : ''}</span>{e.promotable && <span className="mini-up" title="可转职">✚</span>}</span>
                       <span className="r-sub">{main && <img className="px" src={weaponIcon(WEAPONS[main].type)} width={16} height={16} alt="" />}{CLASSES[e.unit.classId].name} · Lv {e.unit.level}</span>
                     </span>
                     <StatusTag entry={e} />

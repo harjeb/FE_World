@@ -7,6 +7,7 @@ import { CRESTS, ICONS, portraitFor } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import { AGENT_PLAN, MY_LEGION, WORLD } from '../demo/live.ts';
 import { ROSTER, ROSTER_LIMIT } from '../demo/roster.ts';
+import type { RosterEntry } from '../demo/roster.ts';
 import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { AnvilIcon, CandleIcon, LockIcon, ScrollIcon } from '../ui/icons.tsx';
@@ -14,7 +15,7 @@ import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { toast } from '../ui/toast.tsx';
 import { CampActions } from './CampActions.tsx';
 
-const name = (c: string) => CHARACTERS[c as keyof typeof CHARACTERS].name;
+const name = (e: RosterEntry) => e.unit.name ?? CHARACTERS[e.unit.character].name;
 
 interface Task {
   key: string; icon: ReactNode; title: string; tag?: [string, string]; desc: string;
@@ -176,17 +177,17 @@ export function CampPage() {
             <div className="ph"><h2 id="legion-h">军团概况</h2><a className="btn btn-sm btn-ghost" href={links.roster()}>名册 ›</a></div>
             <div className="stats3">
               <div><span>名册</span><b>{ROSTER.length} <small>/ {ROSTER_LIMIT}</small></b></div>
-              <div><span>重伤</span><b style={{ color: '#93392F' }}>{injured.length} <small>{injured.map(e => name(e.unit.character)).join('、')}</small></b></div>
-              <div><span>可转职</span><b style={{ color: '#45603B' }}>{promotable.length} <small>{promotable.length > 2 ? `${name(promotable[0].unit.character)} 等` : promotable.map(e => name(e.unit.character)).join('、')}</small></b></div>
+              <div><span>重伤</span><b style={{ color: '#93392F' }}>{injured.length} <small>{injured.map(e => name(e)).join('、')}</small></b></div>
+              <div><span>可转职</span><b style={{ color: '#45603B' }}>{promotable.length} <small>{promotable.length > 2 ? `${name(promotable[0])} 等` : promotable.map(e => name(e)).join('、')}</small></b></div>
             </div>
             <div style={{ padding: '10px 14px 0', fontSize: 13, color: '#4E473D' }}>主力</div>
             <div className="squad">
               {squad.map(e => {
-                const looks = { classId: e.unit.classId, side: 'player' as const, character: e.unit.character };
+                const looks = { classId: e.unit.classId, side: 'player' as const, character: e.unit.character, portrait: e.unit.portrait ?? undefined };
                 return (
                   <a key={e.unit.character} className="sq" href={links.roster(e.unit.character)}>
                     <span className="pf ally" style={{ width: 58, height: 58 }}><img className="px" src={portraitFor(looks)!} width={64} height={64} alt="" style={{ margin: '-4px 0 0 -3px' }} /></span>
-                    <span className="n">{name(e.unit.character)}</span>
+                    <span className="n">{name(e)}</span>
                     <span className="l">{CLASSES[e.unit.classId].name}</span>
                     <span className="l num">Lv {e.unit.level}</span>
                   </a>

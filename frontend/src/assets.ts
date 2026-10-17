@@ -123,7 +123,7 @@ const WEAPON_ICONS: Record<WeaponType, string> = {
   fist: icoFist, dagger: icoDagger, beast: icoBeast, dragon: icoDragon,
 };
 
-type Looks = Pick<UnitState, 'classId' | 'side'> & { character?: string; id?: string };
+type Looks = Pick<UnitState, 'classId' | 'side'> & { character?: string; portrait?: string; id?: string };
 
 // Map sprites face right for allies and left for enemies.
 export function spriteFor(unit: Looks): string {
@@ -133,7 +133,7 @@ export function spriteFor(unit: Looks): string {
 // Named units have hand-made portraits. Everyone else gets a generated one (backend/common/portraits)
 // seeded by the unit id, so a unit shows the same face everywhere; clothes follow its class route.
 export function portraitFor(unit: Looks): string {
-  return PORTRAITS[unit.character ?? unit.id ?? ''] ?? generatedPortrait(unit.id ?? unit.character ?? 'unit', routeOf(unit.classId), unit.side);
+  return PORTRAITS[unit.portrait ?? unit.character ?? unit.id ?? ''] ?? generatedPortrait(unit.id ?? unit.character ?? 'unit', routeOf(unit.classId), unit.side);
 }
 
 const generated = new Map<string, string>();
