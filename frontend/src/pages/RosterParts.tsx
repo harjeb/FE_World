@@ -66,7 +66,7 @@ export function ProfileHeader({ entry, current }: { entry: RosterEntry; current:
           <div className="flex flex-wrap items-baseline gap-3">
             <h1 id="who-h" className="serif" style={{ fontSize: 28, lineHeight: 1.2 }}>{def.name}</h1>
             <span className="tag tag-grey">{CLASSES[unit.classId].name} · Lv {unit.level}</span>
-            <span className="tag tag-grey">{UNIT_TRAITS[unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[def.growthType]}</span>
+            <span className="tag tag-grey">{UNIT_TRAITS[unit.id ?? unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[def.growthType]}</span>
             <StatusTag entry={entry} />
             {entry.promotable && <span className="tag tag-green">✚ 可转职</span>}
             {srv?.isProtagonist && <span className="tag tag-brass">主角</span>}
@@ -99,7 +99,7 @@ export function StatsPanel({ entry, weapons }: { entry: RosterEntry; weapons: We
   const current = serverUnit(unit.id ?? unit.character);
   const line = combatLine(asUnit(unit, weapons));
   // 成长类型/年龄的全属性修正（docs/02）：合计成长率要含这一项。
-  const bonus = UNIT_TRAITS[unit.character]?.growthBonus ?? 0;
+  const bonus = UNIT_TRAITS[unit.id ?? unit.character]?.growthBonus ?? 0;
   return (
     <section className="panel" aria-labelledby="st-h">
       <div className="ph"><h2 id="st-h">属性</h2><span style={{ fontSize: 12, color: '#6A6256' }}>成长率 = 每次升级该项 +1 的概率</span></div>

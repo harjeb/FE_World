@@ -75,6 +75,7 @@ export const OPS: readonly OpDef[] = [
   { op: 110, name: 'GET_ANNUAL', group: '赛事', agentNote: '读取年度大竞技场：报名状态、海选战绩、签表轮次与下一场报价。' },
   { op: 111, name: 'REGISTER_ANNUAL', group: '赛事', agentNote: '报名本届大竞技场并锁定名单与快照；一旦淘汰或退赛，当届不能重报。' },
   { op: 112, name: 'START_ANNUAL_MATCH', group: '赛事', agentNote: '开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。' },
+  { op: 113, name: 'WITHDRAW_ANNUAL', group: '赛事', agentNote: '退出本届年度赛事，保留真实伤亡与消耗、放弃后续比赛；当届不能重新报名。' },
 
   { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；名次不阻挡章节。章节开放后给标题，完成后给本章得到的认识。' },
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '完成一章主线事件；只标记完成，不自动发奖。' },
@@ -128,7 +129,7 @@ export const OP = Object.fromEntries(OPS.map(def => [def.name, def.op])) as Reco
 export const OP_BY_NUMBER = new Map(OPS.map(def => [def.op, def]));
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 1;
+export const DOC_VERSION = 2;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

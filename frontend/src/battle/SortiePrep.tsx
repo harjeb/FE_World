@@ -64,7 +64,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
   const top = Math.max(0, ...picked.map(u => u.level));
   const avg = picked.length > 0 ? Math.round(picked.reduce((sum, u) => sum + u.level, 0) / picked.length) : 0;
-  const lead = active.find(u => u.character === state.player.protagonist);
+  const lead = active.find(u => u.isProtagonist);
   const to = advance(today.day, sortie.costDays);
   const warning = arenaTodayWarning();
   const toggle = (id: string) => setTeam(t => (t.includes(id) ? t.filter(x => x !== id) : t.length < max ? [...t, id] : t));
@@ -108,7 +108,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
             <ul className="team" aria-label="现役单位">
               {active.map(u => (
                 <UnitRow key={u.id} unit={u} picked={team.includes(u.id)} locked={!team.includes(u.id) && team.length >= max}
-                  protagonist={u.character === state.player.protagonist} onToggle={() => toggle(u.id)} />
+                  protagonist={u.isProtagonist} onToggle={() => toggle(u.id)} />
               ))}
             </ul>
           </section>

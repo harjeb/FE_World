@@ -220,7 +220,7 @@ export function ageAt(unit: UnitRecord, day: number, daysPerYear: number): numbe
   // Old saves may predate baseAge; fall back to the character's written age (docs/02).
   const base = unit.baseAge ?? CHARACTERS[unit.character].age;
   if (unit.isProtagonist) return base;
-  return base + Math.floor((day - unit.joinedDay) / daysPerYear);
+  return Math.floor(((unit.ageBaseDays ?? base * daysPerYear) + Math.max(0, day - (unit.ageEpochDay ?? unit.joinedDay))) / daysPerYear);
 }
 
 export function effectiveCaps(unit: UnitRecord): Stats {
@@ -317,6 +317,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
+    inheritance: unit.inheritance ? structuredClone(unit.inheritance) : undefined,
     skills: [...(unit.equippedSkills ?? [])],
     shields: unit.items.filter(i => i.id === 'immortal_shield').length,
     acted: false, alive: true, ...extra,

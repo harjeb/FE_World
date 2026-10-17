@@ -27,7 +27,7 @@ function dungeonSession(state: BattleState, run: ServerRun, back: () => void): B
     initial: state,
     meta: {
       region: `${regionById(run.region).name} · 大副本第 ${n} / ${DUNGEON_STAGES} 图`,
-      goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : '全灭敌军',
+      goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : state.goal.kind === 'seize' ? '主将压制目标点' : '全灭敌军',
       extraLabel: '跨图', extraValue: 'HP 与道具不恢复',
     },
     surrender: false,
@@ -195,7 +195,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const picked = active.filter(u => team.includes(u.id));
   const top = Math.max(0, ...picked.map(u => u.level));
   const total = advance(today.day, DUNGEON_STAGE_DAYS * DUNGEON_STAGES);
-  const lead = active.find(u => u.character === state.player.protagonist);
+  const lead = active.find(u => u.isProtagonist);
   const finished = run && run.state !== 'battle' && run.state !== 'between_maps' ? run : null;
 
   return (

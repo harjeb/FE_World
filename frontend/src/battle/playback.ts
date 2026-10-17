@@ -65,6 +65,24 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       case 'combat':
         await combat(e);
         break;
+      case 'loot':
+        edit(d => {
+          const unit = unitIn(d, e.unit);
+          unit.carried = e.boxes;
+          const index = d.boxes?.findIndex(at => at[0] === unit.pos[0] && at[1] === unit.pos[1]) ?? -1;
+          if (index >= 0) d.boxes!.splice(index, 1);
+        });
+        break;
+      case 'drop':
+        edit(d => {
+          unitIn(d, e.unit).carried = 0;
+          d.boxes ??= [];
+          for (let box = 0; box < e.boxes; box++) d.boxes.push([...e.at]);
+        });
+        break;
+      case 'escape':
+        edit(d => { const unit = unitIn(d, e.unit); unit.alive = false; unit.escaped = true; });
+        break;
       case 'defeated':
         ctl.set({ fading: new Set([...ctl.get().fading, e.unit]) });
         await sleep(450);

@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 1
+docVersion: 2
 
 本文件由 `backend/common/protocol/ops.ts` 生成，不要手改。
 
@@ -128,6 +128,7 @@ docVersion: 1
 | 110 | GET_ANNUAL | 读取年度大竞技场：报名状态、海选战绩、签表轮次与下一场报价。 |
 | 111 | REGISTER_ANNUAL | 报名本届大竞技场并锁定名单与快照；一旦淘汰或退赛，当届不能重报。 |
 | 112 | START_ANNUAL_MATCH | 开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。 |
+| 113 | WITHDRAW_ANNUAL | 退出本届年度赛事，保留真实伤亡与消耗、放弃后续比赛；当届不能重新报名。 |
 ### 故事
 
 | op | 名称 | 说明 |

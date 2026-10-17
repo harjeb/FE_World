@@ -5,6 +5,7 @@ import type { StatKey, Stats } from '../data/types.ts';
 import { roll100 } from './rng.ts';
 import { classOf, effectiveLevel } from './units.ts';
 import type { BattleEvent, BattleState, UnitState } from './types.ts';
+import { applyInheritanceFloor } from '../game/legacy.ts';
 
 // docs/03「经验」. Δ = foe effective level − own effective level.
 export const OVERLEVEL_EXP_GAP = 5;
@@ -84,6 +85,10 @@ export function gainExp(state: BattleState, unit: UnitState, amount: number, eve
   for (const [key, gain] of Object.entries(gains) as [StatKey, number][]) {
     unit.stats[key] += gain;
     if (key === 'hp') unit.hp += gain;
+  }
+  const inherited = applyInheritanceFloor(unit);
+  for (const key of STAT_KEYS) {
+    if (inherited[key]) gains[key] = (gains[key] ?? 0) + inherited[key]!;
   }
   events.push({ t: 'levelUp', unit: unit.id, level: unit.level, gains, rerolls });
 }

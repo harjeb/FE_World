@@ -74,12 +74,11 @@ export function eligibleForLegacy(unit: UnitRecord): boolean {
   return !unit.isProtagonist && unit.lineageDepth === 0 && unit.level >= LEGACY_MIN_LEVEL && unit.status !== 'dead';
 }
 
-// 来源的成长向量：个人基础（若已接受过成长传承则用继承后的基础）＋已记录装备／被动／轮回偏移，
-// 排除职业与年龄曲线（docs/00 §7.3）。
+// Freeze personal growth only; separate reincarnation points cannot pass to an heir.
 export function sourceGrowthVector(unit: UnitRecord): Stats {
   const personal = unit.inheritedGrowth ?? CHARACTERS[unit.character].growth;
   const out = {} as Stats;
-  for (const key of STAT_KEYS) out[key] = Math.max(0, (personal[key] ?? 0) + (unit.growthAllocation?.[key] ?? 0));
+  for (const key of STAT_KEYS) out[key] = Math.max(0, personal[key] ?? 0);
   return out;
 }
 
@@ -148,6 +147,8 @@ export function distributeBackfill(bonus: number, weights: Partial<Record<StatKe
       const ratio = (gains[key] ?? 0) / weight;
       if (ratio < bestRatio - 1e-9) { best = key; bestRatio = ratio; }
     }
+    // Exhaust preferred stats first, then use every remaining point of capacity.
+    if (best === null) best = STAT_KEYS.find(key => stats[key] + (gains[key] ?? 0) < caps[key]) ?? null;
     if (best === null) break;
     gains[best] = (gains[best] ?? 0) + 1;
     left--;
@@ -156,7 +157,7 @@ export function distributeBackfill(bonus: number, weights: Partial<Record<StatKe
 }
 
 // 每次升级后把总量补到当前等级下限；幂等，重复调用不会多发（docs/00 §7.3.1）。
-export function applyInheritanceFloor(unit: UnitRecord): Partial<Stats> {
+export function applyInheritanceFloor(unit: Pick<UnitRecord, 'level' | 'stats' | 'hp' | 'inheritance'>): Partial<Stats> {
   const contract = unit.inheritance;
   if (!contract) return {};
   const floor = numericFloor(unit.level, contract.initialTotal, contract.clippedTarget, contract.targetLevel);
@@ -171,9 +172,13 @@ export function applyInheritanceFloor(unit: UnitRecord): Partial<Stats> {
 }
 
 // 接受遗产：成长模式替换个人成长向量；数值模式记录逐级保底合同。两种模式共用血缘锁。
-export function claimLegacy(legacy: LegacyRecord, recipient: UnitRecord, mode: LegacyMode, weights: Partial<Record<StatKey, number>> = {}): InheritanceContract {
+export function claimLegacy(legacy: LegacyRecord, recipient: UnitRecord, mode: LegacyMode, weights: Partial<Record<StatKey, number>> = {}): InheritanceContract | null {
   const problem = canClaim(legacy, recipient);
   if (problem) throw new Error(problem);
+  if (mode !== 'growth' && mode !== 'numeric') throw new Error('Invalid inheritance mode');
+  for (const [key, weight] of Object.entries(weights)) {
+    if (!STAT_KEYS.includes(key as StatKey) || !Number.isSafeInteger(weight) || weight < 0) throw new Error('Inheritance weights must be non-negative integers for growth stats');
+  }
   if (mode === 'growth') {
     // 成长传承替换个人基础向量（绝对向量）；轮回保留它（docs/00 §5.2），
     // 轮回的 30 点分配单列在 growthAllocation，两者不混在一起。
@@ -186,13 +191,13 @@ export function claimLegacy(legacy: LegacyRecord, recipient: UnitRecord, mode: L
     legacyId: legacy.id, targetLevel: legacy.sourceLevel, initialTotal, sourceTotal: totalStats(legacy.sourceStats),
     clippedTarget, caps: { ...caps }, weights: { ...weights }, cycle: recipient.cycle,
   };
-  recipient.inheritance = contract;
+  recipient.inheritance = mode === 'numeric' ? contract : undefined;
   recipient.lineageDepth = 1;
   recipient.receivedLegacyId = legacy.id;
   legacy.state = 'claimed';
   legacy.recipientUnitId = recipient.id;
   legacy.mode = mode;
-  return contract;
+  return recipient.inheritance ?? null;
 }
 
 // 轮回归零：等级、经验、第一轮成长、药效与数值补点都清除，回到固定一级基准（docs/00 §5.2）。

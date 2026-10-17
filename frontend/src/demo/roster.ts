@@ -82,7 +82,11 @@ export function levelHistory(entry: RosterEntry): { level: number; gains: Partia
   const srv = serverUnit(entry.unit.id ?? entry.unit.character);
   // 有真实升级日志就用真实数据 (docs/04)；演示回退只用于离线预览。
   if (srv) {
-    return srv.growthLog.map(g => ({ level: g.level, gains: g.gains as Partial<Stats> })).reverse();
+    return srv.growthLog.map(g => {
+      const gains = { ...g.gains } as Partial<Stats>;
+      for (const key of STAT_KEYS) if (g.inherited?.[key]) gains[key] = (gains[key] ?? 0) + g.inherited[key];
+      return { level: g.level, gains };
+    }).reverse();
   }
   const def = CHARACTERS[entry.unit.character];
   const n = entry.unit.level - def.level;

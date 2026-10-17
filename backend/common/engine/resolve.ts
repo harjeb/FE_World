@@ -28,6 +28,8 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
       if (foe.hp === 0 && (foe.shields ?? 0) > 0) {
         foe.shields = (foe.shields ?? 0) - 1;
         foe.shieldsUsed = (foe.shieldsUsed ?? 0) + 1;
+        const shieldIndex = foe.items.findIndex(item => item.id === 'immortal_shield');
+        if (shieldIndex >= 0) foe.items.splice(shieldIndex, 1);
         foe.hp = 1;
         foe.petrified = true;
         events.push({ t: 'shield', unit: foe.id });
@@ -43,6 +45,12 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   for (const unit of [attacker, defender]) {
     if (unit.hp > 0) continue;
     unit.alive = false;
+    if (unit.carried) {
+      state.boxes ??= [];
+      for (let box = 0; box < unit.carried; box++) state.boxes.push([...unit.pos]);
+      events.push({ t: 'drop', unit: unit.id, boxes: unit.carried, at: [...unit.pos] });
+      unit.carried = 0;
+    }
     events.push({ t: 'defeated', unit: unit.id });
   }
   // Surviving player units that took part gain experience, including a defender that only countered.

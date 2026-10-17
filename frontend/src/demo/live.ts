@@ -52,7 +52,7 @@ function sync(): void {
   MY_POINTS = state.arena.points;
   MY_ROSTER = state.units.filter(u => u.status === 'active').map(u => u.snapshot);
   MY_UNITS = state.units;
-  UNIT_TRAITS = Object.fromEntries(state.units.map(u => [u.character, {
+  UNIT_TRAITS = Object.fromEntries(state.units.map(u => [u.id, {
     growthType: u.growthType, growthTypeName: u.growthTypeName, age: u.age, ageBand: u.ageBand, growthBonus: u.growthBonus,
   }]));
   MY_DEFENSE = defense ?? DEMO_DEFENSE;

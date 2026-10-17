@@ -50,7 +50,7 @@ export const UnitFace = ({ unit, size, dim }: { unit: ServerUnit; size?: number;
 
 // Check-box team list (出征准备 look). `max` caps the picks; `why` explains a row that cannot be picked.
 // With `ordered`, picks are numbered in the order they were ticked and the first one leads.
-export function TeamPicker({ units, team, max, protagonist, onChange, why, ordered = false }: {
+export function TeamPicker({ units, team, max, onChange, why, ordered = false }: {
   units: ServerUnit[]; team: string[]; max: number; protagonist: string; onChange: (team: string[]) => void;
   why?: (unit: ServerUnit) => string | null; ordered?: boolean;
 }) {
@@ -70,7 +70,7 @@ export function TeamPicker({ units, team, max, protagonist, onChange, why, order
               <span className="min-w-0">
                 <span className="tm-n">
                   {ordered && picked && <span className="tm-ord">{order + 1}</span>}
-                  {u.name}{u.character === protagonist && <span className="tag tag-brass">主角</span>}{ordered && order === 0 && <span className="tag tag-blue">主将</span>}
+                  {u.name}{u.isProtagonist && <span className="tag tag-brass">主角</span>}{ordered && order === 0 && <span className="tag tag-blue">主将</span>}
                 </span>
                 <span className="tm-s">{u.className} · Lv {u.level} · HP {u.maxHp}{blocked ? ` · ${blocked}` : ''}</span>
               </span>

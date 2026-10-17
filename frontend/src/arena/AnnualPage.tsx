@@ -132,6 +132,10 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
                 </dl>
                 {quote && <QuoteBox quote={quote} />}
                 <div className="go-bar">
+                  <button type="button" className="btn btn-ghost" disabled={busy !== null}
+                    onClick={() => { if (window.confirm('退出本届后不能重新报名，已发生的伤亡和消耗保留。确认退赛？')) void act('withdraw', () => session.run(OP.WITHDRAW_ANNUAL), () => '已退出本届赛事'); }}>
+                    退出本届赛事
+                  </button>
                   {!quote
                     ? <button type="button" className="btn" disabled={busy !== null}
                       onClick={() => void act('quote', () => session.quote('annual'), q => { setQuote(q); return q.blockers.length > 0 ? `现在不能开打：${q.blockers.join('；')}` : `报价：推进 ${q.costDays} 日 → ${q.date.label}`; })}>

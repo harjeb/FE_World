@@ -9,6 +9,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
+import { seedBrowserAccount } from './fixtures.mjs';
 
 const API_PORT = 8611;
 let cdpPort = 9411;
@@ -104,6 +105,8 @@ function check(name, ok, detail) {
 
 const profile = mkdtempSync(join(tmpdir(), 'agent-tactics-e2e-'));
 const dbDir = mkdtempSync(join(tmpdir(), 'agent-tactics-db-'));
+seedBrowserAccount(join(dbDir, 'e2e.db'), 'e2e-seeded');
+seedBrowserAccount(join(dbDir, 'e2e.db'), 'duplicates-seeded', true);
 const server = spawn('node', [join(import.meta.dirname, '..', '..', 'backend', 'api', 'server.ts')], {
   env: { ...process.env, API_PORT: String(API_PORT), DB_PATH: join(dbDir, 'e2e.db') }, stdio: 'inherit',
 });
@@ -113,7 +116,27 @@ try {
   const page = await openPage(profile);
   try {
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
-    const name = `e2e${Date.now() % 100000}`;
+    await page.type('input', 'onboarding-player');
+    await page.click('button[type=submit]');
+    check('new accounts enter character setup', await until(() => page.evaluate(`document.body.innerText.includes('缔结神约')`)), 'setup shown');
+    await page.type('input[placeholder="2–12 字"]', '星海神主');
+    await page.evaluate(`[...document.querySelectorAll('section:nth-of-type(2) button')].slice(0, 2).forEach(button => button.click())`);
+    await page.evaluate(`[...document.querySelectorAll('button')].find(button => button.innerText === '确认开局').click()`);
+    check('completing setup opens the camp with exactly three characters',
+      await until(() => page.evaluate(`!!document.querySelector('.topbar')`)) && (await api(page, 10)).units.length === 3, 'three-member party');
+    const protagonist = (await api(page, 10)).units.find(unit => unit.isProtagonist);
+    check('the custom protagonist retains its identity', protagonist?.id === 'u_protagonist' && protagonist.name === '星海神主', 'custom protagonist');
+    let repeated = false;
+    try { await api(page, 127, {}); } catch { repeated = true; }
+    check('setup cannot be repeated', repeated, 'second completion rejected');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/quests`, '.ch-acts button');
+    check('quest kinds include escort, escape and gathering labels', await page.evaluate(`['护送', '撤离', '抢物资'].every(kind => document.body.innerText.includes(kind))`), 'all six objective kinds');
+    await page.click('.ch-acts button');
+    check('quest preparation shows team selection, date, enemy level and permanent-death risk',
+      await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');
+    await page.evaluate(`localStorage.clear()`);
+    await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
+    const name = 'e2e-seeded';
     await page.type('input', name);
     await page.click('button[type=submit]');
     await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '.topbar');
@@ -200,6 +223,19 @@ try {
     check('arena shows the last result and the next date',
       arena2.includes('上次竞技场结果') && arena2.includes('下一个竞技场日：第 2 年 · 第 4 季 · 第 30 日') && arena2.includes('没打，按落败计') && arena2.includes('试攻') && !arena2.includes('24:00'),
       arena2.slice(0, 200));
+    await page.evaluate(`localStorage.clear()`);
+    await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
+    await page.type('input', 'duplicates-seeded');
+    await page.click('button[type=submit]');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#st-h');
+    const original = await api(page, 21, { unitId: 'u_owen' });
+    const rowValue = () => page.evaluate(`(() => { const row = [...document.querySelector('#st-h').closest('section').querySelectorAll('tbody tr')].find(row => row.querySelector('th').innerText === '力'); return row?.lastElementChild.innerText.trim(); })()`);
+    const originalValue = await rowValue();
+    check('duplicate templates keep the first instance growth', originalValue?.startsWith(`${original.growth.str}%`), 'first growth matches server');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen_twin`, '#st-h');
+    const twin = await api(page, 21, { unitId: 'u_owen_twin' });
+    const twinValue = await rowValue();
+    check('duplicate templates keep the second instance growth', twinValue?.startsWith(`${twin.growth.str}%`) && twinValue !== originalValue, 'second growth independently matches server');
     check('no console errors', page.errors.length === 0, page.errors.join(' | ') || 'none');
   } finally {
     await page.close();

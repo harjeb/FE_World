@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
-import { classOf, living } from '@common/engine/index.ts';
+import { canFinishGather, classOf, living } from '@common/engine/index.ts';
 import type { BattleState } from '@common/engine/index.ts';
 import type { Dialog, LevelShow } from './controller.ts';
 import type { BattleResultView } from './session.ts';
@@ -55,7 +55,8 @@ export function ConfirmDialog({ kind, state, surrender, onConfirm, onCancel }: {
   const ok = useAutofocus();
   const waiting = living(state, 'player').filter(u => !u.acted);
   const endPhase = kind === 'endPhase';
-  const title = endPhase ? '结束己方阶段？' : surrender ? '投降？' : '全军撤退？';
+  const gathered = canFinishGather(state);
+  const title = endPhase ? '结束己方阶段？' : surrender ? '投降？' : gathered ? '带回物资并结束任务？' : '全军撤退？';
   return (
     <div className="overlay light" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
       <section className="modal">
@@ -63,12 +64,12 @@ export function ConfirmDialog({ kind, state, surrender, onConfirm, onCancel }: {
         <div className="body" style={{ fontSize: 14 }}>
           {endPhase && <p>还有 {waiting.length} 人未行动：{waiting.map(u => u.name).join('、')}。结束后他们原地待机，随后进入对方阶段。</p>}
           {!endPhase && surrender && <p>投降后本场进攻按落败计（0 分），不能再次进攻这名对手。</p>}
-          {!endPhase && !surrender && <p>撤退后本场战斗按失败结算，无法继续。已经获得的经验保留。</p>}
+          {!endPhase && !surrender && <p>{gathered ? '已带回至少1箱，任务按成功结算。仍在战场的物资不会带回，已发生的伤亡和消耗保留。' : '撤退后本场战斗按失败结算，无法继续。已经获得的经验保留。'}</p>}
         </div>
         <footer>
           <button type="button" className="btn" onClick={onCancel}>{endPhase ? '继续行动' : '取消'} <span className="kbd">ESC</span></button>
           <button ref={ok} type="button" className={`btn ${endPhase ? 'btn-primary' : 'btn-danger'}`} onClick={onConfirm}>
-            {endPhase ? '结束阶段' : surrender ? '确认投降' : '确认撤退'}
+            {endPhase ? '结束阶段' : surrender ? '确认投降' : gathered ? '带回物资并结束' : '确认撤退'}
           </button>
         </footer>
       </section>

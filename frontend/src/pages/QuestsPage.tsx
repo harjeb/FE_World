@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { QuestRegion, QuestView } from '../api/session.ts';
@@ -5,14 +6,14 @@ import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { LockIcon } from '../ui/icons.tsx';
 import { dateLabel } from '../ui/calendar.ts';
-import { useAct } from './SystemParts.tsx';
+import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 
 type Phase = 'locked' | 'available' | 'done' | 'claimed';
 const phaseOf = (q: QuestView): Phase => (!q.available && !q.done ? 'locked' : !q.done ? 'available' : !q.claimed ? 'done' : 'claimed');
 const PHASE_TAG: Record<Phase, [string, string]> = {
   locked: ['未解锁', 'tag-grey'], available: ['可接取', 'tag-blue'], done: ['奖励待领取', 'tag-green'], claimed: ['已完成', 'tag-brass'],
 };
-const KIND_TEXT: Record<QuestView['kind'], string> = { rout: '讨伐', seize: '占领/抵达', defend: '坚守' };
+const KIND_TEXT: Record<QuestView['kind'], string> = { rout: '讨伐', seize: '占领/抵达', defend: '坚守', escape: '撤离', gather: '抢物资', escort: '护送' };
 
 const rewardText = (q: QuestView) => [
   `${q.reward.gold} 金币`,
@@ -20,18 +21,20 @@ const rewardText = (q: QuestView) => [
   ...(q.reward.items ?? []).map(([item, count]) => `${item} ×${count}`),
 ].join(' · ');
 
-// 地区任务 (docs/20): 短/标准任务耗 4/8 日，胜利标记完成，奖励与声望分开领取；声望永久、不因购买扣除。
+// Preview the party, date and permanent-death risk before committing to a quest.
 export function QuestsPage() {
   const { quests, state } = useSession();
   const { busy, act } = useAct();
   const day = state?.day ?? 0;
+  const [selected, setSelected] = useState<QuestView | null>(null);
+  const [team, setTeam] = useState<string[]>([]);
 
   if (!quests) {
     return <Shell current="quests"><p style={{ color: '#4E473D' }}>暂时读不到地区任务（GET_QUESTS），刷新页面再试。</p></Shell>;
   }
 
   const start = (q: QuestView) => act(`s${q.id}`, async () => {
-    await session.run(OP.START_QUEST, { questId: q.id }, false);
+    await session.run(OP.START_QUEST, { questId: q.id, unitIds: team }, false);
     await session.refresh();
     go(links.field);
     return q.name;
@@ -54,7 +57,10 @@ export function QuestsPage() {
       </div>
 
       <div className="sys-cols">
-        {quests.regions.map(region => <RegionPanel key={region.region} region={region} busy={busy} onStart={start} onClaim={claim} onBuy={buy} />)}
+        {quests.regions.map(region => <RegionPanel key={region.region} region={region} busy={busy} onStart={quest => {
+          setSelected(quest);
+          setTeam((state?.units ?? []).filter(unit => unit.status === 'active' && !unit.lockedRunId && !unit.lockedDispatchId).slice(0, 6).map(unit => unit.id));
+        }} onClaim={claim} onBuy={buy} />)}
         <div className="colstack">
           <section className="panel" aria-labelledby="qr-h">
             <div className="ph"><h2 id="qr-h">声望</h2></div>
@@ -67,6 +73,17 @@ export function QuestsPage() {
           </section>
         </div>
       </div>
+      {selected && state && <section className="panel" aria-label="任务出征确认">
+        <div className="ph"><h2>{selected.name} · 出征准备</h2></div>
+        <p className="sys-note">{selected.objective} · 敌军 Lv {selected.enemyLevel} · 推进 {selected.costDays} 日 → {dateLabel(selected.toDay)} · 普通角色可能永久死亡。地区远征按每图 2 日支付，整本共 6 日。</p>
+        <p className="sys-note">基础奖励：{rewardText(selected)}。{selected.optionalReward ? `带回1箱即可完成；之后可用撤退结束，或继续带回物资，每多1箱增加${itemName(selected.optionalReward.item)} ×${selected.optionalReward.perExtraBox}。` : '失败或撤退不发通关奖励，已发生伤亡和消耗保留。'}</p>
+        <TeamPicker units={state.units.filter(unit => unit.status === 'active')} team={team} max={8} protagonist={state.player.protagonist} onChange={setTeam}
+          why={unit => unit.lockedRunId || unit.lockedDispatchId ? '正在远征或派遣' : null} />
+        <div className="go-bar">
+          <button type="button" className="btn btn-ghost" onClick={() => setSelected(null)}>取消</button>
+          <button type="button" className="btn btn-primary" disabled={busy !== null || team.length === 0} onClick={() => void start(selected)}>确认出征</button>
+        </div>
+      </section>}
     </Shell>
   );
 }

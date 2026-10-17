@@ -37,6 +37,11 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
 }
 
 // 撤离: any player unit (or the escort NPC) standing on an exit tile may leave the map (docs/20 §2).
+export function canFinishGather(state: BattleState): boolean {
+  return state.goal.kind === 'gather' && state.units.filter(unit => unit.side === 'player' && unit.escaped)
+    .reduce((sum, unit) => sum + (unit.carried ?? 0), 0) >= state.goal.need;
+}
+
 export function canEscape(state: BattleState, unit: UnitState, at: Point): boolean {
   const goal = state.goal;
   if (unit.side !== 'player') return false;

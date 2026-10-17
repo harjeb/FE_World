@@ -54,7 +54,8 @@ export function renderMarkdown(): string {
 export function changesSince(version: number): { from: number; to: number; changes: string[] } | null {
   if (version === DOC_VERSION) return { from: version, to: DOC_VERSION, changes: [] };
   if (version < 1) {
-    return { from: version, to: DOC_VERSION, changes: [`v1: 首次发布，共 ${OPS.length} 个 op、${ERRORS.length} 个错误码。`] };
+    return { from: version, to: DOC_VERSION, changes: [`v1: 首次发布。`, 'v2: 新增 WITHDRAW_ANNUAL(113)；年度赛事锁定报名培养和物资；START_MAIN_STAGE兼容入口也要求年度报名；任务预览补齐敌军等级、日期、风险及额外物资。'] };
   }
+  if (version === 1) return { from: version, to: DOC_VERSION, changes: ['v2: 新增 WITHDRAW_ANNUAL(113)；年度赛事锁定报名培养和物资；START_MAIN_STAGE兼容入口也要求年度报名；任务预览补齐敌军等级、日期、风险及额外物资。'] };
   return null;
 }

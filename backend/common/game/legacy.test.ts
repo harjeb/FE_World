@@ -36,7 +36,8 @@ test('backfill spends every point, honours weights and never exceeds caps', () =
   assert.equal(gains.str, 3);
   const gains2 = distributeBackfill(5, { str: 1 }, base, caps);
   assert.equal(gains2.str, 3);
-  assert.equal(Object.values(gains2).reduce((a, b) => a + (b ?? 0), 0), 3);
+  assert.equal(Object.values(gains2).reduce((a, b) => a + (b ?? 0), 0), 5);
+  assert.equal(gains2.hp, 2, 'surplus moves to the next stat with capacity');
 });
 
 test('a claimed growth legacy replaces the personal vector and locks the lineage', () => {

@@ -35,6 +35,7 @@ export interface PlayerFlags {
   // 地区任务与声望（docs/20）：已完成任务、已领奖任务、各地区声望。
   questsDone?: string[];
   questRewardsClaimed?: string[];
+  questBoxes?: Record<string, number>;
   regionReputation?: Record<number, number>;
   // 开局自选的两名同伴（docs/20 §5.1）：未设置表示还没选；选过之后即使减员也不再要求重选。
   companions?: CharacterId[];
@@ -187,12 +188,20 @@ export class Store {
 
   units(playerId: string): UnitRecord[] {
     return (this.db.prepare('SELECT data FROM units WHERE player_id = ? ORDER BY position').all(playerId) as { data: string }[])
-      .map(row => normalizeUnit(JSON.parse(row.data) as UnitRecord));
+      .map(row => this.readUnit(playerId, row.data));
   }
 
   unit(playerId: string, unitId: string): UnitRecord | null {
     const row = this.db.prepare('SELECT data FROM units WHERE player_id = ? AND id = ?').get(playerId, unitId) as { data: string } | undefined;
-    return row ? normalizeUnit(JSON.parse(row.data) as UnitRecord) : null;
+    return row ? this.readUnit(playerId, row.data) : null;
+  }
+
+  private readUnit(playerId: string, data: string): UnitRecord {
+    const unit = normalizeUnit(JSON.parse(data) as UnitRecord);
+    // Old growth claims accidentally stored numeric contracts. Stop future backfill,
+    // preserving every previously earned attribute and the original lineage lock.
+    if (unit.inheritance && this.legacy(playerId, unit.inheritance.legacyId)?.mode === 'growth') unit.inheritance = undefined;
+    return unit;
   }
 
   saveUnit(unit: UnitRecord, playerId: string, position?: number): void {

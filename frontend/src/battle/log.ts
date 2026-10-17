@@ -60,6 +60,9 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       case 'loot':
         push(`${name(e.unit)} 拾取物资箱（共 ${e.boxes} 箱）。`, mark(e.unit));
         break;
+      case 'drop':
+        push(`${name(e.unit)} 的 ${e.boxes} 箱物资落在原地。`, mark(e.unit));
+        break;
       case 'escape':
         push(`${name(e.unit)} 撤离了战场。`, mark(e.unit));
         break;

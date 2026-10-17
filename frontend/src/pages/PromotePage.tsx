@@ -29,7 +29,7 @@ function OptionCard({ entry, option, chosen, onPick }: { entry: RosterEntry; opt
   const def = CHARACTERS[unit.character], cls = CLASSES[unit.classId];
   const after = { ...unit, classId: option.to, stats: { ...unit.stats }, con: unit.con + option.con };
   // 成长类型/年龄修正与职业无关，转职前后都一样 (docs/02)。
-  const bonus = UNIT_TRAITS[unit.character]?.growthBonus ?? 0;
+  const bonus = UNIT_TRAITS[unit.id ?? unit.character]?.growthBonus ?? 0;
   for (const key of STAT_KEYS) after.stats[key] += option.bonus[key];
   const line = combatLine(asUnit(after), option.mods);
   // 转职不赠送即时属性或体格 (docs/00 §5)；转职表里真有加成时才列出来。
@@ -103,7 +103,7 @@ export function PromotePage({ unit }: { unit: string }) {
             <div className="flex flex-wrap items-baseline gap-2.5">
               <h1 id="who-h" className="serif" style={{ fontSize: 24 }}>{name} · 转职</h1>
               <span className="tag tag-grey">{cls.name} · {cls.stage} 阶 · Lv {entry.unit.level}</span>
-              <span className="tag tag-grey">{UNIT_TRAITS[entry.unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[entry.unit.character].growthType]}</span>
+              <span className="tag tag-grey">{UNIT_TRAITS[entry.unit.id ?? entry.unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[entry.unit.character].growthType]}</span>
             </div>
             <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>查看推荐职业，保留总等级与经验。人物最高 Lv99，HP 上限150，其他属性上限99。</div>
           </div>

@@ -212,6 +212,10 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     ctx.player.flags.questsDone ??= [];
     if (!ctx.player.flags.questsDone.includes(record.questId)) {
       ctx.player.flags.questsDone.push(record.questId);
+      if (record.state.goal.kind === 'gather') {
+        ctx.player.flags.questBoxes ??= {};
+        ctx.player.flags.questBoxes[record.questId] = record.state.units.filter(unit => unit.side === 'player' && unit.escaped).reduce((sum, unit) => sum + (unit.carried ?? 0), 0);
+      }
       ctx.store.savePlayer(ctx.player);
       ctx.store.addEvent(ctx.player.id, 'quest', `完成任务「${questById(record.questId)?.name ?? record.questId}」，奖励待领取。`, { questId: record.questId });
     }
@@ -394,19 +398,7 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.START_MAIN_STAGE]: ctx => {
-    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
-    const active = ctx.store.units(ctx.player.id).filter(u => u.status === 'active');
-    if (active.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
-    const round = (ctx.player.flags.festivalRound ?? 0) + 1;
-    const seed = randomUUID().slice(0, 8);
-    const record = createFestivalBattle(active, round, seed, { day: Math.floor(ctx.player.day / DAYS_PER_YEAR) * DAYS_PER_YEAR });
-    record.playerId = ctx.player.id;
-    ctx.player.day += ACTION_DAYS.festivalMatch;
-    syncPlayer(ctx.store, ctx.player);
-    ctx.store.saveBattle(record);
-    ctx.store.addEvent(ctx.player.id, 'festival', `大竞技场第 ${round} 轮开始。`, { battleId: record.id });
-    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
-    return { battleId: record.id, round, battle: battleView(record, false) };
+    return handlers[OP.START_ANNUAL_MATCH](ctx, {});
   },
 
   [OP.SKIP_MAIN_STAGE]: ctx => {
@@ -573,7 +565,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.DISMISS]: (ctx, data) => {
     const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
-    if (unit.character === ctx.player.protagonist) throw new OpError('FORBIDDEN', '不能解雇主角');
+    if (unit.isProtagonist) throw new OpError('FORBIDDEN', '不能解雇主角');
     ctx.store.removeUnit(ctx.player.id, unit.id);
     ctx.store.addEvent(ctx.player.id, 'dismiss', `${unitName(unit)} 离开了军团。`, { unit: unit.id });
     ctx.push(OP.STATE_CHANGED, { reason: 'dismiss' });
@@ -611,8 +603,9 @@ const handlers: Record<number, Handler> = {
     if (ctx.store.countInventory(ctx.player.id, stone) < 1) throw new OpError('NO_SUCH_ITEM', `需要一枚${GAME_ITEMS[stone].name}`);
     const preview = previewInheritance(legacy, unit);
     const weights = (data.weights && typeof data.weights === 'object' ? data.weights : {}) as Record<string, number>;
+    try { claimLegacy(legacy, unit, mode, weights); }
+    catch (error) { throw new OpError('BAD_REQUEST', error instanceof Error ? error.message : String(error)); }
     ctx.store.takeInventory(ctx.player.id, stone, 1);
-    claimLegacy(legacy, unit, mode, weights);
     ctx.store.saveLegacy(legacy);
     ctx.store.saveUnit(unit, ctx.player.id);
     ctx.store.addEvent(ctx.player.id, 'legacy', `${unitName(unit)} 以${mode === 'growth' ? '成长' : '数值'}传承兑现了 ${legacy.sourceName} 的遗产。`, { unit: unit.id, legacy: legacy.id, mode });
@@ -622,7 +615,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.RETIRE_UNIT]: (ctx, data) => {
     const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
-    if (unit.character === ctx.player.protagonist) throw new OpError('FORBIDDEN', '主角不能退役');
+    if (unit.isProtagonist) throw new OpError('FORBIDDEN', '主角不能退役');
     if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
     if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能退役');
     const legacyId = recordRetire(ctx.store, ctx.player, unit);
@@ -1305,12 +1298,14 @@ const handlers: Record<number, Handler> = {
   // ---- annual arena (docs/00 §9.4, docs/13 §6) -------------------------
 
   [OP.GET_ANNUAL]: ctx => {
-    const annualIndex = annualIndexFor(ctx.player.day);
-    const entry = ctx.store.annualEntryFor(ctx.player.id, annualIndex) ?? ctx.store.latestAnnualEntry(ctx.player.id);
+    const active = ctx.store.activeAnnualEntry(ctx.player.id);
+    const calendarIndex = annualIndexFor(ctx.player.day);
+    const annualIndex = active?.annualIndex ?? Math.max(1, calendarIndex);
+    const entry = active ?? ctx.store.annualEntryFor(ctx.player.id, annualIndex) ?? ctx.store.latestAnnualEntry(ctx.player.id);
     return {
       annualIndex,
       windowOpen: annualWindowOpen(ctx.player.day),
-      nextOpenDay: (annualIndex + 1) * 120,
+      nextOpenDay: (calendarIndex + 1) * 120,
       qualifierMatches: ANNUAL_QUALIFIER_MATCHES,
       qualifierWins: ANNUAL_QUALIFIER_WINS,
       costDays: ACTION_DAYS.festivalMatch,
@@ -1322,13 +1317,17 @@ const handlers: Record<number, Handler> = {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const annualIndex = annualIndexFor(ctx.player.day);
-    if (!annualWindowOpen(ctx.player.day)) throw new OpError('FORBIDDEN', '大竞技场报名窗口未开放（每年最后三日）');
+    if (!annualWindowOpen(ctx.player.day)) throw new OpError('FORBIDDEN', '大竞技场报名窗口未开放（D120起，每届预留18日赛程）');
     if (ctx.store.annualEntryFor(ctx.player.id, annualIndex)) throw new OpError('FORBIDDEN', '本届已经报名；淘汰或退赛后当届不能重报');
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const units = (ids.length > 0 ? ids.map(id => requireUnit(ctx.store, ctx.player, id)) : ctx.store.units(ctx.player.id))
       .filter(u => u.status === 'active');
     if (units.length === 0) throw new OpError('BAD_REQUEST', '没有可报名的单位');
+    if (new Set(units.map(unit => unit.id)).size !== units.length) throw new OpError('BAD_REQUEST', '报名单位不能重复');
+    if (units.some(unit => unit.lockedRunId || unit.lockedDispatchId)) throw new OpError('FORBIDDEN', '报名队员正在远征或派遣中');
     const entry = createAnnualEntry(`annual-${annualIndex}-${randomUUID().slice(0, 8)}`, ctx.player.id, annualIndex, units.map(u => u.id));
+    entry.roster = Object.fromEntries(units.map(unit => [unit.id, structuredClone(unit)]));
+    entry.matchSeeds = Array.from({ length: 9 }, () => randomUUID());
     ctx.store.saveAnnualEntry(entry);
     ctx.store.saveSnapshot(ctx.player.id, ctx.player.day, snapshotData(ctx.store, ctx.player));
     ctx.store.addEvent(ctx.player.id, 'festival', `报名第 ${annualIndex} 届大竞技场（${units.length} 人）。`, { annualIndex });
@@ -1343,10 +1342,14 @@ const handlers: Record<number, Handler> = {
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     // 第一场用报名名单；之后只能用原名单中仍存活者（docs/00 §9.4.2）。
     const sourceIds = entry.qualifierCount === 0 && entry.round === 0 ? entry.unitIds : Object.keys(entry.carry);
-    const units = sourceIds.map(id => ctx.store.unit(ctx.player.id, id)).filter((u): u is NonNullable<typeof u> => !!u && u.status === 'active' && !u.lockedDispatchId);
+    const living = sourceIds.map(id => ctx.store.unit(ctx.player.id, id)).filter((u): u is NonNullable<typeof u> => !!u && u.status === 'active' && !u.lockedDispatchId);
+    // Older entries freeze once when resumed; new entries freeze at registration.
+    entry.roster ??= Object.fromEntries(living.map(unit => [unit.id, structuredClone(unit)]));
+    const units = living.map(unit => entry.roster![unit.id]).filter((unit): unit is UnitRecord => !!unit);
     if (units.length === 0) throw new OpError('FORBIDDEN', '没有可出战的报名队员，只能退赛');
     const round = nextFestivalRound(entry);
-    const seed = randomUUID().slice(0, 8);
+    entry.matchSeeds ??= Array.from({ length: 9 }, () => randomUUID());
+    const seed = entry.matchSeeds[round - 1];
     const record = createFestivalBattle(units, round, seed, { day: entry.annualIndex * DAYS_PER_YEAR, annualId: entry.id, carry: entry.carry });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.festivalMatch;
@@ -1354,9 +1357,27 @@ const handlers: Record<number, Handler> = {
     ctx.store.saveBattle(record);
     entry.battleId = record.id;
     ctx.store.saveAnnualEntry(entry);
-    ctx.store.addEvent(ctx.player.id, 'festival', `大竞技场第 ${annualIndexFor(ctx.player.day)} 届第 ${round} 轮开始。`, { battleId: record.id });
+    ctx.store.addEvent(ctx.player.id, 'festival', `大竞技场第 ${entry.annualIndex} 届第 ${round} 轮开始。`, { battleId: record.id });
     ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
     return { entry: annualSummary(entry), round, battleId: record.id, battle: battleView(record, false) };
+  },
+
+  [OP.WITHDRAW_ANNUAL]: ctx => {
+    const entry = ctx.store.activeAnnualEntry(ctx.player.id);
+    if (!entry) throw new OpError('NOT_FOUND', '没有进行中的大竞技场报名');
+    const battle = ctx.store.activeBattle(ctx.player.id);
+    if (battle) {
+      if (battle.annualId !== entry.id) throw new OpError('BATTLE_IN_PROGRESS', '已有其他战斗');
+      applyAction(ctx, battle, { type: 'surrender' });
+    }
+    const current = ctx.store.annualEntry(ctx.player.id, entry.id)!;
+    current.state = 'withdrawn';
+    current.battleId = null;
+    ctx.store.saveAnnualEntry(current);
+    flushRecoveryBag(ctx.store, ctx.player);
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'annual-withdraw' });
+    return { entry: annualSummary(current) };
   },
 
   // ---- eight-chapter story (docs/00 §9.4.2, docs/13 §6.3) --------------
@@ -1418,6 +1439,9 @@ const handlers: Record<number, Handler> = {
           quests: questsForRegion(region).map(q => ({
             id: q.id, name: q.name, objective: q.objective, kind: q.kind, tier: q.tier,
             costDays: QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, reward: q.reward,
+            enemyLevel: enemyLevel(ctx.player.day, regionById(region).offset),
+            toDay: ctx.player.day + QUEST_DAY_COST[q.tier], risk: 'permadeath',
+            optionalReward: q.kind === 'gather' ? { item: region === 3 ? 'ore' : region === 5 ? 'herb' : 'wood', perExtraBox: 1 } : null,
             requires: q.requires ?? null,
             done: done.has(q.id), claimed: claimed.has(q.id),
             available: questAvailable(q, { done, reputation: rep }),
@@ -1488,7 +1512,12 @@ const handlers: Record<number, Handler> = {
     }
     ctx.player.flags.questRewardsClaimed.push(quest.id);
     ctx.player.gold += quest.reward.gold;
-    for (const [item, count] of quest.reward.items ?? []) ctx.store.addInventory(ctx.player.id, item, 0, count);
+    const items: [ItemKey, number][] = [...(quest.reward.items ?? [])];
+    if (quest.kind === 'gather') {
+      const extra = Math.max(0, (ctx.player.flags.questBoxes?.[quest.id] ?? 1) - 1);
+      if (extra) items.push([quest.region === 3 ? 'ore' : quest.region === 5 ? 'herb' : 'wood', extra]);
+    }
+    for (const [item, count] of items) ctx.store.addInventory(ctx.player.id, item, 0, count);
     ctx.player.flags.regionReputation ??= {};
     const before = ctx.player.flags.regionReputation[quest.region] ?? 0;
     const after = before + quest.reward.reputation;
@@ -1506,7 +1535,7 @@ const handlers: Record<number, Handler> = {
     }
     ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'quest-reward' });
-    return { questId: quest.id, gold: quest.reward.gold, items: quest.reward.items ?? [], recruited, recruitLine: quest.recruit ? RECRUIT_LINES[quest.recruit] ?? null : null, reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
+    return { questId: quest.id, gold: quest.reward.gold, items, recruited, recruitLine: quest.recruit ? RECRUIT_LINES[quest.recruit] ?? null : null, reputation: { region: quest.region, before, after, tier: reputationTier(after) } };
   },
 
   [OP.BUY_QUEST_ITEM]: (ctx, data) => {
@@ -1648,6 +1677,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
   const fighting = !!ctx.store.activeBattle(player.id);
   const run = ctx.store.activeRun(player.id);
   const blockers: string[] = [];
+  if (ctx.store.activeAnnualEntry(player.id) && action !== 'annual') blockers.push('大竞技场进行中，请先完成或退出本届赛事');
   let op = 0;
   let payload: Record<string, unknown> = {};
   let costDays = 0;
@@ -1779,6 +1809,15 @@ export function dispatch(ctx: Context, op: number, data: Json): unknown {
 
 // 写命令成功后推进玩家版本，供预览／执行绑定（docs/13 §2.1）。
 function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unknown {
+  const annual = ctx.store.activeAnnualEntry(ctx.player.id);
+  if (annual && WRITE_OPS.has(op) && !ANNUAL_OPS.has(op)) {
+    throw new OpError('FORBIDDEN', '大竞技场名单已经报名，整届固定物资与培养，请先完成或退出本届赛事');
+  }
+  const battle = ctx.store.activeBattle(ctx.player.id);
+  const unitId = typeof data.unitId === 'string' ? data.unitId : null;
+  if (battle && unitId && battle.state.units.some(unit => unit.id === unitId) && WRITE_OPS.has(op) && !ANNUAL_OPS.has(op)) {
+    throw new OpError('BATTLE_IN_PROGRESS', '战斗中的队员不能培养或调整物资');
+  }
   const result = handler(ctx, data);
   if (WRITE_OPS.has(op)) {
     ctx.player.version = (ctx.player.version ?? 0) + 1;
@@ -1795,10 +1834,15 @@ const WRITE_OPS = new Set<number>([
   OP.CLAIM_LEGACY, OP.RETIRE_UNIT, OP.REINCARNATE_UNIT, OP.EMERGENCY_RECRUIT, OP.BUY_CLASS_QUALIFICATION,
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
-  OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
+  OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.WITHDRAW_ANNUAL, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
   OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP,
   OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
+]);
+
+const ANNUAL_OPS = new Set<number>([
+  OP.START_ANNUAL_MATCH, OP.START_MAIN_STAGE, OP.WITHDRAW_ANNUAL, OP.UNIT_ACT, OP.END_PHASE,
+  OP.RETREAT, OP.SURRENDER, OP.EXECUTE_ACTION,
 ]);
 
 // 负载摘要包含操作与数据（去掉 commandId），不包含连接 seq（docs/13 §2.1）。

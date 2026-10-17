@@ -1,7 +1,7 @@
 import { ITEMS } from '../data/weapons.ts';
 import { decide } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
-import { canEscape, canSeize } from './ranges.ts';
+import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { attackWeapons, cellKey, inBounds, inRange, keyPoint, living, samePoint, staffWeapons, unitById } from './units.ts';
 import { EngineError } from './types.ts';
@@ -15,7 +15,10 @@ export function step(prev: BattleState, action: Action): { state: BattleState; e
   const events: BattleEvent[] = [];
   if (action.type !== 'act') {
     if (state.phase !== 'player') throw new EngineError('NOT_YOUR_PHASE', '当前不是己方阶段');
-    if (action.type === 'retreat') finish(state, events, 'enemy', '全军撤退');
+    if (action.type === 'retreat') {
+      const gathered = canFinishGather(state);
+      finish(state, events, gathered ? 'player' : 'enemy', gathered ? '带回物资' : '全军撤退');
+    }
     else if (action.type === 'surrender') finish(state, events, 'enemy', '投降');
     else endPlayerPhase(state, events);
   } else {
@@ -85,10 +88,10 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[]):
     unit.movedTurn = state.turn;
   }
   // 抢物资：站上物资箱即自动拾取（docs/20 §2）。
-  if (state.boxes?.some(b => samePoint(b, unit.pos))) {
-    const here = state.boxes.filter(b => samePoint(b, unit.pos)).length;
-    state.boxes = state.boxes.filter(b => !samePoint(b, unit.pos));
-    unit.carried = (unit.carried ?? 0) + here;
+  if (!(unit.carried ?? 0) && state.boxes?.some(b => samePoint(b, unit.pos))) {
+    const index = state.boxes.findIndex(b => samePoint(b, unit.pos));
+    state.boxes.splice(index, 1);
+    unit.carried = 1;
     events.push({ t: 'loot', unit: unit.id, boxes: unit.carried });
   }
   if (action.act === 'attack' && target) {
@@ -126,22 +129,22 @@ function finish(state: BattleState, events: BattleEvent[], winner: Side, reason:
 function escapedUnits(state: BattleState): number {
   return state.units.filter(u => u.side === 'player' && u.escaped).length;
 }
-function escapedBoxes(state: BattleState): number {
-  return state.units.filter(u => u.side === 'player' && u.escaped).reduce((sum, u) => sum + (u.carried ?? 0), 0);
-}
 
 function checkResult(state: BattleState, events: BattleEvent[]): void {
   if (state.result) return;
   const goal = state.goal;
   if (goal.kind === 'boss' && !unitById(state, goal.target).alive) { finish(state, events, 'player', '击败敌方主将'); return; }
   if (goal.kind === 'escape' && escapedUnits(state) >= goal.need) { finish(state, events, 'player', '成功撤离'); return; }
-  if (goal.kind === 'gather' && escapedBoxes(state) >= goal.need) { finish(state, events, 'player', '带回物资'); return; }
-  if (goal.kind === 'escort' && unitById(state, goal.npc).escaped) { finish(state, events, 'player', '护送成功'); return; }
+  if (canFinishGather(state) && !living(state, 'player').some(unit => !unit.npc)) { finish(state, events, 'player', '带回物资'); return; }
+  if (goal.kind === 'escort') {
+    const npc = unitById(state, goal.npc);
+    if (npc.escaped) { finish(state, events, 'player', '护送成功'); return; }
+    if (!npc.alive) { finish(state, events, 'enemy', '护卫对象阵亡'); return; }
+  }
   const seize = goal.kind === 'seize';
   // On a seize map only seizing wins, even after every defender has fallen.
-  if (!seize && living(state, 'enemy').length === 0) { finish(state, events, 'player', '全歼敌军'); return; }
-  if (goal.kind === 'escort' && !unitById(state, goal.npc).alive) { finish(state, events, 'enemy', '护卫对象阵亡'); return; }
-  if (living(state, 'player').length === 0) { finish(state, events, 'enemy', '我方全部退出战斗'); return; }
+  if ((goal.kind === 'rout' || goal.kind === 'boss') && living(state, 'enemy').length === 0) { finish(state, events, 'player', '全歼敌军'); return; }
+  if (!living(state, 'player').some(unit => !unit.npc)) { finish(state, events, 'enemy', '我方全部退出战斗'); return; }
   // Only the commander can seize, so losing it ends the attack.
   if (seize && !living(state, 'player').some(u => u.boss)) finish(state, events, 'enemy', '我方主将被击败，无法压制王座');
 }

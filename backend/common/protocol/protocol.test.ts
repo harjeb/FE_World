@@ -50,6 +50,7 @@ test('frames round-trip and reject malformed requests', () => {
 test('changesSince reports the first release and rejects unknown versions', () => {
   assert.deepEqual(changesSince(DOC_VERSION), { from: DOC_VERSION, to: DOC_VERSION, changes: [] });
   assert.equal(changesSince(0)?.to, DOC_VERSION);
+  assert.ok(changesSince(1)?.changes.some(change => change.includes('WITHDRAW_ANNUAL')));
   assert.equal(changesSince(99), null);
 });
 

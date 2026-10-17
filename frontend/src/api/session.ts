@@ -35,13 +35,15 @@ export interface ServerUnit {
   growthBonus: number;
   joinedDay: number;
   weaponExp: Record<string, number>;
-  growthLog: { level: number; gains: Record<string, number> }[];
+  growthLog: { level: number; gains: Record<string, number>; inherited?: Record<string, number> }[];
   // 能力药 used per stat this round (docs/00: 5 per stat, 20 in total).
   drugCounts: Record<string, number>;
   // 永久军团 (docs/00 §5、§7): one reincarnation per life, one inherited legacy per life.
   cycle: 0 | 1;
   lineageDepth: 0 | 1;
   isProtagonist: boolean;
+  lockedRunId: string | null;
+  lockedDispatchId: string | null;
   hasInheritance: boolean;
   growthAllocation: Partial<Record<StatKey, number>>;
   inheritedGrowth: Partial<Stats> | null;
@@ -164,8 +166,10 @@ export interface ServerStory { bexp: number; chapters: StoryChapter[] }
 
 // GET_QUESTS: regional quests and reputation (docs/20).
 export interface QuestView {
-  id: string; name: string; objective: string; kind: 'rout' | 'seize' | 'defend';
+  id: string; name: string; objective: string; kind: 'rout' | 'seize' | 'defend' | 'escape' | 'gather' | 'escort';
   tier: 'short' | 'standard' | 'region'; costDays: number; turnLimit: number;
+  enemyLevel: number; toDay: number; risk: 'permadeath';
+  optionalReward: { item: string; perExtraBox: number } | null;
   reward: { gold: number; reputation: number; items?: [string, number][] };
   requires: { quest?: string; reputation?: number } | null;
   done: boolean; claimed: boolean; available: boolean;

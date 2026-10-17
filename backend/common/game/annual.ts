@@ -1,5 +1,5 @@
-import { dateOf } from './calendar.ts';
 import type { RunCarry } from './expedition.ts';
+import type { UnitRecord } from './model.ts';
 
 // 年度大竞技场（docs/00 §9.4、docs/13 §6）：每届从三场海选（至少两胜）开始，正赛 64 强单败。
 // 名次不阻挡八章主线；已报名后淘汰或退赛，当届不能重报。
@@ -22,6 +22,8 @@ export interface AnnualEntry {
   round: number;
   unitIds: string[];
   carry: Record<string, RunCarry>;
+  roster?: Record<string, UnitRecord>;
+  matchSeeds?: string[];
   battleId: string | null;
   createdAt: number;
   updatedAt: number;
@@ -32,9 +34,9 @@ export function annualIndexFor(day: number): number {
   return Math.floor(day / 120);
 }
 
-// 报名窗口在年末最后几日开放；已有报名进行中时也允许继续。
+// Open at D120 and subsequent year boundaries, leaving eighteen days for a full run.
 export function annualWindowOpen(day: number): boolean {
-  return dateOf(day).dayOfMonth >= 28;
+  return day >= 120 && day % 120 <= 120 - 18;
 }
 
 export function createAnnualEntry(id: string, playerId: string, annualIndex: number, unitIds: string[]): AnnualEntry {

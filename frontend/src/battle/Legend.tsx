@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { canFinishGather } from '@common/engine/index.ts';
 import { RetreatIcon, ChevronIcon, BossFlag } from '../ui/icons.tsx';
 import type { BattleController, Snapshot } from './controller.ts';
 import type { LogEntry } from './log.ts';
@@ -14,7 +15,7 @@ export function Legend({ snap, ctl }: { snap: Snapshot; ctl: BattleController })
   return (
     <div className="legend">
       <button type="button" className="btn btn-sm btn-danger" onClick={() => ctl.requestRetreat()} disabled={!canRetreat}>
-        <RetreatIcon />{ctl.session.surrender ? '投降…' : '撤退…'}
+        <RetreatIcon />{ctl.session.surrender ? '投降…' : canFinishGather(state) ? '带回物资并结束…' : '撤退…'}
       </button>
       <span style={{ width: 1, height: 24, background: '#D5CAB4' }} aria-hidden="true" />
       <span className="lg"><span className="sw"><i className="mv" /></span>可移动</span>

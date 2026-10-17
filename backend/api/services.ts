@@ -195,40 +195,45 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   const rewards: BattleRewards = { gold: 0, items: [], levelUps: [], deaths: [], weaponRanks: [] };
   const units = store.units(player.id);
   const used = weaponsUsed(record);
+  const participants = new Set<string>();
+  for (const event of record.events) {
+    if (event.t === 'combat' && event.strikes.length) { participants.add(event.attacker); participants.add(event.defender); }
+    if (event.t === 'heal' && event.by && event.source === 'staff' && event.amount > 0) participants.add(event.by);
+    if (event.t === 'seize' || event.t === 'escape' || event.t === 'loot') participants.add(event.unit);
+  }
   for (const battleUnit of record.state.units.filter(u => u.side === 'player')) {
     const unit = units.find(u => u.id === battleUnit.id);
     if (!unit) continue;
-    if (battleUnit.alive || battleUnit.escaped) {
-      if (record.kind === 'field') {
-        unit.level = battleUnit.level;
-        unit.exp = battleUnit.exp;
-        unit.stats = { ...battleUnit.stats };
-        // The engine already rolled the gains; copy its level-ups into the unit's history (名册「历次升级」).
-        for (const event of record.events) {
-          if (event.t !== 'levelUp' || event.unit !== battleUnit.id) continue;
-          unit.growthLog.push({ level: event.level, gains: event.gains });
-          rewards.levelUps.push({ unit: unit.id, level: event.level });
-        }
+    if (record.kind === 'field') {
+      unit.level = battleUnit.level;
+      unit.exp = battleUnit.exp;
+      unit.stats = { ...battleUnit.stats };
+      for (const event of record.events) {
+        if (event.t !== 'levelUp' || event.unit !== battleUnit.id) continue;
+        unit.growthLog.push({ level: event.level, gains: event.gains });
+        rewards.levelUps.push({ unit: unit.id, level: event.level });
       }
-      for (const type of used.get(battleUnit.id) ?? []) {
+    }
+    if (lethal) {
+      unit.weapons = [...battleUnit.weapons];
+      unit.items = battleUnit.items.map(item => ({ ...item }));
+      // Older active battles counted consumed shields without removing their stacks.
+      const initialShields = record.initial.units.find(u => u.id === unit.id)?.items.filter(item => item.id === 'immortal_shield').length ?? 0;
+      let extra = Math.max(0, unit.items.filter(item => item.id === 'immortal_shield').length - Math.max(0, initialShields - (battleUnit.shieldsUsed ?? 0)));
+      unit.items = unit.items.filter(item => !(item.id === 'immortal_shield' && extra-- > 0));
+    }
+    if (battleUnit.alive || battleUnit.escaped) {
+      for (const type of lethal ? used.get(battleUnit.id) ?? [] : []) {
         const rank = addWeaponExp(unit, type, 2);
         if (rank) rewards.weaponRanks.push({ unit: unit.id, type, rank });
       }
       // 有效参战积累当前职业精通（docs/00 §4.2.1）；普通竞技场／练习不计。
-      if (record.mode === 'field' || record.mode === 'festival') {
+      if (lethal && participants.has(unit.id)) {
         gainMastery(unit, MASTERY_PER_BATTLE + (outcome.winner === 'player' ? MASTERY_PER_WIN : 0));
-      }
-      // 真实扣除已触发的不朽盾（docs/00 §7.2）；普通竞技场／练习用副本，不写回真实资产。
-      if (lethal && battleUnit.shieldsUsed) {
-        let used = battleUnit.shieldsUsed;
-        unit.items = unit.items.filter(item => {
-          if (used > 0 && item.id === 'immortal_shield') { used--; return false; }
-          return true;
-        });
       }
       store.saveUnit(unit, player.id);
     } else if (lethal) {
-      if (unit.character === player.protagonist) {
+      if (unit.isProtagonist) {
         // 神主角 HP 归零只撤退，不死亡 (docs/00 §7.1).
         unit.status = 'active';
         store.saveUnit(unit, player.id);

@@ -1,5 +1,5 @@
 {
-  "docVersion": 1,
+  "docVersion": 2,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -382,6 +382,13 @@
       "name": "START_ANNUAL_MATCH",
       "group": "赛事",
       "agentNote": "开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。",
+      "push": false
+    },
+    {
+      "op": 113,
+      "name": "WITHDRAW_ANNUAL",
+      "group": "赛事",
+      "agentNote": "退出本届年度赛事，保留真实伤亡与消耗、放弃后续比赛；当届不能重新报名。",
       "push": false
     },
     {

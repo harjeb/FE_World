@@ -11,6 +11,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
+import { seedBrowserAccount } from './fixtures.mjs';
 
 const API_PORT = 8613;
 const BASE = `http://127.0.0.1:${API_PORT}`;
@@ -126,6 +127,7 @@ const count = (inventory, item) => inventory.filter(r => r.item === item).reduce
 
 const profile = mkdtempSync(join(tmpdir(), 'agent-tactics-sys-'));
 const dbDir = mkdtempSync(join(tmpdir(), 'agent-tactics-sysdb-'));
+seedBrowserAccount(join(dbDir, 'e2e.db'), 'systems-seeded');
 const server = spawn('node', [join(import.meta.dirname, '..', '..', 'backend', 'api', 'server.ts')], {
   env: { ...process.env, API_PORT: String(API_PORT), DB_PATH: join(dbDir, 'e2e.db') }, stdio: 'inherit',
 });
@@ -135,7 +137,7 @@ try {
   const page = await openPage(profile);
   try {
     await page.open(`${BASE}/`, 'input');
-    await page.type('input', `sys${Date.now() % 100000}`);
+    await page.type('input', 'systems-seeded');
     await page.click('button[type=submit]');
     await page.open(`${BASE}/#/camp`, '.topbar');
     const nav = await page.evaluate(`document.querySelector('.rail nav').innerText.replace(/\\s+/g, ' ')`);
@@ -161,6 +163,8 @@ try {
     await page.reload('#br-h');
     const annual1 = await page.text();
     check('the bracket shows the played qualifier', annual1.includes('0 胜 1 负') && annual1.includes('第 1 场 · 已赛') && annual1.includes('参赛名单'), annual1.slice(annual1.indexOf('本届赛程'), annual1.indexOf('本届赛程') + 160));
+    await api(page, 113);
+    check('withdrawing releases the annual activity lock', (await api(page, OP.GET_ANNUAL)).entry.state === 'withdrawn', 'entry withdrawn');
 
     // 主线: complete the open chapter, then claim its shared experience once.
     await page.open(`${BASE}/#/story`, '#ch-h');
@@ -251,7 +255,7 @@ try {
     check('settings hands out the Agent token with the connection details',
       settings.includes('sk_') && settings.includes('ws://') && settings.includes('docVersion')
         && !(await page.evaluate(`[...document.querySelectorAll('button')].some(b => b.innerText.includes('取得接入令牌'))`)),
-      settings.slice(settings.indexOf('接入令牌 sk_'), settings.indexOf('接入令牌 sk_') + 120));
+      'Agent connection details present (credential omitted)');
     await press(page, '.set-rows > div', '网格', '显示');
     const saved = await page.evaluate(`localStorage.getItem('agent-tactics.battle-settings')`);
     check('battle display defaults are saved in the browser', !!saved && JSON.parse(saved).grid === false, String(saved));

@@ -6,6 +6,7 @@ import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
 import type { Terrain } from '../maps/map.ts';
 import type { RngState } from './rng.ts';
+import type { InheritanceContract } from '../game/legacy.ts';
 
 export type Point = [number, number];
 export type Side = 'player' | 'enemy';
@@ -40,6 +41,7 @@ export interface UnitState {
   growthAllocation?: Partial<Stats>;
   // 成长率传承替换后的个人基础成长（绝对向量）；存在时优先于角色表基础。
   inheritedGrowth?: Partial<Stats>;
+  inheritance?: InheritanceContract;
   // 已学会并装备的技能（最多 5 个，跨职业自由装备）；个人技能单列在 skill。
   skills?: SkillId[];
   // 不朽盾（docs/00 §7.2）：致死时消耗一枚，保留 1HP 并石化至下个己方阶段。
@@ -121,6 +123,7 @@ export type BattleEvent =
   | { t: 'wait'; unit: string }
   | { t: 'seize'; unit: string }
   | { t: 'loot'; unit: string; boxes: number }
+  | { t: 'drop'; unit: string; boxes: number; at: Point }
   | { t: 'escape'; unit: string }
   | { t: 'phase'; side: Side; turn: number }
   | { t: 'end'; winner: Side; reason: string };

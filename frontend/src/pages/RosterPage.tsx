@@ -22,14 +22,14 @@ type Filter = 'all' | RosterStatus | 'promotable';
 type Sort = 'lvDesc' | 'lvAsc' | 'class' | 'joined';
 
 // The unit's own type can differ from the character default (recruits roll one), so read the server view.
-const traitOf = (c: RosterEntry['unit']['character']): GrowthType => UNIT_TRAITS[c]?.growthType ?? CHARACTERS[c].growthType;
+const traitOf = (unit: RosterEntry['unit']): GrowthType => UNIT_TRAITS[unit.id ?? unit.character]?.growthType ?? CHARACTERS[unit.character].growthType;
 
 const FILTERS: [Filter, string][] = [['all', '全部'], ['main', '主力'], ['reserve', '替补'], ['injured', '重伤'], ['promotable', '可转职']];
 const CLASS_ORDER = CATALOG_CLASS_IDS;
 
 function visible(filter: Filter, cls: ClassId | 'all', type: GrowthType | 'all', sort: Sort): RosterEntry[] {
   const list = ROSTER.filter(e => (filter === 'all' || (filter === 'promotable' ? e.promotable : e.status === filter))
-    && (cls === 'all' || canonicalClassId(e.unit.classId) === cls) && (type === 'all' || traitOf(e.unit.character) === type));
+    && (cls === 'all' || canonicalClassId(e.unit.classId) === cls) && (type === 'all' || traitOf(e.unit) === type));
   const by: Record<Sort, (a: RosterEntry, b: RosterEntry) => number> = {
     lvDesc: (a, b) => b.unit.level - a.unit.level || a.order - b.order,
     lvAsc: (a, b) => a.unit.level - b.unit.level || a.order - b.order,
@@ -95,7 +95,7 @@ export function RosterPage({ unit, tab }: { unit: string | null; tab: RosterTab 
                     <span className="mark" aria-hidden="true" />
                     <span className="pf ally" style={{ width: 46, height: 46 }}><Portrait entry={e} size={64} /></span>
                     <span className="min-w-0">
-                      <span className="r-name">{e.unit.name ?? CHARACTERS[c].name} <span className="gt">· {UNIT_TRAITS[c]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[c].growthType]}{UNIT_TRAITS[c] ? ` · ${UNIT_TRAITS[c].age} 岁` : ''}</span>{e.promotable && <span className="mini-up" title="可转职">✚</span>}</span>
+                      <span className="r-name">{e.unit.name ?? CHARACTERS[c].name} <span className="gt">· {UNIT_TRAITS[e.unit.id ?? c]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[c].growthType]}{UNIT_TRAITS[e.unit.id ?? c] ? ` · ${UNIT_TRAITS[e.unit.id ?? c].age} 岁` : ''}</span>{e.promotable && <span className="mini-up" title="可转职">✚</span>}</span>
                       <span className="r-sub">{main && <img className="px" src={weaponIcon(WEAPONS[main].type)} width={16} height={16} alt="" />}{CLASSES[e.unit.classId].name} · Lv {e.unit.level}</span>
                     </span>
                     <StatusTag entry={e} />

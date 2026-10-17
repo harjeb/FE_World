@@ -10,6 +10,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
+import { seedBrowserAccount } from './fixtures.mjs';
 
 const API_PORT = 8612;
 let cdpPort = 9512;
@@ -122,6 +123,7 @@ async function serverOp(page, op, data = {}) {
 
 const profile = mkdtempSync(join(tmpdir(), 'battle-e2e-'));
 const dbDir = mkdtempSync(join(tmpdir(), 'battle-db-'));
+seedBrowserAccount(join(dbDir, 'e2e.db'), 'battle-seeded');
 const server = spawn('node', [join(import.meta.dirname, '..', '..', 'backend', 'api', 'server.ts')], {
   env: { ...process.env, API_PORT: String(API_PORT), DB_PATH: join(dbDir, 'e2e.db') }, stdio: 'ignore',
 });
@@ -133,7 +135,7 @@ try {
   try {
     // Log in once; every later navigation reuses the stored token.
     await page.open(`${base}/`, 'input');
-    await page.type('input', `battle${Date.now() % 100000}`);
+    await page.type('input', 'battle-seeded');
     await page.evaluate(`document.querySelector('button[type=submit]').click()`);
     await page.open(`${base}/#/camp`, '.topbar');
 

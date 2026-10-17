@@ -66,3 +66,27 @@ test('a dead escort NPC loses the map', () => {
   const { state: after } = step(state, { type: 'act', unit: 'p', to: [1, 3], act: 'wait' });
   assert.equal(after.result?.winner, 'enemy');
 });
+
+test('gathering can continue after one evacuation, then finish with every evacuated box', () => {
+  const state = battle({ kind: 'gather', exits: [[1, 2]], need: 1 }, [
+    unit('p', 'player', [1, 1], { carried: 1 }), unit('q', 'player', [1, 3], { carried: 1 }),
+    unit('e', 'enemy', [9, 9]),
+  ]);
+  const first = step(state, { type: 'act', unit: 'p', to: [1, 2], act: 'escape' });
+  assert.equal(first.state.result, undefined, 'remaining carriers can still extract supplies');
+  const ended = step(first.state, { type: 'retreat' });
+  assert.equal(ended.state.result?.winner, 'player', 'one extracted box meets the base objective');
+  const second = step(first.state, { type: 'act', unit: 'q', to: [1, 2], act: 'escape' });
+  assert.equal(second.state.result?.winner, 'player');
+  assert.equal(second.state.units.filter(unit => unit.escaped).reduce((sum, unit) => sum + (unit.carried ?? 0), 0), 2);
+});
+
+test('defending still requires the full timer after the last enemy falls', () => {
+  const state = battle({ kind: 'defend', turns: 10 }, [
+    unit('p', 'player', [1, 1]), unit('e', 'enemy', [9, 9], { alive: false, hp: 0 }),
+  ]);
+  const waiting = step(state, { type: 'act', unit: 'p', to: [1, 1], act: 'wait' });
+  assert.equal(waiting.state.result, undefined);
+  waiting.state.turn = 10;
+  assert.equal(step(waiting.state, { type: 'endPhase' }).state.result?.winner, 'player');
+});
