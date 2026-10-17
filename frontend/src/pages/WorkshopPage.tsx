@@ -21,6 +21,7 @@ export function WorkshopPage() {
     return <Shell current="workshop"><p style={{ color: '#4E473D' }}>暂时读不到生产信息（GET_PRODUCTION），刷新页面再试。</p></Shell>;
   }
   const day = state.day;
+  const regions = state.regions;
   const have = (item: string) => stock(state, item);
   const ripe = production.orders.filter(o => o.state === 'ready');
   const growing = production.orders.filter(o => o.state === 'growing').sort((a, b) => a.readyDay - b.readyDay);
@@ -53,7 +54,11 @@ export function WorkshopPage() {
     const full = facility.used >= facility.slots;
     const missing = recipe.input.filter(i => have(i.item) < i.count);
     const plant = recipe.kind === 'grow';
-    const why = full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}` : null;
+    const req = recipe.requires;
+    const lockWhy = !recipe.unlocked && req
+      ? `需要 ${regions.find(r => r.id === req.region)?.name ?? `地区${req.region}`} 声望 ${req.reputation}`
+      : null;
+    const why = lockWhy ?? (full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}` : null);
     const run = plant
       ? () => session.run<{ day: number }>(OP.PLANT)
       : () => session.run(OP.START_PRODUCTION, { recipeId: recipe.id });
@@ -73,7 +78,7 @@ export function WorkshopPage() {
         </div>
         <button type="button" className="btn btn-sm" disabled={busy !== null || !!why}
           onClick={() => void act(recipe.id, run, () => (plant ? `播下种子，${recipe.days} 日后收获药草` : `${facility.name}开工：${recipe.name}`))}>
-          {busy === recipe.id ? '开工中…' : plant ? '播种' : '开工'}
+          {busy === recipe.id ? '开工中…' : !recipe.unlocked ? '未解锁' : plant ? '播种' : '开工'}
         </button>
       </li>
     );

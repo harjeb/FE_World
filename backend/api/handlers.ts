@@ -30,7 +30,7 @@ import { DEMO_LEVEL } from './store.ts';
 import { activeSnapshot, applyBattleOutcome, bindDefense, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
-import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, slotsUsed } from '../common/game/production.ts';
+import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, recipeUnlocked, slotsUsed } from '../common/game/production.ts';
 import { classMasteryOf, gainMastery, masteryNodesFor, setEquippedSkills, SKILL_SLOTS, switchClass, unlockedNodes } from '../common/game/mastery.ts';
 import { createDispatch, dispatchSummary, DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS, DISPATCH_MIN_DAYS } from '../common/game/dispatch.ts';
 import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
@@ -918,10 +918,11 @@ const handlers: Record<number, Handler> = {
     const orders = ctx.store.productionOrders(ctx.player.id).map(o => mature(o, ctx.player.day));
     for (const order of orders) ctx.store.saveProductionOrder(order);
     const open = orders.filter(o => o.state !== 'collected');
+    const reputation = ctx.player.flags.regionReputation ?? {};
     return {
       day: ctx.player.day,
       facilities: FACILITIES.map(f => ({ ...f, used: slotsUsed(open, f.id) })),
-      recipes: RECIPES.map(r => ({ id: r.id, name: r.name, facility: r.facility, days: r.days, input: r.input, output: r.output, kind: r.kind })),
+      recipes: RECIPES.map(r => ({ id: r.id, name: r.name, facility: r.facility, days: r.days, input: r.input, output: r.output, kind: r.kind, requires: r.requires ?? null, unlocked: recipeUnlocked(r, reputation) })),
       orders: open.map(o => ({ id: o.id, recipeId: o.recipeId, facilityId: o.facility, ...describeOrder(o), startedDay: o.startedDay, quality: o.quality })),
       ready: open.filter(o => o.state === 'ready').map(o => o.id),
     };
@@ -944,6 +945,10 @@ const handlers: Record<number, Handler> = {
   [OP.START_PRODUCTION]: (ctx, data) => {
     const recipe = recipeById(asString(data.recipeId, 'recipeId'));
     if (!recipe) throw new OpError('NOT_FOUND', '没有这个配方');
+    if (!recipeUnlocked(recipe, ctx.player.flags.regionReputation ?? {})) {
+      const req = recipe.requires!;
+      throw new OpError('FORBIDDEN', `需要 ${regionById(req.region).name} 声望 ${req.reputation} 才能开工`);
+    }
     if (!canStart(ctx.store.productionOrders(ctx.player.id), recipe)) throw new OpError('FORBIDDEN', `${facilityById(recipe.facility).name}工位已满`);
     for (const input of recipe.input) {
       if (ctx.store.countInventory(ctx.player.id, input.item) < input.count) throw new OpError('NO_SUCH_ITEM', `缺少${GAME_ITEMS[input.item].name}`);
@@ -1471,6 +1476,13 @@ const handlers: Record<number, Handler> = {
     // 唯一奖励键：重复请求不会重复发（docs/20 §7）。
     ctx.player.flags.questRewardsClaimed ??= [];
     if (ctx.player.flags.questRewardsClaimed.includes(quest.id)) throw new OpError('FORBIDDEN', '该任务奖励已经领取过');
+    // 先做完整校验再落账：名册满时不消耗领取资格，人物不丢失（docs/20 §5）。
+    if (quest.recruit) {
+      const units = ctx.store.units(ctx.player.id);
+      const owned = units.some(u => u.character === quest.recruit);
+      const active = units.filter(u => u.status === 'active').length;
+      if (!owned && active >= ROSTER_LIMIT) throw new OpError('ROSTER_FULL', '名册已满，腾出位置后再领取（人物不会丢失）');
+    }
     ctx.player.flags.questRewardsClaimed.push(quest.id);
     ctx.player.gold += quest.reward.gold;
     for (const [item, count] of quest.reward.items ?? []) ctx.store.addInventory(ctx.player.id, item, 0, count);
@@ -1478,13 +1490,12 @@ const handlers: Record<number, Handler> = {
     const before = ctx.player.flags.regionReputation[quest.region] ?? 0;
     const after = before + quest.reward.reputation;
     ctx.player.flags.regionReputation[quest.region] = after;
-    // 固定人物加入（docs/20 §5）：唯一性；名册满时不领、保留待领取状态。
+    // 固定人物加入（docs/20 §5）：唯一性；校验已在落账前完成。
     const recruited: { character: string; name: string; unitId: string }[] = [];
     if (quest.recruit) {
       const units = ctx.store.units(ctx.player.id);
       const owned = units.some(u => u.character === quest.recruit);
-      const active = units.filter(u => u.status === 'active').length;
-      if (!owned && active < ROSTER_LIMIT) {
+      if (!owned) {
         const unit = createUnit(quest.recruit, CHARACTERS[quest.recruit].level, `u_${quest.recruit}`, ctx.player.day, true);
         ctx.store.addUnit(ctx.player.id, unit);
         recruited.push({ character: quest.recruit, name: CHARACTERS[quest.recruit].name, unitId: unit.id });

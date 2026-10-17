@@ -22,6 +22,8 @@ export interface Recipe {
   input: { item: ItemKey; count: number }[];
   output: { item: ItemKey; count: number };
   kind: 'grow' | 'brew' | 'forge';
+  // 声望解锁（docs/20 §5）：某地区达到该声望才能开工；缺省表示始终开放。
+  requires?: { region: number; reputation: number };
 }
 
 export const RECIPES: Recipe[] = [
@@ -30,10 +32,22 @@ export const RECIPES: Recipe[] = [
   { id: 'forge_iron_sword', name: '锻造铁剑', facility: 'smithy', days: 8, input: [{ item: 'ore', count: 3 }, { item: 'wood', count: 1 }], output: { item: 'iron_sword', count: 1 }, kind: 'forge' },
   { id: 'forge_iron_lance', name: '锻造铁枪', facility: 'smithy', days: 8, input: [{ item: 'ore', count: 3 }, { item: 'wood', count: 1 }], output: { item: 'iron_lance', count: 1 }, kind: 'forge' },
   { id: 'forge_iron_axe', name: '锻造铁斧', facility: 'smithy', days: 8, input: [{ item: 'ore', count: 3 }, { item: 'wood', count: 1 }], output: { item: 'iron_axe', count: 1 }, kind: 'forge' },
+  // 声望配方：用地区声望换更好的武器与杖。
+  { id: 'forge_killer_bow', name: '锻造必杀弓', facility: 'smithy', days: 12, input: [{ item: 'ore', count: 6 }, { item: 'wood', count: 3 }], output: { item: 'killer_bow', count: 1 }, kind: 'forge', requires: { region: 2, reputation: 100 } },
+  { id: 'forge_killer_lance', name: '锻造必杀枪', facility: 'smithy', days: 12, input: [{ item: 'ore', count: 6 }, { item: 'wood', count: 3 }], output: { item: 'killer_lance', count: 1 }, kind: 'forge', requires: { region: 3, reputation: 100 } },
+  { id: 'forge_armorslayer', name: '锻造破甲剑', facility: 'smithy', days: 14, input: [{ item: 'ore', count: 8 }, { item: 'wood', count: 3 }], output: { item: 'armorslayer', count: 1 }, kind: 'forge', requires: { region: 3, reputation: 250 } },
+  { id: 'brew_recover', name: '调制恢复杖', facility: 'apothecary', days: 6, input: [{ item: 'herb', count: 8 }], output: { item: 'recover', count: 1 }, kind: 'brew', requires: { region: 5, reputation: 100 } },
+  { id: 'brew_talisman', name: '缝制魔防符', facility: 'apothecary', days: 8, input: [{ item: 'herb', count: 10 }, { item: 'wood', count: 2 }], output: { item: 'talisman', count: 1 }, kind: 'brew', requires: { region: 5, reputation: 250 } },
 ];
 
 export function recipeById(id: string): Recipe | undefined {
   return RECIPES.find(r => r.id === id);
+}
+
+// 声望是否达到配方的解锁门槛（docs/20 §5）。
+export function recipeUnlocked(recipe: Recipe, reputation: Record<number, number>): boolean {
+  if (!recipe.requires) return true;
+  return (reputation[recipe.requires.region] ?? 0) >= recipe.requires.reputation;
 }
 
 export function facilityById(id: FacilityId): FacilityDef {

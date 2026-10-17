@@ -10,6 +10,8 @@ import { syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { decide } from '../common/engine/index.ts';
 import { stats } from '../common/data/types.ts';
+import { createUnit, ROSTER_LIMIT } from '../common/game/model.ts';
+import type { CharacterId } from '../common/data/characters.ts';
 import type { Player } from './store.ts';
 
 function setup() {
@@ -87,6 +89,30 @@ test('a quest pays its days once, marks done on a win, and its first reward is c
   assert.equal(questView(ctx, 2).reputation, 20);
   assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'gw1' }), /已经领取过/);
   assert.equal(questView(ctx, 2).quests.find(q => q.id === 'gw1')!.claimed, true);
+});
+
+test('a full roster keeps a quest recruit claimable instead of losing the character', () => {
+  const store = new Store(openDb(':memory:'));
+  const { accountId, player } = loginOrRegister(store, 'quest-full', undefined, '任务军团');
+  const ctx = ctxFor(store, accountId, player);
+  player.flags.questsDone = ['gw6'];
+  store.savePlayer(player);
+  const active = () => store.units(player.id).filter(u => u.status === 'active');
+  for (let i = active().length; i < ROSTER_LIMIT; i++) {
+    store.addUnit(player.id, createUnit('karl' as CharacterId, 1, `fill_${i}`, player.day, true));
+  }
+  assert.equal(active().length, ROSTER_LIMIT);
+  assert.ok(!store.units(player.id).some(u => u.character === 'ren'), 'ren is not owned yet');
+  // 满员时领取失败，但不消耗领取资格（人物不丢失）。
+  assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'gw6' }), /名册已满/);
+  assert.ok(!(player.flags.questRewardsClaimed ?? []).includes('gw6'));
+  assert.ok(!store.units(player.id).some(u => u.character === 'ren'));
+  // 腾出位置后仍可领取并加入。
+  const drop = active().find(u => !u.isProtagonist)!;
+  dispatch(ctx, OP.DISMISS, { unitId: drop.id });
+  const claimed = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'gw6' }) as { recruited: { character: string }[] };
+  assert.equal(claimed.recruited[0]?.character, 'ren');
+  assert.ok(store.units(player.id).some(u => u.character === 'ren'));
 });
 
 test('quest objectives reach the engine: seize, defend, escape, gather and escort', () => {

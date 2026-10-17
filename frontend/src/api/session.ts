@@ -169,7 +169,7 @@ export interface ProductionOrder {
 export interface ServerProduction {
   day: number;
   facilities: { id: FacilityId; name: string; slots: number; used: number }[];
-  recipes: { id: string; name: string; facility: FacilityId; days: number; input: { item: string; count: number }[]; output: { item: string; count: number }; kind: 'grow' | 'brew' | 'forge' }[];
+  recipes: { id: string; name: string; facility: FacilityId; days: number; input: { item: string; count: number }[]; output: { item: string; count: number }; kind: 'grow' | 'brew' | 'forge'; requires: { region: number; reputation: number } | null; unlocked: boolean }[];
   orders: ProductionOrder[];
   ready: string[];
 }

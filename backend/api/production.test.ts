@@ -74,6 +74,24 @@ test('brewing consumes herbs on start and yields a vulnerary once mature', () =>
   assert.equal(store.countInventory(player.id, 'vulnerary'), vulneraries + 1);
 });
 
+test('reputation recipes stay locked until the region reputation is high enough', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  store.addInventory(player.id, 'ore', 0, 20);
+  store.addInventory(player.id, 'wood', 0, 20);
+  const view = dispatch(ctx, OP.GET_PRODUCTION, {}) as { recipes: { id: string; unlocked: boolean; requires: { region: number; reputation: number } | null }[] };
+  const locked = view.recipes.find(r => r.id === 'forge_killer_bow')!;
+  assert.equal(locked.unlocked, false);
+  assert.equal(locked.requires?.reputation, 100);
+  assert.throws(() => dispatch(ctx, OP.START_PRODUCTION, { recipeId: 'forge_killer_bow' }), /声望/);
+  player.flags.regionReputation = { 2: 100 };
+  store.savePlayer(player);
+  const unlocked = (dispatch(ctx, OP.GET_PRODUCTION, {}) as { recipes: { id: string; unlocked: boolean }[] }).recipes.find(r => r.id === 'forge_killer_bow')!;
+  assert.equal(unlocked.unlocked, true);
+  const started = dispatch(ctx, OP.START_PRODUCTION, { recipeId: 'forge_killer_bow' }) as { order: { id: string } };
+  assert.ok(started.order.id);
+});
+
 test('production rejects missing inputs and disabled durability repair', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
