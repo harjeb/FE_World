@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { AGE_BANDS, GROWTH_BONUS, GROWTH_TYPE_NAMES, RECRUIT_AGE_RANGE, ageBandIndex, ageBandOf, applyGrowthBonus, growthBonus, recruitAgeCandidates, rollGrowthType, rollRecruitAge } from '../data/growth-types.ts';
-import { ageAt, createUnit, growthRates } from './model.ts';
-import { stats } from '../data/types.ts';
+import { ageAt, createUnit, growthRates, rollProtagonistBase } from './model.ts';
+import { stats, STAT_KEYS } from '../data/types.ts';
+import { seedRng } from '../engine/rng.ts';
 
 test('age bands are left-closed right-open with gaps outside them', () => {
   assert.equal(ageBandIndex(11), -1);
@@ -119,4 +120,18 @@ test('natural lifespan follows the species and the protagonist never ages', () =
   const hero = createUnit('erin', 30, 'hero', 0, false, { age: 20 });
   hero.isProtagonist = true;
   assert.equal(ageAt(hero, 10_000, 120), 20, 'the protagonist does not age with the calendar');
+});
+
+test('protagonist base rolls above the class minimum, weighted by personal growth', () => {
+  const min = stats(18, 5, 0, 8, 9, 5, 4, 2, 5);
+  const growth = stats(60, 40, 40, 45, 45, 40, 30, 30, 20);
+  const base = rollProtagonistBase(min, growth, seedRng('hero'));
+  for (const key of STAT_KEYS) {
+    assert.ok(base[key] >= min[key], `${key} never drops below the class minimum`);
+    assert.ok(base[key] <= min[key] + Math.floor(growth[key] / 20 * 1.5), `${key} stays within the max bonus`);
+  }
+  assert.ok(base.hp > min.hp, 'a high-growth stat always rolls a bonus');
+  assert.deepEqual(base, rollProtagonistBase(min, growth, seedRng('hero')), 'the same seed reproduces the roll');
+  const zero = rollProtagonistBase(min, stats(0, 0, 0, 0, 0, 0, 0, 0, 0), seedRng('zero'));
+  assert.deepEqual(zero, min, 'zero personal growth leaves the class minimum');
 });

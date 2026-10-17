@@ -15,7 +15,7 @@ import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
 import { createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
-import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, rankFromExp, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
+import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { promotionsFor } from '../common/data/promotions.ts';
 import { settleAttack, startAttack } from '../common/game/arena.ts';
@@ -1561,7 +1561,10 @@ const handlers: Record<number, Handler> = {
     // 先移除占位主角，再建自捏主角与同伴（同一请求内一次写入）。
     const placeholder = ctx.store.units(ctx.player.id).find(u => u.isProtagonist);
     if (placeholder) ctx.store.removeUnit(ctx.player.id, placeholder.id);
-    const hero = createUnit(cls.base, DEMO_LEVEL[cls.base] ?? 1, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType });
+    const level = DEMO_LEVEL[cls.base] ?? 1;
+    // 1 级基础值随机（以职业 1 级最低值 + 个人成长率折算），固定等级用成长率推导升级收益。
+    const base = rollProtagonistBase(CHARACTERS[cls.base].base, tendency.growth, seedRng(`protagonist:${ctx.player.id}`));
+    const hero = createUnit(cls.base, level, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType, age: 16, base, personalGrowth: tendency.growth });
     hero.name = name;
     hero.sex = sex;
     hero.portrait = portrait;

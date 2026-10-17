@@ -143,7 +143,7 @@ export const ROSTER_LIMIT = 18;
 // docs/04: a new character starts at level 1 with the class base. `expected: true` uses the growth
 // expectation (deterministic) — the seed roster and opponents use it; real level-ups roll randomly.
 // `opts` lets recruitment override the character default's growth type and age.
-export interface UnitOptions { growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1 }
+export interface UnitOptions { growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1; base?: Stats; personalGrowth?: Stats }
 
 export function createUnit(character: CharacterId, level: number, id: string, joinedDay: number, expected = true, opts: UnitOptions = {}): UnitRecord {
   const def = CHARACTERS[character];
@@ -152,13 +152,16 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
   const growthType = opts.growthType ?? def.growthType;
   const age = opts.age ?? def.age;
   const species: UnitRecord['species'] = cls.route === 'beast' || cls.route === 'dragon' ? cls.route : 'human';
-  const rates = applyGrowthBonus(Object.fromEntries(STAT_KEYS.map(key => [key, Math.max(0, def.growth[key] + cls.growth[key])])) as Stats, growthType, age);
+  // 自捏主角可传入自定的 1 级基础值与个人成长向量（opts.base / opts.personalGrowth），其余单位用角色表默认。
+  const personal = opts.personalGrowth ?? def.growth;
+  const base = opts.base ?? def.base;
+  const rates = applyGrowthBonus(Object.fromEntries(STAT_KEYS.map(key => [key, Math.max(0, personal[key] + cls.growth[key])])) as Stats, growthType, age);
   const stats = {} as Stats;
   for (const key of STAT_KEYS) {
     const rate = rates[key];
     stats[key] = expected
-      ? Math.min(cls.caps[key], def.base[key] + Math.floor(rate * Math.max(0, level - def.level) / 100))
-      : def.base[key];
+      ? Math.min(cls.caps[key], base[key] + Math.floor(rate * Math.max(0, level - def.level) / 100))
+      : base[key];
   }
   const startingWeapons = (Object.keys(cls.weapons) as WeaponType[]).flatMap(type => {
     const first = (Object.keys(WEAPONS) as WeaponId[]).find(id => WEAPONS[id].type === type && WEAPONS[id].rank === 'E');
@@ -176,6 +179,17 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     learnedSkills: [], equippedSkills: [],
     lineageDepth: 0, receivedLegacyId: null,
   };
+}
+
+// 自捏主角 1 级基础值（docs/00「神主角」）：不直接沿用代表角色的 base，而是把 base 当作该职业 1 级最低值，
+// 再按个人成长率掷一个 0.5–1.5 倍的随机加成（成长越高，1 级基础越可能偏高）。
+export function rollProtagonistBase(classMin: Stats, personalGrowth: Stats, rng: RngState): Stats {
+  const base = {} as Stats;
+  for (const key of STAT_KEYS) {
+    const factor = 0.5 + (nextU32(rng) % 1000) / 1000;
+    base[key] = classMin[key] + Math.floor(personalGrowth[key] / 20 * factor);
+  }
+  return base;
 }
 
 // Personal + class growth with the growth-type/age offset already applied.
