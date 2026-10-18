@@ -1,8 +1,15 @@
-# 未完成需求总表
+# 需求与验收状态总表
 
-更新日期：2026-10-18。核对基线：`eb0cd7e`之后的 ITEM-06／DESIGN-04 实现与`08e54ba`的锻造／绑定改动（`rules-v7`／目录17，具体提交见Git日志）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
+更新日期：2026-10-18。核对基线：`8c70086`十二地区声望、`dca536b`分支整合、`f0232c3`显式旧档迁移；当前`rules-v7`／目录18、存档schema 1。稳定ID共65项（初表60项，后增ITEM-07与QUEST-06～09），64项完成首版，BAL-04部分完成。完整证据与任务状态见[34](docs/34-task-closure.md)，独立实际验收见[35](docs/35-release-validation-record.md)。后续新增需求继续在此维护。
 
-玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)、[14](docs/14-integration-handoff.md) 含多轮历史记录，不能直接把其中的旧“未实现”全部复制为新任务。最近一次已完成修复见 [21](docs/21-code-design-audit.md)。
+玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)含历史轮次和候选数据模型；[14](docs/14-integration-handoff.md)记录当前接入边界。历史“未实现”不直接复制为新任务，最新覆盖矩阵以34为准。
+
+## 2026-10-18 本轮收尾与独立验收
+
+- 十二地区声望路线已统一；旧分支已纳入主线Git历史并逐文件记录处置；显式旧档迁移工具已交付。三项均各自测试、提交和推送，具体见34。
+- 核对后纠正BAL-04的完成状态：既有八年脚本逐场重建队伍，只是年度遭遇战采样；连续八年养成／经济仍待验证，由`fe-world-gwd`继续开放跟踪。
+- 多人／多进程压测`fe-world-load`、人工试玩`fe-world-play`、生产实迁／恢复演练`fe-world-ops`分别开放，实际执行次数均为0。记录环境、执行量与证据后再判断完成，见35。
+- 下列带日期的实现批次保留当时的测试数量和版本，不替代当前基线；最新业务验证及文档收尾检查分别记录。
 
 ## 2026-10-18 完成 ITEM-06／DESIGN-04
 
@@ -17,7 +24,7 @@
 本轮新增的是两项已落地内容和两套更大范围的配置稿；已实现与设计完成分别标记，不把文档或目录可读当作功能完成：
 
 - `842ff6a` 接入经典关卡：FE1／FE2／FE3／FE6／FE7／FE8 各10张，共60张地图、60个单图任务和18个连战副本；目录、`START_QUEST`／`CONTINUE_DUNGEON` 战斗创建和前端标签已有。门、宝箱、地图变化、增援、事件状态、场景专用校验和逐图发布验收已在 QUEST-06～09 完成，见下。
-- 当前规则`rules-v7`／目录17（特殊装备、法术效果、逐次扣书次数与法术书物品化，见上节）；此前`rules-v6`／目录16：习得技能／战技共用五格的运行时、API与网页已实现（item 5）；36项实物战技授予及毒弓专用强化路径已接入；历史快照／回放不静默按新目录重算。强化费用与边界见[27](docs/27-fortunes-weave-equipment-magic.md)，仍待人工平衡确认；CLASS-02首版可确认主动战技与12被动已实现，未声称原作精确复刻／人工平衡通过。
+- ITEM-06批次采用`rules-v7`／目录17（特殊装备、法术效果、逐次扣书次数与法术书物品化，见上节）；当前目录18另补十二地区声望。此前`rules-v6`／目录16：习得技能／战技共用五格的运行时、API与网页已实现（item 5）；36项实物战技授予及毒弓专用强化路径已接入；历史快照／回放不静默按新目录重算。强化费用与边界见[27](docs/27-fortunes-weave-equipment-magic.md)，仍待人工平衡确认；CLASS-02首版可确认主动战技与12被动已实现，未声称原作精确复刻／人工平衡通过。
 - `40f962a` 补齐 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)：58项职业固有／精通、300项主动武器战技，以及170项装备／法术模板（113武器／兽龙媒介、48法术书、9主动杖；27新增61武器＋40书）。设计170个ID现已补齐（137条武器表＋50条书表，共187条含旧兼容项的运行记录），300项战技已接入主动战技动作与耐久消耗；法术/杖的完整施法功能与特殊装备效果已于`rules-v7`收口（见上节）。相关实现更新 CLASS-02、CLASS-04、ITEM-01、ITEM-02、ITEM-05、ITEM-06、DESIGN-04。
 
 ## 2026-10-18 界面更新与规则修复
@@ -45,7 +52,7 @@
 
 本轮更新任务：`fe-world-uzi`。已确认：逐地图限制人数、无全局统一出战上限，主力外约10名替补；每图敌人等级上限而非年度经验硬额度；账号一次解锁传承；每人1枚稀缺盾、石化禁一切治疗；完美锻造＋10，物理战技耗耐久，法术书普通施法消耗每本独立次数、旅馆／食物恢复；装备／技能和两项酒馆小游戏纳入首版；只进攻、实例BAN、同日不足官方兜底；最终首领／塔／高难首版；玩家操作与Agent 1:1对等。
 
-**日历已确认：八年4000日、一年500日、一季125日。**不再缩到960／978日；最长年度赛程也纳入4000日，不自动延长至4018日。新装备／技能分表见[22](docs/22-equipment-catalog.md)、[23](docs/23-skill-catalog.md)。旧120日运行时已经替换，旧档显式迁移工具及文件级验收见[33](docs/33-save-migration.md)；生产实迁另记实际执行结果。下面已定条目未勾选表示待开发。后续确认任务`fe-world-qpp`。
+**日历已确认：八年4000日、一年500日、一季125日。**不再缩到960／978日；最长年度赛程也纳入4000日，不自动延长至4018日。新装备／技能分表见[22](docs/22-equipment-catalog.md)、[23](docs/23-skill-catalog.md)。旧120日运行时已经替换，旧档显式迁移工具及文件级验收见[33](docs/33-save-migration.md)；生产实迁另记实际执行结果。下面未勾选的BAL-04表示尚有连续养成／经济验收待完成，不再笼统视为全部玩法未开发。后续确认任务`fe-world-qpp`。
 
 **技能补充确认：**以《万缕千丝》为主参考，前作机制作补充；[25](docs/25-fortunes-weave-skills.md)补齐58项现用职业的固有／精通与效果。[26](docs/26-weapon-art-catalog.md)保留此前283项参考武器战技（180基础＋103强化）＋17项既有补充，按最新允许原创的要求加入[29](docs/29-original-weapon-arts.md)的15项，共315项，支援／圣焰另计；24项仅为示例，不是上限，也不要求把345条全部实装。其余已确认范围保持。文档任务`fe-world-8jl`、`fe-world-juh`、`fe-world-wdj`、`fe-world-d1f`、`fe-world-x6k`不替代下列实现任务。
 
@@ -110,7 +117,7 @@
 - [x] **ITEM-01｜已完成：武器实物、战技耐久与法术书独立次数。**设计目录含113件武器／兽龙媒介、48书与9杖；运行表额外保留旧兼容项，137条`WEAPONS`与50条`SPELLBOOKS`均有对应耐久／次数；普通物理／反击免费，主动战技扣耐久，普通施法、魔法反击、治疗/功能杖使用扣书/杖次数；0耐久武器仍可普攻但战技被拒，0次数书从攻击/杖列表剔除；战斗结果写回正式冒险，普通竞技场不写回。（2026-10-18补正：开场、速度追击与反击各扣1次，搬运／回收不补满，见ITEM-06。）
 - [x] **ITEM-02｜已完成：维修、旅馆与食物恢复。** `REPAIR_ITEM` 只把物理武器恢复到已有最大值；旅馆按目标书收费/耗 1 日补满，食物按 `ether_ration`/`full_meal` 恢复书或杖的独立次数；9 种主动杖可通过独立杖维修费用补满，不建角色共用法力池。重连/交换不自动补满，战斗/远征/年度赛事中禁止旅馆与食物。
 - [x] **ITEM-03｜已完成首版：锻造强化与生产内容。** 生产链（药草田/炼药所/铁匠铺）、声望配方、高阶武器/杖配方与材料消耗已接；`perfect:true` 提供完美锻造＋10（下一件装入角色时生效）；猜大小/青蛙赛跑已实现；食物 `ether_ration`/`full_meal` 恢复法术书/杖次数。周期与产销仍按中央配方表数值，后续只做校准。
-- [x] **ITEM-04｜已完成：每人1枚稀缺不朽盾及完整禁疗。** `toBattleUnit` 将盾上限裁到 1，整备搬运拒绝第二枚；盾有重量与限量来源；石化单位禁止杖/药/地形回复，旧存档按上限读取。吸血/再生尚未有独立运行时，但不会被误当成可治疗路径。
+- [x] **ITEM-04｜已完成：每人1枚稀缺不朽盾及完整禁疗。** `toBattleUnit` 将盾上限裁到 1，整备搬运拒绝第二枚；盾有重量与限量来源；石化单位禁止杖/药/地形回复，旧存档按上限读取。吸血、再生及范围治疗的现行实现与验证见ITEM-06，不再按旧轮次写成不存在的系统。
 - [x] **ITEM-05｜已完成首版：特殊装备授予技能／成长、专属绑定及来源冻结。** `Weapon.grants.skill/growth` 在 `equipmentSkills`/`growthRates` 中实时计算，卸下即撤销且不占五格；王权剑/神授枪/必杀刃/风刃已配置授予。地区任务 `exclusive` 以实物入库并在 `GET_QUESTS` 预览，不进普通商店；成长遗产冻结仍只保存永久来源，装备成长不写成永久属性。
 - [x] **ITEM-06｜已完成首版：170项首版装备／法术目录与投放。**170个设计ID逐项补齐（另保留旧兼容项，共137条`WEAPONS`＋50条`SPELLBOOKS`），并都有取得途径：地区商店资格按级别开放、一次性任务奖励（短弓、净化剑、三本最上级书＋教材）与挑战塔首通（36种授予武器）；法术书／教材可入库、携带与学习。反噬、逆克制、魔法弓、毒短刀、吸血书及61件新武器、40种法术的特殊效果已结算并进入预测；盾／药／食物在`GAME_ITEMS`，数值为本作首稿。证据：`equipment-effects.test.ts`、`spell-effects.test.ts`、`api/equipment-sources.test.ts`、`tools/audit/equipment-catalog.py`（逐件效果字段核对）；细则见[27 §6](docs/27-fortunes-weave-equipment-magic.md)。
 - [x] **ITEM-07｜已完成本轮确认：银系／勇者进普通生产，唯一武器绑定。** 新增 11 条铁匠铺配方（银系 7、勇者 4，地区 9 声望 100／250）；`BOUND_WEAPONS` 覆盖王权剑、神授枪、统率枪和挑战塔 A 级以上 12 件签名武器，`SELL` 拒绝出售并在整备页禁用按钮。地区声望商店不限购、挑战塔每层整组装备、经典宝箱银武按“其他不变”保持现状；获取与限量审计见 [22 §2.1](docs/22-equipment-catalog.md)。验收：`production.test.ts` 银／勇者配方、`equipment-acquisition.test.ts` 绑定拦截与普通银武可售。
@@ -120,7 +127,7 @@
 来源：[20 地区任务与声望](docs/20-region-quests-reputation.md)、[24 经典关卡接入](docs/24-classic-scenarios-integration-todo.md)、[00 §6、§8](docs/00-game-design.md)、[10 地图工具](docs/10-random-map-generator.md)。代码：[quests.ts](backend/common/game/quests.ts)、[classic-quests.ts](backend/common/game/classic-quests.ts)、[battles.ts](backend/common/game/battles.ts)、[generate.ts](backend/common/maps/generate.ts)。
 
 - [x] **QUEST-01｜已完成首版：十二地区差异化任务内容与同速声望。** 12地区各九项一次性本地任务，均可最快5／14／32行动日达到100／250／500声望，共108本地任务；新增54项保留旧ID／奖励与原三任务远征门槛60。经典地图保留金币／战利品，新领取不再加地区声望，旧档已获声望保留。任务带`event`简报和地区`regionReputation`，不需刷满12地推进主线；原三地人物与稀缺资源来源保持。证据：`quests.test.ts`穷举各地合法完成集合、`api/quests.test.ts`旧进度续做／领奖幂等与逐图目标／2日费用。设计见[20](docs/20-region-quests-reputation.md)。
-- [x] **QUEST-02｜已完成：500 声望档核心任务与奖励。** 三地各补 7/8/9 三个一次性核心任务，总声望 260→500；前置无循环，奖励含传承石／轮回核心／限量盾，仍走唯一奖励键，购买不扣声望。
+- [x] **QUEST-02｜已完成：500 声望档核心任务与奖励。** 十二地各有7／8／9三个一次性核心任务，总声望260→500；前置无循环，奖励仍走唯一键，购买不扣声望。传承石／轮回核心／限量盾及固定人物继续由原三地的指定任务发放，新增核心任务不扩增稀缺资源来源。
 - [x] **QUEST-03｜已完成：NPC 固定路线与下一步预告。** `Quest.npcRoute`／`nextObjective` 写入 `BattleState` 并随战斗保存；护送 NPC 优先沿固定路线点推进，`battleView` 暴露路线与下一步，重连/回放从保存状态重建。
 - [x] **QUEST-04｜已完成：三图远征各地目标与图间收益。** 地区远征记录 `stageGoals`（偶数/奇数地区采用不同的占领/全灭/首领顺序）与 `betweenMapHeal:25`，`createFieldBattle` 逐图读取目标，`CONTINUE_DUNGEON` 只在图间回复 25% 最大 HP，不无条件满血；跨图携带 HP/物品/武器、固定名单和唯一奖励沿用 `RunRecord`。分队/多方向目标留作后续内容，不在首版阻塞。
 - [x] **QUEST-05｜已完成：地图人数、敌人等级上限与战术节奏。** 所有任务记录 `enemyLevelCap`（short 30/standard 50/region 80）和 `maxUnits`（普通图 8，经典图按逐图 adaptation），经典图另有部署上限；等级不随己方无限追涨。地图尺寸、出生区、机动、回合截止、敌人协同与保存复现由经典/远征测试覆盖，`ROSTER_LIMIT=18` 容纳主力＋约 10 替补。
@@ -170,8 +177,8 @@
 来源：[13 §1–§3、§8–§9](docs/13-backend-target-design.md)、[20 §7](docs/20-region-quests-reputation.md)。当前存储：[db.ts](backend/api/db.ts)、[store.ts](backend/api/store.ts)、[handlers.ts](backend/api/handlers.ts)。本组包含目标设计和未完成验收，不要求先重写现有服务端。
 
 - [x] **DATA-01｜已完成：业务状态与命令收据原子提交。** `Store.transaction()` 使用 SQLite `BEGIN IMMEDIATE/COMMIT/ROLLBACK` 包裹所有 `WRITE_OPS` 与命令收据；扣款、日期、战斗、伤亡、经验、库存、声望、完成标记和事件在同一 handler 内提交。新增注入失败测试验证回滚，以及 `savePlayer(expectedVersion)` 拒绝陈旧版本。
-- [x] **DATA-02｜已完成首版：多连接、API／Worker 竞争和崩溃恢复。** SQLite 启用 WAL、`busy_timeout=5000`，所有写命令和收据在 `BEGIN IMMEDIATE` 事务内；`savePlayer(expectedVersion)` 拒绝陈旧版本，物资/遗产/工位/战斗/死亡均先校验再落账。崩溃重启后从 SQLite 恢复事件、战斗与状态，不会重放已提交收据；`commandId` 重试返回原结果。多进程压测仍属部署验收，不在自动测试内。
-- [x] **DATA-03｜已完成：规则版本与历史活动兼容。** 新增 `version.ts` 固定 `ENGINE_VERSION=1`、`RULESET_VERSION='rules-v2'`、`CATALOG_VERSION=10`；战斗/竞技场/年度记录写入规则与目录版本，`GET_REPLAY`/`GET_REPLAYS` 返回兼容性和原因，旧规则/旧引擎只查看终局快照而不静默重算。黄金回放由既有 `autoplay('replay')` 一致性测试覆盖，新增旧版本判定测试。
+- [x] **DATA-02｜已完成首版可靠性基础：WAL、原子写入、版本校验与重开恢复。** SQLite 启用 WAL、`busy_timeout=5000`，所有写命令和收据在 `BEGIN IMMEDIATE` 事务内；`savePlayer(expectedVersion)` 拒绝陈旧版本，`commandId`重试返回原结果。自动回归覆盖注入异常回滚、文件重开和Worker顺序结算；真实多连接／API与Worker进程竞争、崩溃或异常掉电恢复尚无实际验收，由LOAD-01／OPS-01分别记录，不把配置和顺序测试当作已通过压测。
+- [x] **DATA-03｜已完成：规则版本与历史活动兼容。** `version.ts`当前为`ENGINE_VERSION=1`、`RULESET_VERSION='rules-v7'`、`CATALOG_VERSION=18`（初版为v2／目录10）；战斗／竞技场／年度记录冻结规则版本，`GET_REPLAY`／`GET_REPLAYS`返回兼容性和原因。旧规则／旧引擎只查看终局快照，不静默重算；同一规则下的目录变更不直接判为引擎不兼容。`autoplay('replay')`一致性和旧版本判定有自动测试。
 - [x] **DATA-04｜已完成：可靠事件游标和投递。** 事件 ID 以十进制字符串作为 cursor，查询直接比较、不转 `Number`；`GET_STATE.eventCursor` + `GET_EVENTS(cursor)` 支持增量补拉，事件表按自增 ID 排序去重。`addEvent` 同事务写 `outbox`，推送失败可按 event id 重试，`pendingOutbox`/`markOutboxDelivered` 提供确认；最终状态仍以 events/state 表为准。
 - [x] **DATA-05｜已完成首版：正式存档、权限及部署边界。** 账号/玩家/单位/库存/战斗/回放按 `account_id`/`player_id` 归属，`GET_BATTLE`/`GET_REPLAY` 只返回自己的或已公开记录；网页会话30天不活跃失效，Agent token独立且可重置。新增schema／日历metadata与显式迁移CLI，默认预演，120日换算／500日原样采纳、WAL一致备份、事务回滚、重开幂等与活动门禁有文件级测试；详见[33](docs/33-save-migration.md)。docs/28记录部署边界，数据库选型见docs/29。生产旧档实迁、部署机恢复演练和真实多人长流程另作实际验收。
 
@@ -182,15 +189,15 @@
 - [x] **BAL-01｜已完成：每图敌军上限和等级差经验。** Quest 记录 `enemyLevelCap`（按 short/standard/region 档位）并传入 `createFieldBattle`；经典图使用逐图 `enemyLevel`/stage 上限；敌军不读取己方等级追涨。高等级打低级沿用有效交战/击杀 1 经验，公共池/治疗/派遣不能绕过。
 - [x] **BAL-02｜已完成：500日年度的派遣与资源经济校准。** 派遣经验改为按 500 日年度递减 `[11,9,7,6,5,5,4,4]`/日，素材按天数产出、武器低概率掉落，精通按天计入；跨年/年龄按实际日期，保留并行占用、人员锁与唯一返程，不使用年度经验硬额度。
 - [x] **BAL-03｜已完成：按地图配置出战人数与约10名替补。** 经典图使用 `adaptation.deployment.max`、普通任务使用逐任务 `maxUnits`（非经典默认 8），不再用单一全局值；`ROSTER_LIMIT=18` 支持主力＋约 10 替补。地图出生区/敌人数由 scenario adaptation 与 `createFieldBattle` 同步，网页/Agent 读同一 `maxUnits`。
-- [x] **BAL-04｜已完成自动八年检验：完整八年与通关后模拟／试玩。** 新增 `tools/sim/campaign.ts`，用规则 AI 跑 8 个年度、12 地区、每年 24 场，共 192 场；输出年度等级/胜场/回合/死亡。结合既有 6,144 次成长测算、竞技场 3 对手双胜负、生产/买卖/修理/盾/小游戏测试，覆盖年度曲线与通关后循环。40–60 小时人工试玩和真实多人压力仍作为发布环境验收，不在自动测试内。
+- [ ] **BAL-04｜部分完成：年度遭遇战采样；连续八年养成／经济与通关后验收待完成。** `tools/sim/campaign.ts`覆盖8年度×12地区×2场＝192场，本轮183胜；但每场重建当年目标等级队伍，没有连续保存名册、伤亡、资产、任务或生产／派遣进度，不能证明完整4000日流程或收支平衡。逐年结果及首年死亡117人次的边界见[34](docs/34-task-closure.md)。连续养成／经济验证由`fe-world-gwd`保留开放；40–60小时人工试玩、真实多人压测各自记录实际执行情况，见[35](docs/35-release-validation-record.md)。
 
-## 11. 必须先定案的参数与候选
+## 11. 首版定案与候选边界
 
-本节记录尚未收口的要求，不表示同时开发所有玩法。来源：[00 §12 决策 A–O](docs/00-game-design.md)、[13 目标设计](docs/13-backend-target-design.md)、[18 酒馆小游戏](docs/18-tavern-minigames-draft.md)、[19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md)。
+本节记录已完成的首版定案和未纳入的候选，不表示同时开发所有玩法。来源：[00 §12 决策 A–O](docs/00-game-design.md)、[13 目标设计](docs/13-backend-target-design.md)、[18 酒馆小游戏](docs/18-tavern-minigames-draft.md)、[19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md)。
 
 - [x] **DESIGN-01｜已完成：八年4000日的日历与赛程。** `DAYS_PER_SEASON=125`、`DAYS_PER_YEAR=500`；年度窗口为每年最后 18 日，第八届最遲 D3982；章节、招募、赛事、年龄与日期事件改读统一日历，旧 120 日常量已清理。
 - [x] **DESIGN-02｜已完成首版参数集中：成长、寿命、职业、轮回及新资源。** 成长类型/年龄池在 `growth-types.ts`，寿命在 `lifespanYearsFor`，职业资格价格/月额度在职业市场常量，轮回金币/核心在 `legacy.ts`，精通阈值在 `mastery.ts`；500日/4000日曲线已接入派遣、招募、年度和年龄。法术书每本独立次数、旅馆/食物恢复已实现，不再使用共用MP。
-- [x] **DESIGN-03｜已完成首版配置：传承解锁、盾和失败细则。** 核心地区任务（id 以 9 结尾）首次领奖设置账号级 `legacyUnlocked`；不朽盾每人限 1、重量 1、商店每期 1 枚、致命时保留 1HP 并石化；石化单位禁止地形/杖/道具/法术治疗。特殊失败由护送 NPC 阵亡、主将阵亡/撤离等目标处理，回合截止读 `turnLimit`；传承任务不要求每名角色各做一条。
+- [x] **DESIGN-03｜已完成首版配置：传承解锁、盾和失败细则。** 核心任务显式标记`unlocksLegacy`（仅`gw9`／`ih9`／`wl9`）首次领奖设置账号级`legacyUnlocked`；不朽盾每人限 1、重量 1、商店每期 1 枚、致命时保留 1HP 并石化；石化单位禁止地形/杖/道具/法术治疗。特殊失败由护送 NPC 阵亡、主将阵亡/撤离等目标处理，回合截止读 `turnLimit`；传承任务不要求每名角色各做一条。
 - [x] **DESIGN-04｜已完成首版：装备和技能。** 最新设计目录共315项战技（283项主参考＋17项补充＋15项原创），新增原创的运行时、网页／Agent预测及选择已实现；精通与103项强化研修已实现；36项装备特有授予已实现；共用五格运行时／API／网页已实现；既有300项特殊效果已完成CLASS-02的item 6首版实现；ITEM-06的特殊装备、40种法术与9种杖的完整功能动作及逐项投放已于`rules-v7`完成首版。《万缕千丝》为技能主参考，GBA／NDS／3DS／NS前作作补充，属性与效果见22／23／[25](docs/25-fortunes-weave-skills.md)／[26](docs/26-weapon-art-catalog.md)／[27](docs/27-fortunes-weave-equipment-magic.md)。主动武器战技283项主参考＋17项补充共300项，支援另计；装备／法术目录170项（113武器／兽龙媒介、48书、9主动杖，27新增101项），已全部进入运行表并接入完整功能动作与特殊装备效果（见上节与27 §6）。170 项目录、300 项主动战技、48 书/9 杖独立次数（开场／追击／反击逐次扣）、功能杖与控场法术的命中、治疗基值与范围治疗、装备授予技能/成长、食物与旅馆均已接线；状态命中、反噬率等首稿参数待人工平衡；其余 345 条只作参考，不要求逐条复刻。
 - [x] **DESIGN-05｜已完成：完美锻造＋10。** `START_PRODUCTION` 支持 `perfect:true`（额外 1,500 金币），产出券记录在 `flags.perfectWeapons`；下一次把该武器装入角色栏时消耗券，生成 `maxDurability = weaponMax + 10` 的实例（40/40→50/50），维修只回到 50 不叠加。普通订单仍可跳过，法术书次数独立不吃＋10。
 - [x] **DESIGN-06｜已完成：猜大小和青蛙赛跑。** 新增 `GET_MINIGAMES`／`PLAY_MINIGAME`：20/50/100 下注、季度共用 6 局、服务端安全随机、事务内扣款/计局/派奖、命令幂等不重掷；不推进日期，Agent 与网页同一 op。
@@ -201,7 +208,7 @@
 ## 12. 文档与交付清理
 
 - [x] **DOC-01｜已完成：清理旧状态与新定案冲突。** 06／14 的 `docVersion` 已同步为 2，11／12 加历史记录横幅；补建 `tools/audit/equipment-catalog.py` 并修复 docs/27 的无效可选参数；补齐 `fe-world-m2n` Beads 记录。旧防守/每击耗耐久/精工+5/16+4/年度经验硬上限均标为历史，不再作为目标。
-- [x] **DOC-02｜已完成首版交付文档：正式交付和完成证据。** [28 首版交付](docs/28-release-readiness.md) 列出 170 项装备/法术、300 项战技、60 张经典图、正常新档、SQLite 备份/恢复/迁移、需求覆盖矩阵、自动八年结果和已知边界；经典图有逐图 adaptation report。真实多人压力和 40–60 小时人工试玩明确列为部署验收，不用测试总数替代。
+- [x] **DOC-02｜已完成首版交付文档：正式交付和完成证据。** [28 首版交付](docs/28-release-readiness.md)列出170项装备／法术、315项战技、60张经典图、正常新档、备份恢复与边界；[32](docs/32-branch-integration.md)记录分支整合，[33](docs/33-save-migration.md)记录迁移工具，[34](docs/34-task-closure.md)核对65项稳定ID和Beads状态。八年自动脚本仅作遭遇采样，BAL-04保留部分完成；真实多人、40–60小时人工和生产实迁分别记入[35](docs/35-release-validation-record.md)，当前均未执行。
 
 ## 已完成或已明确排除的内容
 
@@ -211,7 +218,7 @@
 - [25](docs/25-fortunes-weave-skills.md)／[26](docs/26-weapon-art-catalog.md)／[27](docs/27-fortunes-weave-equipment-magic.md) 的58项职业能力、300项武器战技、170项装备／法术设计目录已经完成；170个设计ID（187条含旧兼容项的运行记录）与36项实物战技授予已接入；共用五格运行时／API／网页已实现；既有300项战技特殊结算已完成item 6首稿；特殊装备效果（含反噬／逆克制／魔法弓／毒短刀／吸血书）、法术效果与逐项投放已于`rules-v7`完成首版（ITEM-06、DESIGN-04）。
 - [21](docs/21-code-design-audit.md) 的 15 项偏差已经修复：传承模式互斥、逐级保底／封顶转分配、排除轮回奖励跨代、真实药／盾消耗及剩余回收、实例主角身份、年度窗口／冻结／活动锁／退赛、任务专属胜负／箱子生命周期、轮回年龄与有效参战精通。
 - 自捏开局、实例成长显示、九属性成长／上限／传承、77 项职业目录／权限与兽龙逐阶限制、购买资格／免费切回、五格已学技能、并行派遣、免费紧急补员、退役／纪念、三图远征、两条生产链、现实月榜归档，以及主要管理页面已有实现。
-- 三地首次任务、声望、地区商店／配方、任务队伍／日期／敌军／风险／奖励预览、物资至少一箱可结束及额外箱子物资奖励已有首版。
+- 十二地区各九项本地任务，共108项；统一声望速度、地区商店／配方、任务队伍／日期／敌军／风险／奖励预览已有首版，物资至少一箱可结束及额外箱子给物资奖励。
 - 不做可重复委托；不恢复已删除职业、赛季清空、野外只重伤、现实时间行动日补偿、两段各 20 级或无限代传承。UI 设计提示词和参考作品全物品表不自动成为必做需求。
 
 ## 后续完成一项需求时的验收基线
@@ -219,6 +226,7 @@
 按改动运行相关检查，命令在仓库根目录执行，需要 Node.js 22.18+。文档整理只检查链接、待办／Beads 对应关系和差异空白，不需要重复运行全部业务测试。
 
 ```powershell
+python tools/audit/task-closure.py
 git diff --check
 python3 tools/classic-integration/build_catalog.py
 python3 tools/classic-integration/build_adaptations.py

@@ -223,7 +223,7 @@ def audit(catalog_path, source_path=None):
             link_count += 1
     todo = (ROOT / 'TODO.md').read_text(encoding='utf-8')
     todo_ids = re.findall(r'^- \[[ x]\] \*\*([A-Z]+-\d+)\uFF5C', todo, re.M)
-    check(len(todo_ids) == len(set(todo_ids)) == 64, 'Stable TODO IDs changed')
+    check(len(todo_ids) == len(set(todo_ids)) == 65, 'Stable TODO IDs changed')
     if source_path:
         source = json.loads(source_path.read_text(encoding='utf-8-sig'))['arts']
         fingerprint = hashlib.sha256(json.dumps(source, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()
@@ -237,7 +237,7 @@ def audit(catalog_path, source_path=None):
         print('PASS: 345 source IDs and all 283 original parameter/learning records match')
     print('PASS: 283 reference weapon arts (180 basic + 103 upgrades), 17 supplements, 15 originals, 315 total')
     print('PASS: 176 mastery arts, 103 separately trained upgrades, 36 weapon grants; five learned slots')
-    print('PASS: prerequisites, costs, parameters, source gaps, examples, Markdown, ' + str(link_count) + ' local links and 64 TODO IDs')
+    print('PASS: prerequisites, costs, parameters, source gaps, examples, Markdown, ' + str(link_count) + ' local links and ' + str(len(todo_ids)) + ' TODO IDs')
 
 
 if __name__ == '__main__':

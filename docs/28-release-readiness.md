@@ -1,6 +1,6 @@
 # 首版交付与运行边界
 
-更新：2026-10-18。本文是交付清单和运行/恢复说明，不把“目录存在”当作“运行时已完成”。
+更新：2026-10-18。本文是交付清单和运行／恢复说明，不把“目录存在”当作“运行时已完成”。任务和分项提交见[34](34-task-closure.md)，实际多人／人工／生产验收见[35](35-release-validation-record.md)。当前64项首版完成、BAL-04部分完成。
 
 ## 1. 内容清单
 
@@ -27,7 +27,7 @@
 ## 3. 部署、备份与恢复
 
 - 默认数据库：`DB_PATH` 指向的 SQLite 文件；WAL 模式。
-- 备份：停写或用 `sqlite3 "$DB_PATH" ".backup 'backup.sqlite'"`；同时保留 `-wal`/`-shm` 或在备份前 `PRAGMA wal_checkpoint(TRUNCATE)`。
+- 备份：用SQLite一致备份接口，例如`sqlite3 "$DB_PATH" ".backup 'backup.sqlite'"`，或迁移CLI的`--backup`生成包含已提交WAL页面的独立数据库；这种备份不依赖源库的`-wal`／`-shm`。若直接复制源文件，先停API与Worker并完成checkpoint、关闭连接，不能仅复制活跃主库。
 - 恢复：先停服务，替换主库并删除旧 `-wal`/`-shm`，再启动；用 `GET_STATE` 和一次只读回放验证。
 - 迁移：`npm --prefix backend run migrate-save -- --db <path> --from-year-days 120|500`默认只读预演，`--apply --backup <new-path>`先生成含WAL页面的独立备份再事务提交。新档记录schema／日历版本；未标记旧档须显式区分120日换算与500日采纳。跨日历保留年龄、生产／派遣剩余天数、既有收益和冻结记录，阻止未结束战斗／远征／年度赛事；年度窗口改用当前年末规则，不结转旧未报名窗口。工具、回滚与实迁边界见[33](33-save-migration.md)。本次仅用临时文件夹具，未执行生产旧档实迁。
 - 规则版本：当前采用`rules-v7`／目录18（目录18补齐十二地同预算声望路线，经典任务新奖励不再给地区声望；目录17接入特殊装备效果、法术效果、书／杖逐次扣次数与法术书物品化）。旧`rules-v6`／目录16为300项显式战技机制版本，旧回放只展示冻结终局。再早的`rules-v5`／目录15为共用五格版本，与当前不兼容，仅展示保存的冻结终局，不重模拟。此前`rules-v4`／目录14包含实物授予及精炼门槛，`rules-v3`／目录13包含原创效果、精通与强化研修；v4／v3及更早规则回放仅展示已保存冻结终局，不在新规则下重模拟。部署升级前先结束所有进行中的活动／远征及战斗，保留数据库备份。旧档缺失`equippedArts`时只迁移一次：先保留有效已选习得被动，再按原`learnedArts`顺序填剩余格，保留完整库且不增点／收费；后续空选择尊重为空。详见[28](28-class-art-learning.md)。
@@ -35,9 +35,10 @@
 
 ## 4. 验证门禁
 
-本轮实跑：后端695项、前端4项回放测试、类型检查、构建、Chromium浏览器三套端到端（32＋30＋8项检查）、三项目录审计与15项设计探针全部通过。未进行逐战技浏览器点击、真实多人／多进程压测或40～60小时人工平衡试玩。
+最近业务回归基线为后端711项；声望交付时前端4项、类型检查及构建通过，迁移交付时浏览器backend-integration 30项／systems 32项与相关审计复跑通过。各批次具体检查见34，历史测试总数不当作本次文档改动的新测试。本次文档收尾检查稳定ID／Beads对应关系、证据矩阵、相对文件链接、Git祖先和差异空白。真实多人／多进程压测、40～60小时人工试玩、生产实迁／恢复演练均未执行，分别见35。
 
 ```bash
+python3 tools/audit/task-closure.py
 git diff --check
 python3 tools/audit/equipment-catalog.py
 python3 tools/audit/weapon-art-catalog.py
@@ -56,10 +57,10 @@ node frontend/test/systems.e2e.mjs
 
 ## 5. 已知边界
 
-- 真人与 Agent 共用协议，但尚未完成所有新系统的逐 op schema、控制租约和多连接压力验收。
+- 真人与Agent共用op；全部public op有schema条目，关键操作另有必填／枚举／范围校验，其余字段由handler校验；控制租约与命令幂等已实现。真实多连接／多进程的压力和竞争验收未执行，客户端恢复的具体边界见[14](14-integration-handoff.md)。
 - SQLite 仍是首版存储；PostgreSQL 迁移触发条件、ADX/Canvas 表现技术未在本轮引入。
-- 八年自动自play烟雾（`node --experimental-strip-types tools/sim/campaign.ts`）已覆盖 8 个年度、12 地区、每年 24 场，共 192 场规则 AI 对战；这不等于 40–60 小时人工试玩。
-- 真实多人压力和逐图手感验收仍需在部署环境执行；现有自动测试不能替代人工证据。
+- 年度遭遇采样（`node tools/sim/campaign.ts`）覆盖8年度×12地区×2场＝192场；每场重新创建目标等级队伍，没有连续保存养成和经济数据。它不能证明完整4000日流程，BAL-04／`fe-world-gwd`保留开放；结果与首年伤亡见[34](34-task-closure.md)。
+- 真实多人压力和逐图手感验收仍需在部署环境执行；35中分别记录执行次数，当前均为0。迁移工具完成也不代表生产旧档已经实迁或恢复演练通过。
 
 ## 6. 需求覆盖证据
 
@@ -71,5 +72,5 @@ node frontend/test/systems.e2e.mjs
 | 任务/地区 | 186任务／12地区（108本地＋60经典单图＋18经典副本）、`quests.test.ts`、远征stage goals／供给测试 |
 | 竞技场/年度 | 普通竞技场每场 1 日、只进攻、实例 Ban、同形象限制、跨日结算；64 队签表；`arena.test.ts`、`annual.test.ts`、`api.test.ts` |
 | 网页/交互 | 真实服务端名册、战报筛选、历史回放、实时观战只读轮询；`backend-integration.e2e.mjs`、`battle-replay.e2e.mjs`、`systems.e2e.mjs` |
-| Agent/持久化 | 全 op schema、`commandId`、事务/版本、outbox、事件游标测试 |
+| Agent/持久化 | 全op schema条目、控制租约、`commandId`、事务／版本、outbox、事件游标与显式旧档迁移测试；真实并发和生产演练另记 |
 - 经典地图的敌军武器/AI 使用项目默认规则；逐图模板报告记录替换差异，但不是原作完整复刻。
