@@ -64,11 +64,24 @@ def example_rows(text):
 def audit(catalog_path, source_path=None):
     catalog = json.loads(catalog_path.read_text(encoding='utf-8'))
     rows, supplements, excluded = (catalog[key] for key in ('arts', 'supplements', 'excluded'))
-    check(catalog['schemaVersion'] == 1, 'Unexpected schema version')
+    check(catalog['schemaVersion'] == 4, 'Unexpected schema version')
+    check(catalog['learningPolicy'] == {
+        'ordinarySource': 'class_mastery', 'upgradeSource': 'art_training',
+        'exceptionSource': 'equipment_grant', 'weaponRankRole': 'usage_requirement_only',
+        'masteryThresholds': 'pending', 'trainingCosts': 'pending', 'learnedSlotLimit': 5,
+        'sharedLearning': True, 'minimumTeacherClasses': 2, 'useRequiresLearningClass': False,
+        'classAssignments': 'proposed', 'restrictedTeacherRange': [1, 2],
+        'restrictionScope': 'learning_sources_only', 'perClassArtRange': [4, 6],
+        'counting': 'individual_art_ids', 'spellbookArts': False,
+    }, 'Class-level learning policy changed')
     check(len(rows) == 283 and len(supplements) == 17, 'Expected 283 reference arts and 17 supplements')
-    check(catalog['counts'] == {'selectedReferenceWeaponArts': 283, 'base': 180, 'upgrades': 103, 'supplements': 17, 'totalWeaponArts': 300}, 'Incorrect declared counts')
-    identities = [row['id'] for row in rows + supplements]
-    check(len(identities) == len(set(identities)) == 300, 'Duplicate project art IDs')
+    originals = catalog['originalArts']
+    check(len(originals) == 15 and all(r['origin'] == 'project_original' for r in originals), 'Missing explicitly original art records')
+    check(catalog['counts'] == {'selectedReferenceWeaponArts': 283, 'base': 180, 'upgrades': 103, 'supplements': 17, 'originals': 15, 'totalWeaponArts': 315}, 'Incorrect declared counts')
+    identities = [row['id'] for row in rows + supplements + originals]
+    check(len(identities) == len(set(identities)) == 315, 'Duplicate project art IDs')
+    original_names = {row['name'] for row in originals}
+    check(len(original_names) == 15 and original_names.isdisjoint(row['name'] for row in rows + supplements), 'Original art reuses an existing catalog name')
     check(len({row['name'] for row in rows}) == 283, 'Duplicate reference art names')
     check(collections.Counter(row['weapon'] for row in rows) == EXPECTED_WEAPONS, 'Weapon distribution changed or support/Blaze counted')
     check(collections.Counter(row['variant'] for row in rows) == {'base': 180, 'upgrade': 103}, 'Incorrect basic/upgrade counts')
@@ -80,8 +93,9 @@ def audit(catalog_path, source_path=None):
     check(re.fullmatch(r'[0-9a-f]{64}', catalog['source']['canonicalArtsSha256']) is not None, 'Invalid source fingerprint')
     by_id = {row['id']: row for row in rows}
     upgrade_pairs = {}
-    class_refs = [json.loads(row) for row in re.findall(r'^  (\{.*\}),?$', (ROOT / 'backend/common/data/class-reference.ts').read_text(encoding='utf-8'), re.M)]
-    active_classes = {row['id'] for row in class_refs if row['id'] not in {'warrior', 'elephant_rider'}}
+    class_document = (ROOT / 'docs/15-class-catalog.md').read_text(encoding='utf-8').split('## 逐职业目录')[1].split('## 旧编号兼容')[0]
+    active_classes = set(re.findall(r'^\| [^|]+ \| `([^`]+)` \|', class_document, re.M))
+    check(len(active_classes) == 77, 'Canonical teaching class inventory differs')
     for row in rows:
         number = int(row['sourceId'].removeprefix('art-'))
         check(row['id'] == 'fw_art_' + str(number), 'Mismatched source/project ID')
@@ -95,10 +109,21 @@ def audit(catalog_path, source_path=None):
         check(project['sequence'] in SEQUENCES, 'Unknown attack sequence')
         unlock = project['unlock']
         check(len(unlock['weaponRank']) == 1 and unlock['weaponRank'] in 'EDCBAS', 'Unknown weapon rank')
-        check(unlock['kind'] in {'weapon_node', 'class_mastery', 'equipment_grant', 'upgrade_node'}, 'Missing learning channel')
+        check(unlock['kind'] in {'class_mastery', 'art_training', 'equipment_grant'}, 'Unknown mastery/training/equipment learning channel')
         if unlock['kind'] == 'class_mastery':
-            check(set(unlock['classIds']) <= active_classes, 'Deleted or unknown class reward')
-            check(bool(row['referenceClassIds']), 'Missing reference class provenance')
+            check(set(unlock['classIds']) <= active_classes, 'Deleted or unknown learning class')
+            teacher_count = len(unlock['classIds'])
+            check(teacher_count == len(set(unlock['classIds'])), 'Duplicate teaching class')
+            if unlock.get('learningScope') == 'restricted':
+                check(1 <= teacher_count <= 2 and bool(unlock['restrictionReason']), 'Powerful art must have one or two teachers with a stated reason')
+            else:
+                check(teacher_count >= 2, 'Common art has fewer than two teaching classes')
+            check(unlock['masteryThreshold'] is None and 'classLevel' not in unlock, 'Mastery must be independent of character/class level')
+            check(unlock['assignmentStatus'] == 'mastery_threshold_pending', 'Missing mastery assignment status')
+            check(unlock['learningBand'] in {'foundation', 'core', 'advanced', 'upgrade'} and bool(unlock['teachingGroup']), 'Missing proposed teaching group')
+        if unlock['kind'] == 'art_training':
+            check(row['variant'] == 'upgrade' and 'classIds' not in unlock, 'Training upgrade counted as a class mastery reward')
+            check(unlock['trainingCost'] == {'days': None, 'gold': None} and unlock['assignmentStatus'] == 'training_cost_pending', 'Unknown training costs presented as implemented')
         if unlock['kind'] == 'equipment_grant':
             check(bool(unlock['referenceEquipment']), 'Missing equipment grant source')
         if row['variant'] == 'upgrade':
@@ -110,6 +135,8 @@ def audit(catalog_path, source_path=None):
         if row['reference']['cost'] == '-':
             check(bool(project['overrides']), 'Unknown source cost silently converted')
     check(upgrade_pairs == EXPECTED_UPGRADES, 'Upgrade selection or prerequisite changed')
+    check(collections.Counter(row['project']['unlock']['kind'] for row in rows) == {'class_mastery': 144, 'art_training': 103, 'equipment_grant': 36}, 'Mastery/training/equipment grant counts differ')
+    check(by_id['fw_art_22']['project']['unlock']['referenceEquipment'] == ['王室宝剑'], 'Royal sword art incorrectly assigned to ordinary class learning')
 
     skills = (ROOT / 'docs/23-skill-catalog.md').read_text(encoding='utf-8')
     examples = example_rows(skills)
@@ -120,11 +147,19 @@ def audit(catalog_path, source_path=None):
             cost = row.get('cost') if 'cost' in row else row['project']['cost']
             check(int(examples[row['id']][1][3]) == cost, 'Example durability differs: ' + row['id'])
     for row in supplements:
+        learning = row['learning']
+        check(learning['kind'] == 'class_mastery' and learning['masteryThreshold'] is None and learning['assignmentStatus'] == 'mastery_threshold_pending', 'Supplement missing class mastery assignment')
+        teacher_count = len(learning['classIds'])
+        check(teacher_count == len(set(learning['classIds'])) and set(learning['classIds']) <= active_classes, 'Supplement teaching classes differ')
+        if learning.get('learningScope') == 'restricted':
+            check(1 <= teacher_count <= 2 and bool(learning['restrictionReason']), 'Powerful supplement must have one or two teachers')
+        else:
+            check(teacher_count >= 2, 'Common supplement has fewer than two teachers')
         name, cells = examples[row['id']]
         check([row['name'], row['weaponLabel'], row['effectSummary'], row['unlock']] == [name, cells[1], cells[2], cells[4]], 'Supplement specification drift')
 
     doc = (ROOT / 'docs/26-weapon-art-catalog.md').read_text(encoding='utf-8')
-    check('总计' + str(len(rows) + len(supplements)) in doc, 'Published total differs from the catalog')
+    check('总计' + str(len(identities)) in doc, 'Published total differs from the catalog')
     table_rows = {}
     for line in doc.splitlines():
         if re.match(r'^\| `fw_art_\d+`', line):
@@ -145,9 +180,15 @@ def audit(catalog_path, source_path=None):
             if project['cost'] < parent_cost:
                 check('相对基础版耐久'+str(parent_cost)+'→'+str(project['cost']) in cells[5], 'Durability-saving upgrade not documented')
         check(bool(cells[6]), 'Missing rendered learning channel')
+        if project['unlock']['kind'] == 'class_mastery':
+            check('职业精通学习' in cells[6] and '待配置' in cells[6], 'Rendered mastery learning status differs')
+            check('使用需武器' + project['unlock']['weaponRank'] in cells[6], 'Weapon proficiency is no longer just a usage requirement')
+        if project['unlock']['kind'] == 'art_training':
+            check('营地战技研修' in cells[6] and '不计入职业精通奖励' in cells[6], 'Training upgrade incorrectly rendered as a mastery reward')
+            check('使用需武器' + project['unlock']['weaponRank'] in cells[6], 'Weapon proficiency is no longer just a usage requirement')
 
     link_count = 0
-    files = ['README.md', 'TODO.md', 'docs/00-game-design.md', 'docs/15-class-catalog.md', 'docs/22-equipment-catalog.md', 'docs/23-skill-catalog.md', 'docs/25-fortunes-weave-skills.md', 'docs/26-weapon-art-catalog.md']
+    files = ['README.md', 'TODO.md', 'docs/00-game-design.md', 'docs/15-class-catalog.md', 'docs/22-equipment-catalog.md', 'docs/23-skill-catalog.md', 'docs/25-fortunes-weave-skills.md', 'docs/26-weapon-art-catalog.md', 'docs/28-class-art-learning.md', 'docs/29-original-weapon-arts.md']
     for name in files:
         path = ROOT / name
         text = path.read_text(encoding='utf-8')
@@ -180,7 +221,8 @@ def audit(catalog_path, source_path=None):
             check(row['name'] == original['name'] and row['weapon'] == SOURCE_WEAPONS[original['weapon']], 'Source identity mismatch')
             check(row['reference'] == {key: original[key] for key in REFERENCE_FIELDS}, 'Source numeric/learning fields changed: ' + row['id'])
         print('PASS: 345 source IDs and all 283 original parameter/learning records match')
-    print('PASS: 283 reference weapon arts (180 basic + 103 upgrades), 17 supplements, 300 total')
+    print('PASS: 283 reference weapon arts (180 basic + 103 upgrades), 17 supplements, 15 originals, 315 total')
+    print('PASS: 176 mastery arts, 103 separately trained upgrades, 36 weapon grants; five learned slots')
     print('PASS: prerequisites, costs, parameters, source gaps, examples, Markdown, ' + str(link_count) + ' local links and 60 TODO IDs')
 
 

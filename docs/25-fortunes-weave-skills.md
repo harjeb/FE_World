@@ -4,7 +4,11 @@
 
 《万缕千丝》是本作职业体系的主参考，技能目录应同时覆盖它的职业固有能力和精通奖励。本文补齐现用58项参考职业的关联与效果；GBA／NDS／3DS／NS前作作为23的补充。**这里记录参考资料及适配要求，不表示运行时已实现**；当前仍只有23第3节的12项技能，职业精通节点仍需替换。
 
-本文10项战技／指令仅是职业固有／精通引用的子集。**完整首版主动武器战技为[26](26-weapon-art-catalog.md)的283项主参考＋17项补充，共300项**；此前23的24项是示例，不是内容上限，也不宣称全部345条资料都要实装。
+本文10项战技／指令仅是职业固有／精通引用的子集。**完整首版主动武器战技为[26](26-weapon-art-catalog.md)的283项主参考＋17项补充＋[29](29-original-weapon-arts.md)的15项原创，共315项**；此前23的24项是示例，不是内容上限，也不宣称全部345条资料都要实装。
+
+2026-10-18最新修正：战技通过独立职业精通学习，每个武器／兽龙职业只教授4～6项独立ID；基础和强化分别计数，103项强化版另走独立研修。下文“精通奖励”保留原作关联作为参考，本作具体清单以28为准；不改变其他被动／职业能力的精通机制。武器熟练度只约束使用，不代替精通。
+
+本作教学名单见[28](28-class-art-learning.md)：原表某战技关联一个职业，不表示所有通用战技在本作都只有一个来源；部分强力战技按最新确认限定1～2个教师，例如流星由刀剑将领／刃辉神将教授、落影之刃仅探影者教授。学会后换职保留，发动不要求当前职业在教师名单内。
 
 ## 1. 来源、覆盖与读取边界
 
@@ -255,7 +259,7 @@
 
 ## 8. 文档核对与后续验收
 
-本次文档核对须满足：58项职业与代码参考ID集合一致，排除两项已删除职业；每个固有／精通名称都有来源记录及效果；46项固有、50项精通、10项职业关联战技／指令引用完整，个人参考8项另计；26的283项参考＋17项补充计数正确，相对链接均存在。可在仓库根目录复核职业集合和战技数量：
+本次文档核对须满足：58项职业与代码参考ID集合一致，排除两项已删除职业；每个固有／精通名称都有来源记录及效果；46项固有、50项精通、10项职业关联战技／指令引用完整，个人参考8项另计；26的283项参考＋17项补充＋15项原创计数正确，相对链接均存在。可在仓库根目录复核职业集合和战技数量：
 
 ```powershell
 @'
@@ -267,9 +271,9 @@ doc = Path('docs/25-fortunes-weave-skills.md').read_text(encoding='utf-8')
 actual = dict(re.findall(r'^\| [^|]+ / `([^`]+)` \| `(cls-\d+)` \|', doc, re.M))
 assert actual == expected and len(actual) == 58
 catalog = json.loads(Path('docs/data/fw-weapon-arts.json').read_text(encoding='utf-8'))
-ids = [r['id'] for r in catalog['arts'] + catalog['supplements']]
-assert len(catalog['arts']) == 283 and len(ids) == len(set(ids)) == 300
-print('PASS: 58 class links and 300 unique active weapon arts')
+ids = [r['id'] for r in catalog['arts'] + catalog['supplements'] + catalog['originalArts']]
+assert len(catalog['arts']) == 283 and len(ids) == len(set(ids)) == 315
+print('PASS: 58 class links and 315 unique active weapon arts')
 '@ | python -
 git diff --check
 ```
