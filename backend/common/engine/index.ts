@@ -3,7 +3,7 @@
 export { step } from './step.ts';
 export { decide, GUARD_RADIUS } from './ai.ts';
 export { autoplay } from './autoplay.ts';
-export { forecast, trueHit, unitCombatStats, terrainBonus } from './combat.ts';
+export { artForecast, forecast, forecastOnHit, trueHit, unitCombatStats, terrainBonus } from './combat.ts';
 export type { Forecast, SideForecast } from './combat.ts';
 export { moveRange, pathTo } from './movement.ts';
 export type { MoveRange } from './movement.ts';
@@ -13,7 +13,7 @@ export { expPreview, growthRates } from './growth.ts';
 export { healAmount } from './resolve.ts';
 export { seedRng } from './rng.ts';
 export {
-  attackWeapons, cellKey, classOf, distance, equipped, hasCurableStatus, isAsleep, isBerserk, isSilenced, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,
+  attackWeapons, cellKey, classOf, distance, equipped, hasCurableStatus, isAsleep, isBerserk, isSilenced, inBounds, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,
 } from './units.ts';
 export { EngineError } from './types.ts';
 export type { Action, ActAction, BattleEvent, BattleObject, BattleObjectState, BattleState, Behavior, Point, ScenarioEvent, Side, Strike, UnitState } from './types.ts';

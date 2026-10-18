@@ -157,15 +157,25 @@ export class BattleController {
     const mode = this.snap.mode;
     if (this.blocked) return;
     if (mode.kind === 'cast' || mode.kind === 'staff') this.set({ mode: { ...mode, target: targetId, dest: null } });
-    else if (mode.kind === 'art' || mode.kind === 'dance' || mode.kind === 'attack' || mode.kind === 'heal') this.set({ mode: { ...mode, target: targetId } });
+    else if (mode.kind === 'art') this.set({ mode: { ...mode, target: targetId, secondary: undefined } });
+    else if (mode.kind === 'dance' || mode.kind === 'attack' || mode.kind === 'heal') this.set({ mode: { ...mode, target: targetId } });
   }
 
   // 战技／法术／杖的选项；目标若仍有效就保留，否则自动挑唯一目标。
   chooseArt(art: string, weapon: WeaponId): void {
     const mode = this.snap.mode;
     if (this.blocked || mode.kind !== 'art') return;
-    this.set({ mode: { ...mode, art, weapon } });
+    this.set({ mode: { ...mode, art, weapon, ally: undefined, secondary: undefined } });
     this.keepOrClearTarget();
+  }
+
+  chooseArtExtra(kind: 'ally' | 'secondary', id: string | undefined): void {
+    const mode = this.snap.mode;
+    if (this.blocked || mode.kind !== 'art') return;
+    const option = commandOptions(this.snap.state, mode).arts.find(a => a.art === mode.art && a.weapon === mode.weapon);
+    const valid = kind === 'ally' ? option?.allies : option?.secondaries[mode.target ?? ''];
+    if (id && !valid?.includes(id)) return;
+    this.set({ mode: { ...mode, [kind]: id } });
   }
 
   chooseSpell(spell: string): void {

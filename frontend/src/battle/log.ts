@@ -102,7 +102,7 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
         push(e.message, 'g');
         break;
       case 'hazard':
-        if (e.kind === 'damage') push(`${name(e.unit)} 被${e.source === 'ballista' ? '炮台' : '机关'}命中，损失 ${e.amount} HP（剩余 ${e.hpAfter}）。`, mark(e.unit));
+        if (e.kind === 'damage') push(`${name(e.unit)} 被${e.source === 'ballista' ? '炮台' : e.source === 'ember' ? '余烬' : '机关'}命中，损失 ${e.amount} HP（剩余 ${e.hpAfter}）。`, mark(e.unit));
         else push(`${name(e.unit)} 被状态杖命中。`, mark(e.unit));
         break;
       case 'status': {

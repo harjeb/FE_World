@@ -108,7 +108,7 @@ def audit_originals(catalog, classes):
     for row in rows:
         identity = row['id']; p = row['project']; m = row['mechanics']
         check(re.fullmatch(r'fe_art_[a-z_]+', identity) and row['origin'] == 'project_original' and 'sourceId' not in row and 'reference' not in row, 'Original art falsely attributed to reference source')
-        check(row['variant'] == 'base' and p['status'] == 'not_implemented', 'Original art implementation/upgrade claim differs')
+        check(row['variant'] == 'base' and p['status'] == 'implemented', 'Original art implementation/upgrade claim differs')
         check(p['unlock']['weaponRank'] in ['E', 'D', 'C', 'B', 'A', 'S'], 'Unknown original art weapon proficiency')
         check(p['resource'] == 'weapon_durability' and type(p['cost']) is int and 1 <= p['cost'] <= 8, 'Original art durability must be one positive activation cost')
         check(all(type(p[k]) is int for k in ['might', 'hit', 'crit']) and -2 <= p['might'] <= 4 and -15 <= p['hit'] <= 15 and p['crit'] == 0, 'Original art baseline parameters exceed proposal bounds')

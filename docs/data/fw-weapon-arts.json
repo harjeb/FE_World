@@ -20200,7 +20200,7 @@
       "designIntent": "从地形回避中找突破口，给短刀与剑一个低成本的近身选择。",
       "balanceNotes": "无地形回避时只剩小幅修正；仍正常反击，不提供必中。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 1,
@@ -20249,7 +20249,7 @@
       "designIntent": "用伤害换追逃控制，不把一般小刀攻击变成定身。",
       "balanceNotes": "不取消已完成的位移或当前反击；移动削弱免疫有效，再次施加只刷新期限。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -20301,7 +20301,7 @@
       "designIntent": "让脆弱前锋完成一击后交出前排，也可让重装队友接防。",
       "balanceNotes": "友军须自愿、未石化且可移动，双方目的格均须合法；移动封锁、占位或地形不符则仅保留攻击。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": -1,
@@ -20357,7 +20357,7 @@
       "designIntent": "安全试探高威力反击者，付出较低伤害与耐久成本。",
       "balanceNotes": "不禁止反击，不减后续段，也不降低场外攻击；与同击减伤只取最高比例，上限50%。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": -2,
@@ -20411,7 +20411,7 @@
       "designIntent": "以高阶短刃技巧对抗高速敌人，保留第一次反击风险。",
       "balanceNotes": "未命中不封追击；不取消其他来源的强制追击，目标追击封锁免疫有效；不形成跨回合封锁。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 2,
@@ -20466,7 +20466,7 @@
       "designIntent": "兽群以站位夹击破防，协作收益不直接扩大成无条件特效。",
       "balanceNotes": "仅正交夹击有效；未夹击则按普通物防结算，不帮助友军追击，不穿越物防忽略免疫。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -20519,7 +20519,7 @@
       "designIntent": "先手标记帮助队友集火，也为兽王断势提供可消耗前提。",
       "balanceNotes": "不让本击追溯获益，不揭示视野外目标；每方阵营分别记录，重复施加只刷新期限。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 1,
@@ -20574,7 +20574,7 @@
       "designIntent": "留在阵线上蓄势，和奔袭裂爪形成静守／机动取舍。",
       "balanceNotes": "移动、传送、换位或强制位移均使本次行动不满足条件；仅减一段，与同击减伤取最高且上限50%。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 2,
@@ -20630,7 +20630,7 @@
       "designIntent": "长距离绕侧后打一记重爪，鼓励为兽类保留突击通道。",
       "balanceNotes": "统计不同的实际行走格，传送／换位／强制移动／攻击后再移动不计，不增加移动距离。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 1,
@@ -20683,7 +20683,7 @@
       "designIntent": "两次行动与队友配合换取爆发，给兽系高阶一个明确终结技。",
       "balanceNotes": "猎痕在命中判定前消费，未命中照扣；本击不再享猎痕命中加成，不无视伤害免疫或防护。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 4,
@@ -20737,7 +20737,7 @@
       "designIntent": "龙系攻击兼顾保护邻接队友，不通过治疗来填补法术。",
       "balanceNotes": "友军在施加时仍须相邻且未石化；到施加者下次行动开始失效，同类只取最强；不回血、不多层抵消连击。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 1,
@@ -20796,7 +20796,7 @@
       "designIntent": "用可走开的持续危险格促使敌人改变阵形，而非强制定身。",
       "balanceNotes": "同格余烬不叠，每单位每次行动最多结算一次；HP最低1，不伤友军／石化者，不给经验或触发攻击特效。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -20854,7 +20854,7 @@
       "designIntent": "静止凝息换取稳定远击，与近身护鳞和范围吐息争同一行动。",
       "balanceNotes": "不额外增加武器射程，不穿墙，不允许距离1发动；位移条件与伏身爪击一致。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 3,
@@ -20906,7 +20906,7 @@
       "designIntent": "对相邻敌人施压，保留灵活点选与低于专精直线吐息的总伤害。",
       "balanceNotes": "两敌均须在合法射程和视线内；均不能必杀，只有主目标按正常规则反击；次目标不附带武器额外状态。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 0,
@@ -20960,7 +20960,7 @@
       "designIntent": "以严格直线站位和高消耗换取双目标全额吐息。",
       "balanceNotes": "不能必杀；墙体截断射线，射线上有友军则禁止发动；只由最近的合法敌人正常反击；每目标不触发额外武器状态。",
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 4,

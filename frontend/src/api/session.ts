@@ -510,7 +510,7 @@ class SessionStore {
       if (action.act === 'attack' || action.act === 'heal') { data.targetId = action.target; data.weapon = action.weapon; }
       if (action.act === 'interact' || action.act === 'dance') data.targetId = action.target;
       if (action.act === 'item') data.item = action.item;
-      if (action.act === 'art') { data.targetId = action.target; data.weapon = action.weapon; data.art = action.art; }
+      if (action.act === 'art') { data.targetId = action.target; data.weapon = action.weapon; data.art = action.art; if (action.ally) data.allyId = action.ally; if (action.secondary) data.secondaryId = action.secondary; }
       if (action.act === 'cast') { data.targetId = action.target; data.spell = action.spell; if (action.dest) data.dest = action.dest; }
       if (action.act === 'staff') { data.targetId = action.target; data.weapon = action.weapon; if (action.dest) data.dest = action.dest; }
     }

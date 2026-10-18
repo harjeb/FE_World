@@ -170,6 +170,12 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
         ctl.focus(unitIn(view, e.target).pos);
         edit(d => { unitIn(d, e.unit).acted = true; });
         break;
+      case 'artState':
+        edit(d => { unitIn(d, e.unit).artEffects = structuredClone(e.effects); });
+        break;
+      case 'embers':
+        edit(d => { d.embers = structuredClone(e.cells); });
+        break;
       case 'art':
         break;
       case 'seize': {

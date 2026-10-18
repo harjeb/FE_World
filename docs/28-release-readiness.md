@@ -9,7 +9,7 @@
 | 经典地图 | 60 | 可创建战斗；物件、增援、宝箱/村庄、炮台、状态杖已接 | `classic-validation.ts`、`classic-scenario.test.ts`、`api/classic.test.ts` |
 | 经典单图任务／副本 | 60 / 18 | 入口和结算已接 | `classic-quests.ts`、`api/classic.test.ts` |
 | 装备／法术目录 | 170 | 113 武器/兽龙媒介、48 书、9 主动杖均已进入运行表；书/杖独立次数与武器耐久已接 | `tools/audit/equipment-catalog.py`、`item` 测试 |
-| 武器战技 | 300 | 283 参考 + 17 补充；主动战技动作、耐久消耗与学习栏已接 | `tools/audit/weapon-art-catalog.py`、`backend/common/data/weapon-arts.ts` |
+| 武器战技 | 315 | 283参考＋17补充＋15原创；原创逐项结算、目标选择、网页／Agent预测及耐久支付已接；精通、研修和既有300项特殊效果继续收口 | `original-arts.test.ts`、`api/ui-protocol.test.ts`、`tools/audit/class-art-learning.py` |
 | 职业目录 | 77 | 运行时可用；三个特殊机制中舞者/神乐再行动已接，战车直线攻击仍禁用 | `class-data` 测试 |
 | 地区任务 | 12 地区 | 希尔瓦林地／托尔加丘陵／莱斯米尔湖镇完整 500 声望链；其余地区有基础三任务链 | `quests.test.ts` |
 | 挑战塔 | 3 层 | 可开战、首通/重复奖励与保存 | `challenges.ts`、`api` 测试 |
@@ -30,6 +30,7 @@
 - 备份：停写或用 `sqlite3 "$DB_PATH" ".backup 'backup.sqlite'"`；同时保留 `-wal`/`-shm` 或在备份前 `PRAGMA wal_checkpoint(TRUNCATE)`。
 - 恢复：先停服务，替换主库并删除旧 `-wal`/`-shm`，再启动；用 `GET_STATE` 和一次只读回放验证。
 - 迁移：当前通过 `db.ts` 的 schema 初始化和兼容读取完成；正式迁移前先备份。旧 120 日存档的绝对日期、年龄、派遣/生产/年度报名仍需按版本换算，不能直接套新日历。
+- 战技版本：新增原创效果与伤害修正采用`rules-v3`／目录11；`rules-v2`旧回放只展示已保存终局，不在新规则下重模拟。部署升级前先结束进行中的战斗／远征，保留数据库备份。
 - 生产环境必须设置账号密码、限制数据库文件权限，并只暴露 API 端口；Agent token 与网页 token 不应共享权限。
 
 ## 4. 验证门禁
@@ -59,7 +60,7 @@ npm --prefix frontend run build
 | 范围 | 证据 |
 | --- | --- |
 | 经典关卡 | 60 图/18 副本；`classic-scenario.test.ts`、`classic-validation.ts`、逐图 adaptation report |
-| 装备/法术/战技 | `equipment-catalog.py` 170、`weapon-art-catalog.py` 300、`feature-completion.test.ts` 目录/次数/装备授予 |
+| 装备/法术/战技 | `equipment-catalog.py` 170、`weapon-art-catalog.py` 315、`original-arts.test.ts` 原创效果、`feature-completion.test.ts` 目录/次数/装备授予 |
 | 职业/成长 | `class-abilities.ts` 58、`mastery.test.ts`、`growth.test.ts`、`permanent.test.ts` |
 | 任务/地区 | 132 任务/12 地区、`quests.test.ts`、远征 stage goals/供给测试 |
 | 竞技场/年度 | 1 日单场、实例 Ban、64 队签表、`arena.test.ts`、`annual.test.ts` |

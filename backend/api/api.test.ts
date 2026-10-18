@@ -7,6 +7,7 @@ import { seedFullRoster, seedDefense } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { applyBattleOutcome, syncPlayer, stateView } from './services.ts';
+import { CATALOG_VERSION } from '../common/game/version.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { nextArenaDay, regionById } from '../common/game/calendar.ts';
 import { createFieldBattle, FIELD_BATTLE } from '../common/game/battles.ts';
@@ -95,7 +96,7 @@ test('a fresh account starts with a placeholder protagonist and completes a self
 test('catalog carries the static tables with a version', () => {
   const { store, accountId, player } = setup();
   const catalog = dispatch(ctxFor(store, accountId, player), OP.GET_CATALOG, {}) as { version: number; weapons: Record<string, unknown>; promotions: unknown[] };
-  assert.equal(catalog.version, 10);
+  assert.equal(catalog.version, CATALOG_VERSION);
   assert.ok(Object.keys(catalog.weapons).length > 20);
   assert.ok(catalog.promotions.length >= 48);
 });

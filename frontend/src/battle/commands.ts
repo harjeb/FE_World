@@ -4,7 +4,7 @@ import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
 import { WEAPON_ART_BY_ID } from '@common/data/weapon-arts.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
-import { actionOptions, destinationCells, forecast, healAmount, isHostileSpell, unitById, withSpellWeapon } from '@common/engine/index.ts';
+import { actionOptions, artForecast, destinationCells, forecast, healAmount, isHostileSpell, unitById, withSpellWeapon } from '@common/engine/index.ts';
 import type { ActAction, BattleState, DestinationRule, Point, UnitState } from '@common/engine/index.ts';
 import type { Forecast } from '@common/engine/index.ts';
 import type { Mode } from './selection.ts';
@@ -51,7 +51,10 @@ export function commandAction(state: BattleState, mode: CommandMode): ActAction 
   if (mode.kind === 'dance') return { ...base, act: 'dance', target: mode.target };
   if (mode.kind === 'art') {
     const option = commandOptions(state, mode).arts.find(a => a.art === mode.art && a.weapon === mode.weapon);
-    return option?.usable && mode.art && mode.weapon ? { ...base, act: 'art', target: mode.target, weapon: mode.weapon, art: mode.art } : null;
+    if (!option?.usable || !mode.art || !mode.weapon || !option.targets.some(t => t.id === mode.target)) return null;
+    if (mode.ally && !option.allies.includes(mode.ally)) return null;
+    if (mode.secondary && !option.secondaries[mode.target]?.includes(mode.secondary)) return null;
+    return { ...base, act: 'art', target: mode.target, weapon: mode.weapon, art: mode.art, ...(mode.ally ? { ally: mode.ally } : {}), ...(mode.secondary ? { secondary: mode.secondary } : {}) };
   }
   const dest = commandDest(state, mode);
   if (dest?.rule.required && !mode.dest) return null;
@@ -64,11 +67,11 @@ export const artInfo = (id: string) => WEAPON_ART_BY_ID.get(id as never);
 export const spellInfo = (id: string) => SPELLBOOK_BY_ID.get(id);
 
 // Combat numbers for an art or an attack spell, from the engine's forecast.
-export function commandForecast(state: BattleState, mode: CommandMode): Forecast | null {
+export function commandForecast(state: BattleState, mode: CommandMode): (Forecast & { targets?: { target: string; forecast: Forecast }[] }) | null {
   if (!mode.target) return null;
   if (mode.kind === 'art' && mode.art && mode.weapon) {
     const art = artInfo(mode.art);
-    return art ? forecast(state, mode.unit, mode.to, mode.weapon, mode.target, { might: art.might, hit: art.hit, crit: art.crit }) : null;
+    return art && commandAction(state, mode) ? artForecast(state, unitById(state, mode.unit), mode.to, mode.weapon, art, unitById(state, mode.target), mode.secondary, mode.ally) : null;
   }
   if (mode.kind === 'cast' && mode.spell) {
     const book = spellInfo(mode.spell);

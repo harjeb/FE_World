@@ -4,7 +4,9 @@ import { WEAPONS } from '../data/weapons.ts';
 import type { Weapon, WeaponId } from '../data/weapons.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import type { SpellbookDef } from '../data/spellbooks.ts';
-import { distance, hasCurableStatus, inBounds, inRange, isSilenced, living, samePoint } from './units.ts';
+import { legalArtTarget } from './arts.ts';
+import type { WeaponArt } from '../data/weapon-arts.ts';
+import { attackWeapons, distance, hasCurableStatus, inBounds, inRange, isSilenced, living, samePoint } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 
 // 落点：从施法者原位（caster）或本次移动的落点（stand）量起，曼哈顿距离不超过 max。
@@ -85,9 +87,10 @@ export function destinationCells(state: BattleState, unit: UnitState, to: Point,
 
 const within = ([min, max]: readonly [number, number], d: number) => d >= min && d <= max;
 
-// 战技目标：敌军，距离按战技自己的射程（不看武器射程）。
-export function artTargets(state: BattleState, unit: UnitState, to: Point, art: { range: readonly [number, number] }): UnitState[] {
-  return living(state).filter(target => target.side !== unit.side && within(art.range, distance(target.pos, to)));
+// 原创战技射程与武器取交集，列表与实际提交复用同一条件。
+export function artTargets(state: BattleState, unit: UnitState, to: Point, art: WeaponArt, weapon?: WeaponId): UnitState[] {
+  return living(state).filter(target => (weapon ? [weapon] : attackWeapons(unit))
+    .some(id => legalArtTarget(state, unit, to, id, art, target)));
 }
 
 // 法术目标：攻击／妨害法术打敌军，其余给友军（含自己）；治疗类要求目标受伤且未石化。

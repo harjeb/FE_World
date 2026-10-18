@@ -52,6 +52,8 @@ export interface UnitState {
   petrified?: boolean;
   // 睡眠：无法行动，受击或复原杖解除；沉默/混乱按己方阶段计数。
   statuses?: { sleep?: boolean; silence?: number; berserk?: number; regen?: number };
+  artEffects?: { movementPenalty?: number; scent?: Side[]; barrier?: { amount: number; by: string }; displaced?: boolean };
+  immunities?: ('movement_debuff' | 'follow_up_lock' | 'defense_pierce')[];
   // 已学习的主动战技稳定 ID（最多五格；具体学习由成长系统写入）。
   arts?: string[];
   // 当前职业固有能力的参考资料 ID（sk-*）；精通节点另由 learnedSkills 提供。
@@ -167,6 +169,7 @@ export interface BattleState {
   // Combat rolls and level-up rolls use separate streams (docs/02).
   rng: RngState;
   growthRng: RngState;
+  embers?: { pos: Point; side: Side; until: string }[];
   result?: { winner: Side; reason: string };
 }
 
@@ -180,7 +183,7 @@ export type ActAction =
   | ActBase & { act: 'escape' }
   | ActBase & { act: 'interact'; target: string }
   | ActBase & { act: 'dance'; target: string }
-  | ActBase & { act: 'art'; target: string; weapon: WeaponId; art: string }
+  | ActBase & { act: 'art'; target: string; weapon: WeaponId; art: string; ally?: string; secondary?: string }
   | ActBase & { act: 'cast'; target: string; spell: string; dest?: Point }
   | ActBase & { act: 'staff'; target: string; weapon: WeaponId; dest?: Point };
 // retreat: 全军撤退 in field battles (docs/06 op 56); surrender: 投降 in arena attacks (op 67).
@@ -201,6 +204,8 @@ export type BattleEvent =
   | { t: 'seize'; unit: string }
   | { t: 'dance'; unit: string; target: string }
   | { t: 'art'; unit: string; target: string; art: string }
+  | { t: 'artState'; unit: string; effects: UnitState['artEffects'] }
+  | { t: 'embers'; cells: BattleState['embers'] }
   | { t: 'cast'; unit: string; target: string; spell: string }
   | { t: 'loot'; unit: string; boxes: number }
   | { t: 'drop'; unit: string; boxes: number; at: Point }
@@ -209,7 +214,7 @@ export type BattleEvent =
   | { t: 'treasure'; unit: string; object: string; item: string; count: number }
   | { t: 'spawn'; unit: string; event: string; spawned: UnitState }
   | { t: 'scenario'; event: string; message: string }
-  | { t: 'hazard'; unit: string; source: 'ballista' | 'status'; kind: 'damage' | 'petrified'; amount?: number; hpAfter: number }
+  | { t: 'hazard'; unit: string; source: 'ballista' | 'status' | 'ember'; kind: 'damage' | 'petrified'; amount?: number; hpAfter: number }
   | { t: 'status'; unit: string; status: 'sleep' | 'silence' | 'berserk' | 'petrified' | 'regen'; active: boolean; turns?: number }
   | { t: 'phase'; side: Side; turn: number }
   | { t: 'end'; winner: Side; reason: string };

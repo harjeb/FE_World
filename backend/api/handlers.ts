@@ -4,7 +4,7 @@ import { OP, OP_BY_NUMBER } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
-import { actionOptions, destinationCells, expPreview, forecast, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
+import { actionOptions, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
@@ -172,6 +172,7 @@ export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0
     nextObjective: state.nextObjective ?? null,
     npcRoute: state.npcRoute ?? null,
     result: state.result ?? null,
+    embers: state.embers ?? [],
     map: asciiMap(state),
     units: state.units.filter(u => u.alive).map(u => detail ? fullUnit(u) : compactUnit(u)),
     events: record.events.slice(sinceEvent),
@@ -183,12 +184,13 @@ function compactUnit(u: BattleState['units'][number]) {
   return {
     id: u.id, name: u.name, side: u.side, class: CLASSES[u.classId].name, lv: u.level, pos: u.pos,
     hp: [u.hp, u.stats.hp], acted: u.acted, leader: !!u.boss, equip: u.weapons[0] ? WEAPONS[u.weapons[0]].name : null,
+    petrified: !!u.petrified, statuses: u.statuses ?? {}, artEffects: u.artEffects ?? {}, immunities: u.immunities ?? [],
     items: u.items.map(i => `${GAME_ITEMS[i.id as ItemKey]?.name ?? i.id}(${i.uses})`),
   };
 }
 
 function fullUnit(u: BattleState['units'][number]) {
-  return { ...compactUnit(u), stats: withCharm(u.stats), con: u.con, weapons: u.weapons, ranks: u.ranks, skill: u.skill ?? null };
+  return { ...compactUnit(u), stats: withCharm(u.stats), con: u.con, weapons: u.weapons, ranks: u.ranks, skill: u.skill ?? null, arts: u.arts ?? [], weaponInstances: u.weaponInstances ?? [] };
 }
 
 // 进行中的战斗不下发随机数状态或敌方 AI 行为 (docs/03「结束前隐藏种子」、docs/05「AI 行为不公开」)。
@@ -201,13 +203,7 @@ function publicState(state: BattleState): BattleState {
 }
 
 function applyAction(ctx: Context, record: BattleRecord, action: Action): { state: BattleState; events: BattleEvent[] } {
-  let result: { state: BattleState; events: BattleEvent[] };
-  try {
-    result = step(record.state, action);
-  } catch (error) {
-    if (error instanceof EngineError) throw new OpError(error.code, error.message);
-    throw error;
-  }
+  const result = step(record.state, action);
   record.state = result.state;
   record.events.push(...result.events);
   record.actions.push(action);
@@ -1271,7 +1267,7 @@ const handlers: Record<number, Handler> = {
         escape: options.escape,
         interactions: options.interactions,
         // 战技／法术／杖／舞蹈（UNIT_ACT action = art / cast / staff / dance）：只列有目标的项。
-        arts: options.arts.filter(o => o.targets.length > 0).map(o => ({ art: o.art, weapon: o.weapon, cost: o.cost, durability: o.durability, usable: o.usable, targets: o.targets.map(t => t.id) })),
+        arts: options.arts.filter(o => o.targets.length > 0).map(o => ({ art: o.art, weapon: o.weapon, cost: o.cost, durability: o.durability, usable: o.usable, targets: o.targets.map(t => t.id), allies: o.allies, secondaries: o.secondaries, name: WEAPON_ART_BY_ID.get(o.art)?.name, effect: WEAPON_ART_BY_ID.get(o.art)?.effect, rank: WEAPON_ART_BY_ID.get(o.art)?.rank })),
         casts: options.casts.filter(o => o.targets.length > 0).map(o => ({ spell: o.spell, role: o.role, charges: o.charges, targets: o.targets.map(t => t.id), dest: dest(o.dest) })),
         staves: options.staff.filter(o => o.targets.length > 0 && o.effect !== 'heal').map(o => ({ weapon: o.weapon, effect: o.effect, targets: o.targets.map(t => t.id), dest: dest(o.dest) })),
         dance: options.dance,
@@ -1291,19 +1287,20 @@ const handlers: Record<number, Handler> = {
     if (book && !(unitById(record.state, attacker).spellbooks ?? []).some(row => row.id === book.id)) throw new OpError('NO_SUCH_ITEM', '没有携带这本法术书');
     const weapon = (book ? book.id : asString(data.weapon, 'weapon')) as never;
     const art = typeof data.art === 'string' ? WEAPON_ART_BY_ID.get(data.art as never) : undefined;
-    if (art) {
-      const unit = unitById(record.state, attacker);
-      if (!(unit.arts ?? []).includes(art.id)) throw new OpError('FORBIDDEN', '尚未学习这个战技');
-      if (WEAPONS[weapon]?.type !== art.weapon) throw new OpError('BAD_REQUEST', '战技与武器类型不匹配');
-    }
-    const run = () => forecast(record.state, attacker, from, weapon, target, art ? { might: art.might, hit: art.hit, crit: art.crit } : undefined);
-    const f = book ? withSpellWeapon(book, run) : run();
+    if (data.art !== undefined && !art) throw new OpError('BAD_REQUEST', '没有这个战技');
+    if (art && book) throw new OpError('BAD_REQUEST', '战技与法术不能同时使用');
     const attackerUnit = unitById(record.state, attacker), defenderUnit = unitById(record.state, target);
+    if (!inBounds(record.state, from) || !moveRange(record.state, attackerUnit).stops.has(from[1] * record.state.map.width + from[0])) throw new OpError('UNREACHABLE', '预测落点不可达');
+    const run = () => art ? artForecast(record.state, attackerUnit, from, weapon, art, defenderUnit, data.secondaryId === undefined ? undefined : asString(data.secondaryId, 'secondaryId'), data.allyId === undefined ? undefined : asString(data.allyId, 'allyId'))
+      : forecast(record.state, attacker, from, weapon, target);
+    const f = book ? withSpellWeapon(book, run) : run();
     return {
-      attacker: f.attacker, defender: f.defender, order: f.order,
+      attacker: f.attacker, defender: f.defender, order: f.order, onHit: forecastOnHit(f),
+      ...('art' in f ? { art: f.art } : {}),
       defenderDies: f.defenderDies, attackerDies: f.attackerDies,
       expectedDealt: f.expectedDealt, expectedTaken: f.expectedTaken,
       exp: record.kind === 'field' ? expPreview(attackerUnit, defenderUnit) : null,
+      ...('targets' in f ? { targets: f.targets } : {}),
     };
   },
 
@@ -1331,7 +1328,7 @@ const handlers: Record<number, Handler> = {
     else if (act === 'interact') action = { type: 'act', unit, to, act: 'interact', target: asString(data.targetId, 'targetId') };
     else if (act === 'wait') action = { type: 'act', unit, to, act: 'wait' };
     else if (act === 'dance') action = { type: 'act', unit, to, act: 'dance', target: asString(data.targetId, 'targetId') };
-    else if (act === 'art') action = { type: 'act', unit, to, act: 'art', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, art: asString(data.art, 'art') };
+    else if (act === 'art') action = { type: 'act', unit, to, act: 'art', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, art: asString(data.art, 'art'), ...(data.allyId === undefined ? {} : { ally: asString(data.allyId, 'allyId') }), ...(data.secondaryId === undefined ? {} : { secondary: asString(data.secondaryId, 'secondaryId') }) };
     else if (act === 'cast') action = { type: 'act', unit, to, act: 'cast', target: asString(data.targetId, 'targetId'), spell: asString(data.spell, 'spell'), ...(data.dest !== undefined ? { dest: asPoint(data.dest, 'dest') } : {}) };
     else if (act === 'staff') action = { type: 'act', unit, to, act: 'staff', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, ...(data.dest !== undefined ? { dest: asPoint(data.dest, 'dest') } : {}) };
     else throw new OpError('BAD_REQUEST', 'action 取 attack / heal / item / seize / escape / interact / wait / dance / art / cast / staff');
@@ -2391,7 +2388,12 @@ function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unk
       if (typeof value === 'number' && rule.maximum !== undefined && value > rule.maximum) throw new OpError('BAD_REQUEST', `${key} 超过上限`);
     }
   }
-  const result = handler(ctx, data);
+  let result: unknown;
+  try { result = handler(ctx, data); }
+  catch (error) {
+    if (error instanceof EngineError) throw new OpError(error.code, error.message);
+    throw error;
+  }
   if (WRITE_OPS.has(op)) {
     ctx.player.version = expectedVersion + 1;
     ctx.store.savePlayer(ctx.player, expectedVersion);

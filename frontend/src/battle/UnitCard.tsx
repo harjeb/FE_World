@@ -41,8 +41,11 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
   const combat = unitCombatStats(state, unit, armed ? shown : null);
   const dash = (n: number) => (armed ? n : '—');
   const skill = unit.skill ? SKILLS[unit.skill] : null;
-  const statuses = [unit.statuses?.sleep && '睡眠', unit.statuses?.silence && `沉默 ${unit.statuses.silence}`, unit.statuses?.berserk && `混乱 ${unit.statuses.berserk}`,
-    unit.statuses?.regen && `再生 ${unit.statuses.regen}`, unit.petrified && '石化（禁止一切回复）', (unit.shields ?? 0) > 0 && '持不朽盾'].filter(Boolean) as string[];
+  const statuses = [unit.artEffects?.movementPenalty && `移动 −${unit.artEffects.movementPenalty}`, unit.artEffects?.scent?.length && '猎痕（标记方命中 +10）', unit.artEffects?.barrier && `护鳞（减伤 ${unit.artEffects.barrier.amount}）`, unit.statuses?.sleep && '睡眠', unit.statuses?.silence && `沉默 ${unit.statuses.silence}`, unit.statuses?.berserk && `混乱 ${unit.statuses.berserk}`,
+    unit.statuses?.regen && `再生 ${unit.statuses.regen}`, unit.petrified && '石化（禁止一切回复）', (unit.shields ?? 0) > 0 && '持不朽盾',
+    unit.artEffects?.displaced && '已位移（本次不能发动伏身／凝息）',
+    ...(unit.immunities ?? []).map(kind => ({ movement_debuff: '移动削弱免疫', follow_up_lock: '追击封锁免疫', defense_pierce: '防御忽略免疫' })[kind]),
+  ].filter(Boolean) as string[];
   const gear = unit.weapons.map((id, i) => {
     const nth = unit.weapons.slice(0, i).filter(w => w === id).length;
     const book = unit.bookInstances?.filter(b => b.id === id)[nth];

@@ -22,9 +22,9 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   UNIT_ACT: { required: ['unitId', 'moveTo', 'action'], properties: {
     unitId: { type: 'string' }, moveTo: { type: 'array' }, targetId: { type: 'string' }, weapon: { type: 'string' },
     action: { type: 'string', enum: ['attack', 'heal', 'item', 'seize', 'escape', 'interact', 'wait', 'dance', 'art', 'cast', 'staff'] },
-    art: { type: 'string' }, spell: { type: 'string' }, dest: { type: 'array' }, item: { type: 'number', minimum: 0, maximum: 4 },
+    art: { type: 'string' }, allyId: { type: 'string' }, secondaryId: { type: 'string' }, spell: { type: 'string' }, dest: { type: 'array' }, item: { type: 'number', minimum: 0, maximum: 4 },
   } },
-  PREVIEW_COMBAT: { required: ['attackerId', 'from', 'targetId'], properties: { attackerId: { type: 'string' }, from: { type: 'array' }, targetId: { type: 'string' }, weapon: { type: 'string' }, art: { type: 'string' }, spell: { type: 'string' } } },
+  PREVIEW_COMBAT: { required: ['attackerId', 'from', 'targetId'], properties: { attackerId: { type: 'string' }, from: { type: 'array' }, targetId: { type: 'string' }, weapon: { type: 'string' }, art: { type: 'string' }, allyId: { type: 'string' }, secondaryId: { type: 'string' }, spell: { type: 'string' } } },
   INN_REST: { required: ['unitId', 'book'], properties: { unitId: { type: 'string' }, book: { type: 'string' }, spellbook: { type: 'boolean' } } },
   USE_FOOD: { required: ['unitId', 'book', 'item'], properties: { unitId: { type: 'string' }, book: { type: 'string' }, spellbook: { type: 'boolean' }, item: { type: 'string', enum: ['ether_ration', 'full_meal'] } } },
   START_ANNUAL_MATCH: { properties: {} },

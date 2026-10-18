@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
-import { expPreview, forecast, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
+import { expPreview, forecast, forecastOnHit, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
 import type { BattleState, Forecast, Point, SideForecast, UnitState } from '@common/engine/index.ts';
 import { artInfo, commandAction, commandForecast, isCommand, spellHeal, spellInfo, STAFF_EFFECT_TEXT, weaponLabel } from './commands.ts';
 import type { CommandMode } from './commands.ts';
@@ -57,21 +57,24 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
   // 战技、攻击法术的预测由调用方用同一个 forecast 算好传入（法术书只在施法时登记为武器）。
   given?: Forecast; title?: string; weaponName?: string;
 }) {
+  const heading = useId();
   const f = given ?? forecast(state, unitId, to, weapon, targetId);
   const attacker = { ...unitById(state, unitId), pos: to };
   const defender = unitById(state, targetId);
   const a = f.attacker, d = f.defender;
-  const dLoss = Math.min(defender.hp, a.damage * a.strikes);
-  const aLoss = d.canAttack ? Math.min(attacker.hp, d.damage * d.strikes) : 0;
-  const killNote = a.damage * a.strikes >= defender.hp ? '全部命中即可击败'
-    : a.crit > 0 && a.damage * 3 >= defender.hp ? '需要必杀才能击败' : '本次无法击败';
+  const onHit = forecastOnHit(f), aHits = onHit.filter(s => s.side === 'attacker'), dHits = onHit.filter(s => s.side === 'defender');
+  const dealt = aHits.reduce((sum, s) => sum + s.damage, 0), taken = dHits.reduce((sum, s) => sum + s.damage, 0);
+  const dLoss = Math.min(defender.hp - (d.protected ? 1 : 0), dealt);
+  const aLoss = Math.min(attacker.hp - (a.protected ? 1 : 0), taken);
+  const killNote = dLoss >= defender.hp ? '全部命中即可击败'
+    : f.defenderDies > 0 ? '需要必杀才可能击败' : '本次无法击败';
   const exp = attacker.side === 'player' && state.kind === 'field' ? expPreview(attacker, defender) : null;
   const tri = d.weapon && WEAPONS[weapon] ? `${WEAPON_TYPE_NAMES[WEAPONS[weapon].type]}${a.triangle > 0 ? '克' : '被'}${WEAPON_TYPE_NAMES[WEAPONS[d.weapon].type]}${a.triangle > 0 ? '' : '克'}` : '';
   const dash = '—';
   return (
-    <section className="panel" aria-labelledby="fc-h">
+    <section className="panel" aria-labelledby={heading}>
       <div className="ph">
-        <h2 id="fc-h">{title}</h2>
+        <h2 id={heading}>{title}</h2>
         <span style={{ fontSize: 12, color: '#6A6256' }}>命中与必杀为概率，实际结果以判定为准</span>
       </div>
       <div className="fc-sides">
@@ -81,14 +84,14 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
       </div>
       <div className="fc-hps">
         <HpBox unit={attacker} loss={aLoss} color="#4A7FA6"
-          note={d.canAttack ? `被反击命中时 −${d.damage}${d.strikes > 1 ? ` ×${d.strikes}` : ''}（${d.hit}%）` : '对方无法反击'} />
+          note={dHits.length ? `全部命中时反击损失 ${aLoss}（命中 ${d.hit}%）` : d.canAttack ? '首击失手仍可能被反击' : '对方无法反击'} />
         <HpBox unit={defender} loss={dLoss} color="#B8574A" right
-          note={`${a.strikes > 1 ? `${a.strikes} 击` : '1 击'}命中 −${a.damage * a.strikes}；${killNote}`} />
+          note={`${aHits.length} 击命中 −${dLoss}；${killNote}`} />
       </div>
       <table className="fc-tbl">
         <caption className="sr-only">双方数值对比：左为{attacker.name}，右为{defender.name}</caption>
         <tbody>
-          <tr><td className="l fc-val">{a.damage}<small>× {a.strikes}</small></td><th scope="row" className="c">伤害</th><td className="r fc-val">{d.canAttack ? <>{d.damage}<small>× {d.strikes}</small></> : dash}</td></tr>
+          <tr><td className="l fc-val">{aHits.map(s => s.damage).join(' + ') || dash}</td><th scope="row" className="c">命中伤害</th><td className="r fc-val">{dHits.map(s => s.damage).join(' + ') || dash}</td></tr>
           <tr><td className="l fc-val">{a.hit}<small>%</small></td><th scope="row" className="c">命中</th><td className="r fc-val">{d.canAttack ? <>{d.hit}<small>%</small></> : dash}</td></tr>
           <tr>
             <td className="l fc-val">{a.crit}<small>%{a.doubles && a.followUpCrit !== a.crit ? ` 追击 ${a.followUpCrit}%` : ''}</small></td>
@@ -104,6 +107,8 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         {a.effective && <span className="tag tag-brass">特效：威力 ×3</span>}
         {d.effective && d.canAttack && <span className="tag tag-red">对方对我方特效</span>}
         {!d.canAttack && <span className="tag tag-blue">对方无法反击</span>}
+        {f.art?.sealFollowUp && <span className="tag tag-blue">命中封锁攻速追击；失手时仍可能被追击</span>}
+        {(a.barrier > 0 || d.barrier > 0) && <span className="tag tag-blue">护鳞已计入第一段命中伤害</span>}
       </div>
       <div className="fc-sum">
         <div>
@@ -172,7 +177,7 @@ export function CommandPreview({ state, mode }: { state: BattleState; mode: Comm
   const f = commandForecast(state, mode);
   if (f && mode.kind === 'art' && mode.art && mode.weapon) {
     const art = artInfo(mode.art);
-    return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon} targetId={mode.target} given={f} title={`战技预测 · ${art?.name ?? mode.art}`} weaponName={`${WEAPONS[mode.weapon].name} · ${art?.name ?? ''}`} />;
+    return <>{(f.targets ?? [{ target: mode.target, forecast: f }]).map((entry, index) => <ForecastPanel key={entry.target} state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon!} targetId={entry.target} given={entry.forecast} title={`战技预测 · ${art?.name ?? mode.art} · ${displayName(state, entry.target)}${index > 0 ? '（前段未中止时）' : ''}`} weaponName={`${WEAPONS[mode.weapon!].name} · ${art?.name ?? ''}`} />)}</>;
   }
   if (f && mode.kind === 'cast' && mode.spell) {
     return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.spell as WeaponId} targetId={mode.target} given={f} title={`法术预测 · ${spellInfo(mode.spell)?.name ?? mode.spell}`} weaponName={spellInfo(mode.spell)?.name} />;

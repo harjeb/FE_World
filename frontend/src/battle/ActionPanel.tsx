@@ -174,7 +174,8 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
             <button key={`${a.art}:${a.weapon}`} type="button" className="wopt" aria-pressed={mode.art === a.art && mode.weapon === a.weapon} disabled={!a.usable}
               onClick={() => ctl.chooseArt(a.art, a.weapon)} title={art?.effect}>
               <img className="px" src={weaponIcon(w.type)} width={32} height={32} alt="" />
-              <span className="wn">{art?.name ?? a.art} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.name}</span></span>
+              <span className="wn">{art?.name ?? a.art} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.name}{art?.original ? ' · 原创' : ''}{art?.rank ? ` · ${art.rank}` : ''}</span></span>
+              <span className="wd">{art?.effect}</span>
               <span className="wd num">耐久 −{a.cost}{a.durability !== null ? `（现 ${a.durability}）` : ''} · 射程 {art?.range.join('–')}{art?.might ? ` · 威力 ${art.might > 0 ? '+' : ''}${art.might}` : ''}{art?.hit ? ` · 命中 ${art.hit > 0 ? '+' : ''}${art.hit}` : ''}{art?.crit ? ` · 必杀 +${art.crit}` : ''}{!a.usable ? ' · 耐久不足' : ''}</span>
             </button>
           );
@@ -221,6 +222,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
     title = '舞蹈'; hint = '让一名已行动的友军本回合再行动一次';
     targets = targetsOf(o.dance);
   }
+  const artOption = mode.kind === 'art' ? o.arts.find(a => a.art === mode.art && a.weapon === mode.weapon) : undefined;
   const dest = mode.target ? commandDest(state, mode) : null;
   const destPoint = mode.kind === 'cast' || mode.kind === 'staff' ? mode.dest : null;
   return (
@@ -241,6 +243,19 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
           </div>
         </div>
       )}
+      {mode.kind === 'art' && artOption && (['ally', 'secondary'] as const).map(kind => {
+        const ids = kind === 'ally' ? artOption.allies : artOption.secondaries[mode.target ?? ''] ?? [];
+        const offered = kind === 'ally' ? mode.art === 'fe_art_cover_exchange' || mode.art === 'fe_art_scale_rebuff' : mode.art === 'fe_art_split_breath' && !!mode.target;
+        if (!offered) return null;
+        return <div className="sect" key={kind}>
+          <label>{kind === 'ally' ? '友军（可选）' : '次目标（可选）'}{' '}
+            <select value={mode[kind] ?? ''} onChange={e => ctl.chooseArtExtra(kind, e.target.value || undefined)}>
+              <option value="">不选择</option>
+              {ids.map(id => <option key={id} value={id}>{displayName(state, id)}</option>)}
+            </select>
+          </label>
+        </div>;
+      })}
       {dest && (
         <div className="sect">
           <div className="sect-k"><span>落点</span><small>{dest.rule.from === 'stand' ? `落点周围 ${dest.rule.max} 格内的空格` : `施法者原位周围 ${dest.rule.max} 格内的空格`}</small></div>

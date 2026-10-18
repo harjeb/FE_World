@@ -1,27 +1,35 @@
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
-import { forecast } from './combat.ts';
+import { combatProgress, forecast, recordStrikeHit, strikeDamage } from './combat.ts';
+import type { CombatArt } from './combat.ts';
+import { artState, clearArtEffects } from './arts.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
 import { cureStatuses, living } from './units.ts';
 import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.ts';
 
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
-export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: { id: string; might: number; hit: number; crit: number }): void {
+export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: CombatArt): Strike[] {
   const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art);
+  const progress = combatProgress(f);
   const strikes: Strike[] = [];
   const dealt = { attacker: false, defender: false };
   for (const spec of f.order) {
     if (attacker.hp === 0 || defender.hp === 0) break;
     // 石化庇护阻止后续连击、追击与其他攻击（docs/00 §7.2）。
     if (attacker.petrified || defender.petrified) break;
+    if (spec.side === 'defender' && spec.followUp && art?.sealFollowUp && progress.attackerHit) continue;
     const [me, foe, side] = spec.side === 'attacker'
       ? [attacker, defender, f.attacker] as const
       : [defender, attacker, f.defender] as const;
     const hit = roll100(state.rng) + roll100(state.rng) < 2 * side.hit;
     const crit = hit && roll100(state.rng) < (spec.followUp ? side.followUpCrit : side.crit);
-    const damage = hit ? side.damage * (crit ? 3 : 1) : 0;
+    const damage = hit ? strikeDamage(f, spec.side, crit, progress) : 0;
+    if (hit) {
+      recordStrikeHit(f, spec.side, progress);
+      if (foe.artEffects?.barrier) { delete foe.artEffects.barrier; artState(foe, events); }
+    }
     if (damage > 0) {
       foe.hp = Math.max(0, foe.hp - damage);
       // 睡眠单位受击即醒；本次交战的还击顺序已在睡眠时算好，不会立刻反击。
@@ -50,6 +58,7 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   });
   if (art) events.push({ t: 'art', unit: attacker.id, target: defender.id, art: art.id });
   for (const unit of [attacker, defender]) {
+    if (!unit.alive || unit.petrified || unit.hp === 0) clearArtEffects(state, unit, events);
     if (unit.hp > 0) continue;
     unit.alive = false;
     if (unit.carried) {
@@ -65,6 +74,7 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   for (const [unit, foe, didDamage] of [[attacker, defender, dealt.attacker], [defender, attacker, dealt.defender]] as const) {
     if (!friendly && unit.side === 'player' && unit.alive) gainExp(state, unit, combatExp(unit, foe, didDamage, !foe.alive), events);
   }
+  return strikes;
 }
 
 // Staff healing: 魔 + 10 (祈愿 +5) or full, never above max HP.

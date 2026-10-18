@@ -20,7 +20,7 @@ export function enterCost(state: BattleState, unit: UnitState, [x, y]: Point): n
 
 // Dijkstra over terrain costs. Enemy units block; allies can be passed through but not stopped on.
 // Ties resolve by cell order so the same state always yields the same paths.
-export function moveRange(state: BattleState, unit: UnitState, budget = classOf(unit).move): MoveRange {
+export function moveRange(state: BattleState, unit: UnitState, budget = Math.max(1, classOf(unit).move - (unit.artEffects?.movementPenalty ?? 0))): MoveRange {
   const origin = cellKey(state, unit.pos);
   const others = living(state).filter(u => u.id !== unit.id);
   const blocked = new Set(others.filter(u => u.side !== unit.side).map(u => cellKey(state, u.pos)));

@@ -17,7 +17,7 @@ import { WEAPONS } from '../common/data/weapons.ts';
 import { dicePayout, frogRace, MINIGAME_PLAYS_PER_QUARTER } from '../common/game/minigames.ts';
 import { SPELLBOOKS } from '../common/data/spellbooks.ts';
 import { WEAPON_ARTS } from '../common/data/weapon-arts.ts';
-import { replayCompatibility } from '../common/game/version.ts';
+import { replayCompatibility, RULESET_VERSION } from '../common/game/version.ts';
 import { CLASS_ABILITIES } from '../common/data/class-abilities.ts';
 
 function setup(name: string) {
@@ -109,13 +109,13 @@ test('minigame odds and quarterly quota follow the documented rules', () => {
   assert.equal(player.flags.minigamePlays, 1);
 });
 
-test('first-release catalogs expose 170 equipment items and 300 arts', () => {
+test('first-release catalogs expose 170 equipment items and 315 arts', () => {
   const staves = Object.values(WEAPONS).filter(weapon => weapon.type === 'staff').length;
   assert.equal(staves, 9);
   assert.equal(Object.keys(WEAPONS).length - staves, 113);
   assert.equal(SPELLBOOKS.length, 48);
   assert.equal(Object.keys(WEAPONS).length + SPELLBOOKS.length, 170);
-  assert.equal(WEAPON_ARTS.length, 300);
+  assert.equal(WEAPON_ARTS.length, 315);
   assert.equal(CLASS_ABILITIES.length, 58);
   for (const weapon of Object.values(WEAPONS)) {
     if (weapon.type === 'tome' || weapon.type === 'staff') assert.ok(weapon.maxCharges);
@@ -125,13 +125,17 @@ test('first-release catalogs expose 170 equipment items and 300 arts', () => {
 
 test('learned weapon arts are exposed and validated against weapon type', () => {
   const unit = createUnit('victor', 20, 'artist', 0, true, { classId: 'swordsman' });
-  unit.weapons = ['iron_sword'];
+  unit.weapons = ['iron_sword']; unit.ranks.sword = 'C';
   unit.learnedArts = [WEAPON_ARTS.find(art => art.weapon === 'sword')!.id];
   const record = createClassicBattle([unit], { mapId: 'fe1-ch16', seed: 'art', day: 0 });
   const battle = record.state;
   const player = battle.units.find(entry => entry.id === 'artist')!;
   const options = actionOptions(battle, player, player.pos);
   assert.ok(options.arts.length > 0);
+  player.ranks.sword = 'E';
+  assert.equal(actionOptions(battle, player, player.pos).arts.length, 0);
+  player.ranks.sword = 'C'; player.weapons = ['iron_lance'];
+  assert.equal(actionOptions(battle, player, player.pos).arts.length, 0);
 });
 
 test('store transactions roll back business writes and reject stale player versions', () => {
@@ -179,9 +183,9 @@ test('stale web sessions expire while agent tokens remain separate', () => {
 });
 
 test('replay versions distinguish current, old-rule and old-engine records', () => {
-  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v2' }).compatible, true);
-  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v1' }).compatible, false);
-  assert.equal(replayCompatibility({ engineVersion: 0, rulesetVersion: 'rules-v2' }).compatible, false);
+  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: RULESET_VERSION }).compatible, true);
+  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v2' }).compatible, false);
+  assert.equal(replayCompatibility({ engineVersion: 0, rulesetVersion: RULESET_VERSION }).compatible, false);
 });
 
 test('events are committed with an outbox row that can be retried and acked', () => {

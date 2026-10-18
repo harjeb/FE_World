@@ -16,6 +16,7 @@ import { regionById } from '../common/game/calendar.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { createUnit, growthRates } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
+import { WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
 import { actionOptions, destinationCells, step } from '../common/engine/index.ts';
 import type { BattleState, Point, UnitState } from '../common/engine/index.ts';
 
@@ -299,4 +300,34 @@ test('the class market shows each class’s real total growth for the unit', () 
   assert.deepEqual(current.growth, growthRates(erin));
   const other = market.classes.find(c => c.id !== erin.classId)!;
   assert.deepEqual(other.growth, growthRates({ ...erin, classId: other.id as UnitRecord['classId'] }));
+});
+
+test('original art API exposes legal allies, persists swaps, and retries never pay twice', () => {
+  const { store, accountId, player } = setup('ui-original');
+  const ctx = ctxFor(store, accountId, player);
+  const victor = store.unit(player.id, 'u_victor')!, erin = store.unit(player.id, 'u_erin')!;
+  victor.learnedArts = ['fe_art_cover_exchange']; victor.ranks.sword = 'A'; store.saveUnit(victor, player.id);
+  const record = battleWith(store, player, [victor, erin]);
+  const state = structuredClone(record.state);
+  state.map.tiles = state.map.tiles.map(row => row.map(() => 'plain')); state.objects = []; state.scenario = undefined;
+  const me = state.units.find(u => u.id === victor.id)!, ally = state.units.find(u => u.id === erin.id)!, foe = state.units.find(u => u.side === 'enemy')!;
+  me.pos = [2, 2]; ally.pos = [2, 3]; ally.acted = true; foe.pos = [3, 2];
+  for (const unit of [me, foe]) { unit.hp = unit.stats.hp = 300; unit.stats.skl = 150; unit.stats.lck = 100; }
+  save(store, record, state);
+  const reach = dispatch(ctx, OP.GET_REACHABLE, { unitId: me.id }) as { stops: { pos: Point; arts: { art: string; weapon: string; allies: string[] }[] }[] };
+  const option = reach.stops.find(row => row.pos.join() === me.pos.join())!.arts.find(row => row.art === 'fe_art_cover_exchange')!;
+  assert.ok(option.allies.includes(ally.id));
+  const preview = dispatch(ctx, OP.PREVIEW_COMBAT, { attackerId: me.id, from: me.pos, weapon: option.weapon, art: 'fe_art_cover_exchange', targetId: foe.id }) as { attacker: { strikes: number }; targets: unknown[] };
+  assert.equal(preview.attacker.strikes, 1); assert.equal(preview.targets.length, 1);
+  const request = { unitId: me.id, moveTo: me.pos, action: 'art', targetId: foe.id, weapon: option.weapon, art: 'fe_art_cover_exchange', allyId: ally.id, commandId: 'original-once' };
+  assert.throws(() => dispatch(ctx, OP.UNIT_ACT, { ...request, allyId: foe.id }), /友军/);
+  const first = dispatch(ctx, OP.UNIT_ACT, request) as { state: BattleState };
+  const retry = dispatch(ctx, OP.UNIT_ACT, request);
+  assert.equal(JSON.stringify(retry), JSON.stringify(first));
+  const after = first.state.units.find(u => u.id === me.id)!;
+  assert.deepEqual(after.pos, ally.pos);
+  assert.equal(after.weaponInstances!.find(w => w.id === option.weapon)!.durability, me.weaponInstances!.find(w => w.id === option.weapon)!.durability - WEAPON_ART_BY_ID.get('fe_art_cover_exchange')!.cost);
+  const reloaded = store.battle(player.id, record.id)!.state;
+  assert.deepEqual(reloaded.units.find(u => u.id === me.id)!.pos, ally.pos);
+  assert.equal(reloaded.units.find(u => u.id === ally.id)!.acted, true);
 });

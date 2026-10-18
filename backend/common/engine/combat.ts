@@ -3,7 +3,9 @@ import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
 import { skillMods } from './skills.ts';
 import type { Fighter } from './skills.ts';
-import { classOf, equipped, inRange, samePoint, unitById } from './units.ts';
+import type { WeaponArt } from '../data/weapon-arts.ts';
+import { artVictims, validateArt, walkedCells } from './arts.ts';
+import { classOf, distance, equipped, inRange, living, samePoint, unitById } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 
 // Formulas from docs/03-combat.md「战斗公式」. All divisions round down.
@@ -28,6 +30,8 @@ export interface SideForecast {
   triangle: -1 | 0 | 1;
   effective: boolean;
   terrain: TerrainBonus;
+  barrier: number;
+  protected: boolean;
 }
 
 export interface StrikeSpec { side: 'attacker' | 'defender'; followUp: boolean }
@@ -41,6 +45,50 @@ export interface Forecast {
   attackerDies: number;
   expectedDealt: number;
   expectedTaken: number;
+  art?: CombatArt;
+}
+
+export interface CombatArt {
+  id: string; might: number; hit: number; crit: number;
+  single?: boolean; noCrit?: boolean; noCounter?: boolean; scale?: number;
+  pierce?: number; terrainAvoid?: number; firstCounterReduction?: number; reductionOnHit?: boolean;
+  sealFollowUp?: boolean;
+}
+
+export interface CombatProgress { attackerHit: boolean; counterReduced: boolean; barrierA: number; barrierD: number }
+export function combatProgress(f: Forecast): CombatProgress {
+  return { attackerHit: false, counterReduced: false, barrierA: f.attacker.barrier, barrierD: f.defender.barrier };
+}
+export function strikeDamage(f: Forecast, side: StrikeSpec['side'], critical: boolean, progress: CombatProgress): number {
+  const me = f[side];
+  let damage = me.damage * (critical ? 3 : 1);
+  if (side === 'attacker') damage = Math.floor(damage * (f.art?.scale ?? 1));
+  if (side === 'defender' && !progress.counterReduced && (!f.art?.reductionOnHit || progress.attackerHit)) {
+    damage = Math.floor(damage * (100 - (f.art?.firstCounterReduction ?? 0)) / 100);
+  }
+  return Math.max(0, damage - (side === 'attacker' ? progress.barrierD : progress.barrierA));
+}
+export function recordStrikeHit(f: Forecast, side: StrikeSpec['side'], progress: CombatProgress): void {
+  if (side === 'attacker') { progress.attackerHit = true; progress.barrierD = 0; }
+  else {
+    progress.barrierA = 0;
+    if (!f.art?.reductionOnHit || progress.attackerHit) progress.counterReduced = true;
+  }
+}
+
+export function forecastOnHit(f: Forecast): (StrikeSpec & { damage: number; criticalDamage: number })[] {
+  const result: (StrikeSpec & { damage: number; criticalDamage: number })[] = [];
+  const progress = combatProgress(f);
+  let aHp = f.attacker.hp, dHp = f.defender.hp;
+  for (const spec of f.order) {
+    if (spec.side === 'defender' && spec.followUp && f.art?.sealFollowUp && progress.attackerHit) continue;
+    const damage = strikeDamage(f, spec.side, false, progress), criticalDamage = strikeDamage(f, spec.side, true, progress);
+    result.push({ ...spec, damage, criticalDamage });
+    recordStrikeHit(f, spec.side, progress);
+    if (spec.side === 'attacker') dHp -= damage; else aHp -= damage;
+    if (aHp <= 0 || dHp <= 0) break;
+  }
+  return result;
 }
 
 export function attackSpeed(unit: UnitState, weapon: WeaponId | null): number {
@@ -69,7 +117,7 @@ export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: W
   };
 }
 
-function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null): SideForecast {
+function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null, art?: CombatArt): SideForecast {
   const w = me.weapon, fw = foe.weapon;
   const tri = w && fw ? triangle(w.type, fw.type) : 0;
   const effective = !!w?.effective?.includes(classOf(foe.unit).moveType)
@@ -77,12 +125,13 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
     || !!w?.effectiveRoutes?.some(route => route === classOf(foe.unit).route);
   const mods = skillMods(state, me), foeMods = skillMods(state, foe);
   const magic = w?.type === 'tome' || w?.type === 'dragon';
-  const attack = w ? (magic ? me.unit.stats.mag : me.unit.stats.str) + (w.might + tri) * (effective ? 3 : 1) + mods.attack : 0;
+  const attack = w ? (magic ? me.unit.stats.mag : me.unit.stats.str) + (w.might + tri) * (effective ? 3 : 1) + mods.attack + (art?.might ?? 0) : 0;
   const foeTerrain = terrainBonus(state, foe.unit, foe.pos);
-  const protection = (magic ? foe.unit.stats.res + foeMods.res : foe.unit.stats.def + foeMods.def) + foeTerrain.def;
-  const hitRaw = w ? w.hit + me.unit.stats.skl * 2 + Math.floor(me.unit.stats.lck / 2) + tri * 15 + mods.hit : 0;
-  const foeAvoid = attackSpeed(foe.unit, foeWeapon) * 2 + foe.unit.stats.lck + foeTerrain.avoid + foeMods.avoid;
-  const critRaw = w ? w.crit + Math.floor(me.unit.stats.skl / 2) + mods.crit : 0;
+  const protection = Math.max(0, (magic ? foe.unit.stats.res + foeMods.res : foe.unit.stats.def + foeMods.def) - (art?.pierce ?? 0)) + foeTerrain.def;
+  const hitRaw = w ? w.hit + me.unit.stats.skl * 2 + Math.floor(me.unit.stats.lck / 2) + tri * 15 + mods.hit + (art?.hit ?? 0)
+    + (foe.unit.artEffects?.scent?.includes(me.unit.side) && art?.id !== 'fe_art_king_fang' ? 10 : 0) : 0;
+  const foeAvoid = attackSpeed(foe.unit, foeWeapon) * 2 + foe.unit.stats.lck + Math.max(0, foeTerrain.avoid - (art?.terrainAvoid ?? 0)) + foeMods.avoid;
+  const critRaw = w ? w.crit + Math.floor(me.unit.stats.skl / 2) + mods.crit + (art?.crit ?? 0) : 0;
   return {
     unit: me.unit.id,
     weapon: meWeapon,
@@ -92,14 +141,16 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
     attack,
     damage: w ? Math.max(0, attack + mods.damage - protection) : 0,
     hit: w ? clamp(hitRaw - foeAvoid) : 0,
-    crit: w ? clamp(critRaw - foe.unit.stats.lck) : 0,
-    followUpCrit: w ? clamp(critRaw + mods.followUpCrit - foe.unit.stats.lck) : 0,
+    crit: w && !art?.noCrit ? clamp(critRaw - foe.unit.stats.lck) : 0,
+    followUpCrit: w && !art?.noCrit ? clamp(critRaw + mods.followUpCrit - foe.unit.stats.lck) : 0,
     strikes: 0,
     canAttack: false,
     doubles: false,
     triangle: tri,
     effective,
     terrain: terrainBonus(state, me.unit, me.pos),
+    barrier: me.unit.artEffects?.barrier?.amount ?? 0,
+    protected: (me.unit.shields ?? 0) > 0,
   };
 }
 
@@ -125,7 +176,7 @@ export function strikeOrder(attacker: SideForecast, defender: SideForecast, brav
   return order;
 }
 
-export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: { might: number; hit: number; crit: number }): Forecast {
+export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: CombatArt): Forecast {
   const attackerUnit = unitById(state, attackerId), defenderUnit = unitById(state, defenderId);
   const counter = equipped(defenderUnit);
   const a: Fighter = {
@@ -136,30 +187,58 @@ export function forecast(state: BattleState, attackerId: string, from: Point, we
     unit: defenderUnit, pos: defenderUnit.pos, weapon: counter ? WEAPONS[counter] : null,
     moved: defenderUnit.movedTurn === state.turn,
   };
-  const attacker = sideVs(state, a, weaponId, d, counter);
+  const attacker = sideVs(state, a, weaponId, d, counter, art);
   const defender = sideVs(state, d, counter, a, weaponId);
-  if (art) {
-    attacker.damage += art.might;
-    attacker.hit = clamp(attacker.hit + art.hit);
-    attacker.crit = clamp(attacker.crit + art.crit);
-    attacker.followUpCrit = clamp(attacker.followUpCrit + art.crit);
-  }
   attacker.canAttack = true;
-  defender.canAttack = counter !== null && inRange(defenderUnit, counter, defenderUnit.pos, from);
+  defender.canAttack = !art?.noCounter && !defenderUnit.petrified && counter !== null && inRange(defenderUnit, counter, defenderUnit.pos, from);
   // Follow-up needs an attack-speed lead of 4 (docs/03).
-  attacker.doubles = attacker.attackSpeed - defender.attackSpeed >= 4;
+  attacker.doubles = !art?.single && attacker.attackSpeed - defender.attackSpeed >= 4;
   defender.doubles = defender.canAttack && defender.attackSpeed - attacker.attackSpeed >= 4;
-  const order = strikeOrder(attacker, defender, !!a.weapon?.brave, !!d.weapon?.brave);
+  const order = strikeOrder(attacker, defender, !art?.single && !!a.weapon?.brave, !!d.weapon?.brave);
   attacker.strikes = order.filter(s => s.side === 'attacker').length;
   defender.strikes = order.filter(s => s.side === 'defender').length;
-  return { attacker, defender, order, ...outcomes(order, attacker, defender) };
+  const f: Forecast = { attacker, defender, order, ...(art ? { art } : {}), defenderDies: 0, attackerDies: 0, expectedDealt: 0, expectedTaken: 0 };
+  return { ...f, ...outcomes(f) };
+}
+
+export function artCombatOptions(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, target: UnitState, index = 0, walked = walkedCells(state, unit, to)): CombatArt {
+  const result: CombatArt = { id: art.id, might: art.might, hit: art.hit, crit: art.crit };
+  if (!art.original) return result;
+  result.single = true;
+  result.noCrit = ['fe_art_split_breath', 'fe_art_ancient_breath'].includes(art.id);
+  result.noCounter = index > 0;
+  result.scale = art.id === 'fe_art_split_breath' && index > 0 ? 0.5 : 1;
+  if (art.id === 'fe_art_gap_stab') result.terrainAvoid = 15;
+  if (art.id === 'fe_art_guard_probe') { result.firstCounterReduction = 30; result.reductionOnHit = true; }
+  if (art.id === 'fe_art_braced_maul') result.firstCounterReduction = 20;
+  if (art.id === 'fe_art_pulse_sever') result.sealFollowUp = !target.immunities?.includes('follow_up_lock');
+  if (art.id === 'fe_art_running_rend' && walked >= 3) result.might += 5;
+  if (!target.immunities?.includes('defense_pierce')) {
+    if (art.id === 'fe_art_king_fang') result.pierce = Math.min(12, Math.floor(target.stats.def * 35 / 100));
+    if (art.id === 'fe_art_pack_flank' && distance(to, target.pos) === 1) {
+      const opposite: Point = [2 * target.pos[0] - to[0], 2 * target.pos[1] - to[1]];
+      if (living(state, unit.side).some(ally => ally.id !== unit.id && !ally.petrified && samePoint(ally.pos, opposite))) result.pierce = Math.min(8, Math.floor(target.stats.def * 25 / 100));
+    }
+  }
+  void weapon;
+  return result;
+}
+
+export function artForecast(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, target: UnitState, secondary?: string, ally?: string): Forecast & { targets: { target: string; forecast: Forecast }[] } {
+  validateArt(state, unit, { type: 'act', unit: unit.id, to, act: 'art', target: target.id, weapon, art: art.id, secondary, ally }, art);
+  const targets = artVictims(state, unit, to, weapon, art, target, secondary).map((victim, index) => ({
+    target: victim.id,
+    forecast: forecast(state, unit.id, to, weapon, victim.id, artCombatOptions(state, unit, to, weapon, art, victim, index)),
+  }));
+  return { ...targets[0].forecast, targets };
 }
 
 interface Tally { defenderDies: number; attackerDies: number; expectedDealt: number; expectedTaken: number }
 
 // Exact outcome probabilities: each strike misses, hits or crits; combat stops when a side falls.
-function outcomes(order: StrikeSpec[], attacker: SideForecast, defender: SideForecast): Tally {
-  const visit = (i: number, aHp: number, dHp: number): Tally => {
+function outcomes(f: Forecast): Tally {
+  const { order, attacker, defender } = f;
+  const visit = (i: number, aHp: number, dHp: number, progress: CombatProgress): Tally => {
     if (i === order.length || aHp === 0 || dHp === 0) {
       return {
         defenderDies: dHp === 0 ? 1 : 0,
@@ -169,11 +248,19 @@ function outcomes(order: StrikeSpec[], attacker: SideForecast, defender: SideFor
       };
     }
     const spec = order[i];
+    if (spec.side === 'defender' && spec.followUp && f.art?.sealFollowUp && progress.attackerHit) return visit(i + 1, aHp, dHp, progress);
     const me = spec.side === 'attacker' ? attacker : defender;
     const hit = trueHit(me.hit), crit = (spec.followUp ? me.followUpCrit : me.crit) / 100;
-    const after = (dmg: number) => spec.side === 'attacker'
-      ? visit(i + 1, aHp, Math.max(0, dHp - dmg))
-      : visit(i + 1, Math.max(0, aHp - dmg), dHp);
+    const after = (critical: boolean) => {
+      const damage = strikeDamage(f, spec.side, critical, progress), next = { ...progress };
+      recordStrikeHit(f, spec.side, next);
+      if (spec.side === 'attacker') {
+        const shield = defender.protected && damage >= dHp;
+        return visit(shield ? order.length : i + 1, aHp, shield ? 1 : Math.max(0, dHp - damage), next);
+      }
+      const shield = attacker.protected && damage >= aHp;
+      return visit(shield ? order.length : i + 1, shield ? 1 : Math.max(0, aHp - damage), dHp, next);
+    };
     const total: Tally = { defenderDies: 0, attackerDies: 0, expectedDealt: 0, expectedTaken: 0 };
     const add = (q: number, branch: () => Tally) => {
       if (q === 0) return;
@@ -183,10 +270,10 @@ function outcomes(order: StrikeSpec[], attacker: SideForecast, defender: SideFor
       total.expectedDealt += q * t.expectedDealt;
       total.expectedTaken += q * t.expectedTaken;
     };
-    add(1 - hit, () => visit(i + 1, aHp, dHp));
-    add(hit * (1 - crit), () => after(me.damage));
-    add(hit * crit, () => after(me.damage * 3));
+    add(1 - hit, () => visit(i + 1, aHp, dHp, progress));
+    add(hit * (1 - crit), () => after(false));
+    add(hit * crit, () => after(true));
     return total;
   };
-  return visit(0, attacker.hp, defender.hp);
+  return visit(0, attacker.hp, defender.hp, combatProgress(f));
 }

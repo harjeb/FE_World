@@ -17,7 +17,7 @@ export type Mode =
   | { kind: 'heal'; unit: string; to: Point; weapon: WeaponId; target: string | null }
   | { kind: 'item'; unit: string; to: Point }
   // 战技／法术／功能杖／舞蹈：先选项（战技＋武器、法术书、杖），再选目标；传送与临时墙还要选落点。
-  | { kind: 'art'; unit: string; to: Point; art: string | null; weapon: WeaponId | null; target: string | null }
+  | { kind: 'art'; unit: string; to: Point; art: string | null; weapon: WeaponId | null; target: string | null; ally?: string; secondary?: string }
   | { kind: 'cast'; unit: string; to: Point; spell: string | null; target: string | null; dest: Point | null }
   | { kind: 'staff'; unit: string; to: Point; weapon: WeaponId | null; target: string | null; dest: Point | null }
   | { kind: 'dance'; unit: string; to: Point; target: string | null }

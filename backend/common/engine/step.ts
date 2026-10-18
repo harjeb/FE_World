@@ -6,6 +6,8 @@ import { decide } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
+import { artCombatOptions } from './combat.ts';
+import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAction, validateArt } from './arts.ts';
 import { attackWeapons, cellKey, cureStatuses, distance, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
 import { adjacentFree, destinationValid, isHostileSpell, spellDestination, SPECIAL_SUPPORT_SPELLS, staffDestination, withSpellWeapon } from './support.ts';
 import type { DestinationRule } from './support.ts';
@@ -75,12 +77,9 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
     case 'art': {
       const target = foeOrAlly(action.target);
       if (target.side === unit.side) throw new EngineError('TARGET_OUT_OF_RANGE', '不能对战技目标友军');
-      if (!attackWeapons(unit).includes(action.weapon)) throw new EngineError('WEAPON_RANK_TOO_LOW', `${unit.name} 不能使用这把武器`);
-      const art = WEAPON_ART_BY_ID.get(action.art as never);
-      if (!art || !(unit.arts ?? []).includes(action.art)) throw new EngineError('FORBIDDEN', '尚未学习这个战技');
-      if (art.weapon !== WEAPONS[action.weapon].type) throw new EngineError('BAD_REQUEST', '战技与武器类型不匹配');
-      const d = Math.abs(target.pos[0] - action.to[0]) + Math.abs(target.pos[1] - action.to[1]);
-      if (d < art.range[0] || d > art.range[1]) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在战技射程内');
+      const art = WEAPON_ART_BY_ID.get(action.art);
+      if (!art) throw new EngineError('FORBIDDEN', '没有这个战技');
+      validateArt(state, unit, action, art);
       return target;
     }
     case 'staff': {
@@ -147,6 +146,11 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     throw new EngineError('UNREACHABLE', '目标格不可达');
   }
   const target = validate(state, unit, action, auto);
+  const art = action.act === 'art' ? WEAPON_ART_BY_ID.get(action.art)! : null;
+  const hits = action.act === 'art' && art ? validateArt(state, unit, action, art) : [];
+  const walked = art ? new Set(pathTo(state, range, action.to).slice(1).map(p => p.join(','))).size : 0;
+  const artOptions = action.act === 'art' && art ? hits.map((hit, index) => artCombatOptions(state, unit, action.to, action.weapon, art, hit, index, walked)) : [];
+  beginArtAction(state, unit, events);
   if (cellKey(state, action.to) !== range.origin) {
     events.push({ t: 'move', unit: unit.id, path: pathTo(state, range, action.to) });
     unit.pos = [action.to[0], action.to[1]];
@@ -164,16 +168,18 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     unit.weapons = [action.weapon, ...unit.weapons.filter(w => w !== action.weapon)];
     spendCharge(unit, action.weapon);
     runCombat(state, unit, target, action.weapon, events);
-  } else if (action.act === 'art' && target) {
+  } else if (action.act === 'art' && target && art) {
     unit.weapons = [action.weapon, ...unit.weapons.filter(w => w !== action.weapon)];
-    const art = WEAPON_ART_BY_ID.get(action.art as never)!;
     const instance = unit.weaponInstances?.find(row => row.id === action.weapon);
-    if (instance && instance.durability < art.cost) throw new EngineError('NO_SUCH_ITEM', '武器耐久不足，无法使用战技');
-    if (instance) instance.durability = Math.max(0, instance.durability - art.cost);
-    const hitTargets = art.id === 'chariot_line' ? lineTargets(state, unit, target) : [target];
-    for (const hit of hitTargets) {
-      if (!unit.alive) break;
-      runCombat(state, unit, hit, action.weapon, events, { id: art.id, might: art.might, hit: art.hit, crit: art.crit });
+    if (instance) instance.durability -= art.cost;
+    if (art.id === 'fe_art_king_fang' && target.artEffects?.scent) {
+      target.artEffects.scent = target.artEffects.scent.filter(side => side !== unit.side); artState(target, events);
+    }
+    for (const [index, hit] of hits.entries()) {
+      if (!unit.alive || unit.petrified) break;
+      const strikes = runCombat(state, unit, hit, action.weapon, events, artOptions[index]);
+      afterArt(state, unit, hit, action, art, strikes.some(strike => strike.by === unit.id && strike.hit), events);
+      if (!hit.alive || hit.petrified) break;
     }
   } else if (action.act === 'heal' && target) {
     spendCharge(unit, action.weapon);
@@ -182,7 +188,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     spendCharge(unit, action.weapon);
     if (action.weapon === 'warp_staff' || action.weapon === 'rescue_staff') {
       const dest = action.dest ?? adjacentFree(state, unit);
-      if (dest) { const from = [...target.pos] as Point; target.pos = [dest[0], dest[1]]; events.push({ t: 'move', unit: target.id, path: [from, [dest[0], dest[1]]] }); }
+      if (dest) { const from = [...target.pos] as Point; target.pos = [dest[0], dest[1]]; events.push({ t: 'move', unit: target.id, path: [from, [dest[0], dest[1]]] }); displace(target, events); }
     } else if (action.weapon === 'sleep_staff') {
       target.statuses = { ...(target.statuses ?? {}), sleep: true };
       events.push({ t: 'status', unit: target.id, status: 'sleep', active: true });
@@ -205,7 +211,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
       state.objects.push({ id: `spell-wall-${state.turn}-${dest[0]}-${dest[1]}`, kind: 'wall', pos: [dest[0], dest[1]], state: 'intact', hp: 15, maxHp: 15, label: '临时墙', expiresTurn: state.turn + 2 });
     } else if (['fw_spell_49', 'fw_spell_56', 'fw_spell_57'].includes(book.id)) {
       const dest = action.dest ?? adjacentFree(state, unit);
-      if (dest) { const from = [...target.pos] as Point; target.pos = [dest[0], dest[1]]; events.push({ t: 'move', unit: target.id, path: [from, [dest[0], dest[1]]] }); }
+      if (dest) { const from = [...target.pos] as Point; target.pos = [dest[0], dest[1]]; events.push({ t: 'move', unit: target.id, path: [from, [dest[0], dest[1]]] }); displace(target, events); }
     } else if (book.id === 'fw_spell_58') {
       target.statuses = { ...(target.statuses ?? {}), regen: 5 };
       events.push({ t: 'status', unit: target.id, status: 'regen', active: true });
@@ -227,6 +233,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
   } else if (action.act === 'seize') {
     events.push({ t: 'seize', unit: unit.id });
     unit.acted = true;
+    endArtAction(state, unit, events);
     finish(state, events, 'player', '压制王座');
     return;
   } else if (action.act === 'escape') {
@@ -234,28 +241,16 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     unit.acted = true;
     unit.alive = false;
     unit.escaped = true;
+    endArtAction(state, unit, events);
+    clearArtEffects(state, unit, events);
     checkResult(state, events);
     return;
   } else {
     events.push({ t: 'wait', unit: unit.id });
   }
   unit.acted = true;
+  endArtAction(state, unit, events);
   checkResult(state, events);
-}
-
-function lineTargets(state: BattleState, unit: UnitState, first: UnitState): UnitState[] {
-  const dx = Math.sign(first.pos[0] - unit.pos[0]);
-  const dy = Math.sign(first.pos[1] - unit.pos[1]);
-  if (dx !== 0 && dy !== 0) return [first];
-  const hits: UnitState[] = [];
-  for (let step = 1; step <= 3; step += 1) {
-    const x = unit.pos[0] + dx * step;
-    const y = unit.pos[1] + dy * step;
-    if (!inBounds(state, [x, y])) break;
-    const hit = living(state, unit.side === 'player' ? 'enemy' : 'player').find(candidate => samePoint(candidate.pos, [x, y]));
-    if (hit) hits.push(hit);
-  }
-  return hits.length ? hits : [first];
 }
 
 function spendCharge(unit: UnitState, weapon: WeaponId): void {
@@ -265,6 +260,8 @@ function spendCharge(unit: UnitState, weapon: WeaponId): void {
 
 function finish(state: BattleState, events: BattleEvent[], winner: Side, reason: string): void {
   state.result = { winner, reason };
+  for (const unit of state.units) clearArtEffects(state, unit, events);
+  if (state.embers?.length) { state.embers = []; events.push({ t: 'embers', cells: [] }); }
   events.push({ t: 'end', winner, reason });
 }
 
@@ -339,6 +336,7 @@ function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void
   if (state.result) return;
   events.push({ t: 'phase', side, turn: state.turn });
   runScenarioEvents(state, events);
+  for (const unit of state.units) if (!unit.alive || unit.petrified) clearArtEffects(state, unit, events);
   if (state.result) return;
   terrainHeal(state, side, events);
   if (!state.result) checkResult(state, events);
@@ -351,7 +349,12 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     applyAct(state, decide(state, unit), events, true);
     if (state.result) return;
   }
-  for (const unit of living(state, 'player')) unit.acted = true;
+  for (const unit of living(state, 'player')) {
+    if (!unit.acted && !unit.petrified && !isAsleep(unit)) {
+      beginArtAction(state, unit, events); endArtAction(state, unit, events);
+    }
+    unit.acted = true;
+  }
   startPhase(state, 'enemy', events);
   for (const enemy of living(state, 'enemy')) {
     if (state.result) return;
