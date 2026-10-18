@@ -271,7 +271,14 @@ test('new core expeditions use their configured goals and cannot pay reputation 
     assert.equal(battle.state.goal.kind, kind);
     assert.equal(battle.costDays, 2);
     assert.equal(player.day, day + (stage + 1) * 2);
-    assert.equal(playOut(ctx, started.battleId), 'player');
+    // 本例验收逐图配置与结算边界：准备一手可胜的棋盘，避免随机地形下的 AI 寻路左右流程测试。
+    const leader = battle.state.units.find(unit => unit.side === 'player')!;
+    for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
+    if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
+    battle.initial = structuredClone(battle.state);
+    store.saveBattle(battle);
+    dispatch(ctx, OP.UNIT_ACT, { battleId: battle.id, unitId: leader.id, moveTo: leader.pos, action: kind === 'seize' ? 'seize' : 'wait' });
+    assert.equal(store.battle(player.id, battle.id)!.state.result?.winner, 'player');
     if (stage < 2) {
       assert.ok(!player.flags.questsDone!.includes('r9-7'));
       assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'r9-7' }), /尚未完成/);
