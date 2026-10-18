@@ -9,7 +9,7 @@ import type { Context } from './handlers.ts';
 import { recordDeath, recordRating, settleMonthlyRatings, flushRecoveryBag, syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { periodIdFor } from '../common/game/ratings.ts';
-import { classMasteryOf } from '../common/game/mastery.ts';
+import { classMasteryOf, masteryNodesFor } from '../common/game/mastery.ts';
 import type { Player } from './store.ts';
 
 function setup() {
@@ -75,6 +75,8 @@ test('a dispatch runs in parallel on the personal calendar and settles once', ()
   // But free units can still do other things in parallel.
   const other = dispatch(ctx, OP.START_DISPATCH, { region: 2, unitIds: ['u_owen'], durationDays: 3, classId: 'archer', weaponType: 'bow' }) as { dispatch: { id: string } };
   assert.ok(other.dispatch.id);
+  const trainUnit = store.unit(player.id, 'u_karl')!;
+  trainUnit.classMastery = { fighter: 10 }; store.saveUnit(trainUnit, player.id);
   const masteryBefore = classMasteryOf(store.unit(player.id, 'u_karl')!, 'fighter');
   const expBefore = store.unit(player.id, 'u_karl')!.exp + store.unit(player.id, 'u_karl')!.level * 100;
   // Advance the personal calendar: both dispatches settle on their own return day.
@@ -88,9 +90,21 @@ test('a dispatch runs in parallel on the personal calendar and settles once', ()
   assert.equal(store.unit(player.id, 'u_karl')!.lockedDispatchId ?? null, null);
   assert.ok(classMasteryOf(store.unit(player.id, 'u_karl')!, 'fighter') > masteryBefore, 'training grants class mastery');
   const karl = store.unit(player.id, 'u_karl')!;
+  assert.equal(classMasteryOf(karl, 'fighter') - masteryBefore, 15);
+  const expectedArts = masteryNodesFor('fighter').filter(node => node.art && node.threshold <= classMasteryOf(karl, 'fighter')).map(node => node.art!);
+  for (const art of expectedArts) assert.ok(karl.learnedArts?.includes(art));
+  const mastery = dispatch(ctx, OP.GET_MASTERY, { unitId: karl.id }) as {
+    learnedArts: string[]; progress: { classId: string; nodes: { art?: string; threshold: number; unlocked: boolean }[] }[];
+  };
+  assert.deepEqual(mastery.learnedArts, karl.learnedArts);
+  const fighter = mastery.progress.find(p => p.classId === 'fighter')!;
+  assert.equal(fighter.nodes.filter(node => node.art).length, 6);
+  assert.ok(fighter.nodes.filter(node => node.art && expectedArts.includes(node.art)).every(node => node.unlocked));
   assert.ok(karl.exp + karl.level * 100 > expBefore, 'training grants character experience');
   const settled = view.history.find(h => h.id === start.dispatch.id)!;
   assert.equal(settled.result!.unitRewards.length, 2);
+  dispatch(ctx, OP.GET_DISPATCHES, {});
+  assert.equal(classMasteryOf(store.unit(player.id, karl.id)!, 'fighter'), classMasteryOf(karl, 'fighter'), 'returned dispatch does not grant twice');
 });
 
 test('dispatches reject busy units, invalid days and locked annual rosters', () => {

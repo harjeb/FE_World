@@ -29,13 +29,13 @@
     "upgradeSource": "art_training",
     "exceptionSource": "equipment_grant",
     "weaponRankRole": "usage_requirement_only",
-    "masteryThresholds": "pending",
+    "masteryThresholds": "stage_order_v1",
     "trainingCosts": "pending",
     "learnedSlotLimit": 5,
     "sharedLearning": true,
     "minimumTeacherClasses": 2,
     "useRequiresLearningClass": false,
-    "classAssignments": "proposed",
+    "classAssignments": "implemented",
     "restrictedTeacherRange": [
       1,
       2
@@ -412,10 +412,10 @@
             "shido",
             "mage_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -467,10 +467,10 @@
             "ranger",
             "assassin"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -517,10 +517,10 @@
             "shido",
             "mercenary"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -729,10 +729,10 @@
             "falcon",
             "thief"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -797,10 +797,10 @@
             "mage_knight",
             "dark_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -861,10 +861,10 @@
             "mage_knight",
             "dark_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -940,10 +940,10 @@
             "commoner",
             "swordsman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -996,10 +996,10 @@
             "cavalier",
             "shido"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_multi",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1051,12 +1051,12 @@
             "swordmaster",
             "blade"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_multi",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "固定双击提高单次行动输出，保留给高阶剑术专家。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1111,10 +1111,10 @@
             "blade",
             "apsara"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1163,10 +1163,10 @@
             "dragon_knight",
             "dragon_commander"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_large_target",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1262,12 +1262,12 @@
             "swordmaster",
             "blade"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_multi",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "五段伤害具有较高输出上限，基础版与强化版均限制为两个高阶剑术教师。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久6"
@@ -1317,12 +1317,12 @@
           "classIds": [
             "shadow_seeker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_shadow",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "高威力并忽略有利地形，作为探影者的限制学习战技，不影响普通地形突破技共享。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久5"
@@ -1407,10 +1407,10 @@
             "ornius_rider",
             "armored_ornius"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1470,10 +1470,10 @@
             "commoner",
             "lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1573,10 +1573,10 @@
             "cavalier",
             "orichaldia"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1632,10 +1632,10 @@
             "knight",
             "storm_lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1693,10 +1693,10 @@
             "cataphract",
             "storm_lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1752,10 +1752,10 @@
             "armored_ornius",
             "orichaldia"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1805,10 +1805,10 @@
             "paladin",
             "great_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1863,10 +1863,10 @@
             "falcon",
             "storm_lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_sustain",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -1915,10 +1915,10 @@
             "dreadnought",
             "sentinel"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久4"
@@ -1975,10 +1975,10 @@
             "dreadnought",
             "great_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2199,10 +2199,10 @@
             "ornius_rider",
             "cleric"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2262,10 +2262,10 @@
             "fighter",
             "cleric"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2325,10 +2325,10 @@
             "noble",
             "adept"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2387,10 +2387,10 @@
             "fighter",
             "wiseman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2447,10 +2447,10 @@
             "fighter",
             "dragon_commander"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2594,10 +2594,10 @@
             "cleric",
             "bishop"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2646,12 +2646,12 @@
             "battlemaster",
             "everlord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "直接放大单击伤害，限制为两个力量路线教师。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久5"
@@ -2715,10 +2715,10 @@
             "noble",
             "marksman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2781,10 +2781,10 @@
             "hunter",
             "forest_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2837,12 +2837,12 @@
             "bow_knight",
             "shadow_seeker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_mobile",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "射击后移动可安全撤出反击区域，保留给两种高阶游击职业。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2892,10 +2892,10 @@
             "calamity",
             "saint"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -2963,10 +2963,10 @@
             "hunter",
             "archer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3024,10 +3024,10 @@
             "archer",
             "shadow_seeker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_control",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3079,10 +3079,10 @@
             "forest_knight",
             "apsara"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_mobile",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3131,10 +3131,10 @@
             "forest_knight",
             "marksman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久4"
@@ -3257,10 +3257,10 @@
             "gladiator",
             "brawler"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3319,10 +3319,10 @@
             "adept",
             "brawler"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3376,10 +3376,10 @@
             "monk",
             "druid"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_control",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3440,10 +3440,10 @@
             "noble",
             "brawler"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3499,10 +3499,10 @@
             "monk",
             "druid"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3559,10 +3559,10 @@
             "monk",
             "druid"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3658,12 +3658,12 @@
             "monk",
             "fist_deity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "攻击后追加一次辅助操作具有行动经济优势，限制在两个拳杖职业教授。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久4"
@@ -3767,10 +3767,10 @@
             "archer",
             "sniper"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3822,10 +3822,10 @@
             "armored_ornius",
             "great_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3884,10 +3884,10 @@
             "cavalier",
             "pegasus"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -3943,10 +3943,10 @@
             "hero",
             "assassin"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4001,10 +4001,10 @@
             "lancer",
             "cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4056,10 +4056,10 @@
             "ranger",
             "mercenary"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4115,10 +4115,10 @@
             "mercenary",
             "hero"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_finisher",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4171,10 +4171,10 @@
             "wiseman",
             "fist_deity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4225,10 +4225,10 @@
             "forest_knight",
             "dancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_mobile",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4381,10 +4381,10 @@
             "rogue",
             "thief"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_shadow",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4438,10 +4438,10 @@
             "gladiator",
             "cleric"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4495,10 +4495,10 @@
             "rogue",
             "hero"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4548,10 +4548,10 @@
             "shido",
             "apsara"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4606,10 +4606,10 @@
             "divine_ornius",
             "berserker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4754,10 +4754,10 @@
             "dreadnought",
             "fortress"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -4811,10 +4811,10 @@
             "great_knight",
             "general"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5248,10 +5248,10 @@
             "archer",
             "forest_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5306,10 +5306,10 @@
             "calamity",
             "saint"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5359,10 +5359,10 @@
             "gladiator",
             "mage"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5413,10 +5413,10 @@
             "sage",
             "druid"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5465,12 +5465,12 @@
             "marksman",
             "bow_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "威力、命中、必杀复合增益显著，保留骑射与步行射术两个来源。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": [
           "原成本未知；本作拟定耐久5"
@@ -5713,10 +5713,10 @@
             "falcon",
             "storm_lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_sustain",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5772,10 +5772,10 @@
             "dreadnought",
             "great_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5831,10 +5831,10 @@
             "dancer",
             "hero"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5888,10 +5888,10 @@
             "dancer",
             "shadow_seeker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5944,10 +5944,10 @@
             "guardian",
             "sentinel"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -5999,10 +5999,10 @@
             "rogue",
             "bow_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_close",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6053,12 +6053,12 @@
             "orichaldia",
             "dragon_commander"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "远距固定双击可降低接敌风险，由高阶骑乘与飞行枪术专家教授。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6115,10 +6115,10 @@
             "divine_ornius",
             "mercenary"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6173,10 +6173,10 @@
             "pegasus",
             "falcon"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6228,10 +6228,10 @@
             "blacksmith",
             "everlord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6286,10 +6286,10 @@
             "cleric",
             "sage"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6381,10 +6381,10 @@
             "paladin",
             "dragon_commander"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6431,12 +6431,12 @@
             "swordmaster",
             "blade"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "回避加成与无视攻速追击复合，虽然减伤仍具可靠出手价值。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6483,10 +6483,10 @@
             "ornius_rider",
             "dragon_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_large_target",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6533,10 +6533,10 @@
             "knight",
             "paladin"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_guard",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6674,12 +6674,12 @@
           "classIds": [
             "marksman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_extreme",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "超远射程改变接敌方式，虽然耐久成本很高，仍限定为宗师射手学习。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6732,10 +6732,10 @@
             "sentinel",
             "storm_lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6786,10 +6786,10 @@
             "dancer",
             "falcon"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6836,10 +6836,10 @@
             "shido",
             "high_epitaph"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -6949,10 +6949,10 @@
             "bishop",
             "saint"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7004,10 +7004,10 @@
             "pegasus",
             "apsara"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7114,10 +7114,10 @@
             "swordsman",
             "apsara"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7169,10 +7169,10 @@
             "dragon_knight",
             "great_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7223,10 +7223,10 @@
             "high_epitaph",
             "hero"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7278,10 +7278,10 @@
             "cataphract",
             "divine_cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7333,10 +7333,10 @@
             "rogue",
             "shadow_seeker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_control",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7387,12 +7387,12 @@
             "battlemaster",
             "berserker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "三段伤害具较高上限，即使命中有代价也限制教学来源。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7441,10 +7441,10 @@
             "blacksmith",
             "berserker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7497,10 +7497,10 @@
             "charioteer",
             "sniper"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7553,10 +7553,10 @@
             "charioteer",
             "bow_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7612,10 +7612,10 @@
             "cataphract",
             "fortress"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7666,10 +7666,10 @@
             "fighter",
             "knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_foundation",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7728,10 +7728,10 @@
             "ornius_rider",
             "cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_throw",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7784,10 +7784,10 @@
             "dragon_knight",
             "fortress"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7839,10 +7839,10 @@
             "cleric",
             "fist_deity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_break",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7892,10 +7892,10 @@
             "battlemaster",
             "druid"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_break",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -7946,10 +7946,10 @@
             "paladin",
             "divine_cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_throw",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8004,12 +8004,12 @@
             "orichaldia",
             "divine_cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_agility",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "将已有追击提前到反击前，可显著压低目标反击机会。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8062,10 +8062,10 @@
             "archer",
             "charioteer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8118,10 +8118,10 @@
             "bishop",
             "blacksmith"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8175,10 +8175,10 @@
             "fighter",
             "battlemaster"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8228,10 +8228,10 @@
             "falcon",
             "divine_cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_agility",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8284,10 +8284,10 @@
             "swordsman",
             "ranger"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8341,12 +8341,12 @@
             "swordmaster",
             "blade"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_large_target",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "最低伤害对高防目标具有稳定收益，不按低耐久误判为通用入门技。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8393,10 +8393,10 @@
             "sage",
             "bishop"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8452,10 +8452,10 @@
             "mage_knight",
             "dark_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8505,10 +8505,10 @@
             "thief",
             "assassin"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_utility",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8559,10 +8559,10 @@
             "cataphract",
             "fortress"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8618,10 +8618,10 @@
             "sage",
             "bishop"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8724,10 +8724,10 @@
             "sniper",
             "saint"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8777,10 +8777,10 @@
             "wiseman",
             "everlord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8831,10 +8831,10 @@
             "ranger",
             "calamity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_shadow",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8884,12 +8884,12 @@
             "battlemaster",
             "everlord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_combo",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "固定双击各90%伤害，叠加高威力斧时输出上限较高。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8938,10 +8938,10 @@
             "dragon_commander",
             "berserker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -8992,12 +8992,12 @@
             "swordmaster",
             "blade"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "低耐久配合技巧概率增伤，在99级高技巧环境有较高效率上限。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -14711,12 +14711,12 @@
           "classIds": [
             "everlord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_combo",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "夺取敌方追击同时抑制对手输出，作为永霸神将的一项限制学习战技。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -14768,10 +14768,10 @@
             "blacksmith",
             "berserker"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -14916,12 +14916,12 @@
             "marksman",
             "calamity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_extreme",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "固定四段各90%伤害具极高输出上限，基础与强化版均只留两个来源。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15030,10 +15030,10 @@
             "cataphract",
             "fortress"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15084,10 +15084,10 @@
             "brawler",
             "bishop"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15135,12 +15135,12 @@
           "classIds": [
             "fist_deity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "攻击后最多移动2格具较强出入战场能力，作为破拳神将的限制学习战技。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15196,10 +15196,10 @@
             "dragon_commander",
             "wiseman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15250,12 +15250,12 @@
             "monk",
             "fist_deity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_magic",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "魔力转伤与固定双击组合，对高物防目标具有较高收益。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15304,10 +15304,10 @@
             "mage",
             "druid"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15357,10 +15357,10 @@
             "dragon_knight",
             "general"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_matchup",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15411,10 +15411,10 @@
             "mage",
             "sage"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15465,12 +15465,12 @@
             "high_epitaph",
             "dark_knight"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_magic",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "高威力魔力转伤兼顾命中，保留给两个高阶剑魔教学来源；普通魔刃仍共享。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15521,10 +15521,10 @@
             "rogue",
             "calamity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_control",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15573,10 +15573,10 @@
             "ranger",
             "calamity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_control",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15627,12 +15627,12 @@
             "monk",
             "fist_deity"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_break",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "最低20点伤害对高防目标具有稳定收益，不作为普通格斗入门技。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15682,10 +15682,10 @@
             "brawler",
             "wiseman"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_break",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15737,12 +15737,12 @@
             "orichaldia",
             "divine_cavalier"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "固定连击叠加对骑乘命中优势，限定为高阶骑乘枪术的强攻教学。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15791,10 +15791,10 @@
             "fortress",
             "general"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15847,10 +15847,10 @@
             "sniper",
             "saint"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15904,10 +15904,10 @@
             "sentinel",
             "storm_lancer"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -15958,10 +15958,10 @@
             "dancer",
             "apsara"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_magic",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -16011,12 +16011,12 @@
             "blacksmith",
             "saint"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_magic",
           "learningBand": "advanced",
           "learningScope": "restricted",
           "restrictionReason": "魔力概率强制追击在高魔力下收益扩大，由两个斧魔教师教授。",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -16067,10 +16067,10 @@
             "divine_cavalier",
             "mercenary"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         },
         "overrides": []
       }
@@ -16091,10 +16091,10 @@
           "gladiator",
           "mercenary"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_sword_basic",
         "learningBand": "foundation",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16111,10 +16111,10 @@
           "hunter",
           "swordsman"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_sword_basic",
         "learningBand": "foundation",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16131,12 +16131,12 @@
           "swordmaster",
           "assassin"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_sword_sweep",
         "learningBand": "advanced",
         "learningScope": "restricted",
         "restrictionReason": "确定禁止目标反击，区别于概率抑制反击的通用战技。",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16153,10 +16153,10 @@
           "lancer",
           "knight"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_lance_basic",
         "learningBand": "foundation",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16173,12 +16173,12 @@
           "paladin",
           "orichaldia"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_lance_double",
         "learningBand": "advanced",
         "learningScope": "restricted",
         "restrictionReason": "固定双击不依赖攻速，保留普通与高阶骑乘枪术两个学习来源。",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16195,10 +16195,10 @@
           "knight",
           "general"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_axe_basic",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16215,10 +16215,10 @@
           "fighter",
           "general"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_axe_basic",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16235,10 +16235,10 @@
           "hunter",
           "charioteer"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_bow_basic",
         "learningBand": "foundation",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16255,10 +16255,10 @@
           "marksman",
           "bow_knight"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_bow_advanced",
         "learningBand": "advanced",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16275,12 +16275,12 @@
           "sniper",
           "bow_knight"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_bow_advanced",
         "learningBand": "advanced",
         "learningScope": "restricted",
         "restrictionReason": "固定双射具可靠输出价值，保留步行狙击与骑射两个来源。",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16297,10 +16297,10 @@
           "brawler",
           "wiseman"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_fist_armor",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16316,12 +16316,12 @@
         "classIds": [
           "charioteer"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_chariot",
         "learningBand": "advanced",
         "learningScope": "restricted",
         "restrictionReason": "直线贯穿多个目标且需要专门战车平台，教学来源只保留战车兵。",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16341,10 +16341,10 @@
           "mage_knight",
           "dark_knight"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_spellblade",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16361,12 +16361,12 @@
           "battlemaster",
           "everlord"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_axe_area",
         "learningBand": "advanced",
         "learningScope": "restricted",
         "restrictionReason": "一次行动攻击多个目标，范围收益由两个斧战专家教授。",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16383,10 +16383,10 @@
           "thief",
           "ninja"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "legacy_dagger",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16406,10 +16406,10 @@
           "beast_guard",
           "beast_lord"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "species_beast",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     },
     {
@@ -16429,10 +16429,10 @@
           "dragon_sage",
           "dragon_lord"
         ],
-        "assignmentStatus": "mastery_threshold_pending",
+        "assignmentStatus": "implemented",
         "teachingGroup": "species_dragon",
         "learningBand": "core",
-        "masteryThreshold": null
+        "masteryThresholdSource": "classMasteryPlans"
       }
     }
   ],
@@ -17361,25 +17361,25 @@
           "id": "commoner-art-fw_art_36",
           "order": 1,
           "artId": "fw_art_36",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "commoner-art-fw_art_38",
           "order": 2,
           "artId": "fw_art_38",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "commoner-art-fw_art_25",
           "order": 3,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "commoner-art-fw_art_27",
           "order": 4,
           "artId": "fw_art_27",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -17390,25 +17390,25 @@
           "id": "noble-art-fw_art_55",
           "order": 1,
           "artId": "fw_art_55",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "noble-art-fw_art_65",
           "order": 2,
           "artId": "fw_art_65",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "noble-art-fw_art_82",
           "order": 3,
           "artId": "fw_art_82",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "noble-art-fw_art_26",
           "order": 4,
           "artId": "fw_art_26",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -17419,31 +17419,31 @@
           "id": "gladiator-art-fw_art_52",
           "order": 1,
           "artId": "fw_art_52",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "gladiator-art-fw_art_108",
           "order": 2,
           "artId": "fw_art_108",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "gladiator-art-fw_art_128",
           "order": 3,
           "artId": "fw_art_128",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "gladiator-art-wrath_cut",
           "order": 4,
           "artId": "wrath_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "gladiator-art-fw_art_77",
           "order": 5,
           "artId": "fw_art_77",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         }
       ]
     },
@@ -17454,25 +17454,25 @@
           "id": "hunter-art-fw_art_67",
           "order": 1,
           "artId": "fw_art_67",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "hunter-art-fw_art_71",
           "order": 2,
           "artId": "fw_art_71",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "hunter-art-curved_shot",
           "order": 3,
           "artId": "curved_shot",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "hunter-art-ground_cut",
           "order": 4,
           "artId": "ground_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -17483,25 +17483,25 @@
           "id": "lancer-art-fw_art_100",
           "order": 1,
           "artId": "fw_art_100",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "lancer-art-fw_art_38",
           "order": 2,
           "artId": "fw_art_38",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "lancer-art-fw_art_42",
           "order": 3,
           "artId": "fw_art_42",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "lancer-art-tempest_thrust",
           "order": 4,
           "artId": "tempest_thrust",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -17512,31 +17512,31 @@
           "id": "ornius_rider-art-fw_art_52",
           "order": 1,
           "artId": "fw_art_52",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "ornius_rider-art-fw_art_54",
           "order": 2,
           "artId": "fw_art_54",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "ornius_rider-art-fw_art_36",
           "order": 3,
           "artId": "fw_art_36",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "ornius_rider-art-fw_art_192",
           "order": 4,
           "artId": "fw_art_192",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "ornius_rider-art-fw_art_164",
           "order": 5,
           "artId": "fw_art_164",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         }
       ]
     },
@@ -17547,25 +17547,25 @@
           "id": "adept-art-fw_art_55",
           "order": 1,
           "artId": "fw_art_55",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "adept-art-fw_art_79",
           "order": 2,
           "artId": "fw_art_79",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "adept-art-fw_art_173",
           "order": 3,
           "artId": "fw_art_173",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "adept-art-fw_art_205",
           "order": 4,
           "artId": "fw_art_205",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -17576,31 +17576,31 @@
           "id": "swordsman-art-ground_cut",
           "order": 1,
           "artId": "ground_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "swordsman-art-fw_art_26",
           "order": 2,
           "artId": "fw_art_26",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "swordsman-art-fw_art_27",
           "order": 3,
           "artId": "fw_art_27",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "swordsman-art-fw_art_202",
           "order": 4,
           "artId": "fw_art_202",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "swordsman-art-fw_art_177",
           "order": 5,
           "artId": "fw_art_177",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17611,37 +17611,37 @@
           "id": "fighter-art-fw_art_191",
           "order": 1,
           "artId": "fw_art_191",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "fighter-art-fw_art_54",
           "order": 2,
           "artId": "fw_art_54",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "fighter-art-smash_blow",
           "order": 3,
           "artId": "smash_blow",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "fighter-art-fw_art_57",
           "order": 4,
           "artId": "fw_art_57",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "fighter-art-fw_art_59",
           "order": 5,
           "artId": "fw_art_59",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "fighter-art-fw_art_200",
           "order": 6,
           "artId": "fw_art_200",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -17652,37 +17652,37 @@
           "id": "brawler-art-fw_art_77",
           "order": 1,
           "artId": "fw_art_77",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "brawler-art-fw_art_79",
           "order": 2,
           "artId": "fw_art_79",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "brawler-art-armor_fist",
           "order": 3,
           "artId": "armor_fist",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "brawler-art-fw_art_352",
           "order": 4,
           "artId": "fw_art_352",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "brawler-art-fw_art_341",
           "order": 5,
           "artId": "fw_art_341",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "brawler-art-fw_art_82",
           "order": 6,
           "artId": "fw_art_82",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -17693,31 +17693,31 @@
           "id": "archer-art-fw_art_71",
           "order": 1,
           "artId": "fw_art_71",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "archer-art-fw_art_96",
           "order": 2,
           "artId": "fw_art_96",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "archer-art-fw_art_125",
           "order": 3,
           "artId": "fw_art_125",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "archer-art-fw_art_198",
           "order": 4,
           "artId": "fw_art_198",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "archer-art-fw_art_72",
           "order": 5,
           "artId": "fw_art_72",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17728,31 +17728,31 @@
           "id": "rogue-art-fw_art_109",
           "order": 1,
           "artId": "fw_art_109",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "rogue-art-fw_art_151",
           "order": 2,
           "artId": "fw_art_151",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "rogue-art-fw_art_182",
           "order": 3,
           "artId": "fw_art_182",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "rogue-art-fw_art_349",
           "order": 4,
           "artId": "fw_art_349",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "rogue-art-fw_art_107",
           "order": 5,
           "artId": "fw_art_107",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17763,37 +17763,37 @@
           "id": "knight-art-fw_art_191",
           "order": 1,
           "artId": "fw_art_191",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "knight-art-fw_art_42",
           "order": 2,
           "artId": "fw_art_42",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "knight-art-helm_breaker",
           "order": 3,
           "artId": "helm_breaker",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "knight-art-tempest_thrust",
           "order": 4,
           "artId": "tempest_thrust",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "knight-art-fw_art_16",
           "order": 5,
           "artId": "fw_art_16",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "knight-art-fw_art_165",
           "order": 6,
           "artId": "fw_art_165",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -17804,37 +17804,37 @@
           "id": "cavalier-art-fw_art_100",
           "order": 1,
           "artId": "fw_art_100",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "cavalier-art-fw_art_98",
           "order": 2,
           "artId": "fw_art_98",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "cavalier-art-fw_art_25",
           "order": 3,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "cavalier-art-fw_art_192",
           "order": 4,
           "artId": "fw_art_192",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "cavalier-art-fw_art_40",
           "order": 5,
           "artId": "fw_art_40",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "cavalier-art-fw_art_28",
           "order": 6,
           "artId": "fw_art_28",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -17845,31 +17845,31 @@
           "id": "charioteer-art-fw_art_188",
           "order": 1,
           "artId": "fw_art_188",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "charioteer-art-fw_art_189",
           "order": 2,
           "artId": "fw_art_189",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "charioteer-art-fw_art_198",
           "order": 3,
           "artId": "fw_art_198",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "charioteer-art-curved_shot",
           "order": 4,
           "artId": "curved_shot",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "charioteer-art-chariot_line",
           "order": 5,
           "artId": "chariot_line",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17880,31 +17880,31 @@
           "id": "armored_ornius-art-fw_art_36",
           "order": 1,
           "artId": "fw_art_36",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "armored_ornius-art-fw_art_44",
           "order": 2,
           "artId": "fw_art_44",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "armored_ornius-art-fw_art_25",
           "order": 3,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "armored_ornius-art-fw_art_26",
           "order": 4,
           "artId": "fw_art_26",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "armored_ornius-art-fw_art_97",
           "order": 5,
           "artId": "fw_art_97",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17915,31 +17915,31 @@
           "id": "pegasus-art-fw_art_98",
           "order": 1,
           "artId": "fw_art_98",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "pegasus-art-fw_art_25",
           "order": 2,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "pegasus-art-fw_art_26",
           "order": 3,
           "artId": "fw_art_26",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "pegasus-art-fw_art_156",
           "order": 4,
           "artId": "fw_art_156",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "pegasus-art-fw_art_174",
           "order": 5,
           "artId": "fw_art_174",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17950,31 +17950,31 @@
           "id": "mage-art-fw_art_128",
           "order": 1,
           "artId": "fw_art_128",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "mage-art-fw_art_25",
           "order": 2,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "mage-art-fw_art_345",
           "order": 3,
           "artId": "fw_art_345",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "mage-art-fw_art_347",
           "order": 4,
           "artId": "fw_art_347",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "mage-art-fw_art_205",
           "order": 5,
           "artId": "fw_art_205",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -17985,37 +17985,37 @@
           "id": "cleric-art-fw_art_52",
           "order": 1,
           "artId": "fw_art_52",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "cleric-art-fw_art_54",
           "order": 2,
           "artId": "fw_art_54",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "cleric-art-fw_art_62",
           "order": 3,
           "artId": "fw_art_62",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "cleric-art-fw_art_108",
           "order": 4,
           "artId": "fw_art_108",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "cleric-art-fw_art_160",
           "order": 5,
           "artId": "fw_art_160",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "cleric-art-fw_art_194",
           "order": 6,
           "artId": "fw_art_194",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -18026,31 +18026,31 @@
           "id": "shido-art-fw_art_16",
           "order": 1,
           "artId": "fw_art_16",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "shido-art-fw_art_20",
           "order": 2,
           "artId": "fw_art_20",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "shido-art-fw_art_110",
           "order": 3,
           "artId": "fw_art_110",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "shido-art-fw_art_171",
           "order": 4,
           "artId": "fw_art_171",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "shido-art-fw_art_28",
           "order": 5,
           "artId": "fw_art_28",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18061,31 +18061,31 @@
           "id": "sniper-art-fw_art_188",
           "order": 1,
           "artId": "fw_art_188",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "sniper-art-fw_art_96",
           "order": 2,
           "artId": "fw_art_96",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "sniper-art-fw_art_213",
           "order": 3,
           "artId": "fw_art_213",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "sniper-art-fw_art_355",
           "order": 4,
           "artId": "fw_art_355",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "sniper-art-hunter_volley",
           "order": 5,
           "artId": "hunter_volley",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18096,31 +18096,31 @@
           "id": "forest_knight-art-fw_art_67",
           "order": 1,
           "artId": "fw_art_67",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "forest_knight-art-fw_art_125",
           "order": 2,
           "artId": "fw_art_125",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "forest_knight-art-fw_art_74",
           "order": 3,
           "artId": "fw_art_74",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "forest_knight-art-fw_art_104",
           "order": 4,
           "artId": "fw_art_104",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "forest_knight-art-fw_art_73",
           "order": 5,
           "artId": "fw_art_73",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18131,31 +18131,31 @@
           "id": "dreadnought-art-fw_art_114",
           "order": 1,
           "artId": "fw_art_114",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "dreadnought-art-fw_art_43",
           "order": 2,
           "artId": "fw_art_43",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "dreadnought-art-fw_art_47",
           "order": 3,
           "artId": "fw_art_47",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "dreadnought-art-fw_art_138",
           "order": 4,
           "artId": "fw_art_138",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "dreadnought-art-fw_art_48",
           "order": 5,
           "artId": "fw_art_48",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18166,37 +18166,37 @@
           "id": "paladin-art-fw_art_165",
           "order": 1,
           "artId": "fw_art_165",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "paladin-art-fw_art_196",
           "order": 2,
           "artId": "fw_art_196",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "paladin-art-fw_art_162",
           "order": 3,
           "artId": "fw_art_162",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "paladin-art-fw_art_45",
           "order": 4,
           "artId": "fw_art_45",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "paladin-art-swift_thrusts",
           "order": 5,
           "artId": "swift_thrusts",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "paladin-art-fe_art_guard_probe",
           "order": 6,
           "artId": "fe_art_guard_probe",
-          "masteryThreshold": null
+          "masteryThreshold": 180
         }
       ]
     },
@@ -18207,37 +18207,37 @@
           "id": "sage-art-fw_art_204",
           "order": 1,
           "artId": "fw_art_204",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "sage-art-fw_art_209",
           "order": 2,
           "artId": "fw_art_209",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "sage-art-spellblade_cut",
           "order": 3,
           "artId": "spellblade_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "sage-art-fw_art_129",
           "order": 4,
           "artId": "fw_art_129",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "sage-art-fw_art_347",
           "order": 5,
           "artId": "fw_art_347",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "sage-art-fw_art_160",
           "order": 6,
           "artId": "fw_art_160",
-          "masteryThreshold": null
+          "masteryThreshold": 180
         }
       ]
     },
@@ -18248,37 +18248,37 @@
           "id": "bishop-art-fw_art_62",
           "order": 1,
           "artId": "fw_art_62",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "bishop-art-fw_art_209",
           "order": 2,
           "artId": "fw_art_209",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "bishop-art-fw_art_173",
           "order": 3,
           "artId": "fw_art_173",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "bishop-art-fw_art_199",
           "order": 4,
           "artId": "fw_art_199",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "bishop-art-fw_art_341",
           "order": 5,
           "artId": "fw_art_341",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "bishop-art-fw_art_204",
           "order": 6,
           "artId": "fw_art_204",
-          "masteryThreshold": null
+          "masteryThreshold": 180
         }
       ]
     },
@@ -18289,31 +18289,31 @@
           "id": "divine_ornius-art-fw_art_111",
           "order": 1,
           "artId": "fw_art_111",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "divine_ornius-art-spellblade_cut",
           "order": 2,
           "artId": "spellblade_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "divine_ornius-art-fw_art_169",
           "order": 3,
           "artId": "fw_art_169",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "divine_ornius-art-fw_art_356",
           "order": 4,
           "artId": "fw_art_356",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "divine_ornius-art-fw_art_153",
           "order": 5,
           "artId": "fw_art_153",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18324,31 +18324,31 @@
           "id": "dragon_knight-art-fw_art_193",
           "order": 1,
           "artId": "fw_art_193",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "dragon_knight-art-fw_art_346",
           "order": 2,
           "artId": "fw_art_346",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "dragon_knight-art-fw_art_179",
           "order": 3,
           "artId": "fw_art_179",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "dragon_knight-art-fw_art_164",
           "order": 4,
           "artId": "fw_art_164",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "dragon_knight-art-fw_art_32",
           "order": 5,
           "artId": "fw_art_32",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18364,31 +18364,31 @@
           "id": "guardian-art-fw_art_150",
           "order": 1,
           "artId": "fw_art_150",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "guardian-art-fw_art_169",
           "order": 2,
           "artId": "fw_art_169",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "guardian-art-fw_art_356",
           "order": 3,
           "artId": "fw_art_356",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "guardian-art-fw_art_137",
           "order": 4,
           "artId": "fw_art_137",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "guardian-art-fw_art_46",
           "order": 5,
           "artId": "fw_art_46",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18399,31 +18399,31 @@
           "id": "blacksmith-art-fw_art_159",
           "order": 1,
           "artId": "fw_art_159",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "blacksmith-art-fw_art_185",
           "order": 2,
           "artId": "fw_art_185",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "blacksmith-art-fw_art_199",
           "order": 3,
           "artId": "fw_art_199",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "blacksmith-art-fw_art_358",
           "order": 4,
           "artId": "fw_art_358",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "blacksmith-art-fw_art_334",
           "order": 5,
           "artId": "fw_art_334",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18434,31 +18434,31 @@
           "id": "cataphract-art-fw_art_43",
           "order": 1,
           "artId": "fw_art_43",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "cataphract-art-fw_art_190",
           "order": 2,
           "artId": "fw_art_190",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "cataphract-art-fw_art_207",
           "order": 3,
           "artId": "fw_art_207",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "cataphract-art-fw_art_181",
           "order": 4,
           "artId": "fw_art_181",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "cataphract-art-fw_art_340",
           "order": 5,
           "artId": "fw_art_340",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18469,31 +18469,31 @@
           "id": "ranger-art-fw_art_101",
           "order": 1,
           "artId": "fw_art_101",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "ranger-art-fw_art_18",
           "order": 2,
           "artId": "fw_art_18",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "ranger-art-fw_art_202",
           "order": 3,
           "artId": "fw_art_202",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "ranger-art-fw_art_350",
           "order": 4,
           "artId": "fw_art_350",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "ranger-art-fw_art_215",
           "order": 5,
           "artId": "fw_art_215",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18504,31 +18504,31 @@
           "id": "dancer-art-fw_art_357",
           "order": 1,
           "artId": "fw_art_357",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "dancer-art-fw_art_104",
           "order": 2,
           "artId": "fw_art_104",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "dancer-art-fw_art_149",
           "order": 3,
           "artId": "fw_art_149",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "dancer-art-fw_art_170",
           "order": 4,
           "artId": "fw_art_170",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "dancer-art-fw_art_147",
           "order": 5,
           "artId": "fw_art_147",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -18539,37 +18539,37 @@
           "id": "swordmaster-art-wind_sweep",
           "order": 1,
           "artId": "wind_sweep",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "swordmaster-art-fw_art_163",
           "order": 2,
           "artId": "fw_art_163",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "swordmaster-art-fw_art_203",
           "order": 3,
           "artId": "fw_art_203",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "swordmaster-art-fw_art_29",
           "order": 4,
           "artId": "fw_art_29",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "swordmaster-art-fw_art_34",
           "order": 5,
           "artId": "fw_art_34",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "swordmaster-art-fw_art_218",
           "order": 6,
           "artId": "fw_art_218",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18580,37 +18580,37 @@
           "id": "high_epitaph-art-spellblade_cut",
           "order": 1,
           "artId": "spellblade_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "high_epitaph-art-fw_art_25",
           "order": 2,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "high_epitaph-art-fw_art_171",
           "order": 3,
           "artId": "fw_art_171",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "high_epitaph-art-fw_art_180",
           "order": 4,
           "artId": "fw_art_180",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "high_epitaph-art-fw_art_205",
           "order": 5,
           "artId": "fw_art_205",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "high_epitaph-art-fw_art_348",
           "order": 6,
           "artId": "fw_art_348",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18621,37 +18621,37 @@
           "id": "battlemaster-art-fw_art_216",
           "order": 1,
           "artId": "fw_art_216",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "battlemaster-art-fw_art_184",
           "order": 2,
           "artId": "fw_art_184",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "battlemaster-art-fw_art_64",
           "order": 3,
           "artId": "fw_art_64",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "battlemaster-art-fw_art_195",
           "order": 4,
           "artId": "fw_art_195",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "battlemaster-art-fw_art_200",
           "order": 5,
           "artId": "fw_art_200",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "battlemaster-art-axe_sweep",
           "order": 6,
           "artId": "axe_sweep",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18662,37 +18662,37 @@
           "id": "monk-art-fw_art_81",
           "order": 1,
           "artId": "fw_art_81",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "monk-art-fw_art_351",
           "order": 2,
           "artId": "fw_art_351",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "monk-art-fw_art_83",
           "order": 3,
           "artId": "fw_art_83",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "monk-art-fw_art_84",
           "order": 4,
           "artId": "fw_art_84",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "monk-art-fw_art_344",
           "order": 5,
           "artId": "fw_art_344",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "monk-art-fw_art_86",
           "order": 6,
           "artId": "fw_art_86",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18703,37 +18703,37 @@
           "id": "marksman-art-fw_art_65",
           "order": 1,
           "artId": "fw_art_65",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "marksman-art-fw_art_74",
           "order": 2,
           "artId": "fw_art_74",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "marksman-art-fw_art_168",
           "order": 3,
           "artId": "fw_art_168",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "marksman-art-fw_art_338",
           "order": 4,
           "artId": "fw_art_338",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "marksman-art-fw_art_130",
           "order": 5,
           "artId": "fw_art_130",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "marksman-art-deadeye_shot",
           "order": 6,
           "artId": "deadeye_shot",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18744,37 +18744,37 @@
           "id": "bow_knight-art-fw_art_189",
           "order": 1,
           "artId": "fw_art_189",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "bow_knight-art-fw_art_151",
           "order": 2,
           "artId": "fw_art_151",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "bow_knight-art-fw_art_69",
           "order": 3,
           "artId": "fw_art_69",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "bow_knight-art-fw_art_130",
           "order": 4,
           "artId": "fw_art_130",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "bow_knight-art-deadeye_shot",
           "order": 5,
           "artId": "deadeye_shot",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "bow_knight-art-hunter_volley",
           "order": 6,
           "artId": "hunter_volley",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18785,37 +18785,37 @@
           "id": "shadow_seeker-art-fw_art_182",
           "order": 1,
           "artId": "fw_art_182",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "shadow_seeker-art-fw_art_72",
           "order": 2,
           "artId": "fw_art_72",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "shadow_seeker-art-fw_art_69",
           "order": 3,
           "artId": "fw_art_69",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "shadow_seeker-art-fw_art_149",
           "order": 4,
           "artId": "fw_art_149",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "shadow_seeker-art-fw_art_24",
           "order": 5,
           "artId": "fw_art_24",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "shadow_seeker-art-fw_art_35",
           "order": 6,
           "artId": "fw_art_35",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18826,37 +18826,37 @@
           "id": "sentinel-art-fw_art_150",
           "order": 1,
           "artId": "fw_art_150",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "sentinel-art-fw_art_47",
           "order": 2,
           "artId": "fw_art_47",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "sentinel-art-fw_art_169",
           "order": 3,
           "artId": "fw_art_169",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "sentinel-art-fw_art_356",
           "order": 4,
           "artId": "fw_art_356",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "sentinel-art-fw_art_137",
           "order": 5,
           "artId": "fw_art_137",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "sentinel-art-fw_art_46",
           "order": 6,
           "artId": "fw_art_46",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18867,37 +18867,37 @@
           "id": "fortress-art-fw_art_114",
           "order": 1,
           "artId": "fw_art_114",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "fortress-art-fw_art_193",
           "order": 2,
           "artId": "fw_art_193",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "fortress-art-fw_art_190",
           "order": 3,
           "artId": "fw_art_190",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "fortress-art-fw_art_207",
           "order": 4,
           "artId": "fw_art_207",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "fortress-art-fw_art_340",
           "order": 5,
           "artId": "fw_art_340",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "fortress-art-fw_art_354",
           "order": 6,
           "artId": "fw_art_354",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18908,37 +18908,37 @@
           "id": "orichaldia-art-fw_art_44",
           "order": 1,
           "artId": "fw_art_44",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "orichaldia-art-fw_art_197",
           "order": 2,
           "artId": "fw_art_197",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "orichaldia-art-fw_art_353",
           "order": 3,
           "artId": "fw_art_353",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "orichaldia-art-fw_art_152",
           "order": 4,
           "artId": "fw_art_152",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "orichaldia-art-fw_art_40",
           "order": 5,
           "artId": "fw_art_40",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "orichaldia-art-swift_thrusts",
           "order": 6,
           "artId": "swift_thrusts",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18949,37 +18949,37 @@
           "id": "great_knight-art-fw_art_115",
           "order": 1,
           "artId": "fw_art_115",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "great_knight-art-fw_art_97",
           "order": 2,
           "artId": "fw_art_97",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "great_knight-art-fw_art_138",
           "order": 3,
           "artId": "fw_art_138",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "great_knight-art-fw_art_48",
           "order": 4,
           "artId": "fw_art_48",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "great_knight-art-fw_art_179",
           "order": 5,
           "artId": "fw_art_179",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "great_knight-art-fw_art_45",
           "order": 6,
           "artId": "fw_art_45",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -18990,37 +18990,37 @@
           "id": "falcon-art-fw_art_156",
           "order": 1,
           "artId": "fw_art_156",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "falcon-art-fw_art_201",
           "order": 2,
           "artId": "fw_art_201",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "falcon-art-fw_art_137",
           "order": 3,
           "artId": "fw_art_137",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "falcon-art-fw_art_46",
           "order": 4,
           "artId": "fw_art_46",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "falcon-art-fw_art_170",
           "order": 5,
           "artId": "fw_art_170",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "falcon-art-fw_art_24",
           "order": 6,
           "artId": "fw_art_24",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -19031,37 +19031,37 @@
           "id": "dragon_commander-art-fw_art_217",
           "order": 1,
           "artId": "fw_art_217",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "dragon_commander-art-fw_art_343",
           "order": 2,
           "artId": "fw_art_343",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "dragon_commander-art-fw_art_59",
           "order": 3,
           "artId": "fw_art_59",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "dragon_commander-art-fw_art_152",
           "order": 4,
           "artId": "fw_art_152",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "dragon_commander-art-fw_art_162",
           "order": 5,
           "artId": "fw_art_162",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "dragon_commander-art-fw_art_32",
           "order": 6,
           "artId": "fw_art_32",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -19072,37 +19072,37 @@
           "id": "druid-art-fw_art_81",
           "order": 1,
           "artId": "fw_art_81",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "druid-art-fw_art_195",
           "order": 2,
           "artId": "fw_art_195",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "druid-art-fw_art_83",
           "order": 3,
           "artId": "fw_art_83",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "druid-art-fw_art_84",
           "order": 4,
           "artId": "fw_art_84",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "druid-art-fw_art_129",
           "order": 5,
           "artId": "fw_art_129",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "druid-art-fw_art_345",
           "order": 6,
           "artId": "fw_art_345",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -19113,37 +19113,37 @@
           "id": "wiseman-art-armor_fist",
           "order": 1,
           "artId": "armor_fist",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "wiseman-art-fw_art_343",
           "order": 2,
           "artId": "fw_art_343",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "wiseman-art-fw_art_57",
           "order": 3,
           "artId": "fw_art_57",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "wiseman-art-fw_art_352",
           "order": 4,
           "artId": "fw_art_352",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "wiseman-art-fw_art_103",
           "order": 5,
           "artId": "fw_art_103",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "wiseman-art-fw_art_214",
           "order": 6,
           "artId": "fw_art_214",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -19159,37 +19159,37 @@
           "id": "blade-art-fw_art_163",
           "order": 1,
           "artId": "fw_art_163",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "blade-art-fw_art_31",
           "order": 2,
           "artId": "fw_art_31",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "blade-art-fw_art_203",
           "order": 3,
           "artId": "fw_art_203",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "blade-art-fw_art_29",
           "order": 4,
           "artId": "fw_art_29",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "blade-art-fw_art_34",
           "order": 5,
           "artId": "fw_art_34",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "blade-art-fw_art_218",
           "order": 6,
           "artId": "fw_art_218",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19200,37 +19200,37 @@
           "id": "apsara-art-fw_art_357",
           "order": 1,
           "artId": "fw_art_357",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "apsara-art-fw_art_73",
           "order": 2,
           "artId": "fw_art_73",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "apsara-art-fw_art_174",
           "order": 3,
           "artId": "fw_art_174",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "apsara-art-fw_art_177",
           "order": 4,
           "artId": "fw_art_177",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "apsara-art-fw_art_110",
           "order": 5,
           "artId": "fw_art_110",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "apsara-art-fw_art_31",
           "order": 6,
           "artId": "fw_art_31",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19241,37 +19241,37 @@
           "id": "everlord-art-fw_art_159",
           "order": 1,
           "artId": "fw_art_159",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "everlord-art-fw_art_216",
           "order": 2,
           "artId": "fw_art_216",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "everlord-art-fw_art_333",
           "order": 3,
           "artId": "fw_art_333",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "everlord-art-fw_art_64",
           "order": 4,
           "artId": "fw_art_64",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "everlord-art-fw_art_214",
           "order": 5,
           "artId": "fw_art_214",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "everlord-art-axe_sweep",
           "order": 6,
           "artId": "axe_sweep",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19282,37 +19282,37 @@
           "id": "fist_deity-art-fw_art_194",
           "order": 1,
           "artId": "fw_art_194",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "fist_deity-art-fw_art_351",
           "order": 2,
           "artId": "fw_art_351",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "fist_deity-art-fw_art_103",
           "order": 3,
           "artId": "fw_art_103",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "fist_deity-art-fw_art_342",
           "order": 4,
           "artId": "fw_art_342",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "fist_deity-art-fw_art_344",
           "order": 5,
           "artId": "fw_art_344",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "fist_deity-art-fw_art_86",
           "order": 6,
           "artId": "fw_art_86",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19323,37 +19323,37 @@
           "id": "calamity-art-fw_art_349",
           "order": 1,
           "artId": "fw_art_349",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "calamity-art-fw_art_350",
           "order": 2,
           "artId": "fw_art_350",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "calamity-art-fw_art_338",
           "order": 3,
           "artId": "fw_art_338",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "calamity-art-fw_art_126",
           "order": 4,
           "artId": "fw_art_126",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "calamity-art-fw_art_70",
           "order": 5,
           "artId": "fw_art_70",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "calamity-art-fw_art_215",
           "order": 6,
           "artId": "fw_art_215",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19364,37 +19364,37 @@
           "id": "storm_lancer-art-fw_art_42",
           "order": 1,
           "artId": "fw_art_42",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "storm_lancer-art-fw_art_43",
           "order": 2,
           "artId": "fw_art_43",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "storm_lancer-art-fw_art_169",
           "order": 3,
           "artId": "fw_art_169",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "storm_lancer-art-fw_art_356",
           "order": 4,
           "artId": "fw_art_356",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "storm_lancer-art-fw_art_137",
           "order": 5,
           "artId": "fw_art_137",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "storm_lancer-art-fw_art_46",
           "order": 6,
           "artId": "fw_art_46",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19405,37 +19405,37 @@
           "id": "divine_cavalier-art-fw_art_196",
           "order": 1,
           "artId": "fw_art_196",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "divine_cavalier-art-fw_art_197",
           "order": 2,
           "artId": "fw_art_197",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "divine_cavalier-art-fw_art_201",
           "order": 3,
           "artId": "fw_art_201",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "divine_cavalier-art-fw_art_181",
           "order": 4,
           "artId": "fw_art_181",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "divine_cavalier-art-fw_art_353",
           "order": 5,
           "artId": "fw_art_353",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "divine_cavalier-art-fw_art_359",
           "order": 6,
           "artId": "fw_art_359",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19446,37 +19446,37 @@
           "id": "saint-art-fw_art_213",
           "order": 1,
           "artId": "fw_art_213",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "saint-art-fw_art_355",
           "order": 2,
           "artId": "fw_art_355",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "saint-art-fw_art_173",
           "order": 3,
           "artId": "fw_art_173",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "saint-art-fw_art_358",
           "order": 4,
           "artId": "fw_art_358",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "saint-art-fw_art_126",
           "order": 5,
           "artId": "fw_art_126",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "saint-art-fw_art_70",
           "order": 6,
           "artId": "fw_art_70",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -19487,37 +19487,37 @@
           "id": "mercenary-art-wrath_cut",
           "order": 1,
           "artId": "wrath_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "mercenary-art-fw_art_101",
           "order": 2,
           "artId": "fw_art_101",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "mercenary-art-fw_art_20",
           "order": 3,
           "artId": "fw_art_20",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "mercenary-art-fw_art_153",
           "order": 4,
           "artId": "fw_art_153",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "mercenary-art-fw_art_359",
           "order": 5,
           "artId": "fw_art_359",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "mercenary-art-fw_art_102",
           "order": 6,
           "artId": "fw_art_102",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -19528,37 +19528,37 @@
           "id": "hero-art-fw_art_102",
           "order": 1,
           "artId": "fw_art_102",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "hero-art-fw_art_109",
           "order": 2,
           "artId": "fw_art_109",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "hero-art-fw_art_99",
           "order": 3,
           "artId": "fw_art_99",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "hero-art-fw_art_147",
           "order": 4,
           "artId": "fw_art_147",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "hero-art-fw_art_180",
           "order": 5,
           "artId": "fw_art_180",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "hero-art-fe_art_cover_exchange",
           "order": 6,
           "artId": "fe_art_cover_exchange",
-          "masteryThreshold": null
+          "masteryThreshold": 180
         }
       ]
     },
@@ -19569,31 +19569,31 @@
           "id": "berserker-art-fw_art_111",
           "order": 1,
           "artId": "fw_art_111",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "berserker-art-fw_art_185",
           "order": 2,
           "artId": "fw_art_185",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "berserker-art-fw_art_217",
           "order": 3,
           "artId": "fw_art_217",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "berserker-art-fw_art_184",
           "order": 4,
           "artId": "fw_art_184",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "berserker-art-fw_art_334",
           "order": 5,
           "artId": "fw_art_334",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -19604,37 +19604,37 @@
           "id": "thief-art-dagger_disarm",
           "order": 1,
           "artId": "dagger_disarm",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "thief-art-fw_art_25",
           "order": 2,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "thief-art-fw_art_24",
           "order": 3,
           "artId": "fw_art_24",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "thief-art-fw_art_107",
           "order": 4,
           "artId": "fw_art_107",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "thief-art-fw_art_206",
           "order": 5,
           "artId": "fw_art_206",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "thief-art-fe_art_gap_stab",
           "order": 6,
           "artId": "fe_art_gap_stab",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -19645,37 +19645,37 @@
           "id": "assassin-art-fw_art_18",
           "order": 1,
           "artId": "fw_art_18",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "assassin-art-fw_art_99",
           "order": 2,
           "artId": "fw_art_99",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "assassin-art-fw_art_206",
           "order": 3,
           "artId": "fw_art_206",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "assassin-art-wind_sweep",
           "order": 4,
           "artId": "wind_sweep",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "assassin-art-fe_art_ankle_cut",
           "order": 5,
           "artId": "fe_art_ankle_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "assassin-art-fe_art_pulse_sever",
           "order": 6,
           "artId": "fe_art_pulse_sever",
-          "masteryThreshold": null
+          "masteryThreshold": 180
         }
       ]
     },
@@ -19686,37 +19686,37 @@
           "id": "ninja-art-dagger_disarm",
           "order": 1,
           "artId": "dagger_disarm",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "ninja-art-fe_art_gap_stab",
           "order": 2,
           "artId": "fe_art_gap_stab",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "ninja-art-fe_art_ankle_cut",
           "order": 3,
           "artId": "fe_art_ankle_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "ninja-art-fe_art_cover_exchange",
           "order": 4,
           "artId": "fe_art_cover_exchange",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "ninja-art-fe_art_guard_probe",
           "order": 5,
           "artId": "fe_art_guard_probe",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "ninja-art-fe_art_pulse_sever",
           "order": 6,
           "artId": "fe_art_pulse_sever",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         }
       ]
     },
@@ -19727,31 +19727,31 @@
           "id": "general-art-fw_art_346",
           "order": 1,
           "artId": "fw_art_346",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "general-art-helm_breaker",
           "order": 2,
           "artId": "helm_breaker",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "general-art-smash_blow",
           "order": 3,
           "artId": "smash_blow",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "general-art-fw_art_115",
           "order": 4,
           "artId": "fw_art_115",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "general-art-fw_art_354",
           "order": 5,
           "artId": "fw_art_354",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -19762,31 +19762,31 @@
           "id": "mage_knight-art-spellblade_cut",
           "order": 1,
           "artId": "spellblade_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "mage_knight-art-fw_art_25",
           "order": 2,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "mage_knight-art-fw_art_26",
           "order": 3,
           "artId": "fw_art_26",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "mage_knight-art-fw_art_16",
           "order": 4,
           "artId": "fw_art_16",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "mage_knight-art-fw_art_205",
           "order": 5,
           "artId": "fw_art_205",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -19797,31 +19797,31 @@
           "id": "dark_knight-art-spellblade_cut",
           "order": 1,
           "artId": "spellblade_cut",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "dark_knight-art-fw_art_25",
           "order": 2,
           "artId": "fw_art_25",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "dark_knight-art-fw_art_26",
           "order": 3,
           "artId": "fw_art_26",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "dark_knight-art-fw_art_205",
           "order": 4,
           "artId": "fw_art_205",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "dark_knight-art-fw_art_348",
           "order": 5,
           "artId": "fw_art_348",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -19832,25 +19832,25 @@
           "id": "beast_cub-art-beast_pounce",
           "order": 1,
           "artId": "beast_pounce",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "beast_cub-art-fe_art_scent_mark",
           "order": 2,
           "artId": "fe_art_scent_mark",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "beast_cub-art-fe_art_braced_maul",
           "order": 3,
           "artId": "fe_art_braced_maul",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "beast_cub-art-fe_art_pack_flank",
           "order": 4,
           "artId": "fe_art_pack_flank",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -19861,31 +19861,31 @@
           "id": "beast_fighter-art-beast_pounce",
           "order": 1,
           "artId": "beast_pounce",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "beast_fighter-art-fe_art_scent_mark",
           "order": 2,
           "artId": "fe_art_scent_mark",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "beast_fighter-art-fe_art_braced_maul",
           "order": 3,
           "artId": "fe_art_braced_maul",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "beast_fighter-art-fe_art_pack_flank",
           "order": 4,
           "artId": "fe_art_pack_flank",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "beast_fighter-art-fe_art_running_rend",
           "order": 5,
           "artId": "fe_art_running_rend",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -19896,31 +19896,31 @@
           "id": "beast_hero-art-beast_pounce",
           "order": 1,
           "artId": "beast_pounce",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "beast_hero-art-fe_art_scent_mark",
           "order": 2,
           "artId": "fe_art_scent_mark",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "beast_hero-art-fe_art_braced_maul",
           "order": 3,
           "artId": "fe_art_braced_maul",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "beast_hero-art-fe_art_pack_flank",
           "order": 4,
           "artId": "fe_art_pack_flank",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "beast_hero-art-fe_art_running_rend",
           "order": 5,
           "artId": "fe_art_running_rend",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -19931,37 +19931,37 @@
           "id": "beast_guard-art-beast_pounce",
           "order": 1,
           "artId": "beast_pounce",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "beast_guard-art-fe_art_scent_mark",
           "order": 2,
           "artId": "fe_art_scent_mark",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "beast_guard-art-fe_art_braced_maul",
           "order": 3,
           "artId": "fe_art_braced_maul",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "beast_guard-art-fe_art_pack_flank",
           "order": 4,
           "artId": "fe_art_pack_flank",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "beast_guard-art-fe_art_running_rend",
           "order": 5,
           "artId": "fe_art_running_rend",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "beast_guard-art-fe_art_king_fang",
           "order": 6,
           "artId": "fe_art_king_fang",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -19972,37 +19972,37 @@
           "id": "beast_lord-art-beast_pounce",
           "order": 1,
           "artId": "beast_pounce",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "beast_lord-art-fe_art_scent_mark",
           "order": 2,
           "artId": "fe_art_scent_mark",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "beast_lord-art-fe_art_braced_maul",
           "order": 3,
           "artId": "fe_art_braced_maul",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "beast_lord-art-fe_art_pack_flank",
           "order": 4,
           "artId": "fe_art_pack_flank",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "beast_lord-art-fe_art_running_rend",
           "order": 5,
           "artId": "fe_art_running_rend",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "beast_lord-art-fe_art_king_fang",
           "order": 6,
           "artId": "fe_art_king_fang",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     },
@@ -20013,25 +20013,25 @@
           "id": "awakened-art-dragon_pressure",
           "order": 1,
           "artId": "dragon_pressure",
-          "masteryThreshold": null
+          "masteryThreshold": 10
         },
         {
           "id": "awakened-art-fe_art_scale_rebuff",
           "order": 2,
           "artId": "fe_art_scale_rebuff",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "awakened-art-fe_art_ember_trail",
           "order": 3,
           "artId": "fe_art_ember_trail",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "awakened-art-fe_art_focused_breath",
           "order": 4,
           "artId": "fe_art_focused_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         }
       ]
     },
@@ -20042,31 +20042,31 @@
           "id": "dragonkin-art-dragon_pressure",
           "order": 1,
           "artId": "dragon_pressure",
-          "masteryThreshold": null
+          "masteryThreshold": 20
         },
         {
           "id": "dragonkin-art-fe_art_scale_rebuff",
           "order": 2,
           "artId": "fe_art_scale_rebuff",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "dragonkin-art-fe_art_ember_trail",
           "order": 3,
           "artId": "fe_art_ember_trail",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "dragonkin-art-fe_art_focused_breath",
           "order": 4,
           "artId": "fe_art_focused_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "dragonkin-art-fe_art_split_breath",
           "order": 5,
           "artId": "fe_art_split_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         }
       ]
     },
@@ -20077,31 +20077,31 @@
           "id": "ancient_guard-art-dragon_pressure",
           "order": 1,
           "artId": "dragon_pressure",
-          "masteryThreshold": null
+          "masteryThreshold": 30
         },
         {
           "id": "ancient_guard-art-fe_art_scale_rebuff",
           "order": 2,
           "artId": "fe_art_scale_rebuff",
-          "masteryThreshold": null
+          "masteryThreshold": 60
         },
         {
           "id": "ancient_guard-art-fe_art_ember_trail",
           "order": 3,
           "artId": "fe_art_ember_trail",
-          "masteryThreshold": null
+          "masteryThreshold": 90
         },
         {
           "id": "ancient_guard-art-fe_art_focused_breath",
           "order": 4,
           "artId": "fe_art_focused_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "ancient_guard-art-fe_art_split_breath",
           "order": 5,
           "artId": "fe_art_split_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         }
       ]
     },
@@ -20112,37 +20112,37 @@
           "id": "dragon_sage-art-dragon_pressure",
           "order": 1,
           "artId": "dragon_pressure",
-          "masteryThreshold": null
+          "masteryThreshold": 40
         },
         {
           "id": "dragon_sage-art-fe_art_scale_rebuff",
           "order": 2,
           "artId": "fe_art_scale_rebuff",
-          "masteryThreshold": null
+          "masteryThreshold": 80
         },
         {
           "id": "dragon_sage-art-fe_art_ember_trail",
           "order": 3,
           "artId": "fe_art_ember_trail",
-          "masteryThreshold": null
+          "masteryThreshold": 120
         },
         {
           "id": "dragon_sage-art-fe_art_focused_breath",
           "order": 4,
           "artId": "fe_art_focused_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 160
         },
         {
           "id": "dragon_sage-art-fe_art_split_breath",
           "order": 5,
           "artId": "fe_art_split_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "dragon_sage-art-fe_art_ancient_breath",
           "order": 6,
           "artId": "fe_art_ancient_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 240
         }
       ]
     },
@@ -20153,37 +20153,37 @@
           "id": "dragon_lord-art-dragon_pressure",
           "order": 1,
           "artId": "dragon_pressure",
-          "masteryThreshold": null
+          "masteryThreshold": 50
         },
         {
           "id": "dragon_lord-art-fe_art_scale_rebuff",
           "order": 2,
           "artId": "fe_art_scale_rebuff",
-          "masteryThreshold": null
+          "masteryThreshold": 100
         },
         {
           "id": "dragon_lord-art-fe_art_ember_trail",
           "order": 3,
           "artId": "fe_art_ember_trail",
-          "masteryThreshold": null
+          "masteryThreshold": 150
         },
         {
           "id": "dragon_lord-art-fe_art_focused_breath",
           "order": 4,
           "artId": "fe_art_focused_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 200
         },
         {
           "id": "dragon_lord-art-fe_art_split_breath",
           "order": 5,
           "artId": "fe_art_split_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 250
         },
         {
           "id": "dragon_lord-art-fe_art_ancient_breath",
           "order": 6,
           "artId": "fe_art_ancient_breath",
-          "masteryThreshold": null
+          "masteryThreshold": 300
         }
       ]
     }
@@ -20222,10 +20222,10 @@
             "thief",
             "ninja"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dagger",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20271,10 +20271,10 @@
             "assassin",
             "ninja"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dagger",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20323,10 +20323,10 @@
             "hero",
             "ninja"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dagger",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20379,10 +20379,10 @@
             "paladin",
             "ninja"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dagger",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20433,12 +20433,12 @@
             "assassin",
             "ninja"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dagger",
           "learningBand": "advanced",
-          "masteryThreshold": null,
           "learningScope": "restricted",
-          "restrictionReason": "战斗内追击封锁属于强力防反制技，仅由刺客与忍者教授。"
+          "restrictionReason": "战斗内追击封锁属于强力防反制技，仅由刺客与忍者教授。",
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20490,10 +20490,10 @@
             "beast_guard",
             "beast_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_beast",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20543,10 +20543,10 @@
             "beast_guard",
             "beast_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_beast",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20598,10 +20598,10 @@
             "beast_guard",
             "beast_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_beast",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20653,10 +20653,10 @@
             "beast_guard",
             "beast_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_beast",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20704,12 +20704,12 @@
             "beast_guard",
             "beast_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_beast",
           "learningBand": "advanced",
-          "masteryThreshold": null,
           "learningScope": "restricted",
-          "restrictionReason": "需先布置并消费猎痕的破防终结技，仅由兽王卫与兽神将教授。"
+          "restrictionReason": "需先布置并消费猎痕的破防终结技，仅由兽王卫与兽神将教授。",
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20761,10 +20761,10 @@
             "dragon_sage",
             "dragon_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dragon",
           "learningBand": "foundation",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20820,10 +20820,10 @@
             "dragon_sage",
             "dragon_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dragon",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20878,10 +20878,10 @@
             "dragon_sage",
             "dragon_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dragon",
           "learningBand": "core",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20929,10 +20929,10 @@
             "dragon_sage",
             "dragon_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dragon",
           "learningBand": "advanced",
-          "masteryThreshold": null
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {
@@ -20981,12 +20981,12 @@
             "dragon_sage",
             "dragon_lord"
           ],
-          "assignmentStatus": "mastery_threshold_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "original_dragon",
           "learningBand": "advanced",
-          "masteryThreshold": null,
           "learningScope": "restricted",
-          "restrictionReason": "高消耗双目标全额直线吐息，仅由龙贤者与龙神将教授。"
+          "restrictionReason": "高消耗双目标全额直线吐息，仅由龙贤者与龙神将教授。",
+          "masteryThresholdSource": "classMasteryPlans"
         }
       },
       "mechanics": {

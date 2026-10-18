@@ -395,7 +395,7 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
       {p.nodes.map(node => (
         <li key={node.id} className={node.unlocked ? 'on' : undefined}>
           <span className="nd-t num">{node.threshold}</span>
-          <span><b>{node.name}</b>　{SKILLS[node.skill as SkillId]?.text ?? node.skill}</span>
+          <span><b>{node.name}</b>　{node.art ? `战技 · ${WEAPON_ART_BY_ID.get(node.art)?.effect ?? node.art}` : SKILLS[node.skill as SkillId]?.text ?? node.skill}</span>
           <span className={`tag ${node.unlocked ? 'tag-green' : 'tag-grey'}`}>{node.unlocked ? '已学会' : `还差 ${Math.max(0, node.threshold - p.mastery)}`}</span>
         </li>
       ))}
@@ -405,7 +405,7 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
     <div className="cols2">
       <section className="panel" aria-labelledby="ms-h">
         <div className="ph"><h2 id="ms-h">职业精通 · {current?.name ?? unit.className}</h2><span className="num" style={{ fontSize: 13 }}>精通 {current?.mastery ?? 0}</span></div>
-        <p className="sys-note">有效参战（含获胜加成）与派遣职业训练会积累当前职业的精通；达到门槛学会技能，学会的技能换职业后仍保留。普通竞技场与练习不计。</p>
+        <p className="sys-note">有效参战（每场 8 点，获胜另加 4 点）与派遣职业训练（每日 3 点）积累精通；达到门槛学会技能或战技，换职业后保留。普通竞技场与练习不计。</p>
         {current && nodeList(current)}
         {others.length > 0 && <>
           <div className="grp">其他职业的精通</div>
@@ -437,6 +437,14 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
           ))}
           {data.learnedSkills.length === 0 && <span className="muted" style={{ fontSize: 13 }}>还没有学会技能：职业精通达到门槛后学会。</span>}
         </div>
+        <div className="grp">已学战技 · {data.learnedArts.length} 项</div>
+        <ul className="roster-mini">
+          {data.learnedArts.map(id => {
+            const art = WEAPON_ART_BY_ID.get(id);
+            return <li key={id}><span className="min-w-0"><b>{art?.name ?? id}</b><span className="rm-sub">{art ? `${art.effect} · ${art.weaponCompatibility.map(type => WEAPON_TYPE_NAMES[type]).join('／')}${art.rank ? ` ${art.rank}` : ''} · 耐久 ${art.cost}` : ''}</span></span></li>;
+          })}
+        </ul>
+        {data.learnedArts.length === 0 && <p className="sys-note">职业精通达到战技节点后学会；切换职业不会直接领取战技。</p>}
         <dl className="facts">
           <dt>个人技能</dt><dd>{anchorSkill ? `${SKILLS[anchorSkill].name}：${SKILLS[anchorSkill].text}` : '无'}（不占格）</dd>
           <dt>装备授予</dt><dd>{granted.length > 0 ? granted.map(id => SKILLS[id].name).join('、') : '无'}（卸下即失效，不占格）</dd>

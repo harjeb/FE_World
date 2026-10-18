@@ -68,9 +68,9 @@ def audit(catalog_path, source_path=None):
     check(catalog['learningPolicy'] == {
         'ordinarySource': 'class_mastery', 'upgradeSource': 'art_training',
         'exceptionSource': 'equipment_grant', 'weaponRankRole': 'usage_requirement_only',
-        'masteryThresholds': 'pending', 'trainingCosts': 'pending', 'learnedSlotLimit': 5,
+        'masteryThresholds': 'stage_order_v1', 'trainingCosts': 'pending', 'learnedSlotLimit': 5,
         'sharedLearning': True, 'minimumTeacherClasses': 2, 'useRequiresLearningClass': False,
-        'classAssignments': 'proposed', 'restrictedTeacherRange': [1, 2],
+        'classAssignments': 'implemented', 'restrictedTeacherRange': [1, 2],
         'restrictionScope': 'learning_sources_only', 'perClassArtRange': [4, 6],
         'counting': 'individual_art_ids', 'spellbookArts': False,
     }, 'Class-level learning policy changed')
@@ -118,8 +118,8 @@ def audit(catalog_path, source_path=None):
                 check(1 <= teacher_count <= 2 and bool(unlock['restrictionReason']), 'Powerful art must have one or two teachers with a stated reason')
             else:
                 check(teacher_count >= 2, 'Common art has fewer than two teaching classes')
-            check(unlock['masteryThreshold'] is None and 'classLevel' not in unlock, 'Mastery must be independent of character/class level')
-            check(unlock['assignmentStatus'] == 'mastery_threshold_pending', 'Missing mastery assignment status')
+            check(unlock['masteryThresholdSource'] == 'classMasteryPlans' and 'classLevel' not in unlock, 'Mastery must use configured class plans, independently of character level')
+            check(unlock['assignmentStatus'] == 'implemented', 'Missing implemented mastery assignment status')
             check(unlock['learningBand'] in {'foundation', 'core', 'advanced', 'upgrade'} and bool(unlock['teachingGroup']), 'Missing proposed teaching group')
         if unlock['kind'] == 'art_training':
             check(row['variant'] == 'upgrade' and 'classIds' not in unlock, 'Training upgrade counted as a class mastery reward')
@@ -148,7 +148,7 @@ def audit(catalog_path, source_path=None):
             check(int(examples[row['id']][1][3]) == cost, 'Example durability differs: ' + row['id'])
     for row in supplements:
         learning = row['learning']
-        check(learning['kind'] == 'class_mastery' and learning['masteryThreshold'] is None and learning['assignmentStatus'] == 'mastery_threshold_pending', 'Supplement missing class mastery assignment')
+        check(learning['kind'] == 'class_mastery' and learning['masteryThresholdSource'] == 'classMasteryPlans' and learning['assignmentStatus'] == 'implemented', 'Supplement missing class mastery assignment')
         teacher_count = len(learning['classIds'])
         check(teacher_count == len(set(learning['classIds'])) and set(learning['classIds']) <= active_classes, 'Supplement teaching classes differ')
         if learning.get('learningScope') == 'restricted':
@@ -181,7 +181,7 @@ def audit(catalog_path, source_path=None):
                 check('相对基础版耐久'+str(parent_cost)+'→'+str(project['cost']) in cells[5], 'Durability-saving upgrade not documented')
         check(bool(cells[6]), 'Missing rendered learning channel')
         if project['unlock']['kind'] == 'class_mastery':
-            check('职业精通学习' in cells[6] and '待配置' in cells[6], 'Rendered mastery learning status differs')
+            check('职业精通学习' in cells[6] and '阈值见逐职业清单' in cells[6], 'Rendered mastery learning status differs')
             check('使用需武器' + project['unlock']['weaponRank'] in cells[6], 'Weapon proficiency is no longer just a usage requirement')
         if project['unlock']['kind'] == 'art_training':
             check('营地战技研修' in cells[6] and '不计入职业精通奖励' in cells[6], 'Training upgrade incorrectly rendered as a mastery reward')

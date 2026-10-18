@@ -42,7 +42,8 @@ assert len(arts) == len({a['id'] for a in arts}) == 315
 assert all(a['cost'] > 0 and 1 <= a['range'][0] <= a['range'][1] for a in arts)
 lines = [
     '// Generated from docs/data/fw-weapon-arts.json by tools/build/weapon-arts.py. Do not hand-edit.',
-    "import type { Rank, WeaponType } from './types.ts';", '',
+    "import type { Rank, WeaponType } from './types.ts';",
+    "import type { CatalogClassId } from './classes.ts';", '',
     'export interface WeaponArt {',
     '  id: string; name: string; weapon: WeaponType; weaponCompatibility: WeaponType[]; variant: string; original: boolean;',
     '  cost: number; might: number; hit: number; crit: number; range: [number, number]; sequence: string; rank?: Rank;',
@@ -51,6 +52,19 @@ lines = [
 ]
 lines += ['  ' + json.dumps(art, ensure_ascii=False) + ',' for art in arts]
 lines += ['];', '', "export type WeaponArtId = WeaponArt['id'];",
-          'export const WEAPON_ART_BY_ID = new Map<string, WeaponArt>(WEAPON_ARTS.map(art => [art.id, art]));', '']
+          'export const WEAPON_ART_BY_ID = new Map<string, WeaponArt>(WEAPON_ARTS.map(art => [art.id, art]));', '',
+          'export const CLASS_ART_MASTERY: Partial<Record<CatalogClassId, readonly { id: string; art: string; threshold: number }[]>> = {']
+links = 0
+for plan in catalog['classMasteryPlans']:
+    nodes = []
+    for node in plan['nodes']:
+        assert node['artId'] in {a['id'] for a in arts}
+        assert isinstance(node['masteryThreshold'], int) and node['masteryThreshold'] > 0
+        nodes.append({'id': node['id'], 'art': node['artId'], 'threshold': node['masteryThreshold']})
+    if nodes:
+        lines.append('  ' + json.dumps(plan['classId']) + ': ' + json.dumps(nodes, ensure_ascii=False) + ',')
+        links += len(nodes)
+assert links == 408
+lines += ['};', '']
 (ROOT / 'backend/common/data/weapon-arts.ts').write_text('\n'.join(lines), encoding='utf-8')
-print(f'weapon arts: {len(arts)} (15 original, 283 reference, 17 supplement)')
+print(f'weapon arts: {len(arts)} (15 original, 283 reference, 17 supplement), {links} mastery links')

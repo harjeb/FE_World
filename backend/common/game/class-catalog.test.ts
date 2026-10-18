@@ -81,7 +81,10 @@ test('old class mastery and unlocked nodes remain usable through the compatibili
   unit.learningProgress = { sword_lord: ['sword_lord-1'] };
   assert.equal(classMasteryOf(unit, 'blade'), 200);
   assert.deepEqual(unlockedNodes(unit, 'blade'), ['blade-1']);
-  assert.deepEqual(gainMastery(unit, 1, 'blade'), []);
+  const unlocked = gainMastery(unit, 1, 'blade');
+  assert.ok(unlocked.length > 0 && unlocked.every(node => node.art));
+  assert.ok(unit.learnedArts?.includes('fw_art_29'));
+  assert.deepEqual(gainMastery(unit, 0, 'sword_lord'), []);
   assert.equal(classMasteryOf(unit, 'sword_lord'), 201);
 });
 

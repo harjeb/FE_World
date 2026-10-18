@@ -19,6 +19,7 @@ import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from './items.ts';
 import type { ItemKey } from './items.ts';
 import { DAYS_PER_SEASON, DAYS_PER_YEAR } from './calendar.ts';
 import { applyInheritanceFloor } from './legacy.ts';
+import { gainMastery } from './mastery.ts';
 import type { InheritanceContract } from './legacy.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
 
@@ -148,6 +149,10 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   unit.learnedSkills ??= [];
   unit.learnedArts ??= [];
   unit.equippedSkills ??= [];
+  // 新增节点按已赚取的精通补领；加载不增加精通，也不重复发放。
+  for (const classId of Object.keys(unit.classMastery) as ClassId[]) {
+    if (Object.hasOwn(CLASSES, classId)) gainMastery(unit, 0, classId);
+  }
   if (unit.ageEpochDay === undefined) unit.ageEpochDay = unit.joinedDay;
   if (unit.ageBaseDays === undefined) unit.ageBaseDays = (unit.baseAge ?? CHARACTERS[unit.character].age) * DAYS_PER_YEAR;
   unit.lifespanYears ??= lifespanYearsFor(unit.id, unit.species);
@@ -215,7 +220,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
-    learnedSkills: [], learnedArts: classId === 'charioteer' ? ['chariot_line'] : [], equippedSkills: [],
+    learnedSkills: [], learnedArts: [], equippedSkills: [],
     spellbooks: (Object.keys(cls.weapons) as WeaponType[]).some(type => type === 'tome' || type === 'staff') ? SPELLBOOKS.filter(book => book.role === 'attack' || book.role === 'heal').slice(0, 4).map(book => ({ id: book.id, charges: book.maxCharges, maxCharges: book.maxCharges })) : [],
     lineageDepth: 0, receivedLegacyId: null,
   };

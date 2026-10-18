@@ -298,8 +298,8 @@ export interface ClassMarketRow {
 // GET_MASTERY: class mastery by class, the nodes and the five equip slots (docs/00 §4.2.1).
 export interface ServerMastery {
   unit: string; classId: string; cycle: number; slots: number;
-  progress: { classId: string; name: string; route: string; routeName: string; stage: number; mastery: number; nodes: { id: string; threshold: number; skill: string; name: string; referenceIds: string[]; unlocked: boolean }[] }[];
-  learnedSkills: string[]; equippedSkills: string[]; qualifications: string[];
+  progress: { classId: string; name: string; route: string; routeName: string; stage: number; mastery: number; nodes: { id: string; threshold: number; skill?: string; art?: string; name: string; referenceIds: string[]; unlocked: boolean }[] }[];
+  learnedSkills: string[]; learnedArts: string[]; equippedSkills: string[]; qualifications: string[];
 }
 
 // GET_DISPATCHES: background exploration / class training (docs/00 §9.1.1).

@@ -2,10 +2,11 @@ import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
 import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classChangeReason } from '../data/classes.ts';
 import type { CatalogClassId, ClassId, ClassRoute } from '../data/classes.ts';
 import type { SkillId } from '../data/skills.ts';
+import { CLASS_ART_MASTERY, WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import type { UnitRecord } from './model.ts';
 
-// Mastery is separate from character level. Nodes remain provisional game content,
-// not a claim that the reference game's complete class/mastery skills are implemented.
+// Mastery is separate from character level; passive rewards use the project skill pool.
+// Weapon-art rewards and thresholds come from the audited class teaching plans.
 
 export const SKILL_SLOTS = 5;
 // 有效参战与职业训练的进度；投降、空图或零日不产生（由调用方只对有效来源入账）。
@@ -14,7 +15,7 @@ export const MASTERY_PER_WIN = 4;
 export const MASTERY_PER_TRAIN_DAY = 3;
 export const MASTERY_TRAIN_MAX_DAYS = 30;
 
-export interface MasteryNode { id: string; threshold: number; skill: SkillId; name: string; referenceIds?: string[] }
+export interface MasteryNode { id: string; threshold: number; skill?: SkillId; art?: string; name: string; referenceIds?: string[] }
 
 // 各路线可提供的技能池；同一路线不同职业按阶段取不同节点，不默认为所有职业同一节点。
 const ROUTE_SKILLS: Record<ClassRoute, SkillId[]> = {
@@ -51,7 +52,8 @@ export const MASTERY_NODES: Record<CatalogClassId, MasteryNode[]> = Object.fromE
     return [classId, [
       { id: `${classId}-1`, threshold: first, skill: pool[0], name: NODE_NAMES[pool[0]], referenceIds: references },
       { id: `${classId}-2`, threshold: second, skill: pool[1] ?? pool[0], name: NODE_NAMES[pool[1] ?? pool[0]], referenceIds: references },
-    ]];
+      ...(CLASS_ART_MASTERY[classId] ?? []).map(node => ({ ...node, name: WEAPON_ART_BY_ID.get(node.art)!.name })),
+    ].sort((a, b) => a.threshold - b.threshold)];
   }),
 ) as unknown as Record<CatalogClassId, MasteryNode[]>;
 
@@ -72,13 +74,14 @@ export function unlockedNodes(unit: UnitRecord, classId: ClassId = unit.classId)
     .flatMap(([id, nodes]) => (nodes ?? []).map(node => node.startsWith(id + '-') ? canonical + node.slice(id.length) : node)))];
 }
 
-// 给当前职业加精通；返回本次新解锁的节点。只应传有效参战／训练来源。
+// 给指定职业加精通；0 只补领已有点数达到的新节点，供旧存档兼容读取。
 export function gainMastery(unit: UnitRecord, amount: number, classId: ClassId = unit.classId): MasteryNode[] {
-  if (amount <= 0) return [];
+  if (!Number.isFinite(amount) || amount < 0) return [];
   classId = canonicalClassId(classId);
   unit.classMastery ??= {};
   unit.learningProgress ??= {};
   unit.learnedSkills ??= [];
+  unit.learnedArts ??= [];
   unit.equippedSkills ??= [];
   unit.classMastery[classId] = classMasteryOf(unit, classId) + amount;
   const unlocked: MasteryNode[] = [];
@@ -87,9 +90,12 @@ export function gainMastery(unit: UnitRecord, amount: number, classId: ClassId =
     const known = unlockedNodes(unit, classId);
     if (known.includes(node.id)) continue;
     unit.learningProgress[classId] = [...known, node.id];
-    if (!unit.learnedSkills.includes(node.skill)) unit.learnedSkills.push(node.skill);
-    // 有空位就自动装上，之后可在 5 格内自由调整。
-    if (unit.equippedSkills.length < SKILL_SLOTS && !unit.equippedSkills.includes(node.skill)) unit.equippedSkills.push(node.skill);
+    if (node.art && !unit.learnedArts.includes(node.art)) unit.learnedArts.push(node.art);
+    if (node.skill) {
+      if (!unit.learnedSkills.includes(node.skill)) unit.learnedSkills.push(node.skill);
+      // 有空位就自动装上，之后可在 5 格内自由调整。
+      if (unit.equippedSkills.length < SKILL_SLOTS && !unit.equippedSkills.includes(node.skill)) unit.equippedSkills.push(node.skill);
+    }
     unlocked.push(node);
   }
   return unlocked;

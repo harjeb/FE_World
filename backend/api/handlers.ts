@@ -923,9 +923,9 @@ const handlers: Record<number, Handler> = {
       progress: classes.map(id => ({
         classId: id, name: CLASSES[id].name, route: CLASSES[id].route, routeName: ROUTE_NAMES[CLASSES[id].route],
         stage: CLASSES[id].stage, mastery: classMasteryOf(unit, id),
-        nodes: masteryNodesFor(id).map(node => ({ id: node.id, threshold: node.threshold, skill: node.skill, name: node.name, referenceIds: node.referenceIds ?? [], unlocked: unlockedNodes(unit, id).includes(node.id) })),
+        nodes: masteryNodesFor(id).map(node => ({ id: node.id, threshold: node.threshold, skill: node.skill, art: node.art, name: node.name, referenceIds: node.referenceIds ?? [], unlocked: unlockedNodes(unit, id).includes(node.id) })),
       })),
-      learnedSkills: unit.learnedSkills ?? [], equippedSkills: unit.equippedSkills ?? [],
+      learnedSkills: unit.learnedSkills ?? [], learnedArts: unit.learnedArts ?? [], equippedSkills: unit.equippedSkills ?? [],
       qualifications: unit.classQualifications ?? [],
     };
   },

@@ -51,7 +51,7 @@ export const OPS: readonly OpDef[] = [
   { op: 77, name: 'EMERGENCY_RECRUIT', group: '整备', agentNote: '严重损失后的免费酒馆补员：不花钱、不推进日期，每次有效资格随机 2 人。' },
   { op: 78, name: 'GET_CLASS_MARKET', group: '名册', agentNote: '读取现行职业资格、年份与价格；传unitId返回eligibilityReason。人类可跨普通路线，兽／龙只可进阶本族下一阶。' },
   { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族、金币与月额度，兽／龙不能跳阶或降阶。轮回清除资格。' },
-  { op: 84, name: 'GET_MASTERY', group: '名册', agentNote: '读取角色各职业的精通进度、已解锁节点与可装备的已学技能。' },
+  { op: 84, name: 'GET_MASTERY', group: '名册', agentNote: '读取角色各职业的精通点、技能／战技奖励及阈值、已解锁节点和习得库；参战与派遣返程达到阈值后学会，换职保留，人物等级不直接发奖。' },
   { op: 85, name: 'SWITCH_CLASS', group: '名册', agentNote: '营地凭资格免费换职，不占购买额度并保留学习成果；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。' },
   { op: 86, name: 'EQUIP_SKILLS', group: '名册', agentNote: '在最多 5 个格子里装备已学会的技能（跨职业自由装备）；未学会的技能会被拒绝。' },
 
