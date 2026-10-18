@@ -16,7 +16,7 @@ import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonica
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_MAX, PROTAGONIST_CLASSES, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
-import { GAME_ITEMS, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
+import { GAME_ITEMS, isBoundWeapon, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
@@ -669,6 +669,7 @@ const handlers: Record<number, Handler> = {
     const item = asString(data.item, 'item');
     const count = Math.max(1, typeof data.count === 'number' ? data.count : 1);
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有物品 ${item}`);
+    if (isBoundWeapon(item)) throw new OpError('FORBIDDEN', '这件唯一武器已绑定，不能出售');
     const taken = ctx.store.takeInventory(ctx.player.id, item, count);
     if (taken === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件物品');
     for (let i = 0; i < taken; i++) {

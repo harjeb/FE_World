@@ -1,6 +1,6 @@
 # 未完成需求总表
 
-更新日期：2026-10-18。核对基线：`eb0cd7e`之后的 ITEM-06／DESIGN-04 实现（`rules-v7`／目录17，具体提交见Git日志）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
+更新日期：2026-10-18。核对基线：`eb0cd7e`之后的 ITEM-06／DESIGN-04 实现与`08e54ba`的锻造／绑定改动（`rules-v7`／目录17，具体提交见Git日志）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
 
 玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)、[14](docs/14-integration-handoff.md) 含多轮历史记录，不能直接把其中的旧“未实现”全部复制为新任务。最近一次已完成修复见 [21](docs/21-code-design-audit.md)。
 
@@ -97,7 +97,7 @@
 
 - [x] **CLASS-01｜已完成首版：职业能力和精通节点内容。** 58 项 `CLASS_ABILITIES` 已绑定逐职业固有/精通参考 ID，精通节点通过 `referenceIds` 暴露；可在交战公式直接验证的固有数值（命中/回避/攻击/防/魔防/攻速/剑斧弓拳魔法武器加成/治疗）已接入 `classSkills`，未知阈值和原表冲突保留为参考不臆造。五格仍只由已学技能占用，不因战技装备＋1/2/3扩容。
 - [x] **CLASS-02｜首版可确认主动战技与12被动已实现：个人技能、习得技能及315项主动武器战技。** 58项职业能力仅落实已知数值，未知不臆造；不是原作精确复刻或人工平衡验收。 15项原创已接入逐项战斗结算、合法目标、网页／Agent预测与选择、一次耐久支付及保存重试。每职4～6项、176项战技／408条关联的精通学习已接入参战、派遣返程、旧存档补领和网页／Agent查询，阈值逐项配置；103项独立强化研修已实现（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`；营地先学基础、同步付费耗日、重试安全，换职保留／轮回清除，不赠EXP／精通）；36项武器特有授予已实现（选中匹配实物、权限／熟练度／耐久／强化门槛，毒弓＋3强化与实例保存见27）；共用五格运行时／API／网页已实现（`equippedSkills`＋独立`equippedArts`合计5，`learnedArts`保留全库，原子调整与旧档一次迁移见28）；既有300项特殊效果已完成item 6首版显式实现，机制边界见[26](docs/26-weapon-art-catalog.md)。315项战技（283参考＋17补充＋15原创）有稳定ID、基础/强化、武器类型、威力/命中/必杀、射程与耐久成本；`art` 动作与 `PREVIEW_COMBAT.art` 逐项预测，普通物攻/被动不耗耐久。个人/职业固有技能通过 `skills`/`classSkills` 生效，装备可授予技能与战技（`grants.skill/arts`，战技项含`art`／`minimumRefinement`），卸下即撤销且不占五格；个人技能与轮回重置保留。未给参数的原作触发/概率保留为参考，不臆造。
-- [x] **CLASS-03｜已完成：舞者、神乐神将和战车兵专属机制。** 舞者/神乐再行动通过 `dance` 指令实现（目标本回合可再行动，AI/预览/回放走同一 action）；战车兵通过 `chariot_line` 战技实现直线至多 3 名敌人依次结算，已纳入战技耐久与 `learnedArts`；三个职业不再列入 `PENDING_MECHANICS`，可正常购买/切换/派遣。
+- [x] **CLASS-03｜已完成：舞者、神乐神将和战车兵专属机制。** 舞者/神乐再行动通过 `dance` 指令实现（目标必须是相邻且本回合已行动的友军，AI/预览/回放走同一 action；可行动列表与服务端校验都做距离检查）；战车兵通过 `chariot_line` 战技实现直线至多 3 名敌人依次结算，已纳入战技耐久与 `learnedArts`；三个职业不再列入 `PENDING_MECHANICS`，可正常购买/切换/派遣。
 - [x] **CLASS-04｜已完成首版：40种新增攻击／功能法术与个人魔法习得表。** 40 项法术/48 书已进入 `SPELLS`/`SPELLBOOKS`，魔法职业按职业书表携带独立次数；`cast` 支持攻击（魔攻对魔防）、治疗、状态/复原、传送/拉近（不刷新行动）、再生、临时墙（1格、HP15、3回合）和 9 种主动杖（含睡眠/沉默/复原/救援/传送）。目标/射程/落点、石化禁疗、状态持续、耐久次数与结算/预测入口已接线；固定双击、物防结算、特效标签、吸血、状态命中与增益已于`rules-v7`接入（见ITEM-06／DESIGN-04），未知参数仍不臆造。
 - [x] **CLASS-05｜已完成可确认部分：魅力、幸运的原作对应机制。** 新增 `charm-reference.ts`：幸运必杀回避标记 verified；计略/骑士团等无来源条目保留 `unverified`，不参与计算。不把魅力用于招募或掉落，不冒用其他作品公式。
 - [x] **CLASS-06｜已完成可确认部分：职业擅长 EXP 加成。** 新增 `trainingBonusFor`／`studyForWeapon`，训练读取当前职业的“擅长项目”加成；原始资料空白项继续返回 undefined，不臆造数值。人物经验、武器熟练度、职业精通仍分开记账。
@@ -113,6 +113,7 @@
 - [x] **ITEM-04｜已完成：每人1枚稀缺不朽盾及完整禁疗。** `toBattleUnit` 将盾上限裁到 1，整备搬运拒绝第二枚；盾有重量与限量来源；石化单位禁止杖/药/地形回复，旧存档按上限读取。吸血/再生尚未有独立运行时，但不会被误当成可治疗路径。
 - [x] **ITEM-05｜已完成首版：特殊装备授予技能／成长、专属绑定及来源冻结。** `Weapon.grants.skill/growth` 在 `equipmentSkills`/`growthRates` 中实时计算，卸下即撤销且不占五格；王权剑/神授枪/必杀刃/风刃已配置授予。地区任务 `exclusive` 以实物入库并在 `GET_QUESTS` 预览，不进普通商店；成长遗产冻结仍只保存永久来源，装备成长不写成永久属性。
 - [x] **ITEM-06｜已完成首版：170项首版装备／法术目录与投放。**170个设计ID逐项补齐（另保留旧兼容项，共137条`WEAPONS`＋50条`SPELLBOOKS`），并都有取得途径：地区商店资格按级别开放、一次性任务奖励（短弓、净化剑、三本最上级书＋教材）与挑战塔首通（36种授予武器）；法术书／教材可入库、携带与学习。反噬、逆克制、魔法弓、毒短刀、吸血书及61件新武器、40种法术的特殊效果已结算并进入预测；盾／药／食物在`GAME_ITEMS`，数值为本作首稿。证据：`equipment-effects.test.ts`、`spell-effects.test.ts`、`api/equipment-sources.test.ts`、`tools/audit/equipment-catalog.py`（逐件效果字段核对）；细则见[27 §6](docs/27-fortunes-weave-equipment-magic.md)。
+- [x] **ITEM-07｜已完成本轮确认：银系／勇者进普通生产，唯一武器绑定。** 新增 11 条铁匠铺配方（银系 7、勇者 4，地区 9 声望 100／250）；`BOUND_WEAPONS` 覆盖王权剑、神授枪、统率枪和挑战塔 A 级以上 12 件签名武器，`SELL` 拒绝出售并在整备页禁用按钮。地区声望商店不限购、挑战塔每层整组装备、经典宝箱银武按“其他不变”保持现状；获取与限量审计见 [22 §2.1](docs/22-equipment-catalog.md)。验收：`production.test.ts` 银／勇者配方、`equipment-acquisition.test.ts` 绑定拦截与普通银武可售。
 
 ## 4. 地区任务、地图与敌军
 

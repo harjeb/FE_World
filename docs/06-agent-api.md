@@ -84,7 +84,7 @@ UNIT_ACT 一次提交「移动 + 行动」，不能悔棋：
 
 ### 4. 意图上报
 
-- `AGENT_PHASE_NOTE`：每个阶段一句意图（例如「诱敌到森林，弓兵埋伏左翼」），回放中逐阶段显示（竞技场回放在当天 24:00 后才公开）。
+- `AGENT_PHASE_NOTE`：每个阶段一句意图（例如「诱敌到森林，弓兵埋伏左翼」），回放中逐阶段显示；普通竞技场与年度赛事战斗结束后保存回放，PvE 回放只对本人可见。
 - `AGENT_REPORT_PLAN`：养成计划（例如「本月重点练莉娜，第 2 月末转隼骑士」），在网页的 Agent 面板展示给玩家。
 
 ## op 草案
@@ -94,7 +94,7 @@ UNIT_ACT 一次提交「移动 + 行动」，不能悔棋：
 | 号段 | op | 说明 |
 | --- | --- | --- |
 | 会话 | 1 LOGIN、2 LOGOUT | 与 SLG 相同 |
-| 账号 | 10 GET_STATE | 赛季、当前游戏月、可用行动日、金币、名册摘要、进行中的战斗、下一次快照与竞技场时间 |
+| 账号 | 10 GET_STATE | 个人日期、金币、公共经验、名册摘要、进行中的战斗、下一次竞技场时间 |
 | | 11 GET_EVENTS | 历史事件，支持 sinceId 增量 |
 | | 12 GET_AGENT_INFO | Agent 在线状态、计划 |
 | 名册 | 20 GET_ROSTER、21 GET_UNIT | 名册 / 单位详情（含个人与职业成长率、历次升级记录、武器经验） |
@@ -120,18 +120,18 @@ UNIT_ACT 一次提交「移动 + 行动」，不能悔棋：
 | | 55 END_PHASE | 结束本阶段 |
 | | 56 RETREAT | 野外全军撤退 |
 | | 57 GET_BATTLE_LOG | 完整事件日志 |
-| 竞技场 | 60 GET_ARENA | 本赛季图池、下次竞技场时间、我的报名状态、今日对手与进攻进度、积分 |
-| | 61 GET_DEFENSE、62 SET_DEFENSE | 防守设置：地图、D+B 名单、站位、优先级、AI 行为、主将顺序、预设 BAN 角色 |
-| | 63 ARENA_REGISTER | 报名下一次竞技场（月末 24:00 截止） |
-| | 64 GET_OPPONENT | 某个对手的防守地图与防守名单（不含站位和 AI 行为） |
-| | 65 ARENA_BAN | 对某个对手 BAN 掉 B 人，返回实际出战的防守单位、站位、对我的角色禁用 |
-| | 66 ARENA_ATTACK | 选 D 人 + 主将 + 站位，开打，返回 battleId（之后用战斗类 op） |
-| | 67 SURRENDER | 投降（按落败计） |
-| | 68 GET_ARENA_RESULTS | 本次及历次竞技场的进攻/防守结果、积分 |
-| | 69 GET_REPLAY | 回放（竞技场日 24:00 后可查他人对局） |
+| 竞技场 | 60 GET_ARENA | 地图池、下次竞技场时间、报名状态、当前记录、对手与进攻进度、积分 |
+| | 61 GET_DEFENSE、62 SET_DEFENSE | **仅为旧存档兼容**；首版没有玩家防守，进攻不再要求防守设置 |
+| | 63 ARENA_REGISTER | 报名普通竞技场；报名后到达竞技场日自动生成对手 |
+| | 64 GET_OPPONENT | 某个对手的地图与公开名单（不含站位和 AI 行为） |
+| | 65 ARENA_BAN | 按单位实例 BAN 掉 B 人，返回实际出战单位、站位和对方对我方单位的禁用 |
+| | 66 ARENA_ATTACK | 选 D 人 + 主将 + 站位，开打并推进 1 日，返回 battleId |
+| | 67 SURRENDER | 投降（按落败计，不发参与金币） |
+| | 68 GET_ARENA_RESULTS | 当前/最近记录的进攻结果、积分；没有防守结果 |
+| | 69 GET_REPLAY | 回放；竞技场和年度赛事结束即公开，PvE 只对本人可见 |
 | | 70 GET_SPARRING、71 START_SPARRING | 陪练快照列表 / 发起练习战 |
 | Agent | 80 AGENT_REPORT_PLAN、81 AGENT_PHASE_NOTE、82 AGENT_COMMENT_BATTLE、83 AGENT_DAILY_REPORT | 叙事接口 |
-| 推送 | 200 PHASE_STARTED、201 BATTLE_UPDATED、202 ARENA_OPPONENTS_READY、203 DEFENSE_RESULT、204 MONTH_STARTED、205 STATE_CHANGED | 服务端推送 |
+| 推送 | 200 PHASE_STARTED、201 BATTLE_UPDATED、204 MONTH_STARTED、205 STATE_CHANGED | 服务端推送；202／203 为旧防守协议保留位，不再产生新的防守结果 |
 
 ## 错误码草案
 

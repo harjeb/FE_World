@@ -16,10 +16,23 @@ export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secr
   | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal'
   | SpellbookItemKey | ManualItemKey;
 
+// 唯一武器：任务专属 + 挑战塔 A 级以上签名武器。它们可以装备、修理、回收，
+// 但不能出售；银系与勇者属于普通生产，不在此集合。
+export const BOUND_WEAPONS = new Set<WeaponId>([
+  'royal_sword', 'divine_lance', 'master_lance',
+  'fw_weapon_88', 'fw_weapon_228', 'fw_weapon_225',
+  'fw_weapon_71', 'fw_weapon_155', 'fw_weapon_213', 'fw_weapon_223',
+  'fw_weapon_49', 'fw_weapon_48', 'fw_weapon_161', 'fw_weapon_215', 'fw_weapon_224',
+]);
+
+export const isBoundWeapon = (id: string): boolean => BOUND_WEAPONS.has(id as WeaponId);
+
 export interface GameItem {
   name: string;
   kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food' | 'spellbook' | 'manual';
   price: number;
+  // 唯一武器绑定：仓库和整备页不允许出售。
+  bound?: boolean;
   // Weapons carry the engine id; 伤药 uses uses; 能力药 names the stat and amount; 法术书／教材写法术 id。
   weapon?: WeaponId;
   item?: ItemId;
@@ -39,6 +52,7 @@ function priceFor(might: number, rank: Rank): number {
 const WEAPON_ITEMS = Object.fromEntries(
   (Object.keys(WEAPONS) as WeaponId[]).map(id => [id, {
     name: WEAPONS[id].name, kind: 'weapon' as const, price: priceFor(WEAPONS[id].might, WEAPONS[id].rank), weapon: id,
+    bound: BOUND_WEAPONS.has(id) || undefined,
   }]),
 ) as Record<WeaponId, GameItem>;
 

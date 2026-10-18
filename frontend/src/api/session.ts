@@ -112,9 +112,9 @@ export interface ServerState {
   rosterLimit: number;
   rosterCount: number;
   units: ServerUnit[];
-  inventory: { item: string; name: string; uses: number; count: number }[];
+  inventory: { item: string; name: string; uses: number; count: number; bound: boolean }[];
   // 活动途中阵亡者的装备，活动结束后才回到仓库。
-  recoveryBag: { item: string; name: string; uses: number }[];
+  recoveryBag: { item: string; name: string; uses: number; bound: boolean }[];
   regions: { id: number; name: string; offset: number; resource: string; cleared: boolean }[];
   progress: { cleared: number; baseLevel: number };
   festival: { round: number; year: number; nextDay: number };
