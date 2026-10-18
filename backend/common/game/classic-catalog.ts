@@ -10,6 +10,8 @@ export interface ClassicEnemy {
   level: number;
   pos: [number, number];
   boss?: boolean;
+  sourceClassId?: number;
+  sourceClass?: string;
 }
 
 export interface ClassicMap {

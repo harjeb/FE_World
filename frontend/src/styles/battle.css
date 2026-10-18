@@ -211,3 +211,18 @@
   .log-list li { grid-template-columns: 1fr; }
   .basestats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
+
+/* 经典地图物件：门/宝箱/村庄/可破坏墙/机关。 */
+.map-object {
+  position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center;
+  width: var(--cell); height: var(--cell); font-weight: 700; color: #2b2421;
+  background: rgba(245, 238, 223, 0.82); border: 2px solid #6e5b3a; box-sizing: border-box;
+  pointer-events: none; border-radius: 3px;
+}
+.map-object.chest { background: rgba(231, 194, 102, 0.9); border-color: #8a5a20; }
+.map-object.village { background: rgba(160, 80, 62, 0.82); color: #fff; border-color: #5d2d24; }
+.map-object.wall { background: rgba(110, 108, 102, 0.95); color: #f5eedf; border-color: #3b3935; }
+.map-object.switch { background: rgba(134, 184, 218, 0.9); border-color: #346086; }
+.map-object.done { opacity: 0.35; filter: grayscale(1); }
+
+.status-mark { position: absolute; left: 1px; top: 1px; z-index: 4; padding: 0 2px; border-radius: 2px; background: rgba(43,36,33,.82); color: #F0CF78; font: 700 8px/1.2 ui-monospace, monospace; pointer-events: none; }

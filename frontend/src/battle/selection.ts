@@ -5,6 +5,8 @@ import {
   actionOptions, cellKey, moveRange, unitAt, unitById,
 } from '@common/engine/index.ts';
 import type { BattleState, Point, UnitState } from '@common/engine/index.ts';
+import { commandDest, commandTargets, isCommand } from './commands.ts';
+import type { CommandMode } from './commands.ts';
 
 export type Mode =
   | { kind: 'idle' }
@@ -14,9 +16,19 @@ export type Mode =
   | { kind: 'attack'; unit: string; to: Point; weapon: WeaponId; target: string | null }
   | { kind: 'heal'; unit: string; to: Point; weapon: WeaponId; target: string | null }
   | { kind: 'item'; unit: string; to: Point }
+  // 战技／法术／功能杖／舞蹈：先选项（战技＋武器、法术书、杖），再选目标；传送与临时墙还要选落点。
+  | { kind: 'art'; unit: string; to: Point; art: string | null; weapon: WeaponId | null; target: string | null }
+  | { kind: 'cast'; unit: string; to: Point; spell: string | null; target: string | null; dest: Point | null }
+  | { kind: 'staff'; unit: string; to: Point; weapon: WeaponId | null; target: string | null; dest: Point | null }
+  | { kind: 'dance'; unit: string; to: Point; target: string | null }
   | { kind: 'busy' };
 
 export const IDLE: Mode = { kind: 'idle' };
+
+// 攻击／治疗 share one shape; building them through here keeps the union discriminated.
+export function weaponMode(kind: 'attack' | 'heal', unit: string, to: Point, weapon: WeaponId, target: string | null): Mode {
+  return kind === 'attack' ? { kind: 'attack', unit, to, weapon, target } : { kind: 'heal', unit, to, weapon, target };
+}
 
 export function canCommand(state: BattleState, unit: UnitState | undefined): boolean {
   return !!unit && unit.alive && unit.side === 'player' && !unit.acted && state.phase === 'player' && !state.result;
@@ -42,6 +54,7 @@ function standFor(state: BattleState, unit: UnitState, target: UnitState, kind: 
 export function clickCell(state: BattleState, mode: Mode, point: Point, hover: Point | null): Mode {
   if (mode.kind === 'busy' || state.result) return mode;
   const other = unitAt(state, point);
+  if (isCommand(mode)) return clickCommand(state, mode, point, other);
   switch (mode.kind) {
     case 'idle':
     case 'inspect':
@@ -54,7 +67,7 @@ export function clickCell(state: BattleState, mode: Mode, point: Point, hover: P
       if (other && other.id !== unit.id) {
         const kind = other.side !== unit.side ? 'attack' : 'heal';
         const stand = standFor(state, unit, other, kind, hover);
-        if (stand) return { kind, unit: unit.id, to: stand.to, weapon: stand.weapon, target: other.id };
+        if (stand) return weaponMode(kind, unit.id, stand.to, stand.weapon, other.id);
         if (canCommand(state, other)) return { kind: 'move', unit: other.id };
         return { kind: 'inspect', unit: other.id };
       }
@@ -71,7 +84,7 @@ export function clickCell(state: BattleState, mode: Mode, point: Point, hover: P
         const usable = options[kind].filter(o => o.targets.some(t => t.id === other.id));
         if (usable.length > 0) {
           const keep = (mode.kind === 'attack' || mode.kind === 'heal') && usable.find(o => o.weapon === mode.weapon);
-          return { kind, unit: unit.id, to: mode.to, weapon: (keep || usable[0]).weapon, target: other.id };
+          return weaponMode(kind, unit.id, mode.to, (keep || usable[0]).weapon, other.id);
         }
       }
       if (same(point, mode.to)) return { kind: 'action', unit: unit.id, to: mode.to };
@@ -81,7 +94,21 @@ export function clickCell(state: BattleState, mode: Mode, point: Point, hover: P
   }
 }
 
+// In a command mode a click picks a target, then (for 传送／临时墙) a landing cell; clicking the
+// planned destination again goes back to the action menu.
+function clickCommand(state: BattleState, mode: CommandMode, point: Point, other: UnitState | undefined): Mode {
+  if (other && commandTargets(state, mode).some(t => t.id === other.id)) {
+    return mode.kind === 'cast' || mode.kind === 'staff' ? { ...mode, target: other.id, dest: null } : { ...mode, target: other.id };
+  }
+  const dest = mode.target ? commandDest(state, mode) : null;
+  if (dest && dest.cells.some(c => same(c, point)) && (mode.kind === 'cast' || mode.kind === 'staff')) return { ...mode, dest: point };
+  if (same(point, mode.to)) return { kind: 'action', unit: mode.unit, to: mode.to };
+  return mode;
+}
+
 export function back(mode: Mode): Mode {
+  if ((mode.kind === 'cast' || mode.kind === 'staff') && mode.dest) return { ...mode, dest: null };
+  if (isCommand(mode)) return mode.target ? { ...mode, target: null } : { kind: 'action', unit: mode.unit, to: mode.to };
   switch (mode.kind) {
     case 'attack':
     case 'heal':
@@ -103,6 +130,7 @@ export function stepIndex(mode: Mode): number {
     case 'move': return 1;
     case 'action': return 2;
     case 'attack': case 'heal': return mode.target ? 3 : 2;
+    case 'art': case 'cast': case 'staff': case 'dance': return mode.target ? 3 : 2;
     case 'item': return 3;
     default: return 0;
   }

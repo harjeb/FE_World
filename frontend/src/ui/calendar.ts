@@ -36,3 +36,7 @@ export function arenaTodayWarning(): string | null {
   const left = arena.progress.total - arena.progress.done;
   return left > 0 ? `今天是竞技场日，还有 ${left} 场进攻没打。推进日期后今天的竞技场随即结算，没打的按落败计，不发金币。` : null;
 }
+
+// Real-world timestamps (reports, Agent notes, leases) in 24-hour Chinese form, whatever the browser locale.
+export const clockTime = (at: number): string => new Date(at).toLocaleTimeString('zh-CN', { hour12: false });
+export const realDateTime = (at: number): string => new Date(at).toLocaleString('zh-CN', { hour12: false });

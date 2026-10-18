@@ -62,7 +62,7 @@ test('reincarnation keeps the inherited growth and only adds the 30-point alloca
   claimLegacy(legacyFor(source), recipient, 'growth');
   const inherited = { ...recipient.inheritedGrowth };
   recipient.level = 99;
-  reincarnate(recipient, { str: 10 }, 'gladiator', 120, 0);
+  reincarnate(recipient, { str: 10 }, 'gladiator', 500, 0);
   assert.deepEqual(recipient.inheritedGrowth, inherited, '轮回保留继承后的个人基础成长');
   assert.deepEqual(recipient.growthAllocation, { str: 10 });
 });
@@ -122,7 +122,7 @@ test('reincarnation resets growth, skills, qualifications and age, once only', (
   unit.growthLog = [{ level: 2, gains: { str: 1 } }];
   unit.growthAllocation = { str: 4 };
   unit.lineageDepth = 1;
-  const { baseStats } = reincarnate(unit, { str: 10, spd: 10, def: 10 }, 'gladiator', 120, 500);
+  const { baseStats } = reincarnate(unit, { str: 10, spd: 10, def: 10 }, 'gladiator', 500, 500);
   assert.equal(unit.cycle, 1);
   assert.equal(unit.level, 1);
   assert.deepEqual(unit.stats, baseStats);
@@ -133,7 +133,7 @@ test('reincarnation resets growth, skills, qualifications and age, once only', (
   assert.deepEqual(unit.drugCounts, {});
   assert.equal(unit.weapons.length, 0);
   assert.deepEqual(unit.growthAllocation, { str: 10, spd: 10, def: 10 });
-  assert.equal(unit.ageBaseDays, 16 * 120);
+  assert.equal(unit.ageBaseDays, 16 * 500);
   assert.equal(unit.ageEpochDay, 500);
   assert.equal(unit.lineageDepth, 1, '血缘锁保留');
   assert.equal(canReincarnate(unit), '每个角色一生只能轮回一次');
@@ -143,14 +143,14 @@ test('reincarnation rejects overspend and low level', () => {
   const low = createUnit('erin', 50, 'r2', 0, true);
   assert.equal(canReincarnate(low), '必须达到 99 级才能轮回');
   const high = createUnit('erin', 99, 'r3', 0, true);
-  assert.throws(() => reincarnate(high, { str: 20, spd: 20 }, 'gladiator', 120, 0), /最多 30/);
-  assert.throws(() => reincarnate(high, { str: 11 }, 'gladiator', 120, 0), /单项/);
+  assert.throws(() => reincarnate(high, { str: 20, spd: 20 }, 'gladiator', 500, 0), /最多 30/);
+  assert.throws(() => reincarnate(high, { str: 11 }, 'gladiator', 500, 0), /单项/);
 });
 
 test('reincarnated level-ups include the 30-point allocation', () => {
   const plain = createUnit('erin', 99, 'plain', 0, false, { classId: 'gladiator', age: 16 });
   const cycled = createUnit('erin', 99, 'cycled', 0, false, { classId: 'gladiator', age: 16 });
-  reincarnate(cycled, { str: 10 }, 'gladiator', 120, 0);
+  reincarnate(cycled, { str: 10 }, 'gladiator', 500, 0);
   assert.equal(growthRates(cycled).str, growthRates(plain).str + 10);
   const a = createUnit('erin', 1, 'a', 0, false, { classId: 'gladiator', age: 16 });
   const b = createUnit('erin', 1, 'b', 0, false, { classId: 'gladiator', age: 16 });

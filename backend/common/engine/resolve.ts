@@ -4,12 +4,12 @@ import { TERRAINS } from '../maps/map.ts';
 import { forecast } from './combat.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
-import { living } from './units.ts';
+import { cureStatuses, living } from './units.ts';
 import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.ts';
 
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
-export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[]): void {
-  const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id);
+export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: { id: string; might: number; hit: number; crit: number }): void {
+  const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art);
   const strikes: Strike[] = [];
   const dealt = { attacker: false, defender: false };
   for (const spec of f.order) {
@@ -24,6 +24,12 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
     const damage = hit ? side.damage * (crit ? 3 : 1) : 0;
     if (damage > 0) {
       foe.hp = Math.max(0, foe.hp - damage);
+      // 睡眠单位受击即醒；本次交战的还击顺序已在睡眠时算好，不会立刻反击。
+      if (foe.statuses?.sleep) {
+        foe.statuses.sleep = false;
+        if (Object.keys(foe.statuses).length === 0) delete foe.statuses;
+        events.push({ t: 'status', unit: foe.id, status: 'sleep', active: false });
+      }
       // 不朽盾：致命时消耗一枚、保留 1HP 并石化，后续攻击不再致死（docs/00 §7.2）。
       if (foe.hp === 0 && (foe.shields ?? 0) > 0) {
         foe.shields = (foe.shields ?? 0) - 1;
@@ -42,6 +48,7 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
     t: 'combat', attacker: attacker.id, defender: defender.id,
     weapons: [weaponId, f.defender.canAttack ? f.defender.weapon : null], strikes,
   });
+  if (art) events.push({ t: 'art', unit: attacker.id, target: defender.id, art: art.id });
   for (const unit of [attacker, defender]) {
     if (unit.hp > 0) continue;
     unit.alive = false;
@@ -54,8 +61,9 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
     events.push({ t: 'defeated', unit: unit.id });
   }
   // Surviving player units that took part gain experience, including a defender that only countered.
+  const friendly = attacker.side === defender.side;
   for (const [unit, foe, didDamage] of [[attacker, defender, dealt.attacker], [defender, attacker, dealt.defender]] as const) {
-    if (unit.side === 'player' && unit.alive) gainExp(state, unit, combatExp(unit, foe, didDamage, !foe.alive), events);
+    if (!friendly && unit.side === 'player' && unit.alive) gainExp(state, unit, combatExp(unit, foe, didDamage, !foe.alive), events);
   }
 }
 
@@ -63,7 +71,8 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
 export function healAmount(healer: UnitState, target: UnitState, weaponId: WeaponId): number {
   const missing = target.stats.hp - target.hp;
   if (WEAPONS[weaponId].heal === 'full') return missing;
-  return Math.min(missing, healer.stats.mag + 10 + (healer.skill === 'prayer' ? 5 : 0));
+  const classHeal = (healer.classSkills ?? []).includes('sk-93') ? 5 : 0;
+  return Math.min(missing, healer.stats.mag + 10 + (healer.skill === 'prayer' ? 5 : 0) + classHeal);
 }
 
 export function runHeal(state: BattleState, healer: UnitState, target: UnitState, weaponId: WeaponId, events: BattleEvent[]): void {
@@ -71,6 +80,7 @@ export function runHeal(state: BattleState, healer: UnitState, target: UnitState
   target.hp += amount;
   if (healer.skill === 'shelter') target.shelteredTurn = state.turn;
   events.push({ t: 'heal', by: healer.id, target: target.id, amount, hpAfter: target.hp, source: 'staff' });
+  if (WEAPONS[weaponId].cure) for (const status of cureStatuses(target)) events.push({ t: 'status', unit: target.id, status, active: false });
   if (healer.side === 'player') gainExp(state, healer, staffExp(healer), events);
 }
 
@@ -86,6 +96,7 @@ export function useItem(unit: UnitState, index: number, events: BattleEvent[]): 
 // Forts and thrones restore 20% max HP to the units standing on them when their phase starts.
 export function terrainHeal(state: BattleState, side: Side, events: BattleEvent[]): void {
   for (const unit of living(state, side)) {
+    if (unit.petrified) continue;
     const percent = TERRAINS[state.map.tiles[unit.pos[1]][unit.pos[0]]].heal;
     const amount = Math.min(unit.stats.hp - unit.hp, Math.floor(unit.stats.hp * percent / 100));
     if (amount <= 0) continue;

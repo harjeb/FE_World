@@ -1,3 +1,4 @@
+import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
 import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classChangeReason } from '../data/classes.ts';
 import type { CatalogClassId, ClassId, ClassRoute } from '../data/classes.ts';
 import type { SkillId } from '../data/skills.ts';
@@ -13,7 +14,7 @@ export const MASTERY_PER_WIN = 4;
 export const MASTERY_PER_TRAIN_DAY = 3;
 export const MASTERY_TRAIN_MAX_DAYS = 30;
 
-export interface MasteryNode { id: string; threshold: number; skill: SkillId; name: string }
+export interface MasteryNode { id: string; threshold: number; skill: SkillId; name: string; referenceIds?: string[] }
 
 // 各路线可提供的技能池；同一路线不同职业按阶段取不同节点，不默认为所有职业同一节点。
 const ROUTE_SKILLS: Record<ClassRoute, SkillId[]> = {
@@ -46,12 +47,13 @@ export const MASTERY_NODES: Record<CatalogClassId, MasteryNode[]> = Object.fromE
     const cls = CLASSES[classId];
     const pool = ROUTE_SKILLS[cls.route];
     const [first, second] = STAGE_THRESHOLDS[cls.stage] ?? STAGE_THRESHOLDS[1];
+    const references = CLASS_ABILITY_BY_ID.get(classId as never)?.masteryIds ?? [];
     return [classId, [
-      { id: `${classId}-1`, threshold: first, skill: pool[0], name: NODE_NAMES[pool[0]] },
-      { id: `${classId}-2`, threshold: second, skill: pool[1] ?? pool[0], name: NODE_NAMES[pool[1] ?? pool[0]] },
+      { id: `${classId}-1`, threshold: first, skill: pool[0], name: NODE_NAMES[pool[0]], referenceIds: references },
+      { id: `${classId}-2`, threshold: second, skill: pool[1] ?? pool[0], name: NODE_NAMES[pool[1] ?? pool[0]], referenceIds: references },
     ]];
   }),
-) as Record<CatalogClassId, MasteryNode[]>;
+) as unknown as Record<CatalogClassId, MasteryNode[]>;
 
 export function masteryNodesFor(classId: ClassId): MasteryNode[] {
   return MASTERY_NODES[canonicalClassId(classId)] ?? [];

@@ -6,13 +6,13 @@ import type { PlaybackHost } from '../battle/playback.ts';
 import { links } from '../router.ts';
 import { BackIcon, HistoryIcon, NextIcon, PlayIcon, PrevIcon } from '../ui/icons.tsx';
 import { session } from '../api/session.ts';
-import type { ServerReplay, ServerReplayData } from '../api/session.ts';
-import { phaseNotes } from './notes.ts';
+import type { BattleNote, ServerReplayData, ServerReplayDetail } from '../api/session.ts';
 import { replayFrom } from './recording.ts';
 import type { Recording } from './recording.ts';
 import { MARK, ReplayTrack, StepMarks } from './ReplayParts.tsx';
 import { isKey, replayItems, starLine, timeline, turnStarts } from './replayModel.ts';
 import type { ReplayItem } from './replayModel.ts';
+import { realDateTime } from '../ui/calendar.ts';
 import { IntentQuote } from './WatchParts.tsx';
 
 type Filter = 'all' | 'key' | 'kill' | 'retreat' | 'level';
@@ -27,15 +27,19 @@ interface Prepared {
   rec: Recording;
   ctl: BattleController;
   items: ReplayItem[];
-  notes: Map<number, { text: string; at: string; model: string }>;
   line: ReturnType<typeof timeline>;
   starts: Map<number, number>;
   stars: { won: boolean; stars: number; missed: string | null };
 }
 
+// Older rules cannot be re-simulated safely (TODO DATA-03): show only the stored final board.
+function finalOnly(data: ServerReplayData): Recording {
+  return { steps: [], states: [data.state], last: data.state };
+}
+
 // Builds the viewer from a stored battle: the recorded commands reproduce the exact board.
-function prepare(data: ServerReplayData): Prepared {
-  const rec = replayFrom(data.initial, data.actions);
+function prepare(data: ServerReplayData, compatible: boolean): Prepared {
+  const rec = compatible ? replayFrom(data.initial, data.actions) : finalOnly(data);
   const ctl = new BattleController({
     key: 'replay', initial: rec.states[0], readOnly: true, surrender: false,
     meta: { region: data.name, goal: data.goalText, extraLabel: data.kind === 'field' ? '三星评价' : '结果', extraValue: '' },
@@ -43,66 +47,50 @@ function prepare(data: ServerReplayData): Prepared {
   });
   ctl.set({ settings: { ...ctl.get().settings, scenes: 'off', threat: false, grid: true } });
   const items = replayItems(rec);
-  return { rec, ctl, items, notes: phaseNotes(rec), line: timeline(rec), starts: turnStarts(rec), stars: starLine(rec, items) };
+  return { rec, ctl, items, line: timeline(rec), starts: turnStarts(rec), stars: starLine(rec, items) };
 }
 
-// 历史回放: a stored battle from the server, step by step. Nothing here changes any result.
-export function ReplayPage({ id }: { id: string | null }) {
-  const [list, setList] = useState<ServerReplay[] | null>(null);
-  const [data, setData] = useState<ServerReplayData | null>(null);
+// 历史回放: a stored battle from the server (GET_REPLAY), step by step. Nothing here changes any result.
+export function ReplayPage({ id }: { id: string }) {
+  const [detail, setDetail] = useState<ServerReplayDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
-    void session.replays().then(setList).catch(e => setError(String(e?.message ?? e)));
-  }, []);
-  const selected = id ?? list?.[0]?.id ?? null;
-  useEffect(() => {
-    if (!selected) return;
-    setData(null);
-    void session.replay(selected).then(setData).catch(e => setError(String(e?.message ?? e)));
-  }, [selected]);
-
-  if (error) return <Frame title="回放" message={`读取回放失败：${error}`} />;
-  if (!data) return <Frame title="回放" message={list && list.length === 0 ? '还没有可看的回放：打一场竞技场或出击后，战报会出现在这里。' : '正在读取回放…'} list={list} selected={selected} />;
-  return <ReplayView key={data.id} data={data} list={list ?? []} selected={selected} />;
+    setDetail(null);
+    void session.replay(id).then(setDetail).catch(e => setError(String(e?.message ?? e)));
+  }, [id]);
+  if (error) return <Frame title="回放" message={/没有公开|找不到/.test(error) ? '找不到这场回放，或这场对局还没有公开。' : `读取回放失败：${error}`} />;
+  if (!detail) return <Frame title="回放" message="正在读取回放…" />;
+  return <ReplayView key={detail.replayId} detail={detail} />;
 }
 
-export function Frame({ title, message, list, selected }: { title: string; message: string; list?: ServerReplay[] | null; selected?: string | null }) {
+export function Frame({ title, message }: { title: string; message: string }) {
   return (
     <div className="app-bg battle-shell">
       <header className="hud" aria-label="回放状态栏">
-        <a className="btn btn-sm btn-dark" href={links.camp}><BackIcon />返回军营</a>
+        <a className="btn btn-sm btn-dark" href={links.reports}><BackIcon />返回战报</a>
         <span className="rp-badge"><HistoryIcon />历史回放</span>
         <span className="ml-auto" style={{ fontSize: 13, color: '#DCE5EB' }}>{title}</span>
       </header>
       <main className="stage">
-        <section className="panel" style={{ margin: 24 }}>
-          <div className="ph"><h2>战报列表</h2></div>
-          <div style={{ padding: 14, fontSize: 14 }}>
-            <p>{message}</p>
-            {list && list.length > 0 && (
-              <ul>
-                {list.map(r => (
-                  <li key={r.id}>
-                    <a href={links.replay(r.id)} aria-current={r.id === selected ? 'page' : undefined}>
-                      {r.name} · {r.winner === 'player' ? '胜利' : '战败'} · {r.turns} 回合
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        <section className="panel" style={{ margin: 24, maxWidth: 640 }}>
+          <div className="ph"><h2>回放</h2></div>
+          <p className="sys-note">{message}</p>
+          <div className="go-bar"><a className="btn" href={links.reports}>打开战报列表</a></div>
         </section>
       </main>
     </div>
   );
 }
 
-export function ReplayView({ data, list, selected, autoPlay = false, spectate = false }: { data: ServerReplayData; list: ServerReplay[]; selected: string | null; autoPlay?: boolean; spectate?: boolean }) {
-  const [{ rec, ctl, items, notes, line, starts, stars }] = useState(() => prepare(data));
+const ACTIVITY_NAME: Record<string, string> = { field: '野外战斗', quest: '地区任务', dungeon: '连续副本', challenge: '挑战塔', arena: '普通竞技场', annual: '年度大竞技场', sparring: '练习' };
+
+export function ReplayView({ detail }: { detail: ServerReplayDetail }) {
+  const data = detail.battle;
+  const [{ rec, ctl, items, line, starts, stars }] = useState(() => prepare(data, detail.compatible));
+  const notes: BattleNote[] = detail.notes.filter(n => n.kind === 'phase');
   const snap = useSyncExternalStore(ctl.subscribe, ctl.get);
   const [pos, setPos] = useState(0);
-  const [playing, setPlaying] = useState(autoPlay);
+  const [playing, setPlaying] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(2);
   const [filter, setFilter] = useState<Filter>('key');
@@ -204,23 +192,17 @@ export function ReplayView({ data, list, selected, autoPlay = false, spectate = 
   const last = pos > 0 ? rec.steps[pos - 1] : null;
   const turn = last?.turn ?? 1, side = last?.side ?? 'player';
   const count = last ? line.count(pos - 1) : null;
-  const note = notes.get(turn);
+  const note = notes.filter(n => n.turn === turn).at(-1) ?? null;
   const shown = items.filter(FILTERS.find(f => f[0] === filter)![2]);
   const field = data.kind === 'field';
 
   return (
     <div className="app-bg battle-shell">
       <header className="hud" aria-label="回放状态栏">
-        <a className="btn btn-sm btn-dark" href={links.camp}><BackIcon />返回军营</a>
-        {spectate ? <span className="live-badge"><i aria-hidden="true" />实时观战</span> : <span className="rp-badge"><HistoryIcon />历史回放</span>}
-        {list.length > 1 && (
-          <select className="btn btn-sm" value={selected ?? ''} onChange={e => { window.location.hash = links.replay(e.target.value).slice(1); }}
-            aria-label="选择战报">
-            {list.map(r => <option key={r.id} value={r.id}>{r.name} · {r.winner === 'player' ? '胜' : '负'}</option>)}
-          </select>
-        )}
+        <a className="btn btn-sm btn-dark" href={links.reports}><BackIcon />返回战报</a>
+        <span className="rp-badge"><HistoryIcon />历史回放</span>
         <div className="flex flex-col">
-          <span className="hud-k">{field ? '野外战斗' : '竞技场'}</span>
+          <span className="hud-k">{ACTIVITY_NAME[detail.summary.activity] ?? (field ? '野外战斗' : '竞技场')}{detail.public ? '' : ' · 仅自己可见'}</span>
           <span className="hud-v serif" style={{ fontSize: 18 }}>{data.name}</span>
         </div>
         <span className="hud-sep" aria-hidden="true" />
@@ -237,7 +219,7 @@ export function ReplayView({ data, list, selected, autoPlay = false, spectate = 
             <span className="hud-v" style={{ fontWeight: 500 }}>{stars.missed}</span>
           </div>
         )}
-        <span className="ml-auto" style={{ fontSize: 13, color: '#DCE5EB' }}>{spectate ? '只读观战：无法在此改变战局' : '回放只可浏览，不会影响任何结果'}</span>
+        <span className="ml-auto" style={{ fontSize: 13, color: '#DCE5EB' }}>{detail.compatible ? '回放只可浏览，不会影响任何结果' : `${detail.reason ?? '旧规则记录'}：只显示终局`}</span>
       </header>
 
       <main className="stage">
@@ -297,8 +279,8 @@ export function ReplayView({ data, list, selected, autoPlay = false, spectate = 
           </section>
           <section className="panel" aria-labelledby="ai-h">
             <div className="ph"><h2 id="ai-h">Agent 当时上报的意图</h2><span className="tag tag-brass">计划描述</span></div>
-            <div className="intent-k">第 {turn} 回合 · 己方阶段</div>
-            {note ? <IntentQuote text={note.text} meta={[`${note.at} 上报`, note.model]} /> : <div className="intent-empty">这一回合 Agent 没有上报意图。</div>}
+            <div className="intent-k">第 {turn} 回合</div>
+            {note ? <IntentQuote text={note.text} meta={[`${realDateTime(note.at)} 上报`]} /> : <div className="intent-empty">这一回合 Agent 没有上报意图（AGENT_PHASE_NOTE）。</div>}
           </section>
         </aside>
       </main>

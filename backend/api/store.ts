@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Defense } from '../common/arena/rules.ts';
+import type { RandomRecruit } from '../common/game/random-recruit.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { SHOP_STOCK } from '../common/game/items.ts';
 import { createUnit, normalizeUnit } from '../common/game/model.ts';
@@ -45,6 +46,22 @@ export interface PlayerFlags {
   emergencyClaimed?: number;
   // 最近一次 Agent 连接上报时间 (docs/06)，用于区分在线/离线。
   agentLastSeen?: number;
+  // 账号级传承解锁：完成一次核心任务后永久开放（docs/00 §7.3）。
+  legacyUnlocked?: boolean;
+  // 游历候选：成功后先保存，接受/拒绝前不重掷。
+  pendingRecruit?: { id: string; region: number; day: number; seed: string; candidate: RandomRecruit };
+  recruitFailsByRegion?: Record<number, number>;
+  // 酒馆季度候选：同一季度只刷新一次。
+  tavernQuarter?: number;
+  tavernCandidates?: Record<number, { id: string; price: number; hired: boolean; candidate: RandomRecruit }[]>;
+  annualRewardsClaimed?: string[];
+  towerCleared?: string[];
+  challengeRewardsClaimed?: string[];
+  minigameQuarter?: number;
+  minigamePlays?: number;
+  // 完美锻造产出的 +10 强化券：下一次把该武器装入角色栏时消耗。
+  perfectWeapons?: Record<string, number>;
+  controlLease?: { owner: string; expiresAt: number };
 }
 
 export interface Player {
@@ -71,7 +88,7 @@ export interface MemorialData { unitId: string; name: string; character: string;
 
 export interface InventoryRow { id: number; item: ItemKey; uses: number; count: number }
 export interface EventRow { id: number; kind: string; text: string; data: unknown; createdAt: number }
-export interface NoteRow { id: number; kind: string; text: string; battleId: string | null; createdAt: number }
+export interface NoteRow { id: number; kind: string; text: string; battleId: string | null; createdAt: number; turn?: number | null }
 export interface SnapshotRow { id: string; day: number; data: SnapshotData; createdAt: number }
 export interface SnapshotData { roster: unknown[]; defense: Defense | null; label: string }
 export interface DueTask { id: number; playerId: string | null; kind: string; dueAt: number; payload: unknown }
@@ -87,12 +104,29 @@ export const PROTAGONIST: CharacterId = 'erin';
 
 // The prototype's fixed moment: the arena day that ends game month 7 (docs/11「演示页面」). A new
 // player starts here with a trained roster so every screen is immediately playable.
-export const SEED_DAY = 209;
+export const NEW_GAME_DAY = 0;
+export const NEW_GAME_GOLD = 13_120;
+export const NEW_GAME_BEXP = 0;
+// 演示/测试用的旧起点，仅显式演示或测试夹具使用。
+export const SEED_DAY = 999;
 export const SEED_GOLD = 13_120;
 export const SEED_BEXP = 340;
 
 export class Store {
   readonly db: DatabaseSync;
+
+  // 业务写入与收据同事务：任何中途异常回滚整次命令。
+  transaction<T>(fn: () => T): T {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const result = fn();
+      this.db.exec('COMMIT');
+      return result;
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      throw error;
+    }
+  }
 
   constructor(db: DatabaseSync) {
     this.db = db;
@@ -134,8 +168,13 @@ export class Store {
   }
 
   resolveSession(token: string): string | null {
-    const row = this.db.prepare('SELECT account_id FROM sessions WHERE token = ?').get(token) as { account_id: string } | undefined;
+    const row = this.db.prepare('SELECT account_id, last_seen FROM sessions WHERE token = ?').get(token) as { account_id: string; last_seen: number } | undefined;
     if (!row) return null;
+    // 30 天不活跃的网页会话失效；Agent token 独立且不随网页会话过期。
+    if (Date.now() - row.last_seen > 30 * 24 * 60 * 60 * 1000) {
+      this.db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
+      return null;
+    }
     this.db.prepare('UPDATE sessions SET last_seen = ? WHERE token = ?').run(Date.now(), token);
     return row.account_id;
   }
@@ -144,13 +183,13 @@ export class Store {
 
   createPlayer(accountId: string, name: string, legion: string): Player {
     const id = randomUUID();
-    const flags: PlayerFlags = { clearedRegions: [1, 2], shopMonth: Math.floor(SEED_DAY / 30), festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
+    const flags: PlayerFlags = { clearedRegions: [], shopMonth: 0, festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
     this.db.prepare(`INSERT INTO players
       (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, version, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, accountId, name, legion, SEED_DAY, SEED_GOLD, SEED_BEXP, 1317, 0, 1, PROTAGONIST, JSON.stringify(null), JSON.stringify(flags), 0, Date.now());
+      .run(id, accountId, name, legion, NEW_GAME_DAY, NEW_GAME_GOLD, NEW_GAME_BEXP, 0, 0, 1, PROTAGONIST, JSON.stringify(null), JSON.stringify(flags), 0, Date.now());
     // 开局先发一名占位主角；玩家在初始界面自捏神主角并选两名同伴（docs/00「神主角」、docs/13 §开局）。
-    const unit = createUnit(PROTAGONIST, DEMO_LEVEL[PROTAGONIST] ?? 1, `u_${PROTAGONIST}`, SEED_DAY, true);
+    const unit = createUnit(PROTAGONIST, 1, `u_${PROTAGONIST}`, NEW_GAME_DAY, true);
     unit.isProtagonist = true;
     this.saveUnit(unit, id, 0);
     this.addInventory(id, 'vulnerary', 3, 5);
@@ -159,7 +198,7 @@ export class Store {
     this.addInventory(id, 'wood', 0, 4);
     this.addInventory(id, 'seed', 0, 4);
     this.refillShop(id, flags.shopMonth);
-    this.addEvent(id, 'account', '军团建立：灰鸦军团。', {});
+    this.addEvent(id, 'account', `军团建立：${legion}。`, {});
     return this.getPlayer(id)!;
   }
 
@@ -177,11 +216,17 @@ export class Store {
     return (this.db.prepare('SELECT * FROM players').all() as Record<string, unknown>[]).map(rowToPlayer);
   }
 
-  savePlayer(player: Player): void {
-    this.db.prepare(`UPDATE players SET day = ?, gold = ?, bexp = ?, arena_points = ?, arena_medals = ?,
-      registered = ?, protagonist = ?, defense = ?, flags = ?, version = ? WHERE id = ?`)
-      .run(player.day, player.gold, player.bexp, player.arenaPoints, player.arenaMedals,
-        player.registered ? 1 : 0, player.protagonist, JSON.stringify(player.defense), JSON.stringify(player.flags), player.version, player.id);
+  savePlayer(player: Player, expectedVersion?: number): void {
+    const result = expectedVersion === undefined
+      ? this.db.prepare(`UPDATE players SET day = ?, gold = ?, bexp = ?, arena_points = ?, arena_medals = ?,
+          registered = ?, protagonist = ?, defense = ?, flags = ?, version = ? WHERE id = ?`)
+        .run(player.day, player.gold, player.bexp, player.arenaPoints, player.arenaMedals,
+          player.registered ? 1 : 0, player.protagonist, JSON.stringify(player.defense), JSON.stringify(player.flags), player.version, player.id)
+      : this.db.prepare(`UPDATE players SET day = ?, gold = ?, bexp = ?, arena_points = ?, arena_medals = ?,
+          registered = ?, protagonist = ?, defense = ?, flags = ?, version = ? WHERE id = ? AND version = ?`)
+        .run(player.day, player.gold, player.bexp, player.arenaPoints, player.arenaMedals,
+          player.registered ? 1 : 0, player.protagonist, JSON.stringify(player.defense), JSON.stringify(player.flags), player.version, player.id, expectedVersion);
+    if (Number(result.changes) === 0) throw new Error('PLAYER_VERSION_CONFLICT: 玩家状态已被其他连接修改');
   }
 
   // ---- units -------------------------------------------------------------
@@ -293,18 +338,44 @@ export class Store {
   addEvent(playerId: string, kind: string, text: string, data: unknown): number {
     const result = this.db.prepare('INSERT INTO events (player_id, kind, text, data, created_at) VALUES (?, ?, ?, ?, ?)')
       .run(playerId, kind, text, JSON.stringify(data ?? null), Date.now());
-    return Number(result.lastInsertRowid);
+    const id = Number(result.lastInsertRowid);
+    // 同事务写入 outbox：推送失败可按 event id 重试，events 表仍是最终事实来源。
+    this.db.prepare('INSERT OR IGNORE INTO outbox (event_id, player_id, kind, payload, created_at) VALUES (?, ?, ?, ?, ?)')
+      .run(id, playerId, kind, JSON.stringify({ id, kind, text, data: data ?? null }), Date.now());
+    return id;
   }
 
-  events(playerId: string, sinceId = 0, limit = 100): EventRow[] {
+  pendingOutbox(limit = 100): { eventId: number; playerId: string; payload: unknown }[] {
+    return (this.db.prepare('SELECT event_id, player_id, payload FROM outbox WHERE delivered_at IS NULL ORDER BY event_id LIMIT ?').all(limit) as { event_id: number; player_id: string; payload: string }[])
+      .map(row => ({ eventId: row.event_id, playerId: row.player_id, payload: JSON.parse(row.payload) }));
+  }
+
+  markOutboxDelivered(eventIds: number[]): void {
+    const now = Date.now();
+    const update = this.db.prepare('UPDATE outbox SET delivered_at = ? WHERE event_id = ?');
+    for (const id of eventIds) update.run(now, id);
+  }
+
+  events(playerId: string, sinceId: string | number = 0, limit = 100): EventRow[] {
     return (this.db.prepare('SELECT id, kind, text, data, created_at FROM events WHERE player_id = ? AND id > ? ORDER BY id LIMIT ?')
       .all(playerId, sinceId, limit) as { id: number; kind: string; text: string; data: string; created_at: number }[])
       .map(r => ({ id: r.id, kind: r.kind, text: r.text, data: JSON.parse(r.data), createdAt: r.created_at }));
   }
 
-  addNote(playerId: string, kind: string, text: string, battleId: string | null): void {
-    this.db.prepare('INSERT INTO notes (player_id, kind, text, battle_id, created_at) VALUES (?, ?, ?, ?, ?)')
-      .run(playerId, kind, text, battleId, Date.now());
+  latestEventId(playerId: string): string {
+    const row = this.db.prepare('SELECT COALESCE(MAX(id), 0) AS id FROM events WHERE player_id = ?').get(playerId) as { id: number };
+    return String(row.id);
+  }
+
+  addNote(playerId: string, kind: string, text: string, battleId: string | null, turn: number | null = null): void {
+    this.db.prepare('INSERT INTO notes (player_id, kind, text, battle_id, created_at, turn) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(playerId, kind, text, battleId, Date.now(), turn);
+  }
+
+  // 一场战斗的 Agent 阶段意图与点评，按写入顺序。
+  notesForBattle(playerId: string, battleId: string): NoteRow[] {
+    return (this.db.prepare('SELECT id, kind, text, battle_id, created_at, turn FROM notes WHERE player_id = ? AND battle_id = ? ORDER BY id LIMIT 500').all(playerId, battleId) as { id: number; kind: string; text: string; battle_id: string | null; created_at: number; turn: number | null }[])
+      .map(r => ({ id: r.id, kind: r.kind, text: r.text, battleId: r.battle_id, createdAt: r.created_at, turn: r.turn ?? null }));
   }
 
   notes(playerId: string, kind?: string): NoteRow[] {
@@ -424,9 +495,9 @@ export class Store {
     return { id: row.id, playerId: row.player_id, data: JSON.parse(row.data), publicAt: row.public_at, createdAt: row.created_at };
   }
 
-  replays(playerId: string): ReplayRow[] {
-    return (this.db.prepare('SELECT id, player_id, data, public_at, created_at FROM replays WHERE player_id = ? OR public_at <= ? ORDER BY created_at DESC LIMIT 50')
-      .all(playerId, Date.now()) as { id: string; player_id: string; data: string; public_at: number; created_at: number }[])
+  replays(playerId: string, limit = 50): ReplayRow[] {
+    return (this.db.prepare('SELECT id, player_id, data, public_at, created_at FROM replays WHERE player_id = ? OR public_at <= ? ORDER BY created_at DESC LIMIT ?')
+      .all(playerId, Date.now(), limit) as { id: string; player_id: string; data: string; public_at: number; created_at: number }[])
       .map(r => ({ id: r.id, playerId: r.player_id, data: JSON.parse(r.data), publicAt: r.public_at, createdAt: r.created_at }));
   }
 

@@ -50,6 +50,8 @@ interface Chapter { chapter: number; available: boolean; completed: boolean; cla
 
 test('story chapters show a title once open and what was learned once completed', () => {
   const { store, accountId, player } = setup('story-ui');
+  player.day = 499;
+  store.savePlayer(player);
   const ctx = ctxFor(store, accountId, player);
   const story = () => dispatch(ctx, OP.GET_STORY, {}) as { bexp: number; chapters: Chapter[] };
   const first = story();

@@ -70,10 +70,8 @@ test('old invented class IDs resolve without creating duplicate market professio
   assert.equal(CATALOG_CLASS_IDS.some(id => (id as string) === 'sword_lord'), false);
 });
 
-test('unimplemented special class mechanics are visible as unavailable rather than ordinary bow or mounted classes', () => {
-  for (const id of ['dancer', 'apsara', 'charioteer'] as const) {
-    assert.ok(classUnavailableReason(id), id);
-  }
+test('former special class mechanics are now ordinary configurable classes', () => {
+  assert.equal(classUnavailableReason('charioteer'), null);
   assert.equal(classUnavailableReason('bow_knight'), null);
 });
 

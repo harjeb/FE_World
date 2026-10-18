@@ -99,11 +99,7 @@ const REFERENCE_ROUTES: Record<(typeof FW_CLASS_REFERENCE)[number]['id'], ClassR
   wiseman: 'healing', valkyrie: 'healing', blade: 'sword', apsara: 'sword', everlord: 'axe',
   fist_deity: 'fist', calamity: 'bow', storm_lancer: 'healing', divine_cavalier: 'cavalry', saint: 'healing',
 };
-const PENDING_MECHANICS: Partial<Record<keyof typeof REFERENCE_ROUTES, string[]>> = {
-  charioteer: ['战车直线范围攻击'],
-  dancer: ['舞蹈再行动'],
-  apsara: ['舞蹈再行动'],
-};
+const PENDING_MECHANICS: Partial<Record<keyof typeof REFERENCE_ROUTES, string[]>> = {};
 const STUDY_WEAPON: Partial<Record<ClassStudy, WeaponType>> = {
   sword: 'sword', lance: 'lance', axe: 'axe', bow: 'bow', fist: 'fist', blackMagic: 'tome', whiteMagic: 'staff',
 };
@@ -196,6 +192,14 @@ for (const [oldId, id] of Object.entries(CLASS_ALIASES) as [keyof typeof CLASS_A
 export function classDef(id: ClassId): ClassDef { return CLASSES[id]; }
 export function initialClass(route: ClassRoute): ClassId { return CLASS_PATHS[route][0][0]; }
 export function initialClassOf(classId: ClassId): ClassId { return initialClass(CLASSES[classId].route); }
+export function weaponRankCap(id: ClassId, type: WeaponType): Rank | undefined {
+  const cls = CLASSES[id];
+  if (!cls || !cls.weapons[type]) return undefined;
+  if (cls.stage >= 5) return 'SSS';
+  if (cls.stage >= 4) return 'SS';
+  return cls.weapons[type];
+}
+
 export function classUnavailableReason(id: ClassId): string | null {
   if ((RETIRED_CLASS_IDS as readonly string[]).includes(id)) return '该职业已移除，仅保留旧存档读取兼容';
   const cls = CLASSES[id];
@@ -230,3 +234,15 @@ export const CLASS_PRICE: Record<ClassStage, number> = { 0: 0, 1: 500, 2: 1_500,
 export function classOpenYear(id: ClassId): number { return CLASS_OPEN_YEAR[CLASSES[id].stage]; }
 export function classPrice(id: ClassId): number { return CLASS_PRICE[CLASSES[id].stage]; }
 export const CLASS_PURCHASE_LIMIT = 3;
+
+// 原表技能 EXP 加成栏为空：没有确认值时返回 undefined，不把未知误写成 0。
+export function trainingBonusFor(id: ClassId, study: ClassStudy): number | undefined {
+  return CLASSES[id].trainingBonus[study];
+}
+
+export function studyForWeapon(type: WeaponType): ClassStudy {
+  if (type === 'tome') return 'blackMagic';
+  if (type === 'staff') return 'whiteMagic';
+  if (type === 'beast' || type === 'dragon') return 'infantry';
+  return type as ClassStudy;
+}

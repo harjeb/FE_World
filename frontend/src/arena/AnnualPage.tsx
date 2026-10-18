@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ARENA_MAPS } from '@common/arena/maps.ts';
 import { unitById } from '@common/engine/index.ts';
 import type { BattleState } from '@common/engine/index.ts';
-import { annualWindowOpen, nextFestivalRound } from '@common/game/annual.ts';
+import { annualIndexFor, nextFestivalRound } from '@common/game/annual.ts';
 import type { AnnualEntry } from '@common/game/annual.ts';
 import { festivalMapId } from '@common/game/battles.ts';
 import { OP } from '@common/protocol/ops.ts';
@@ -16,6 +16,7 @@ import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { QuoteBox, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
 import { ANNUAL_STATE, Bracket, isLive, nextMatchLabel } from './AnnualParts.tsx';
+import { busyReason } from '../model/roster.ts';
 
 type Entry = NonNullable<ServerAnnual['entry']>;
 
@@ -27,12 +28,6 @@ function goalOf(state: BattleState): string {
 
 // The map the next match is played on, from the same rule the server uses (game/battles.ts).
 const nextMap = (entry: Entry) => ARENA_MAPS[festivalMapId(nextFestivalRound(entry as unknown as AnnualEntry))];
-
-// The first day the registration window is open again, by the server's rule (game/annual.ts).
-function nextWindow(day: number): number {
-  for (let d = day + 1; d < day + 400; d++) if (annualWindowOpen(d)) return d;
-  return day;
-}
 
 function festivalSession(state: BattleState, label: string, back: () => void): BattleSession {
   return {
@@ -87,7 +82,8 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
   const { annual, state } = useSession();
   const { busy, act } = useAct();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
-  const [team, setTeam] = useState<string[]>(() => active.map(u => u.id));
+  // 远征或派遣中的角色不能报名（REGISTER_ANNUAL 拒绝）。
+  const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).map(u => u.id));
   const [quote, setQuote] = useState<ActionQuote | null>(null);
   const version = state?.version ?? 0;
   useEffect(() => setQuote(null), [version]);
@@ -98,7 +94,9 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
   const current = annual.entry && annual.entry.annualIndex === annual.annualIndex ? annual.entry : null;
   const previous = annual.entry && annual.entry.annualIndex !== annual.annualIndex ? annual.entry : null;
   const units = (ids: string[]) => ids.map(id => state.units.find(u => u.id === id)).filter((u): u is NonNullable<typeof u> => !!u);
-  const opening = annual.windowOpen ? state.day : nextWindow(state.day);
+  // Outside the window the page talks about the next edition (the server's nextOpenDay; 4000 = no more).
+  const finished = !annual.windowOpen && annual.nextOpenDay >= 4000;
+  const shownIndex = current?.annualIndex ?? (annual.windowOpen || finished ? annual.annualIndex : annualIndexFor(annual.nextOpenDay));
   const map = current && isLive(current) ? nextMap(current) : null;
 
   return (
@@ -106,7 +104,7 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
       <div className="brief-head">
         <div>
           <div className="eyebrow">竞技场 · 年度大竞技场 · {dateLabel(state.day)}</div>
-          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>第 {annual.annualIndex} 届大竞技场</h1>
+          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>第 {shownIndex} 届大竞技场</h1>
           <p style={{ fontSize: 14, color: '#4E473D' }}>
             海选 {annual.qualifierMatches} 场至少 {annual.qualifierWins} 胜进入 64 强正赛，正赛单败 6 轮夺冠。每场推进 {annual.costDays} 日，倒下的普通角色永久死亡；当届出局或退赛不能重报。
           </p>
@@ -119,7 +117,8 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
           <section className="panel" aria-labelledby="br-h">
             <div className="ph">
               <h2 id="br-h">本届赛程</h2>
-              {current ? <span className={`tag ${ANNUAL_STATE[current.state][1]}`}>{ANNUAL_STATE[current.state][0]}</span> : <span className="tag tag-grey">未报名</span>}
+              {current ? <span className={`tag ${ANNUAL_STATE[current.state][1]}`}>{ANNUAL_STATE[current.state][0]}</span>
+                : annual.windowOpen ? <span className="tag tag-blue">报名中</span> : <span className="tag tag-grey">{finished ? '八届已结束' : '未开放'}</span>}
             </div>
             {current && <Bracket entry={current} matches={annual.qualifierMatches} wins={annual.qualifierWins} />}
 
@@ -159,7 +158,7 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
             {!current && (annual.windowOpen
               ? <>
                 <div className="grp">选择参赛名单 · 勾选顺序即出战顺序</div>
-                <TeamPicker units={active} team={team} max={active.length} protagonist={state.player.protagonist} onChange={setTeam} ordered />
+                <TeamPicker units={active} team={team} max={active.length} protagonist={state.player.protagonist} onChange={setTeam} ordered why={u => busyReason(u, annual)} />
                 <div className="go-bar">
                   <span style={{ fontSize: 13, color: '#4E473D', marginRight: 'auto' }}>报名会锁定名单与当前快照；之后只能用名单里仍活着的人。</span>
                   <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || team.length === 0}
@@ -168,7 +167,9 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
                   </button>
                 </div>
               </>
-              : <p className="sys-note">现在不在报名窗口内。下次开放：{plainDate(opening)}（{opening - state.day} 日后）。</p>)}
+              : <p className="sys-note">{finished
+                ? '八届大竞技场都已结束。'
+                : `报名窗口是每年最后 18 日。第 ${shownIndex} 届在 ${plainDate(annual.nextOpenDay)} 开放报名（${annual.nextOpenDay - state.day} 日后）。`}</p>)}
           </section>
 
           {previous && (

@@ -16,6 +16,8 @@ function setup() {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'permanent', undefined, '测试军团');
   seedFullRoster(store, player);
+  player.flags.legacyUnlocked = true;
+  store.savePlayer(player);
   return { store, accountId, player: syncPlayer(store, player) };
 }
 
@@ -152,10 +154,10 @@ test('natural death happens on the calendar and is not replayed twice', () => {
   const { store, accountId, player } = setup();
   const unit = store.unit(player.id, 'u_mira')!;
   unit.lifespanYears = 80;
-  unit.ageBaseDays = 79 * 120;
+  unit.ageBaseDays = 79 * 500;
   unit.ageEpochDay = player.day;
   store.saveUnit(unit, player.id);
-  player.day += 121;
+  player.day += 501;
   syncPlayer(store, player);
   const after = store.unit(player.id, 'u_mira')!;
   assert.equal(after.status, 'dead');

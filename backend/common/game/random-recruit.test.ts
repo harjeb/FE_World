@@ -74,18 +74,18 @@ test('beast and dragon only show up in their home regions, and do show up there'
     for (let i = 0; i < 800; i++) seen.add(generateRecruit(`home-${regionId}-${i}`, regionRoutes(regionId)).species);
     return seen;
   };
-  assert.ok(speciesIn(7).has('beast'), '兽岭 should produce beast recruits');
-  assert.ok(speciesIn(10).has('dragon'), '龙谷 should produce dragon recruits');
-  assert.ok(!speciesIn(1).has('beast') && !speciesIn(1).has('dragon'), '晨原 should stay human-only');
+  assert.ok(speciesIn(7).has('beast'), 'the beast ridge (region 7) should produce beast recruits');
+  assert.ok(speciesIn(10).has('dragon'), 'the dragon vale (region 10) should produce dragon recruits');
+  assert.ok(!speciesIn(1).has('beast') && !speciesIn(1).has('dragon'), 'region 1 should stay human-only');
 });
 
 test('recruit level ramps to 30 by the end of year two and then holds', () => {
   assert.equal(recruitLevel(0), 1);
-  assert.equal(recruitLevel(120), 16);
-  assert.equal(recruitLevel(239), 30);
-  assert.equal(recruitLevel(240), 30);
+  assert.equal(recruitLevel(500), 15);
+  assert.equal(recruitLevel(999), 30);
+  assert.equal(recruitLevel(1000), 30);
   assert.equal(recruitLevel(5000), 30);
-  assert.equal(RECRUIT_UNLOCK_DAY, 120);
+  assert.equal(RECRUIT_UNLOCK_DAY, 500);
 });
 
 test('recruit class follows level, allowing promoted classes', () => {

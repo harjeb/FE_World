@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
-import { MY_ROSTER } from '../demo/live.ts';
 import { ARENA_MAPS } from '@common/arena/maps.ts';
-import { opponentList } from '@common/arena/rules.ts';
-import type { SnapshotUnit } from '@common/arena/rules.ts';
-import { CHARACTERS } from '@common/data/characters.ts';
-import type { CharacterId } from '@common/data/characters.ts';
+import type { ArenaMapId } from '@common/arena/maps.ts';
 import { CLASSES } from '@common/data/classes.ts';
+import type { ClassId } from '@common/data/classes.ts';
 import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
+import type { WeaponId } from '@common/data/weapons.ts';
 import { portraitFor, spriteFor, weaponIcon } from '../assets.ts';
+import { session, useSession } from '../api/session.ts';
+import type { OpponentUnit } from '../api/session.ts';
+import { useServerData } from '../api/useServerData.ts';
 import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
+import { toast } from '../ui/toast.tsx';
 import { Flow, MapPreview, RulesGrid, Versus, useFitCell } from './ArenaParts.tsx';
 import { arena, useArena } from './store.ts';
 
-function Face({ unit, size }: { unit: SnapshotUnit; size: 32 | 44 }) {
-  const looks = { classId: unit.classId, side: 'enemy' as const, character: unit.character };
+function Face({ unit, size }: { unit: Pick<OpponentUnit, 'classId' | 'character'>; size: 32 | 44 }) {
+  const looks = { classId: unit.classId as ClassId, side: 'enemy' as const, character: unit.character };
   return (
     <span className="pf enemy" style={{ width: size + 2, height: size + 2 }}>
       <img className="px flip" src={portraitFor(looks) ?? spriteFor(looks)} width={size} height={size} alt="" />
@@ -23,40 +25,52 @@ function Face({ unit, size }: { unit: SnapshotUnit; size: 32 | 44 }) {
   );
 }
 
-// Steps 1–2 (docs/05): the defense list with full stats and gear, no positions, AI or priority;
-// ban exactly B before anything is revealed.
+// Steps 1–2 (docs/05): the defender's list with full stats and gear (GET_OPPONENT), no positions, AI or
+// priority; ban exactly B before anything is revealed.
 export function BanPage({ id }: { id: string }) {
   const day = useArena();
-  const defense = arena.opponent(id);
-  const record = day.attacks[id];
-  const [bans, setBans] = useState<CharacterId[]>([]);
-  const [fitRef, cell] = useFitCell(defense ? ARENA_MAPS[defense.map].rows[0].length : 16, [32, 16]);
+  const { state } = useSession();
+  const opponent = arena.opponent(id);
+  const record = day.attacks[id] ?? arena.record(id);
+  const { data, error } = useServerData(() => session.opponent(id), [id]);
+  const [bans, setBans] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const map = opponent ? ARENA_MAPS[opponent.map as ArenaMapId] : null;
+  const [fitRef, cell] = useFitCell(map ? map.rows[0].length : 16, [32, 16]);
 
   useEffect(() => {
-    if (!defense) go(links.arena);
+    if (!opponent) go(links.arena);
     else if (record.status === 'revealed') go(links.deploy(id));
     else if (record.status !== 'new') go(links.battle(id));
-  }, [defense, record, id]);
-  if (!defense || record.status !== 'new') return null;
+  }, [opponent, record.status, id]);
+  if (!opponent || !map || record.status !== 'new') return null;
 
-  const map = ARENA_MAPS[defense.map];
-  const list = opponentList(defense);
+  const list = [...(data?.list ?? [])].sort((a, b) => b.level - a.level);
   const full = bans.length >= map.bans;
-  const toggle = (c: CharacterId) => setBans(bans.includes(c) ? bans.filter(b => b !== c) : full ? bans : [...bans, c]);
+  const toggle = (c: string) => setBans(bans.includes(c) ? bans.filter(b => b !== c) : full ? bans : [...bans, c]);
+  const mine = state?.units.filter(u => u.status === 'active' && !u.lockedDispatchId).length ?? 0;
+  const confirm = async () => {
+    setBusy(true);
+    try { await arena.confirmBans(id, bans); go(links.deploy(id)); }
+    catch (e) { toast(`禁用失败：${e instanceof Error ? e.message : String(e)}`); }
+    finally { setBusy(false); }
+  };
 
   return (
     <Shell current="arena">
-      <Versus defense={defense} />
+      <Versus opponent={opponent} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Flow current={1} />
-        <span style={{ fontSize: 13, color: '#4E473D' }}>推进日期前打完；没打的进攻按落败计</span>
+        <span style={{ fontSize: 13, color: '#4E473D' }}>每场进攻推进 1 日；当日没打的进攻在结算时按落败计</span>
       </div>
       <div className="arena-cols">
         <section className="panel" aria-labelledby="list-h" style={{ flex: '999 1 640px', minWidth: 0 }}>
           <div className="ph">
             <h2 id="list-h">防守名单 <span style={{ fontWeight: 500, color: '#6A6256' }}>{list.length} 人 · 本图出战 {map.deploy} + 禁用 {map.bans}</span></h2>
-            <span style={{ fontSize: 12, color: '#6A6256' }}>按等级排序 · 防守优先级不公开</span>
+            <span style={{ fontSize: 12, color: '#6A6256' }}>按等级排序 · 优先级与 AI 不公开</span>
           </div>
+          {error && <p className="sys-note">读不到对手名单：{error}</p>}
+          {!data && !error && <p className="sys-note">读取对手名单…</p>}
           <div className="listscroll">
             <div className="thead" aria-hidden="true">
               <span /><span>角色</span>
@@ -66,21 +80,20 @@ export function BanPage({ id }: { id: string }) {
             <ul aria-label="防守方角色">
               {list.map(u => {
                 const banned = bans.includes(u.character);
-                const name = CHARACTERS[u.character].name;
                 return (
                   <li key={u.character} className={`drow${banned ? ' banned' : ''}`}>
                     <Face unit={u} size={44} />
                     <span className="min-w-0">
-                      <span className="dn">{name}</span>
-                      <span className="dc">{CLASSES[u.classId].name} · Lv {u.level}</span>
+                      <span className="dn">{u.name}</span>
+                      <span className="dc">{CLASSES[u.classId as ClassId]?.name ?? u.classId} · Lv {u.level}</span>
                     </span>
                     {STAT_KEYS.map(k => <span key={k} className="s">{u.stats[k] ?? 0}</span>)}
-                    <span className="wpns" title={u.weapons.map(w => WEAPONS[w].name).join('、')}>
-                      {u.weapons.map(w => <img key={w} className="px" src={weaponIcon(WEAPONS[w].type)} width={16} height={16} alt={WEAPONS[w].name} />)}
-                      <span className="wnames">{u.weapons.map(w => WEAPONS[w].name).join(' ')}</span>
+                    <span className="wpns" title={u.weapons.map(w => WEAPONS[w as WeaponId]?.name ?? w).join('、')}>
+                      {u.weapons.map(w => <img key={w} className="px" src={weaponIcon(WEAPONS[w as WeaponId].type)} width={16} height={16} alt={WEAPONS[w as WeaponId].name} />)}
+                      <span className="wnames">{u.weapons.map(w => WEAPONS[w as WeaponId]?.name ?? w).join(' ')}</span>
                     </span>
                     <button type="button" className="btn btn-sm ban" aria-pressed={banned} disabled={!banned && full}
-                      onClick={() => toggle(u.character)} aria-label={`${banned ? '撤销禁用' : '禁用'} ${name}`}>
+                      onClick={() => toggle(u.character)} aria-label={`${banned ? '撤销禁用' : '禁用'} ${u.name}`}>
                       {banned ? '已禁用' : '禁用'}
                     </button>
                   </li>
@@ -101,7 +114,7 @@ export function BanPage({ id }: { id: string }) {
             <li><span>防守站位</span><b>禁用后揭晓</b></li>
             <li><span>防守方 AI 行为</span><b>全程不公开</b></li>
             <li><span>防守方对我方的预设禁用</span><b>揭晓阵容时显示</b></li>
-            <li><span>我方可出战</span><b>现役名册 {MY_ROSTER.length} 人</b></li>
+            <li><span>我方可出战</span><b>现役 {mine} 人（派遣中的不算）</b></li>
           </ul>
         </section>
       </div>
@@ -113,24 +126,24 @@ export function BanPage({ id }: { id: string }) {
         <div className="flex flex-wrap gap-2">
           {Array.from({ length: map.bans }, (_, i) => {
             const c = bans[i];
-            const u = c ? list.find(x => x.character === c)! : null;
+            const u = c ? list.find(x => x.character === c) : null;
             return u ? (
               <span key={i} className="slot">
                 <Face unit={u} size={32} />
-                <b style={{ fontSize: 14 }}>{CHARACTERS[u.character].name}</b>
+                <b style={{ fontSize: 14 }}>{u.name}</b>
                 <button type="button" className="btn btn-sm btn-ghost" style={{ minHeight: 32, padding: '0 8px' }}
-                  onClick={() => toggle(u.character)} aria-label={`撤销禁用 ${CHARACTERS[u.character].name}`}>撤销</button>
+                  onClick={() => toggle(u.character)} aria-label={`撤销禁用 ${u.name}`}>撤销</button>
               </span>
             ) : <span key={i} className="slot empty">空位：从左侧名单选择</span>;
           })}
         </div>
         <span style={{ flex: 1, minWidth: 220, fontSize: 13, color: '#4E473D' }}>
-          确认后揭晓实际出战的 {map.deploy} 人与站位，禁用不可更改。
+          确认后揭晓实际出战的 {map.deploy} 人与站位，禁用不可更改。{map.bans === 0 ? '这张图不需要禁用。' : ''}
         </span>
         <a className="btn btn-ghost" href={links.arena}>稍后再打</a>
-        <button type="button" className="btn btn-primary btn-lg" disabled={bans.length !== map.bans}
-          onClick={() => { void arena.confirmBans(id, bans).then(() => go(links.deploy(id))); }}>
-          确认禁用并揭晓阵容
+        <button type="button" className="btn btn-primary btn-lg" disabled={busy || bans.length !== map.bans || !data}
+          onClick={() => void confirm()}>
+          {busy ? '揭晓中…' : '确认禁用并揭晓阵容'}
         </button>
       </section>
     </Shell>

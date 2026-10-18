@@ -6,19 +6,29 @@ import { GAME_ITEMS } from './items.ts';
 export interface ShopEntry { item: ItemKey; price: number; reputation: number }
 
 const SHOPS: Record<number, ShopEntry[]> = {
-  // 绿林：弓、轻装。
+  // 希尔瓦林地：弓、轻装。
   2: [
     { item: 'steel_bow', price: 0, reputation: 0 },
     { item: 'killer_bow', price: 0, reputation: 100 },
     { item: 'speedwing', price: 0, reputation: 250 },
   ],
-  // 铁丘：重甲、破甲、锻造。
+  // 托尔加丘陵：重甲、破甲、锻造。
   3: [
     { item: 'armorslayer', price: 0, reputation: 0 },
     { item: 'killer_lance', price: 0, reputation: 100 },
     { item: 'dracoshield', price: 0, reputation: 250 },
   ],
-  // 水乡：治疗、恢复、补给。
+  // 其余地区：基础补给与本地资源，具体特色库存后续按内容表扩充。
+  1: [{ item: 'herb', price: 0, reputation: 0 }, { item: 'ether_ration', price: 0, reputation: 100 }],
+  4: [{ item: 'iron_sword', price: 0, reputation: 0 }, { item: 'full_meal', price: 0, reputation: 100 }],
+  6: [{ item: 'fire', price: 0, reputation: 0 }, { item: 'restore', price: 0, reputation: 100 }],
+  7: [{ item: 'beast_claw', price: 0, reputation: 0 }, { item: 'dracoshield', price: 0, reputation: 250 }],
+  8: [{ item: 'iron_bow', price: 0, reputation: 0 }, { item: 'speedwing', price: 0, reputation: 250 }],
+  9: [{ item: 'steel_axe', price: 0, reputation: 0 }, { item: 'dracoshield', price: 0, reputation: 250 }],
+  10: [{ item: 'dragonstone', price: 0, reputation: 0 }, { item: 'talisman', price: 0, reputation: 250 }],
+  11: [{ item: 'recover', price: 0, reputation: 0 }, { item: 'goddess_icon', price: 0, reputation: 250 }],
+  12: [{ item: 'restore', price: 0, reputation: 0 }, { item: 'legacy_stone_growth', price: 0, reputation: 500 }],
+  // 莱斯米尔湖镇：治疗、恢复、补给。
   5: [
     { item: 'recover', price: 0, reputation: 0 },
     { item: 'talisman', price: 0, reputation: 100 },

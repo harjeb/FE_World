@@ -11,8 +11,10 @@ import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
 import { itemName, QuoteBox, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
 import { BattlePage } from './BattlePage.tsx';
 import { fallenLine } from './Dialogs.tsx';
+import { goalLabel } from './names.ts';
 import type { BattleSession } from './session.ts';
 import { FieldTabs } from './SortiePrep.tsx';
+import { busyReason } from '../model/roster.ts';
 
 const RUN_STATE: Record<ServerRun['state'], [string, string]> = {
   battle: ['战斗中', 'tag-blue'], between_maps: ['两图之间', 'tag-brass'], completed: ['完整通关', 'tag-green'], failed: ['失败', 'tag-red'], withdrawn: ['已撤离', 'tag-grey'],
@@ -28,7 +30,7 @@ function dungeonSession(state: BattleState, run: ServerRun, back: () => void): B
     initial: state,
     meta: {
       region: `${run.stageName ?? regionById(run.region).name} · ${n} / ${count} 图`,
-      goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : state.goal.kind === 'seize' ? '主将压制目标点' : '全灭敌军',
+      goal: goalLabel(state),
       extraLabel: '跨图', extraValue: 'HP 与道具不恢复',
     },
     surrender: false,
@@ -180,13 +182,13 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
 }
 
 function DungeonPrep({ onStarted }: { onStarted: () => void }) {
-  const { today, state, run } = useSession();
+  const { today, state, run, annual } = useSession();
   const { busy, act } = useAct();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const max = today?.actions.find(a => a.key === 'sortie')?.maxUnits ?? 6;
   const [region, setRegion] = useState(1);
   // Same default as 出征准备: the first six, never more than the field allows.
-  const [team, setTeam] = useState<string[]>(() => active.slice(0, Math.min(6, max)).map(u => u.id));
+  const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(6, max)).map(u => u.id));
   const [quote, setQuote] = useState<ActionQuote | null>(null);
   const version = state?.version ?? 0;
   const teamKey = team.join(',');
@@ -240,7 +242,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
 
           <section className="panel" aria-labelledby="dtm-h">
             <div className="ph"><h2 id="dtm-h">远征队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2><span style={{ fontSize: 12, color: '#6A6256' }}>出发后名单固定，不能补人</span></div>
-            <TeamPicker units={active} team={team} max={max} protagonist={state.player.protagonist} onChange={setTeam} />
+            <TeamPicker units={active} team={team} max={max} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} />
           </section>
         </div>
 

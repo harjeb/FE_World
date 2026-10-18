@@ -17,7 +17,7 @@
 /* Requirement lists: met lines in green with a check, unmet in red with a cross. */
 .checks { padding: 8px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; align-items: center; }
-.checks .mk { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; font-weight: 700; }
+.checks .mk { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; font-weight: 700; font-size: 13px; margin-right: 0; }
 .checks .ok { color: var(--color-green-deep); }
 .checks .no { color: var(--color-red-deep); }
 .checks .ico { width: 16px; height: 16px; }
@@ -90,12 +90,12 @@
 .weights input { width: 48px; min-height: 28px; border: 1px solid #cdbfa3; border-radius: 5px; background: var(--color-paper); font-size: 13px; padding: 0 4px; }
 
 /* 名册 · 职业资格 */
-.mk { border-collapse: collapse; width: 100%; min-width: 640px; }
-.mk th, .mk td { padding: 6px 8px; border-bottom: 1px solid #e6ddcb; font-size: 13px; text-align: left; vertical-align: top; }
-.mk thead th { font-size: 12px; font-weight: 700; color: var(--color-ink-2); background: #efe7d6; }
-.mk thead small { display: block; font-weight: 500; color: var(--color-muted); }
-.mk th[scope='row'] { white-space: nowrap; font-weight: 700; }
-.mk tr.own-route { background: #f1ede2; }
+.mk-table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.mk-table th, .mk-table td { padding: 6px 8px; border-bottom: 1px solid #e6ddcb; font-size: 13px; text-align: left; vertical-align: top; }
+.mk-table thead th { font-size: 12px; font-weight: 700; color: var(--color-ink-2); background: #efe7d6; }
+.mk-table thead small { display: block; font-weight: 500; color: var(--color-muted); }
+.mk-table th[scope='row'] { white-space: nowrap; font-weight: 700; }
+.mk-table tr.own-route { background: #f1ede2; }
 .mk-cls { display: inline-flex; align-items: center; gap: 4px; margin: 2px 4px 2px 0; min-height: 26px; padding: 0 8px; border-radius: 13px; border: 1px solid #cdbfa3; background: var(--color-paper); color: var(--color-ink); font-size: 13px; white-space: nowrap; }
 button.mk-cls { cursor: pointer; }
 button.mk-cls:hover { border-color: #8c8273; }

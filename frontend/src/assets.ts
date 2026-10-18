@@ -82,7 +82,14 @@ import icoRest from '../../design/pixel-art/png/ico_act_rest.png';
 import icoTravel from '../../design/pixel-art/png/ico_act_travel.png';
 
 // Keyed by map name, as battle states carry it.
-export const MAPS: Record<string, string> = { 黑松隘口: mapPinepass, 平原会战: mapPlains, 山间隘口: mapPass, 林中遭遇: mapWoods, 王城: mapCastle };
+// Map art by map name. The arena maps were renamed (Western-fantasy names); the old names stay as aliases
+// so stored battles and replays from before the rename still find their art.
+export const MAPS: Record<string, string> = {
+  黑松隘口: mapPinepass, 塔林原野: mapPlains, 灰岩隘口: mapPass, 暮影林地: mapWoods, 阿斯塔王城: mapCastle,
+  平原会战: mapPlains, 山间隘口: mapPass, 林中遭遇: mapWoods, 王城: mapCastle,
+};
+// 年度大竞技场的战斗名是「地图名 · 大竞技场第 N 轮」，按前缀也能找到同一张图。
+export const mapArt = (name: string): string | undefined => MAPS[name] ?? MAPS[name.split(' · ')[0]];
 export const CRESTS: Record<string, string> = { raven: crestRaven, frost: crestFrost };
 export const STAGE = stagePass;
 export const SPARK = fxSpark;

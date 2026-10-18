@@ -4,6 +4,7 @@ import type { WeaponId } from '@common/data/weapons.ts';
 import { classOf, equipped, staffWeapons, unitCombatStats } from '@common/engine/index.ts';
 import type { BattleState, UnitState } from '@common/engine/index.ts';
 import { portraitFor, spriteFor } from '../assets.ts';
+import { spellInfo } from './commands.ts';
 
 export function Portrait({ unit, size = 64, flip = false }: { unit: UnitState; size?: 32 | 64; flip?: boolean }) {
   const own = portraitFor(unit);
@@ -40,6 +41,14 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
   const combat = unitCombatStats(state, unit, armed ? shown : null);
   const dash = (n: number) => (armed ? n : '—');
   const skill = unit.skill ? SKILLS[unit.skill] : null;
+  const statuses = [unit.statuses?.sleep && '睡眠', unit.statuses?.silence && `沉默 ${unit.statuses.silence}`, unit.statuses?.berserk && `混乱 ${unit.statuses.berserk}`,
+    unit.statuses?.regen && `再生 ${unit.statuses.regen}`, unit.petrified && '石化（禁止一切回复）', (unit.shields ?? 0) > 0 && '持不朽盾'].filter(Boolean) as string[];
+  const gear = unit.weapons.map((id, i) => {
+    const nth = unit.weapons.slice(0, i).filter(w => w === id).length;
+    const book = unit.bookInstances?.filter(b => b.id === id)[nth];
+    const inst = unit.weaponInstances?.filter(w => w.id === id)[nth];
+    return `${WEAPONS[id]?.name ?? id}${book ? ` ${book.charges}/${book.maxCharges}次` : inst ? ` ${inst.durability}/${inst.maxDurability}` : ''}`;
+  });
   const base: [string, number | string][] = [
     ['力', unit.stats.str], ['魔', unit.stats.mag], ['技', unit.stats.skl], ['速', unit.stats.spd], ['运', unit.stats.lck],
     ['防', unit.stats.def], ['魔防', unit.stats.res], ['体格', unit.con], ['移动', cls.move], ['EXP', unit.side === 'player' ? unit.exp : '—'],
@@ -52,6 +61,8 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
           <div className="uname">
             {unit.name} <SideTag unit={unit} /> <span className="tag tag-grey">{cls.name} · Lv {unit.level}</span>
             {unit.boss && <span className="tag tag-brass">主将</span>}
+            {unit.npc && <span className="tag tag-green">护送对象</span>}
+            {statuses.map(text => <span key={text} className="tag tag-red">{text}</span>)}
           </div>
           <div className="mt-1"><HpLine unit={unit} /></div>
           <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>
@@ -72,8 +83,10 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
             {base.map(([k, v]) => <div key={k}><span>{k}</span><b>{v}</b></div>)}
           </div>
           <div style={{ padding: '0 14px 12px', fontSize: 13, color: '#4E473D' }}>
-            携带：{unit.weapons.map(id => WEAPONS[id].name).join(' · ')}
-            {unit.items.length > 0 && <> · {unit.items.map(s => `${ITEMS[s.id].name} ×${s.uses}`).join(' · ')}</>}
+            携带：{gear.join(' · ') || '无武器'}
+            {unit.items.length > 0 && <> · {unit.items.map(s => `${ITEMS[s.id]?.name ?? s.id} ×${s.uses}`).join(' · ')}</>}
+            {(unit.spellbooks ?? []).length > 0 && <div>法术书：{unit.spellbooks!.map(b => `${spellInfo(b.id)?.name ?? b.id} ${b.charges}/${b.maxCharges}`).join(' · ')}</div>}
+            {(unit.arts ?? []).length > 0 && unit.side === 'player' && <div>战技：{unit.arts!.length} 项</div>}
           </div>
         </>
       )}

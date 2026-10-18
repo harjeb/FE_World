@@ -48,7 +48,7 @@ export function StoryPage() {
 
       <div className="sys-cols">
         <section className="panel" aria-labelledby="ch-h">
-          <div className="ph"><h2 id="ch-h">章节</h2><span style={{ fontSize: 12, color: '#6A6256' }}>对白与任务还在制作，完成事件目前只记录进度、开放奖励</span></div>
+          <div className="ph"><h2 id="ch-h">章节</h2><span style={{ fontSize: 12, color: '#6A6256' }}>完成后可回看本章事件、认识与发现</span></div>
           <ol className="chapters">
             {story.chapters.map(c => {
               const phase = phaseOf(c);
@@ -64,7 +64,15 @@ export function StoryPage() {
                     <div className="ch-sub">
                       {c.available ? `${plainDate(c.openDay)}开放` : `${plainDate(c.openDay)}开放 · 还有 ${c.openDay - day} 日`}
                     </div>
+                    {c.event && <p className="ch-learned"><span className="tag tag-grey">事件</span>{c.event}</p>}
                     {c.learned && <p className="ch-learned"><span className="tag tag-grey">本章所得</span>{c.learned}</p>}
+                    {(c.discoveries ?? []).length > 0 && <ul className="ch-disc">{c.discoveries!.map(d => <li key={d}>{d}</li>)}</ul>}
+                    {c.finalBoss && (
+                      <p className="ch-learned">
+                        <span className={`tag ${c.finalBoss.defeated ? 'tag-green' : c.finalBoss.available ? 'tag-red' : 'tag-grey'}`}>最终首领</span>
+                        {c.finalBoss.defeated ? '已在挑战塔终层击败。' : c.finalBoss.available ? <>挑战塔终层已开放：<a href={links.tower}>前往挑战塔 ›</a></> : '完成第八章后，挑战塔终层开放。不要求夺冠，也不要求牺牲伙伴。'}
+                      </p>
+                    )}
                   </div>
                   <div className="ch-acts">
                     {phase === 'open' && (
@@ -94,6 +102,7 @@ export function StoryPage() {
               {annual
                 ? <>
                   <div><b>第 {annual.annualIndex} 届</b>{entry ? <span className={`tag ${ANNUAL_STATE[entry.state][1]}`} style={{ marginLeft: 8 }}>{ANNUAL_STATE[entry.state][0]}</span> : <span className="tag tag-grey" style={{ marginLeft: 8 }}>未报名</span>}</div>
+                  {story.annualSummary && <p style={{ marginTop: 6, fontSize: 13 }}>最近：{story.annualSummary.text}</p>}
                   <p style={{ marginTop: 6, fontSize: 13, color: '#4E473D' }}>主线章节不看名次：出局、退赛或夺冠，都能完成当年的章节事件。</p>
                 </>
                 : <p style={{ fontSize: 13, color: '#6A6256' }}>暂时读不到大竞技场信息。</p>}

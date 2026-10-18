@@ -9,6 +9,7 @@ export function openDb(path: string): DatabaseSync {
   const db = new DatabaseSync(path);
   db.exec('PRAGMA journal_mode = WAL;');
   db.exec('PRAGMA foreign_keys = ON;');
+  db.exec('PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
   migrate(db);
   return db;
@@ -61,10 +62,16 @@ CREATE TABLE IF NOT EXISTS events (
   data TEXT, created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_player ON events(player_id, id);
+CREATE TABLE IF NOT EXISTS outbox (
+  event_id INTEGER PRIMARY KEY, player_id TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL,
+  created_at INTEGER NOT NULL, delivered_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS outbox_pending ON outbox(delivered_at, event_id);
 CREATE TABLE IF NOT EXISTS notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT, player_id TEXT NOT NULL, kind TEXT NOT NULL, text TEXT NOT NULL,
-  battle_id TEXT, created_at INTEGER NOT NULL
+  battle_id TEXT, created_at INTEGER NOT NULL, turn INTEGER
 );
+CREATE INDEX IF NOT EXISTS notes_battle ON notes(player_id, battle_id, id);
 CREATE TABLE IF NOT EXISTS due_tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT, player_id TEXT, kind TEXT NOT NULL, due_at INTEGER NOT NULL,
   payload TEXT, done INTEGER NOT NULL DEFAULT 0
@@ -126,6 +133,8 @@ CREATE TABLE IF NOT EXISTS monthly_rating_rewards (
 // Adds columns that predate a save file. CREATE TABLE IF NOT EXISTS cannot do this, so an existing
 // prototype database is upgraded in place (docs/13 §2.1「version」).
 function migrate(db: DatabaseSync): void {
-  const columns = (db.prepare('PRAGMA table_info(players)').all() as { name: string }[]).map(c => c.name);
-  if (!columns.includes('version')) db.exec('ALTER TABLE players ADD COLUMN version INTEGER NOT NULL DEFAULT 0');
+  const columns = (table: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map(c => c.name);
+  if (!columns('players').includes('version')) db.exec('ALTER TABLE players ADD COLUMN version INTEGER NOT NULL DEFAULT 0');
+  // Agent 阶段意图按回合显示在观战与回放里，所以记下写入时的回合。
+  if (!columns('notes').includes('turn')) db.exec('ALTER TABLE notes ADD COLUMN turn INTEGER');
 }

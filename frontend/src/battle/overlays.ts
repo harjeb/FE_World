@@ -6,6 +6,7 @@ import {
 } from '@common/engine/index.ts';
 import type { BattleState, Point, UnitState } from '@common/engine/index.ts';
 import type { Mode } from './selection.ts';
+import { artInfo, commandDest, commandTargets, isCommand, spellInfo } from './commands.ts';
 
 export interface Overlays {
   move: Set<number>;
@@ -14,9 +15,11 @@ export interface Overlays {
   path: Point[] | null;
   ghost: { unit: UnitState; at: Point } | null;
   targets: Set<string>;
+  // 传送／临时墙的合法落点。
+  dest: Set<number>;
 }
 
-const EMPTY: Overlays = { move: new Set(), attack: new Set(), heal: new Set(), path: null, ghost: null, targets: new Set() };
+const EMPTY: Overlays = { move: new Set(), attack: new Set(), heal: new Set(), path: null, ghost: null, targets: new Set(), dest: new Set() };
 
 function cellsAround(state: BattleState, at: Point, [min, max]: [number, number]): Set<number> {
   const cells = new Set<number>();
@@ -64,6 +67,28 @@ export function overlaysFor(state: BattleState, mode: Mode, hover: Point | null)
         const kind = WEAPONS[mode.weapon].type === 'staff' ? 'heal' : 'attack';
         result.targets = new Set(targetsFrom(state, unit, mode.to, mode.weapon, kind).map(u => u.id));
       }
+      return result;
+    }
+    case 'art':
+    case 'cast':
+    case 'staff':
+    case 'dance': {
+      if (!isCommand(mode)) return EMPTY;
+      const unit = unitById(state, mode.unit);
+      const path = pathTo(state, moveRange(state, unit), mode.to);
+      const result: Overlays = { ...EMPTY, path: path.length > 1 ? path : null, ghost: { unit, at: mode.to } };
+      const targets = commandTargets(state, mode);
+      result.targets = new Set(targets.map(u => u.id));
+      // Range shading: the art's own range, the spellbook's range or the staff's range.
+      const range: [number, number] | null = mode.kind === 'art' && mode.art ? [...(artInfo(mode.art)?.range ?? [1, 1])] as [number, number]
+        : mode.kind === 'cast' && mode.spell ? [...(spellInfo(mode.spell)?.range ?? [1, 1])] as [number, number]
+          : mode.kind === 'staff' && mode.weapon ? weaponRange(unit, mode.weapon) : null;
+      const hostile = mode.kind === 'art' || (mode.kind === 'cast' && ['attack', 'hostile_support'].includes(spellInfo(mode.spell ?? '')?.role ?? ''))
+        || (mode.kind === 'staff' && (mode.weapon === 'sleep_staff' || mode.weapon === 'silence_staff'));
+      if (range) result[hostile ? 'attack' : 'heal'] = cellsAround(state, mode.to, range);
+      else result[mode.kind === 'dance' ? 'heal' : 'attack'] = new Set(targets.map(t => cellKey(state, t.pos)));
+      const dest = mode.target ? commandDest(state, mode) : null;
+      if (dest) result.dest = new Set(dest.cells.map(c => cellKey(state, c)));
       return result;
     }
     default:

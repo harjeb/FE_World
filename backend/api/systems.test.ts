@@ -26,7 +26,7 @@ function ctxFor(store: Store, accountId: string, player: Player): Context {
 test('the class market lists canonical classes and blocks unfinished class mechanics before charging', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  player.day = 840;
+  player.day = 3500;
   player.gold = 100_000;
   const market = dispatch(ctx, OP.GET_CLASS_MARKET, { unitId: 'u_erin' }) as {
     classes: { id: string; open: boolean; unavailableReason: string | null; weapons: Record<string, string> }[];
@@ -35,12 +35,6 @@ test('the class market lists canonical classes and blocks unfinished class mecha
   assert.equal(new Set(market.classes.map(c => c.id)).size, 75);
   assert.equal(market.classes.some(c => c.id === 'sword_lord'), false);
   assert.deepEqual(Object.keys(market.classes.find(c => c.id === 'bow_knight')!.weapons).sort(), ['bow', 'sword']);
-  for (const classId of ['dancer', 'charioteer', 'apsara']) {
-    const row = market.classes.find(c => c.id === classId)!;
-    assert.equal(row.open, false);
-    assert.ok(row.unavailableReason);
-    assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId }), /尚未实现/);
-  }
   assert.equal(player.gold, 100_000);
   assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId: 'commoner' }), /不作为购买/);
   assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId: '__proto__' }), /没有职业/);
@@ -49,7 +43,7 @@ test('the class market lists canonical classes and blocks unfinished class mecha
 test('old qualification aliases cannot be purchased twice and remain valid for free switching', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  player.day = 840;
+  player.day = 3500;
   player.gold = 100_000;
   const unit = store.unit(player.id, 'u_erin')!;
   unit.classQualifications = ['sword_lord'];
@@ -74,7 +68,7 @@ test('a dispatch runs in parallel on the personal calendar and settles once', ()
   const start = dispatch(ctx, OP.START_DISPATCH, { region: 1, unitIds: ['u_karl', 'u_ig'], durationDays: 5, classId: 'fighter', weaponType: 'axe' }) as
     { dispatch: { id: string; returnDay: number } };
   assert.equal(start.dispatch.returnDay, player.day + 5);
-  assert.equal(player.day, 209, 'starting a dispatch does not advance the calendar by itself');
+  assert.equal(player.day, 999, 'starting a dispatch does not advance the calendar by itself');
   assert.equal(store.unit(player.id, 'u_karl')!.lockedDispatchId, start.dispatch.id);
   // A dispatched unit cannot join a battle.
   assert.throws(() => dispatch(ctx, OP.SORTIE, { region: 1, unitIds: ['u_karl'] }), /远征或派遣/);

@@ -29,6 +29,8 @@ function playOut(ctx: Context, battleId: string): string {
   for (let guard = 0; guard < 2000; guard++) {
     const battle = ctx.store.battle(ctx.player.id, battleId);
     if (!battle || battle.state.result) return battle?.state.result?.winner ?? 'none';
+    // 这个测试验证流程，不验证 20 回合限制；大地图走到王座需要更多回合。
+    battle.state.turnLimit = Math.max(battle.state.turnLimit, 60);
     const unit = battle.state.units.find(u => u.side === 'player' && u.alive && !u.acted);
     if (unit) {
       const action = decide(battle.state, unit);

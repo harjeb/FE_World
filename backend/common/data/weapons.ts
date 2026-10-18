@@ -1,4 +1,6 @@
-import type { MoveType, Rank, WeaponType } from './types.ts';
+import type { MoveType, Rank, Stats, WeaponType } from './types.ts';
+import type { SkillId } from './skills.ts';
+import { EXPANDED_WEAPONS } from './expanded-weapons.ts';
 
 // docs/03-combat.md「武器（v1）」; v1 weapons have no durability.
 export interface Weapon {
@@ -14,14 +16,21 @@ export interface Weapon {
   effectiveRoutes?: readonly ('beast' | 'dragon')[];
   brave?: boolean;
   // Staves: heal = 'mag10' restores 魔 + 10, 'full' restores all HP; magRange caps range at 魔 ÷ 2.
+  // 物理武器耐久／法术书次数由单位实例保存；未填按类型默认。
+  maxDurability?: number;
+  maxCharges?: number;
   heal?: 'mag10' | 'full';
+  // 复原杖：解除睡眠、沉默、混乱；不改变 HP 上限。
+  cure?: boolean;
   magRange?: boolean;
   note?: string;
+  // 穿戴授予：技能不占五格，成长在升级结算时叠加；卸下即失效。
+  grants?: { skill?: SkillId; growth?: Partial<Stats>; art?: string };
 }
 
 const FLYING = ['flying'] as const;
 
-const TABLE = {
+const BASE_TABLE = {
   beastkiller: { name: '猎兽剑', type: 'sword', rank: 'D', might: 6, hit: 80, weight: 7, crit: 0, range: [1, 1], effectiveRoutes: ['beast'], note: '对兽人特效' },
   dragonslayer: { name: '屠龙剑', type: 'sword', rank: 'D', might: 6, hit: 80, weight: 7, crit: 0, range: [1, 1], effectiveRoutes: ['dragon'], note: '对龙人特效，不针对龙骑士' },
   gauntlet: { name: '铁拳套', type: 'fist', rank: 'E', might: 4, hit: 90, weight: 3, crit: 0, range: [1, 1], brave: true },
@@ -34,12 +43,32 @@ const TABLE = {
   killing_edge: { name: '杀手剑', type: 'sword', rank: 'C', might: 7, hit: 75, weight: 7, crit: 30, range: [1, 1] },
   silver_sword: { name: '银剑', type: 'sword', rank: 'A', might: 13, hit: 80, weight: 8, crit: 0, range: [1, 1] },
   brave_sword: { name: '勇者之剑', type: 'sword', rank: 'A', might: 9, hit: 75, weight: 12, crit: 0, range: [1, 1], brave: true, note: '连击' },
+  levin_sword: { name: '雷电剑', type: 'sword', rank: 'B', might: 8, hit: 80, weight: 9, crit: 5, range: [1, 2], note: '魔法剑' },
+  short_spear: { name: '短枪', type: 'lance', rank: 'D', might: 6, hit: 75, weight: 9, crit: 0, range: [1, 2] },
+  hammer: { name: '战锤', type: 'axe', rank: 'D', might: 8, hit: 55, weight: 15, crit: 5, range: [1, 1], effective: ['armored'] },
+  silver_gauntlet: { name: '银手甲', type: 'fist', rank: 'A', might: 10, hit: 85, weight: 5, crit: 5, range: [1, 1] },
+  beaststone_plus: { name: '高阶兽媒介', type: 'beast', rank: 'B', might: 12, hit: 80, weight: 10, crit: 0, range: [1, 1] },
+  dragonstone_plus: { name: '高阶龙媒介', type: 'dragon', rank: 'B', might: 11, hit: 80, weight: 11, crit: 0, range: [1, 2] },
+  beast_fang: { name: '兽牙', type: 'beast', rank: 'D', might: 9, hit: 85, weight: 6, crit: 0, range: [1, 1] },
+  dragon_breath: { name: '龙息', type: 'dragon', rank: 'A', might: 13, hit: 80, weight: 10, crit: 0, range: [1, 2] },
+  iron_blade: { name: '铁刃', type: 'sword', rank: 'E', might: 6, hit: 85, weight: 6, crit: 0, range: [1, 1] },
+  steel_blade: { name: '钢刃', type: 'sword', rank: 'D', might: 9, hit: 75, weight: 10, crit: 0, range: [1, 1] },
+  silver_blade: { name: '银刃', type: 'sword', rank: 'A', might: 14, hit: 80, weight: 9, crit: 0, range: [1, 1] },
+  brave_lance: { name: '勇者之枪', type: 'lance', rank: 'A', might: 10, hit: 75, weight: 12, crit: 0, range: [1, 1], brave: true },
+  brave_axe: { name: '勇者之斧', type: 'axe', rank: 'A', might: 11, hit: 70, weight: 14, crit: 0, range: [1, 1], brave: true },
+  brave_bow: { name: '勇者之弓', type: 'bow', rank: 'A', might: 10, hit: 75, weight: 8, crit: 0, range: [2, 2], brave: true },
+  thunder_fang: { name: '雷牙', type: 'beast', rank: 'B', might: 11, hit: 80, weight: 7, crit: 5, range: [1, 1] },
+  ice_breath: { name: '冰息', type: 'dragon', rank: 'B', might: 12, hit: 80, weight: 10, crit: 0, range: [1, 2] },
+  killer_blade: { name: '必杀刃', type: 'sword', rank: 'C', might: 8, hit: 75, weight: 8, crit: 30, range: [1, 1], grants: { skill: 'keen', art: 'fw_art_35' } },
+  master_lance: { name: '统率枪', type: 'lance', rank: 'S', might: 16, hit: 80, weight: 11, crit: 5, range: [1, 1] },
+  royal_sword: { name: '王权剑', type: 'sword', rank: 'SS', might: 16, hit: 85, weight: 7, crit: 10, range: [1, 1], note: 'SS 熟练度武器', grants: { skill: 'opening', growth: { spd: 5 }, art: 'fw_art_34' } },
   iron_lance: { name: '铁枪', type: 'lance', rank: 'E', might: 7, hit: 80, weight: 8, crit: 0, range: [1, 1] },
   steel_lance: { name: '钢枪', type: 'lance', rank: 'D', might: 10, hit: 70, weight: 13, crit: 0, range: [1, 1] },
   javelin: { name: '投枪', type: 'lance', rank: 'D', might: 6, hit: 65, weight: 11, crit: 0, range: [1, 2] },
   armorslayer: { name: '破甲枪', type: 'lance', rank: 'D', might: 7, hit: 70, weight: 12, crit: 0, range: [1, 1], effective: ['armored'], note: '对重甲特效' },
   killer_lance: { name: '杀手枪', type: 'lance', rank: 'C', might: 8, hit: 70, weight: 9, crit: 30, range: [1, 1] },
   silver_lance: { name: '银枪', type: 'lance', rank: 'A', might: 14, hit: 75, weight: 10, crit: 0, range: [1, 1] },
+  divine_lance: { name: '神授枪', type: 'lance', rank: 'SSS', might: 18, hit: 85, weight: 9, crit: 10, range: [1, 2], note: 'SSS 熟练度武器', grants: { skill: 'steadfast', art: 'fw_art_47' } },
   iron_axe: { name: '铁斧', type: 'axe', rank: 'E', might: 8, hit: 75, weight: 10, crit: 0, range: [1, 1] },
   steel_axe: { name: '钢斧', type: 'axe', rank: 'D', might: 11, hit: 65, weight: 15, crit: 0, range: [1, 1] },
   hand_axe: { name: '手斧', type: 'axe', rank: 'D', might: 7, hit: 60, weight: 12, crit: 0, range: [1, 2] },
@@ -52,14 +81,28 @@ const TABLE = {
   silver_bow: { name: '银弓', type: 'bow', rank: 'A', might: 13, hit: 75, weight: 6, crit: 0, range: [2, 2], effective: FLYING },
   fire: { name: '火焰', type: 'tome', rank: 'E', might: 5, hit: 90, weight: 4, crit: 0, range: [1, 2] },
   thunder: { name: '雷霆', type: 'tome', rank: 'D', might: 8, hit: 80, weight: 6, crit: 5, range: [1, 2] },
-  wind: { name: '风刃', type: 'tome', rank: 'C', might: 6, hit: 85, weight: 3, crit: 0, range: [1, 2], effective: FLYING, note: '对飞行特效' },
+  wind: { name: '风刃', type: 'tome', rank: 'C', might: 6, hit: 85, weight: 3, crit: 0, range: [1, 2], effective: FLYING, note: '对飞行特效', grants: { skill: 'nimble' } },
   flame_lance: { name: '炎枪', type: 'tome', rank: 'B', might: 12, hit: 75, weight: 10, crit: 0, range: [1, 2] },
   heal: { name: '治疗杖', type: 'staff', rank: 'E', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'mag10', note: '回复 魔 + 10' },
   recover: { name: '恢复杖', type: 'staff', rank: 'C', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'full', note: '回复全部 HP' },
+  restore: { name: '复原杖', type: 'staff', rank: 'C', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'mag10', cure: true, note: '解除睡眠/沉默/混乱' },
+  fortify: { name: '群疗杖', type: 'staff', rank: 'A', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 3], heal: 'mag10', magRange: true, note: '范围回复（首版按单目标）' },
+  rescue_staff: { name: '救援杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：救援' },
+  warp_staff: { name: '传送杖', type: 'staff', rank: 'A', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：传送' },
+  silence_staff: { name: '沉默杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：沉默' },
+  sleep_staff: { name: '睡眠杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：睡眠' },
   physic: { name: '远疗杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'mag10', magRange: true, note: '射程 1–魔÷2，回复 魔 + 10' },
 } satisfies Record<string, Weapon>;
+
+export const TABLE = { ...BASE_TABLE, ...EXPANDED_WEAPONS } satisfies Record<string, Weapon>;
 export type WeaponId = keyof typeof TABLE;
-export const WEAPONS: Record<WeaponId, Weapon> = TABLE;
+export const WEAPONS: Record<WeaponId, Weapon> = Object.fromEntries(
+  (Object.entries(TABLE) as [string, Weapon][]).map(([id, w]) => {
+    if (w.type === 'tome') return [id, { ...w, maxCharges: w.maxCharges ?? 20 }];
+    if (w.type === 'staff') return [id, { ...w, maxCharges: w.maxCharges ?? 10 }];
+    return [id, { ...w, maxDurability: w.maxDurability ?? 40 }];
+  }),
+) as Record<WeaponId, Weapon>;
 
 export function weapon(id: WeaponId): Weapon {
   return WEAPONS[id];

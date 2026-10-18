@@ -2,13 +2,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent, ReactNode } from 'react';
 import { living, unitById } from '@common/engine/index.ts';
 import type { Point } from '@common/engine/index.ts';
-import { MAPS } from '../assets.ts';
+import { mapArt } from '../assets.ts';
 import { SeizeIcon } from '../ui/icons.tsx';
 import type { BattleController, Snapshot } from './controller.ts';
-import { CellLayer, Cursor, Floats, Ghost, MapTag, PathArrow, ThreatLayer, TileColors, UnitLayer } from './MapLayers.tsx';
+import { CellLayer, Cursor, Floats, Ghost, MapTag, ObjectLayer, PathArrow, ThreatLayer, TileColors, UnitLayer } from './MapLayers.tsx';
 import { Minimap, PhaseBanner, TerrainWindow, ZoomControls } from './MapWidgets.tsx';
 import { displayName } from './names.ts';
 import { overlaysFor, threatCells } from './overlays.ts';
+import { isCommand } from './commands.ts';
 
 const DRAG_START = 6;
 
@@ -101,12 +102,13 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
 
   const selectedId = 'unit' in mode ? mode.unit : null;
   const selected = selectedId ? unitById(view, selectedId) : null;
-  const target = (mode.kind === 'attack' || mode.kind === 'heal') && mode.target ? unitById(view, mode.target) : null;
+  const target = (mode.kind === 'attack' || mode.kind === 'heal' || isCommand(mode)) && mode.target ? unitById(view, mode.target) : null;
+  const destAt = (mode.kind === 'cast' || mode.kind === 'staff') ? mode.dest : null;
   const ghost = overlays?.ghost ?? null;
   const ghostElsewhere = !!ghost && !!selected && (ghost.at[0] !== selected.pos[0] || ghost.at[1] !== selected.pos[1]);
   const infoAt = target?.pos ?? hover ?? selected?.pos ?? null;
   const W = view.map.width;
-  const image = MAPS[view.name];
+  const image = mapArt(view.name);
   // 王座: always framed; named while hovered or while our commander is selected, unless the
   // planned destination already sits there.
   const goal = view.goal;
@@ -130,6 +132,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
           {overlays && <CellLayer cells={overlays.move} width={W} cell={cell} className="mv" />}
           {overlays && <CellLayer cells={overlays.attack} width={W} cell={cell} className="atk" />}
           {overlays && <CellLayer cells={overlays.heal} width={W} cell={cell} className="healz" />}
+          {overlays && <CellLayer cells={overlays.dest} width={W} cell={cell} className="dest" />}
           {threat && <ThreatLayer cells={threat} width={W} cell={cell} />}
           {settings.grid && <div className="gridlines" />}
           {overlays?.path && <PathArrow path={overlays.path} cell={cell} width={width} height={height} />}
@@ -138,15 +141,18 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
           {boxes.map(([x, y], i) => (
             <span key={`box-${i}`} aria-hidden="true" style={{ position: 'absolute', left: x * cell + cell / 4, top: y * cell + cell / 4, width: cell / 2, height: cell / 2, background: '#C08A3A', border: '2px solid #2B2421', borderRadius: 3, boxSizing: 'border-box' }} />
           ))}
+          <ObjectLayer state={view} cell={cell} />
           <UnitLayer view={view} cell={cell} selected={selectedId} ghostElsewhere={ghostElsewhere} fading={snap.fading} />
           {ghost && ghostElsewhere && <Ghost unit={ghost.unit} at={ghost.at} cell={cell} />}
           {ghost && ghostElsewhere && !target && mode.kind !== 'move' && <MapTag at={ghost.at} cell={cell} view={view} className="mt-brass">预览落点</MapTag>}
           {throne && throneTag && <MapTag at={throne} cell={cell} view={view} className="mt-throne"><SeizeIcon size={14} />王座 · 压制目标</MapTag>}
           {hover && !busy && <Cursor at={hover} cell={cell} kind={snap.cursor ? 'kbd-cursor' : ''} />}
           {target && <Cursor at={target.pos} cell={cell} kind="tgt" />}
+          {destAt && <Cursor at={destAt} cell={cell} kind="tgt" />}
+          {destAt && <MapTag at={destAt} cell={cell} view={view} className="mt-brass" prefer="below">落点</MapTag>}
           {target && (
             <MapTag at={target.pos} cell={cell} view={view} className={target.side === 'enemy' ? 'mt-red' : 'mt-green'} prefer="below">
-              {target.side === 'enemy' ? '目标' : '治疗'} · {displayName(view, target.id)}
+              {target.side === 'enemy' ? '目标' : mode.kind === 'heal' ? '治疗' : '目标'} · {displayName(view, target.id)}
             </MapTag>
           )}
           {overlay?.(cell)}

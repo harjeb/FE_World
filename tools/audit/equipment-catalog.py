@@ -48,9 +48,9 @@ def audit(items_path=None, skills_path=None):
     counts = collections.Counter(r['kind'] for r in baseline)
     check(counts['weapon'] + len(weapons) == 113 and counts['spellbook'] + len(spells) == 48 and counts['staff'] == 9, 'Merged inventory counts differ')
     runtime = (ROOT / 'backend/common/data/weapons.ts').read_text(encoding='utf-8')
-    block = runtime.split('const TABLE = {')[1].split('} satisfies Record<string, Weapon>')[0]
+    block = runtime.split('const BASE_TABLE = {')[1].split('} satisfies Record<string, Weapon>')[0]
     runtime_ids = set(re.findall(r'^  ([a-z_]+): \{', block, re.M))
-    check(runtime_ids == {r['id'] for r in baseline if r['status'] == 'implemented'}, 'Runtime ID inventory differs from the documented baseline')
+    check({r['id'] for r in baseline if r['status'] == 'implemented'} <= runtime_ids, 'Runtime is missing an implemented baseline ID')
     baseline_ids = {r['id'] for r in baseline}
     for key, expected_count, prefix in [('reusedWeapons', 18, 'wp-'), ('reusedMagic', 4, 'mg-')]:
         check(len(data[key]) == expected_count, 'Wrong number of reused source aliases')

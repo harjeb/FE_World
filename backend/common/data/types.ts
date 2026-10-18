@@ -3,14 +3,14 @@ import type { Movement } from '../maps/map.ts';
 export type StatKey = 'hp' | 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'cha';
 export type Stats = Record<StatKey, number>;
 export type WeaponType = 'sword' | 'lance' | 'axe' | 'bow' | 'tome' | 'staff' | 'fist' | 'dagger' | 'beast' | 'dragon';
-export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S';
+export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S' | 'SS' | 'SSS';
 export type MoveType = Movement;
 
 export const STAT_KEYS: StatKey[] = ['hp', 'str', 'mag', 'skl', 'spd', 'lck', 'def', 'res', 'cha'];
 export const STAT_NAMES: Record<StatKey, string> = {
   hp: 'HP', str: '力', mag: '魔', skl: '技', spd: '速', lck: '运', def: '防', res: '魔防', cha: '魅力',
 };
-export const RANKS: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S'];
+export const RANKS: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
 export const WEAPON_TYPE_NAMES: Record<WeaponType, string> = {
   sword: '剑', lance: '枪', axe: '斧', bow: '弓', tome: '理', staff: '杖',
   fist: '拳', dagger: '短刀', beast: '兽爪', dragon: '龙石',

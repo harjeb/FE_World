@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline';
 import { OP, OPS, PUSH_OPS } from '../backend/common/protocol/ops.ts';
+import { schemaFor } from '../backend/common/protocol/schemas.ts';
 
 // A dependency-free MCP server (docs/07「MCP 插件」). Tools are generated from the same op table that
 // generates docs/agent-api.md, so a new op appears here without a second definition. It talks to the
@@ -14,17 +15,22 @@ const AGENT_TOKEN = process.env.AGENT_TOKEN ?? '';
 export interface McpTool { name: string; description: string; inputSchema: Record<string, unknown> }
 
 export function toolList(): McpTool[] {
-  return OPS.filter(def => !PUSH_OPS.has(def.op)).map(def => ({
-    name: def.name.toLowerCase(),
-    description: `[op ${def.op} · ${def.group}] ${def.agentNote}`,
-    inputSchema: {
-      type: 'object',
-      properties: {
-        data: { type: 'object', description: '该 op 的请求字段，见 docs/agent-api.md', additionalProperties: true },
+  return OPS.filter(def => !PUSH_OPS.has(def.op)).map(def => {
+    const schema = schemaFor(def.name);
+    return {
+      name: def.name.toLowerCase(),
+      description: `[op ${def.op} · ${def.group}] ${def.agentNote}`,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          data: schema
+            ? { type: 'object', properties: schema.properties, required: schema.required ?? [], additionalProperties: false }
+            : { type: 'object', description: '该 op 的请求字段，见 docs/agent-api.md', additionalProperties: true },
+        },
+        additionalProperties: true,
       },
-      additionalProperties: true,
-    },
-  }));
+    };
+  });
 }
 
 async function callTool(name: string, args: Record<string, unknown>): Promise<{ text: string; isError: boolean }> {

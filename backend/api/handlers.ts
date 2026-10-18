@@ -1,22 +1,29 @@
 import { randomUUID } from 'node:crypto';
 import { createHash } from 'node:crypto';
-import { OP } from '../common/protocol/ops.ts';
+import { OP, OP_BY_NUMBER } from '../common/protocol/ops.ts';
+import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
-import { actionOptions, expPreview, forecast, moveRange, step, threatMap, unitById } from '../common/engine/index.ts';
+import { actionOptions, destinationCells, expPreview, forecast, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
+import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES } from '../common/data/classes.ts';
+import { WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
+import type { WeaponId } from '../common/data/weapons.ts';
+import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
+import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_MAX, PROTAGONIST_CLASSES, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
-import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
+import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
 import { createClassicBattle, createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
-import { recruitClass } from '../common/game/random-recruit.ts';
-import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
+import { CATALOG_VERSION, RULESET_VERSION, replayCompatibility } from '../common/game/version.ts';
+import { generateRecruit, RECRUIT_UNLOCK_DAY, recruitClass, recruitLevel, recruitPortrait, regionRoutes } from '../common/game/random-recruit.ts';
+import type { RandomRecruit } from '../common/game/random-recruit.ts';
+import { addWeaponExp, ageDaysOf, createUnit, weaponMax, gainExperience, growthRates, lifespanEndDayOf, nextLifespanEventDay, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { promotionsFor } from '../common/data/promotions.ts';
 import { settleAttack, startAttack } from '../common/game/arena.ts';
@@ -29,7 +36,7 @@ import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } fro
 import type { GrowthType } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, publicUnitSummary, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, recipeUnlocked, slotsUsed } from '../common/game/production.ts';
@@ -39,10 +46,13 @@ import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
 import type { WeaponType } from '../common/data/types.ts';
 import { STAT_KEYS, withCharm } from '../common/data/types.ts';
 import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, stageCount, survivingIds } from '../common/game/expedition.ts';
-import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
+import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
-import { QUEST_DAY_COST, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
+import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
+import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
+import { dicePayout, frogPayout, FROG_NAMES, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
+import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { reputationTier } from '../common/game/reputation.ts';
 
@@ -60,6 +70,7 @@ export interface Context {
   player: Player;
   accountId: string;
   agentModel: string | null;
+  actor?: string;
   push: (op: number, data: unknown) => void;
 }
 
@@ -152,10 +163,14 @@ export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0
     mode: record.mode,
     name: record.name,
     costDays: record.costDays ?? null,
+    // 这场战斗属于哪项活动（任务／连续副本／挑战塔／年度赛事），页面据此给出返回去处。
+    questId: record.questId ?? null, runId: record.runId ?? null, challengeId: record.challengeId ?? null, annualId: record.annualId ?? null,
     turn: state.turn,
     turnLimit: state.turnLimit,
     phase: state.phase,
     goal: goalText(state),
+    nextObjective: state.nextObjective ?? null,
+    npcRoute: state.npcRoute ?? null,
     result: state.result ?? null,
     map: asciiMap(state),
     units: state.units.filter(u => u.alive).map(u => detail ? fullUnit(u) : compactUnit(u)),
@@ -221,6 +236,15 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
       ctx.store.addEvent(ctx.player.id, 'quest', `完成任务「${questById(record.questId)?.name ?? record.questId}」，奖励待领取。`, { questId: record.questId });
     }
   }
+  // 挑战塔：胜利即记为通关，首通／重复奖励另用 CLAIM_CHALLENGE_REWARD 领取（docs/00 §9.6）。
+  if (record.challengeId && record.state.result?.winner === 'player') {
+    ctx.player.flags.towerCleared ??= [];
+    if (!ctx.player.flags.towerCleared.includes(record.challengeId)) {
+      ctx.player.flags.towerCleared.push(record.challengeId);
+      ctx.store.savePlayer(ctx.player);
+      ctx.store.addEvent(ctx.player.id, 'challenge', `通关${challengeById(record.challengeId)?.name ?? record.challengeId}，奖励待领取。`, { floorId: record.challengeId });
+    }
+  }
   if (record.mode === 'arena' && record.opponentId && record.arenaDay !== undefined) {
     const day = ctx.store.arenaDay(ctx.player.id, record.arenaDay);
     if (day) {
@@ -236,15 +260,66 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
 
 // ---- handlers ------------------------------------------------------------
 
+
+// 经典地图的出战上限来自逐图适配配置；副本取整条路线里最紧的一图，绝不静默裁到 8。
+function questMaxUnits(quest: { maxUnits?: number; scenarioId?: string; scenarioIds?: string[] }): number {
+  if (quest.maxUnits) return quest.maxUnits;
+  const ids = quest.scenarioIds?.length ? quest.scenarioIds : quest.scenarioId ? [quest.scenarioId] : [];
+  if (ids.length === 0) return FIELD_BATTLE.maxUnits;
+  return Math.min(...ids.map(id => classicAdaptation(id).deployment.max));
+}
+
+
+// 随机角色仍以稳定角色 ID 作为肖像/个人技能锚点，但姓名、性别、种族、职业与成长独立。
+function randomRecruitUnit(candidate: RandomRecruit, region: number, day: number, seed: string, levelOverride?: number) {
+  const level = levelOverride ?? recruitLevel(day);
+  const traits = seedRng(`recruit-traits:${seed}`);
+  const growthType = rollGrowthType(traits[0] % 100);
+  const remainingYears = Math.max(0, MAINLINE_YEARS - (dateOf(day).year - 1));
+  const age = rollRecruitAge(growthType, remainingYears, traits[1]);
+  const portrait = recruitPortrait(seed);
+  const unit = createUnit(portrait, level, `u_random_${region}_${hashSeed(seed)}`, day, true, {
+    classId: candidate.classId, growthType, age, personalGrowth: candidate.growth,
+  });
+  unit.name = candidate.name;
+  unit.sex = candidate.sex;
+  unit.species = candidate.species;
+  unit.portrait = portrait;
+  return unit;
+}
+
+function hashSeed(seed: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619) >>> 0;
+  return h.toString(36);
+}
+
+
+// 有次数的书分两类：携带的魔道书／杖（bookInstances）与职业法术书（spellbooks，cast 用）。
+// 两边可能同名（如雷霆），spellbook=true 时先找法术书。
+function bookOf(unit: UnitRecord, id: string, spellbook: boolean): { charges: number; maxCharges: number } | null {
+  const books = (unit.bookInstances ?? []).find(row => row.id === id);
+  const spells = (unit.spellbooks ?? []).find(row => row.id === id);
+  return (spellbook ? spells ?? books : books ?? spells) ?? null;
+}
+
+function lifespanBlockers(ctx: Context, toDay: number): string[] {
+  return ctx.store.units(ctx.player.id).filter(unit => unit.status === 'active')
+    .flatMap(unit => {
+      const end = nextLifespanEventDay(unit, ctx.player.day, toDay);
+      return end === null ? [] : [`${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`];
+    });
+}
+
 const handlers: Record<number, Handler> = {
   [OP.GET_STATE]: ctx => stateView(ctx.store, ctx.player),
 
   [OP.GET_EVENTS]: (ctx, data) => {
     // 事件游标是十进制字符串（docs/13 §2.1）：可传 cursor 或旧的 sinceId。
-    const since = typeof data.sinceId === 'number' ? data.sinceId : (typeof data.cursor === 'string' ? Number(data.cursor) : 0);
-    const events = ctx.store.events(ctx.player.id, Number.isFinite(since) ? since : 0);
-    const cursor = events.length > 0 ? String(events[events.length - 1].id) : String(since || 0);
-    return { events, cursor };
+    const since = typeof data.cursor === 'string' ? data.cursor : String(data.sinceId ?? 0);
+    const events = ctx.store.events(ctx.player.id, since);
+    const cursor = events.length > 0 ? String(events[events.length - 1].id) : since;
+    return { events: events.map(event => ({ ...event, id: String(event.id) })), cursor };
   },
 
   [OP.GET_AGENT_INFO]: ctx => ({
@@ -257,10 +332,14 @@ const handlers: Record<number, Handler> = {
   [OP.GET_ROSTER]: ctx => ({
     limit: ROSTER_LIMIT,
     count: ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length,
-    units: ctx.store.units(ctx.player.id).map(unitSummary),
+    units: ctx.store.units(ctx.player.id).map(unit => publicUnitSummary(unit, ctx.player.day)),
   }),
 
-  [OP.GET_UNIT]: (ctx, data) => unitDetail(requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'))),
+  [OP.GET_UNIT]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    // 固定人物才有见闻；随机招募与神主角只借用形象锚点，不继承那名角色的故事。
+    return { ...unitDetail(unit, ctx.player.day), story: unitOrigin(unit) === 'fixed' ? CHARACTER_STORIES[unit.character] ?? null : null };
+  },
 
   [OP.GET_INVENTORY]: ctx => ({
     inventory: ctx.store.inventory(ctx.player.id).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, uses: row.uses, count: row.count })),
@@ -275,6 +354,9 @@ const handlers: Record<number, Handler> = {
     const current = ctx.store.activeBattle(ctx.player.id);
     const fighting = !!current;
     const full = ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT;
+    const recruitBlock = ctx.player.flags.pendingRecruit ? '已有待确认的游历候选，先接受或拒绝'
+      : ctx.player.day < RECRUIT_UNLOCK_DAY ? `第二年（${dateOf(RECRUIT_UNLOCK_DAY).label}）开放游历招募`
+        : full ? `名册已满（上限 ${ROSTER_LIMIT} 人）` : null;
     return {
       day: ctx.player.day,
       date,
@@ -284,7 +366,7 @@ const handlers: Record<number, Handler> = {
         { key: 'sweep', name: '扫荡', costDays: ACTION_DAYS.sweep, available: cleared.length > 0, note: cleared.length > 0 ? '自动结算已讨伐地区' : '先讨伐至少一个地区' },
         { key: 'train', name: '训练', costDays: ACTION_DAYS.train, costGold: TRAIN_GOLD, available: true, note: '补武器熟练度，暂不发等级经验' },
         { key: 'rest', name: '休整', costDays: 1, available: true, note: '自选日数推进日期' },
-        { key: 'recruit', name: '游历招募', costDays: ACTION_DAYS.recruit, available: !full, note: full ? `名册已满（上限 ${ROSTER_LIMIT} 人）` : '只花行动日，按地区概率遇到新人' },
+        { key: 'recruit', name: '游历招募', costDays: ACTION_DAYS.recruit, available: recruitBlock === null, note: recruitBlock ?? '只花行动日，按地区概率遇到新人；遇到后可接受或拒绝' },
       ],
       sortieRegions: REGIONS.map(region => ({
         id: region.id, name: region.name, resource: region.resource,
@@ -305,7 +387,7 @@ const handlers: Record<number, Handler> = {
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const units = ids.length > 0
       ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
-      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, 6);
+      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, FIELD_BATTLE.maxUnits);
     const busy = units.find(u => u.lockedRunId || u.lockedDispatchId);
     if (busy) throw new OpError('FORBIDDEN', `${unitName(busy)} 正在远征或派遣中`);
     const ready = units.filter(u => u.status === 'active');
@@ -348,7 +430,8 @@ const handlers: Record<number, Handler> = {
     ctx.player.gold -= TRAIN_GOLD;
     const weaponType = WEAPONS[weaponId].type;
     const before = unit.ranks[weaponType] ?? 'E';
-    const rank = addWeaponExp(unit, weaponType, 10);
+    const bonus = trainingBonusFor(unit.classId, studyForWeapon(weaponType)) ?? 0;
+    const rank = addWeaponExp(unit, weaponType, 10 + bonus);
     ctx.player.day += ACTION_DAYS.train;
     ctx.store.saveUnit(unit, ctx.player.id);
     syncPlayer(ctx.store, ctx.player);
@@ -357,7 +440,7 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.REST]: (ctx, data) => {
-    const days = Math.max(1, Math.min(120, typeof data.days === 'number' ? data.days : 1));
+    const days = Math.max(1, Math.min(500, typeof data.days === 'number' ? data.days : 1));
     ctx.player.day += days;
     syncPlayer(ctx.store, ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'rest' });
@@ -366,36 +449,103 @@ const handlers: Record<number, Handler> = {
 
   [OP.RECRUIT]: (ctx, data) => {
     const region = asNumber(data.region, 'region');
+    const pending = ctx.player.flags.pendingRecruit;
+    if (pending) throw new OpError('FORBIDDEN', '已有待确认的游历候选，先接受或拒绝');
+    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `需要到第二年（D${RECRUIT_UNLOCK_DAY}）才能游历招募`);
     if (ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT) throw new OpError('BAD_REQUEST', '名册已满');
-    const fails = ctx.player.flags.recruitFails ?? 0;
-    const roll = seedRng(`recruit:${ctx.player.id}:${ctx.player.day}`)[0] % 100;
+    const fails = ctx.player.flags.recruitFailsByRegion?.[region] ?? ctx.player.flags.recruitFails ?? 0;
+    const roll = seedRng(`recruit:${ctx.player.id}:${ctx.player.day}:${region}`)[0] % 100;
     const success = roll < 40 || fails >= 4;
+    const seed = `${ctx.player.id}:${ctx.player.day}:${region}`;
     ctx.player.day += ACTION_DAYS.recruit;
+    ctx.player.flags.recruitFailsByRegion ??= {};
     if (!success) {
+      ctx.player.flags.recruitFailsByRegion[region] = fails + 1;
       ctx.player.flags.recruitFails = fails + 1;
       syncPlayer(ctx.store, ctx.player);
+      ctx.store.savePlayer(ctx.player);
       ctx.store.addEvent(ctx.player.id, 'recruit', `在 ${regionById(region).name} 游历未遇到新人（第 ${fails + 1} 次失败）。`, { region });
-      return { success: false, fails: fails + 1, day: ctx.player.day };
+      return { success: false, fails: fails + 1, day: ctx.player.day, region };
     }
+    ctx.player.flags.recruitFailsByRegion[region] = 0;
     ctx.player.flags.recruitFails = 0;
-    const candidates = Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[];
-    const owned = new Set(ctx.store.units(ctx.player.id).map(u => u.character));
-    const pool = candidates.filter(c => !owned.has(c));
-    const character = pool.length > 0 ? pool[roll % pool.length] : candidates[roll % candidates.length];
-    const level = Math.max(1, regionLevel(ctx.player.flags.clearedRegions.length, regionById(region).offset) - 4);
-    // 成长类型与年龄由招募决定（成长型 5%）；同一天的结果确定可复现。
-    const traits = seedRng(`recruit-traits:${ctx.player.id}:${ctx.player.day}`);
-    const growthType = rollGrowthType(traits[0] % 100);
-    const remainingYears = Math.max(0, MAINLINE_YEARS - (dateOf(ctx.player.day).year - 1));
-    const age = rollRecruitAge(growthType, remainingYears, traits[1]);
-    // 等级决定职业阶段：Lv1–9 初级、10–19 二级、20–29 三级、30+ 四级（上级职业同样允许）。
-    const route = (Object.keys(CLASS_PATHS) as (keyof typeof CLASS_PATHS)[])[regionById(region).id - 1];
-    const unit = createUnit(character, level, `u_${character}_${ctx.player.day}`, ctx.player.day, true, { growthType, age, classId: recruitClass(route, level) });
-    ctx.store.addUnit(ctx.player.id, unit);
+    const candidate = generateRecruit(seed, regionRoutes(region));
+    ctx.player.flags.pendingRecruit = { id: `pending-${seed}`, region, day: ctx.player.day, seed, candidate };
     syncPlayer(ctx.store, ctx.player);
-    ctx.store.addEvent(ctx.player.id, 'recruit', `在 ${regionById(region).name} 遇到 ${CHARACTERS[character].name}（Lv${level}，${GROWTH_TYPE_NAMES[growthType]}，${age} 岁）。`, { unit: unit.id });
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'recruit', `在 ${regionById(region).name} 遇到候选 ${candidate.name}（${candidate.classId}）。`, { region, candidate });
+    return { success: true, pending: { id: ctx.player.flags.pendingRecruit.id, region, candidate, level: recruitLevel(ctx.player.day) }, day: ctx.player.day };
+  },
+
+  [OP.ACCEPT_RECRUIT]: (ctx, data) => {
+    const pending = ctx.player.flags.pendingRecruit;
+    if (!pending) throw new OpError('NOT_FOUND', '没有待确认的游历候选');
+    if (data.id !== undefined && asString(data.id, 'id') !== pending.id) throw new OpError('NOT_FOUND', '候选已经变化');
+    if (ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT) throw new OpError('ROSTER_FULL', '名册已满，腾出位置后再接受');
+    const unit = randomRecruitUnit(pending.candidate, pending.region, ctx.player.day, pending.seed);
+    ctx.store.addUnit(ctx.player.id, unit);
+    delete ctx.player.flags.pendingRecruit;
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'recruit', `${unitName(unit)} 加入了军团。`, { unit: unit.id });
     ctx.push(OP.STATE_CHANGED, { reason: 'recruit' });
-    return { success: true, unit: unitSummary(unit), day: ctx.player.day };
+    return { accepted: true, unit: unitSummary(unit, ctx.player.day), day: ctx.player.day };
+  },
+
+  [OP.DECLINE_RECRUIT]: ctx => {
+    const pending = ctx.player.flags.pendingRecruit;
+    if (!pending) throw new OpError('NOT_FOUND', '没有待确认的游历候选');
+    delete ctx.player.flags.pendingRecruit;
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'recruit', `拒绝了 ${pending.candidate.name}；已支付的日期不退还。`, { region: pending.region });
+    return { declined: true, day: ctx.player.day };
+  },
+
+  [OP.GET_TAVERN]: (ctx, data) => {
+    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `酒馆招募在第二年（D${RECRUIT_UNLOCK_DAY}）开放`);
+    const quarter = Math.floor(ctx.player.day / DAYS_PER_SEASON);
+    if (ctx.player.flags.tavernQuarter !== quarter) {
+      ctx.player.flags.tavernQuarter = quarter;
+      ctx.player.flags.tavernCandidates = {};
+    }
+    ctx.player.flags.tavernCandidates ??= {};
+    const regions = data.region === undefined ? [2, 3, 5] : [asNumber(data.region, 'region')];
+    const rows = regions.flatMap(region => {
+      if (!ctx.player.flags.tavernCandidates![region]) {
+        ctx.player.flags.tavernCandidates![region] = Array.from({ length: 3 }, (_, i) => {
+          const seed = `${ctx.player.id}:tavern:${quarter}:${region}:${i}`;
+          const candidate = generateRecruit(seed, regionRoutes(region));
+          return { id: `${region}-${quarter}-${i}`, price: 1_200 + recruitLevel(ctx.player.day) * 80, hired: false, candidate };
+        });
+      }
+      return ctx.player.flags.tavernCandidates![region].map(row => ({
+        region, id: row.id, price: row.price, hired: row.hired, name: row.candidate.name,
+        sex: row.candidate.sex, species: row.candidate.species, classId: row.candidate.classId,
+        className: CLASSES[row.candidate.classId].name, portrait: recruitPortrait(row.id),
+        level: recruitLevel(ctx.player.day),
+      }));
+    });
+    ctx.store.savePlayer(ctx.player);
+    return { quarter, regions: rows };
+  },
+
+  [OP.HIRE_TAVERN]: (ctx, data) => {
+    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `酒馆招募在第二年（D${RECRUIT_UNLOCK_DAY}）开放`);
+    const region = asNumber(data.region, 'region');
+    const id = asString(data.id, 'id');
+    const quarter = Math.floor(ctx.player.day / DAYS_PER_SEASON);
+    const row = ctx.player.flags.tavernCandidates?.[region]?.find(entry => entry.id === id);
+    if (!row) throw new OpError('NOT_FOUND', '本季度没有这个候选');
+    if (row.hired) throw new OpError('FORBIDDEN', '这个候选已经被雇佣');
+    if (ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT) throw new OpError('ROSTER_FULL', '名册已满');
+    if (ctx.player.gold < row.price) throw new OpError('NOT_ENOUGH_GOLD', `需要 ${row.price} 金币`);
+    ctx.player.gold -= row.price;
+    row.hired = true;
+    const unit = randomRecruitUnit(row.candidate, region, ctx.player.day, id);
+    ctx.store.addUnit(ctx.player.id, unit);
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'recruit', `在酒馆雇佣了 ${unitName(unit)}（-${row.price} 金币）。`, { unit: unit.id, region });
+    ctx.push(OP.STATE_CHANGED, { reason: 'tavern' });
+    return { hired: true, unit: unitSummary(unit, ctx.player.day), day: ctx.player.day, gold: ctx.player.gold };
   },
 
   [OP.START_MAIN_STAGE]: ctx => {
@@ -485,10 +635,16 @@ const handlers: Record<number, Handler> = {
       if (isWeapon) {
         if (unit.weapons.length >= 5) throw new OpError('BAD_REQUEST', '武器携带栏已满');
         if (ctx.store.takeInventory(ctx.player.id, item, 1) === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件武器');
+        const perfect = ctx.player.flags.perfectWeapons?.[item] ?? 0;
+        if (perfect > 0) ctx.player.flags.perfectWeapons![item] = perfect - 1;
+        const max = weaponMax(item as never) + (perfect > 0 ? 10 : 0);
+        unit.weaponInstances ??= [];
+        unit.weaponInstances.push({ id: item as never, durability: max, maxDurability: max });
         unit.weapons.push(item as never);
       } else {
         // 只有武器和战斗道具能带进战斗；材料、转职印、能力药留在仓库 (docs/00 §6「材料不占战斗携带栏」)。
         if (GAME_ITEMS[item].kind !== 'consumable') throw new OpError('BAD_REQUEST', `${GAME_ITEMS[item].name}不能带进战斗`);
+        if (item === 'immortal_shield' && unit.items.some(entry => entry.id === 'immortal_shield')) throw new OpError('FORBIDDEN', '每名角色最多携带 1 枚不朽盾');
         if (unit.items.length >= 5) throw new OpError('BAD_REQUEST', '携带栏已满');
         const uses = ctx.store.takeStack(ctx.player.id, item, typeof data.uses === 'number' ? data.uses : null);
         if (uses === null) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件物品');
@@ -499,6 +655,8 @@ const handlers: Record<number, Handler> = {
         const index = unit.weapons.indexOf(item as never);
         if (index < 0) throw new OpError('NO_SUCH_ITEM', '该单位没有携带这件武器');
         unit.weapons.splice(index, 1);
+        const instanceIndex = unit.weaponInstances?.findIndex(row => row.id === item) ?? -1;
+        if (instanceIndex >= 0) unit.weaponInstances!.splice(instanceIndex, 1);
         ctx.store.addInventory(ctx.player.id, item, 0, 1);
       } else {
         const index = unit.items.findIndex(i => i.id === item);
@@ -511,8 +669,9 @@ const handlers: Record<number, Handler> = {
       throw new OpError('BAD_REQUEST', 'action 只能是 equip / toUnit / toWarehouse');
     }
     ctx.store.saveUnit(unit, ctx.player.id);
+    ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'transfer' });
-    return unitDetail(unit);
+    return unitDetail(unit, ctx.player.day);
   },
 
   [OP.USE_ITEM]: (ctx, data) => {
@@ -594,6 +753,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.CLAIM_LEGACY]: (ctx, data) => {
     const legacy = ctx.store.legacy(ctx.player.id, asString(data.legacyId, 'legacyId'));
+    if (!ctx.player.flags.legacyUnlocked) throw new OpError('FORBIDDEN', '尚未完成传承解锁任务');
     if (!legacy) throw new OpError('NOT_FOUND', '没有这份遗产');
     const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
     const mode = asString(data.mode, 'mode') as LegacyMode;
@@ -654,30 +814,43 @@ const handlers: Record<number, Handler> = {
     return { unit: unitDetail(unit), allocation: result.allocation, baseStats: result.baseStats, returned: gear };
   },
 
-  [OP.GET_MEMORIAL]: ctx => ({
-    memorials: ctx.store.memorials(ctx.player.id).map(row => row.data),
-    emergency: emergencyStatus(ctx),
-  }),
+  [OP.GET_MEMORIAL]: ctx => {
+    const legacies = ctx.store.legacies(ctx.player.id);
+    const units = ctx.store.units(ctx.player.id);
+    const record = serviceRecords(ctx);
+    return {
+      memorials: ctx.store.memorials(ctx.player.id).map(row => {
+        const m = row.data;
+        const unit = units.find(u => u.id === m.unitId);
+        const left = legacies.find(l => l.sourceUnitId === m.unitId);
+        const received = unit?.receivedLegacyId ? legacies.find(l => l.id === unit.receivedLegacyId) : undefined;
+        const battle = m.battleId ? ctx.store.battle(ctx.player.id, m.battleId) : null;
+        const heir = left?.recipientUnitId ? units.find(u => u.id === left.recipientUnitId) : undefined;
+        return {
+          ...m, className: CLASSES[m.classId as keyof typeof CLASSES]?.name ?? m.classId, date: dateOf(m.atDay),
+          origin: unit ? unitOrigin(unit) : null, age: unit?.age ?? null, joinedDay: unit?.joinedDay ?? null, cycle: unit?.cycle ?? 0,
+          sex: unit?.sex ?? null, portrait: unit?.portrait ?? null,
+          battle: battle ? { id: battle.id, name: battle.name, mode: battle.mode, turn: battle.state.turn, reason: battle.state.result?.reason ?? null } : null,
+          legacy: left ? { id: left.id, state: left.state, mode: left.mode, recipientName: heir ? unitName(heir) : null } : null,
+          inherited: received ? { sourceName: received.sourceName, mode: received.mode } : null,
+          record: record.get(m.unitId) ?? { battles: 0, wins: 0, kills: 0 },
+        };
+      }),
+      emergency: emergencyStatus(ctx),
+    };
+  },
 
   [OP.EMERGENCY_RECRUIT]: ctx => {
     const { blocker, deaths } = emergencyStatus(ctx);
     if (blocker) throw new OpError('FORBIDDEN', blocker);
-    const units = ctx.store.units(ctx.player.id);
-    const owned = new Set(units.map(u => u.character));
-    const pool = (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]).filter(c => !owned.has(c));
-    const picks = pool.length >= EMERGENCY_UNITS ? pool : (Object.keys(CHARACTERS) as (keyof typeof CHARACTERS)[]);
-    const rng = seedRng(`emergency:${ctx.player.id}:${deaths}`);
+    const level = Math.max(1, regionLevel(ctx.player.flags.clearedRegions.length, 0) - 4);
     const created: ReturnType<typeof unitSummary>[] = [];
     for (let i = 0; i < EMERGENCY_UNITS; i++) {
-      const character = picks[(rng[i] ?? i) % picks.length];
-      const level = Math.max(1, regionLevel(ctx.player.flags.clearedRegions.length, 0) - 4);
-      const traits = seedRng(`emergency-traits:${ctx.player.id}:${deaths}:${i}`);
-      const growthType = rollGrowthType(traits[0] % 100);
-      const remainingYears = Math.max(0, MAINLINE_YEARS - (dateOf(ctx.player.day).year - 1));
-      const age = rollRecruitAge(growthType, remainingYears, traits[1]);
-      const unit = createUnit(character, level, `u_${character}_e${ctx.player.day}_${i}`, ctx.player.day, true, { growthType, age });
+      const seed = `emergency:${ctx.player.id}:${deaths}:${i}`;
+      const candidate = generateRecruit(seed);
+      const unit = randomRecruitUnit(candidate, 0, ctx.player.day, seed, level);
       ctx.store.addUnit(ctx.player.id, unit);
-      created.push(unitSummary(unit));
+      created.push(unitSummary(unit, ctx.player.day));
     }
     ctx.player.flags.emergencyClaimed = deaths;
     ctx.store.savePlayer(ctx.player);
@@ -701,6 +874,8 @@ const handlers: Record<number, Handler> = {
         studies: CLASSES[id].studies, trainingBonus: CLASSES[id].trainingBonus,
         unavailableReason: classUnavailableReason(id),
         eligibilityReason: unit ? classChangeReason(unit, id) : null,
+        // 换成该职业后的合计成长（服务端同一公式，含个人、分配、装备与年龄修正）。
+        growth: unit ? growthRates({ ...unit, classId: id }) : null,
       })),
     };
   },
@@ -748,7 +923,7 @@ const handlers: Record<number, Handler> = {
       progress: classes.map(id => ({
         classId: id, name: CLASSES[id].name, route: CLASSES[id].route, routeName: ROUTE_NAMES[CLASSES[id].route],
         stage: CLASSES[id].stage, mastery: classMasteryOf(unit, id),
-        nodes: masteryNodesFor(id).map(node => ({ id: node.id, threshold: node.threshold, skill: node.skill, name: node.name, unlocked: unlockedNodes(unit, id).includes(node.id) })),
+        nodes: masteryNodesFor(id).map(node => ({ id: node.id, threshold: node.threshold, skill: node.skill, name: node.name, referenceIds: node.referenceIds ?? [], unlocked: unlockedNodes(unit, id).includes(node.id) })),
       })),
       learnedSkills: unit.learnedSkills ?? [], equippedSkills: unit.equippedSkills ?? [],
       qualifications: unit.classQualifications ?? [],
@@ -774,7 +949,7 @@ const handlers: Record<number, Handler> = {
     ctx.store.saveUnit(unit, ctx.player.id);
     ctx.store.addEvent(ctx.player.id, 'class-switch', `${unitName(unit)} 切换职业为 ${CLASSES[classId].name}。`, { unit: unit.id, classId });
     ctx.push(OP.STATE_CHANGED, { reason: 'class-switch' });
-    return unitDetail(unit);
+    return unitDetail(unit, ctx.player.day);
   },
 
   [OP.EQUIP_SKILLS]: (ctx, data) => {
@@ -796,6 +971,8 @@ const handlers: Record<number, Handler> = {
 
   [OP.START_DUNGEON]: (ctx, data) => {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    const lifeBlock = lifespanBlockers(ctx, ctx.player.day + DUNGEON_STAGE_DAYS);
+    if (lifeBlock.length) throw new OpError('FORBIDDEN', lifeBlock.join('；'));
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '已有进行中的远征');
     const region = asNumber(data.region, 'region');
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
@@ -828,12 +1005,23 @@ const handlers: Record<number, Handler> = {
     // 下一张只能使用原名单中仍存活、未离队的角色（docs/00 §8.1.3）。
     const units = survivingIds(run.carry).map(id => ctx.store.unit(ctx.player.id, id)).filter((u): u is NonNullable<typeof u> => !!u && u.status === 'active');
     if (units.length === 0) throw new OpError('FORBIDDEN', '没有存活的队员，只能撤离');
+    if (run.scenarioIds?.length) {
+      const maxUnits = classicAdaptation(run.scenarioIds[run.stageIndex]).deployment.max;
+      if (units.length > maxUnits) throw new OpError('FORBIDDEN', `本图最多出战 ${maxUnits} 人`);
+    }
+    const runQuest = run.questId ? questById(run.questId) : undefined;
+    if (runQuest?.betweenMapHeal) {
+      for (const unit of units) {
+        const carry = run.carry[unit.id];
+        if (carry) carry.hp = Math.min(unit.stats.hp, carry.hp + Math.floor(unit.stats.hp * runQuest.betweenMapHeal / 100));
+      }
+    }
     ctx.player.day += run.stageDays ?? DUNGEON_STAGE_DAYS;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
     const record = run.scenarioIds?.length
       ? createClassicBattle(units, { mapId: run.scenarioIds[run.stageIndex], seed, quest: run.questId ? questById(run.questId) : undefined,
-          stageIndex: run.stageIndex, runId: run.id, carry: run.carry })
+          stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day })
       : createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry });
     record.playerId = ctx.player.id;
     run.state = 'battle';
@@ -954,9 +1142,14 @@ const handlers: Record<number, Handler> = {
       if (ctx.store.countInventory(ctx.player.id, input.item) < input.count) throw new OpError('NO_SUCH_ITEM', `缺少${GAME_ITEMS[input.item].name}`);
     }
     // 开工先扣输入、消耗开工日，ready_day = 开工动作结束日 + duration（docs/13 §3.3）。
+    const perfect = data.perfect === true;
+    const perfectCost = perfect ? 1_500 : 0;
+    if (ctx.player.gold < perfectCost) throw new OpError('NOT_ENOUGH_GOLD', `完美锻造需要 ${perfectCost} 金币`);
+    ctx.player.gold -= perfectCost;
     for (const input of recipe.input) ctx.store.takeInventory(ctx.player.id, input.item, input.count);
-    const order = createOrder(`po-${randomUUID().slice(0, 8)}`, ctx.player.id, recipe, ctx.player.day);
+    const order = createOrder(`po-${randomUUID().slice(0, 8)}`, ctx.player.id, recipe, ctx.player.day, perfect ? 'perfect' : 'normal');
     ctx.store.saveProductionOrder(order);
+    ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'production' });
     return { order: { id: order.id, ...describeOrder(order) }, day: ctx.player.day };
   },
@@ -969,16 +1162,82 @@ const handlers: Record<number, Handler> = {
     if (order.state !== 'ready') throw new OpError('FORBIDDEN', `还要等到第 ${order.readyDay} 日`);
     // 领取不额外推进日期；产出在开工时固定，不能重抽（docs/13 §2.3）。
     ctx.store.addInventory(ctx.player.id, order.output.item, GAME_ITEMS[order.output.item].uses ?? 0, order.output.count);
+    if (order.quality === 'perfect' && GAME_ITEMS[order.output.item].kind === 'weapon') {
+      ctx.player.flags.perfectWeapons ??= {};
+      ctx.player.flags.perfectWeapons[order.output.item] = (ctx.player.flags.perfectWeapons[order.output.item] ?? 0) + order.output.count;
+    }
+    ctx.store.savePlayer(ctx.player);
     order.state = 'collected';
     ctx.store.saveProductionOrder(order);
     ctx.push(OP.STATE_CHANGED, { reason: 'collect' });
     return { orderId: order.id, item: order.output.item, count: order.output.count };
   },
 
-  [OP.REPAIR_ITEM]: () => {
-    // 耐久与完美锻造仍是候选（docs/00 §9.2.1、docs/13 §7），首版 features.refinement.enabled=false，
-    // 不提供可以凭空多发耐久的接口。
-    throw new OpError('FEATURE_DISABLED', '耐久与维修尚未启用：规则版本未开启 features.durability');
+  [OP.INN_REST]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id) || isActiveRun(ctx.store.activeRun(ctx.player.id)) || ctx.store.activeAnnualEntry(ctx.player.id)) {
+      throw new OpError('FORBIDDEN', '战斗／远征／年度赛事中不能旅馆休息');
+    }
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const book = asString(data.book, 'book');
+    const instance = bookOf(unit, book, data.spellbook === true);
+    if (!instance) throw new OpError('NO_SUCH_ITEM', '这个单位没有携带该书');
+    const cost = 200 + unit.level * 10;
+    if (ctx.player.gold < cost) throw new OpError('NOT_ENOUGH_GOLD', `旅馆休息需要 ${cost} 金币`);
+    ctx.player.gold -= cost;
+    ctx.player.day += 1;
+    instance.charges = instance.maxCharges;
+    ctx.store.saveUnit(unit, ctx.player.id);
+    syncPlayer(ctx.store, ctx.player);
+    ctx.store.savePlayer(ctx.player);
+    return { unit: unit.id, book, charges: [instance.charges, instance.maxCharges], gold: ctx.player.gold, day: ctx.player.day };
+  },
+
+  [OP.USE_FOOD]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id) || isActiveRun(ctx.store.activeRun(ctx.player.id)) || ctx.store.activeAnnualEntry(ctx.player.id)) {
+      throw new OpError('FORBIDDEN', '战斗／远征／年度赛事中不能使用食物恢复法术书');
+    }
+    const item = asString(data.item, 'item');
+    if (item !== 'ether_ration' && item !== 'full_meal') throw new OpError('BAD_REQUEST', 'item 取 ether_ration / full_meal');
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const book = asString(data.book, 'book');
+    const instance = bookOf(unit, book, data.spellbook === true);
+    if (!instance) throw new OpError('NO_SUCH_ITEM', '这个单位没有携带该书');
+    if (ctx.store.countInventory(ctx.player.id, item) < 1) throw new OpError('NO_SUCH_ITEM', `没有${GAME_ITEMS[item].name}`);
+    const restore = item === 'full_meal' ? instance.maxCharges : Math.max(1, Math.ceil(instance.maxCharges / 4));
+    instance.charges = Math.min(instance.maxCharges, instance.charges + restore);
+    ctx.store.takeInventory(ctx.player.id, item, 1);
+    ctx.store.saveUnit(unit, ctx.player.id);
+    return { unit: unit.id, book, restored: restore, charges: [instance.charges, instance.maxCharges] };
+  },
+
+  [OP.REPAIR_ITEM]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const item = asString(data.item ?? data.weapon, 'item') as WeaponId;
+    if (!unit.weapons.includes(item)) throw new OpError('NO_SUCH_ITEM', `${unitName(unit)} 没有携带这件武器`);
+    if (WEAPONS[item]?.type === 'staff') {
+      const book = (unit.bookInstances ?? []).find(row => row.id === item);
+      if (!book) throw new OpError('NO_SUCH_ITEM', '没有可补充的杖实例');
+      if (book.charges >= book.maxCharges) throw new OpError('BAD_REQUEST', '这根杖次数已满');
+      const staffCost = 150 + (book.maxCharges - book.charges) * 20;
+      if (ctx.player.gold < staffCost) throw new OpError('NOT_ENOUGH_GOLD', `补充杖需要 ${staffCost} 金币`);
+      ctx.player.gold -= staffCost;
+      book.charges = book.maxCharges;
+      ctx.store.saveUnit(unit, ctx.player.id);
+      ctx.store.savePlayer(ctx.player);
+      return { item, repaired: 1, gold: ctx.player.gold, durability: [[book.charges, book.maxCharges]] };
+    }
+    const rows = (unit.weaponInstances ?? []).filter(row => row.id === item);
+    if (rows.length === 0) throw new OpError('NO_SUCH_ITEM', '没有可维修的武器实例');
+    const damaged = rows.filter(row => row.durability < row.maxDurability);
+    if (damaged.length === 0) throw new OpError('BAD_REQUEST', '这件武器耐久已满');
+    const cost = 100 + Math.max(...damaged.map(row => row.maxDurability)) * 5;
+    if (ctx.player.gold < cost) throw new OpError('NOT_ENOUGH_GOLD', `维修需要 ${cost} 金币`);
+    ctx.player.gold -= cost;
+    for (const row of damaged) row.durability = row.maxDurability;
+    ctx.store.saveUnit(unit, ctx.player.id);
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'repair', `${unitName(unit)} 的 ${GAME_ITEMS[item].name} 已修复。`, { unit: unit.id, item });
+    return { item, repaired: damaged.length, gold: ctx.player.gold, durability: rows.map(row => [row.durability, row.maxDurability]) };
   },
 
   // ---- battle ops --------------------------------------------------------
@@ -986,8 +1245,9 @@ const handlers: Record<number, Handler> = {
   [OP.GET_BATTLE]: (ctx, data) => {
     const record = requireBattle(ctx, data);
     const view = battleView(record, data.detail === true, typeof data.sinceEvent === 'number' ? data.sinceEvent : 0);
+    const notes = data.full === true || data.notes === true ? { notes: battleNotes(ctx, record.id) } : {};
     // `full` returns the raw engine state so a browser can resume animation exactly (docs/06).
-    return data.full === true ? { ...view, state: publicState(record.state) } : view;
+    return data.full === true ? { ...view, ...notes, state: publicState(record.state) } : { ...view, ...notes };
   },
 
   [OP.GET_REACHABLE]: (ctx, data) => {
@@ -998,11 +1258,19 @@ const handlers: Record<number, Handler> = {
     const stops = [...range.stops].map(key => {
       const pos: Point = [key % record.state.map.width, Math.floor(key / record.state.map.width)];
       const options = actionOptions(record.state, unit, pos);
+      const dest = (rule: Parameters<typeof destinationCells>[3] | null) => (rule ? { ...rule, cells: destinationCells(record.state, unit, pos, rule) } : null);
       return {
         pos, cost: range.cost.get(key) ?? 0,
         attackable: options.attack.flatMap(o => o.targets.map(t => ({ target: t.id, weapon: o.weapon }))),
         healable: options.heal.flatMap(o => o.targets.map(t => ({ target: t.id, weapon: o.weapon }))),
         seize: options.seize,
+        escape: options.escape,
+        interactions: options.interactions,
+        // 战技／法术／杖／舞蹈（UNIT_ACT action = art / cast / staff / dance）：只列有目标的项。
+        arts: options.arts.filter(o => o.targets.length > 0).map(o => ({ art: o.art, weapon: o.weapon, cost: o.cost, durability: o.durability, usable: o.usable, targets: o.targets.map(t => t.id) })),
+        casts: options.casts.filter(o => o.targets.length > 0).map(o => ({ spell: o.spell, role: o.role, charges: o.charges, targets: o.targets.map(t => t.id), dest: dest(o.dest) })),
+        staves: options.staff.filter(o => o.targets.length > 0 && o.effect !== 'heal').map(o => ({ weapon: o.weapon, effect: o.effect, targets: o.targets.map(t => t.id), dest: dest(o.dest) })),
+        dance: options.dance,
       };
     });
     return { unit: unit.id, origin: unit.pos, stops };
@@ -1012,9 +1280,20 @@ const handlers: Record<number, Handler> = {
     const record = requireBattle(ctx, data);
     const attacker = asString(data.attackerId, 'attackerId');
     const from = asPoint(data.from, 'from');
-    const weapon = asString(data.weapon, 'weapon') as never;
     const target = asString(data.targetId, 'targetId');
-    const f = forecast(record.state, attacker, from, weapon, target);
+    // 攻击法术按法术书数值预测：spell 代替 weapon（只对 attack／hostile_support 类法术有意义）。
+    const book = typeof data.spell === 'string' ? SPELLBOOK_BY_ID.get(data.spell) : undefined;
+    if (typeof data.spell === 'string' && !book) throw new OpError('NOT_FOUND', `没有法术 ${data.spell}`);
+    if (book && !(unitById(record.state, attacker).spellbooks ?? []).some(row => row.id === book.id)) throw new OpError('NO_SUCH_ITEM', '没有携带这本法术书');
+    const weapon = (book ? book.id : asString(data.weapon, 'weapon')) as never;
+    const art = typeof data.art === 'string' ? WEAPON_ART_BY_ID.get(data.art as never) : undefined;
+    if (art) {
+      const unit = unitById(record.state, attacker);
+      if (!(unit.arts ?? []).includes(art.id)) throw new OpError('FORBIDDEN', '尚未学习这个战技');
+      if (WEAPONS[weapon]?.type !== art.weapon) throw new OpError('BAD_REQUEST', '战技与武器类型不匹配');
+    }
+    const run = () => forecast(record.state, attacker, from, weapon, target, art ? { might: art.might, hit: art.hit, crit: art.crit } : undefined);
+    const f = book ? withSpellWeapon(book, run) : run();
     const attackerUnit = unitById(record.state, attacker), defenderUnit = unitById(record.state, target);
     return {
       attacker: f.attacker, defender: f.defender, order: f.order,
@@ -1045,8 +1324,13 @@ const handlers: Record<number, Handler> = {
     else if (act === 'item') action = { type: 'act', unit, to, act: 'item', item: asNumber(data.item, 'item') };
     else if (act === 'seize') action = { type: 'act', unit, to, act: 'seize' };
     else if (act === 'escape') action = { type: 'act', unit, to, act: 'escape' };
+    else if (act === 'interact') action = { type: 'act', unit, to, act: 'interact', target: asString(data.targetId, 'targetId') };
     else if (act === 'wait') action = { type: 'act', unit, to, act: 'wait' };
-    else throw new OpError('BAD_REQUEST', 'action 取 attack / heal / item / seize / escape / wait');
+    else if (act === 'dance') action = { type: 'act', unit, to, act: 'dance', target: asString(data.targetId, 'targetId') };
+    else if (act === 'art') action = { type: 'act', unit, to, act: 'art', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, art: asString(data.art, 'art') };
+    else if (act === 'cast') action = { type: 'act', unit, to, act: 'cast', target: asString(data.targetId, 'targetId'), spell: asString(data.spell, 'spell'), ...(data.dest !== undefined ? { dest: asPoint(data.dest, 'dest') } : {}) };
+    else if (act === 'staff') action = { type: 'act', unit, to, act: 'staff', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, ...(data.dest !== undefined ? { dest: asPoint(data.dest, 'dest') } : {}) };
+    else throw new OpError('BAD_REQUEST', 'action 取 attack / heal / item / seize / escape / interact / wait / dance / art / cast / staff');
     const { state, events } = applyAction(ctx, record, action);
     return { battleId: record.id, result: state.result ?? null, events, state: publicState(state), battle: battleView(record, false, record.events.length - events.length) };
   },
@@ -1120,6 +1404,7 @@ const handlers: Record<number, Handler> = {
   [OP.ARENA_REGISTER]: ctx => {
     ctx.player.registered = true;
     ctx.store.saveSnapshot(ctx.player.id, ctx.player.day, snapshotData(ctx.store, ctx.player));
+    ensureArenaDay(ctx.store, ctx.player);
     ctx.store.savePlayer(ctx.player);
     ctx.store.addEvent(ctx.player.id, 'arena', '已报名下一次竞技场。', { day: ctx.player.day });
     return { registered: true, day: ctx.player.day, nextArenaDay: nextArenaDay(ctx.player.day) };
@@ -1163,8 +1448,9 @@ const handlers: Record<number, Handler> = {
     const record = requireArenaDay(ctx, data);
     const opponentId = asString(data.opponentId, 'opponentId');
     const picks = (Array.isArray(data.picks) ? data.picks : []).map(p => {
-      const entry = p as { character: string; pos: unknown };
-      return { character: entry.character as never, pos: asPoint(entry.pos, 'pos') };
+      const entry = p as { character: string; unitId?: unknown; pos: unknown };
+      // unitId 选中具体的单位实例（同一形象可能有多人）；不带时按角色匹配旧客户端。
+      return { character: entry.character as never, pos: asPoint(entry.pos, 'pos'), ...(typeof entry.unitId === 'string' ? { unitId: entry.unitId } : {}) };
     });
     const plan: AttackPlan = { picks, commander: asString(data.commander, 'commander') as never };
     const roster = activeSnapshot(ctx.store, ctx.player);
@@ -1182,10 +1468,13 @@ const handlers: Record<number, Handler> = {
     const battle: BattleRecord = {
       id: state.id, playerId: ctx.player.id, kind: 'arena', mode: 'arena',
       name: `${opponent.legion} · ${map.name}`, goalText: map.goalText, initial: structuredClone(state), state, events: [], actions: [],
-      seed, opponentId, arenaDay: record.day, createdAt: Date.now(), updatedAt: Date.now(),
+      seed, opponentId, arenaDay: record.day, rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION, createdAt: Date.now(), updatedAt: Date.now(),
     };
     ctx.store.saveBattle(battle);
     ctx.store.saveArenaDay(record);
+    // 普通竞技场每场独立 1 日，入场时支付；断线重连只读同一 battle，不重复扣。
+    ctx.player.day += ACTION_DAYS.arenaMatch;
+    ctx.store.savePlayer(ctx.player);
     ctx.push(OP.PHASE_STARTED, { battleId: battle.id, turn: 1 });
     return { battleId: battle.id, battle: battleView(battle, false), state: publicState(state) };
   },
@@ -1221,16 +1510,27 @@ const handlers: Record<number, Handler> = {
     const id = asString(data.replayId, 'replayId');
     const replay = ctx.store.replay(ctx.player.id, id);
     if (!replay) throw new OpError('NOT_FOUND', '找不到回放，或这场对局还没有公开');
-    return { replayId: replay.id, battle: replay.data, publicAt: replay.publicAt };
+    const compatibility = replayCompatibility(replay.data as typeof replay.data & { rulesetVersion?: string });
+    return {
+      replayId: replay.id, battle: replay.data, publicAt: replay.publicAt, public: replay.publicAt <= Date.now(), mine: replay.playerId === ctx.player.id,
+      summary: replaySummary(ctx, replay), notes: battleNotes(ctx, replay.id, replay.playerId),
+      rulesetVersion: (replay.data as { rulesetVersion?: string }).rulesetVersion ?? 'rules-v1', catalogVersion: (replay.data as { catalogVersion?: number }).catalogVersion ?? 0, currentRulesetVersion: RULESET_VERSION, currentCatalogVersion: CATALOG_VERSION, ...compatibility,
+    };
   },
 
-  [OP.GET_REPLAYS]: ctx => ({
-    replays: ctx.store.replays(ctx.player.id).map(r => ({
-      id: r.id, name: r.data.name, kind: r.data.kind, mode: r.data.mode,
-      winner: r.data.state.result?.winner ?? null, reason: r.data.state.result?.reason ?? null,
-      turns: r.data.state.turn, createdAt: r.createdAt, publicAt: r.publicAt, mine: r.playerId === ctx.player.id,
-    })),
-  }),
+  // 战报列表（docs/00 §11）：自己的全部战斗与他人已公开的对局；可按活动、结果、本人、个人日期筛选。
+  [OP.GET_REPLAYS]: (ctx, data) => {
+    const limit = Math.max(1, Math.min(200, typeof data.limit === 'number' ? Math.floor(data.limit) : 50));
+    const activity = typeof data.activity === 'string' ? data.activity : null;
+    const result = data.result === 'won' || data.result === 'lost' ? data.result : null;
+    const fromDay = typeof data.fromDay === 'number' ? data.fromDay : null;
+    const toDay = typeof data.toDay === 'number' ? data.toDay : null;
+    const rows = ctx.store.replays(ctx.player.id, 200).map(r => replaySummary(ctx, r)).filter(r => (!activity || r.activity === activity)
+      && (!result || (result === 'won' ? r.winner === 'player' : r.winner !== 'player'))
+      && (data.mine !== true || r.mine)
+      && (fromDay === null || (r.day !== null && r.day >= fromDay)) && (toDay === null || (r.day !== null && r.day <= toDay)));
+    return { replays: rows.slice(0, limit), total: rows.length, activities: REPLAY_ACTIVITIES };
+  },
 
   [OP.GET_SNAPSHOTS]: ctx => ({
     snapshots: ctx.store.snapshots(ctx.player.id, 12).map(s => ({ day: s.day, date: dateOf(s.day), roster: s.data.roster, defense: s.data.defense })),
@@ -1293,7 +1593,7 @@ const handlers: Record<number, Handler> = {
     const battle: BattleRecord = {
       id: state.id, playerId: ctx.player.id, kind: 'arena', mode: 'sparring', name: `${legion} · 陪练`,
       goalText: ARENA_MAPS.plains.goalText, initial: structuredClone(state), state, events: [], actions: [], seed,
-      createdAt: Date.now(), updatedAt: Date.now(),
+      rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION, createdAt: Date.now(), updatedAt: Date.now(),
     };
     ctx.store.saveBattle(battle);
     return { battleId: battle.id, battle: battleView(battle, false) };
@@ -1309,7 +1609,7 @@ const handlers: Record<number, Handler> = {
     return {
       annualIndex,
       windowOpen: annualWindowOpen(ctx.player.day),
-      nextOpenDay: (calendarIndex + 1) * 120,
+      nextOpenDay: nextAnnualWindowStart(ctx.player.day),
       qualifierMatches: ANNUAL_QUALIFIER_MATCHES,
       qualifierWins: ANNUAL_QUALIFIER_WINS,
       costDays: ACTION_DAYS.festivalMatch,
@@ -1321,8 +1621,8 @@ const handlers: Record<number, Handler> = {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const annualIndex = annualIndexFor(ctx.player.day);
-    if (!annualWindowOpen(ctx.player.day)) throw new OpError('FORBIDDEN', '大竞技场报名窗口未开放（D120起，每届预留18日赛程）');
     if (ctx.store.annualEntryFor(ctx.player.id, annualIndex)) throw new OpError('FORBIDDEN', '本届已经报名；淘汰或退赛后当届不能重报');
+    if (!annualWindowOpen(ctx.player.day)) throw new OpError('FORBIDDEN', '大竞技场报名窗口未开放（每届最后18日）');
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const units = (ids.length > 0 ? ids.map(id => requireUnit(ctx.store, ctx.player, id)) : ctx.store.units(ctx.player.id))
       .filter(u => u.status === 'active');
@@ -1354,7 +1654,7 @@ const handlers: Record<number, Handler> = {
     const round = nextFestivalRound(entry);
     entry.matchSeeds ??= Array.from({ length: 9 }, () => randomUUID());
     const seed = entry.matchSeeds[round - 1];
-    const record = createFestivalBattle(units, round, seed, { day: entry.annualIndex * DAYS_PER_YEAR, annualId: entry.id, carry: entry.carry });
+    const record = createFestivalBattle(units, round, seed, { day: entry.annualIndex * DAYS_PER_YEAR, annualId: entry.id, edition: entry.annualIndex, carry: entry.carry });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.festivalMatch;
     syncPlayer(ctx.store, ctx.player);
@@ -1386,8 +1686,11 @@ const handlers: Record<number, Handler> = {
 
   // ---- eight-chapter story (docs/00 §9.4.2, docs/13 §6.3) --------------
 
-  [OP.GET_STORY]: ctx => ({
+  [OP.GET_STORY]: ctx => {
+    const annualEvent = ctx.store.events(ctx.player.id, 0, 10000).filter(event => event.kind === 'festival').at(-1);
+    return {
     bexp: CHAPTER_BEXP,
+    annualSummary: annualEvent ? { text: annualEvent.text, data: annualEvent.data } : { text: '本届大竞技场未参赛。', data: null },
     chapters: Array.from({ length: STORY_CHAPTERS }, (_, i) => {
       const chapter = i + 1;
       const available = chapterAvailable(chapter, ctx.player.day);
@@ -1398,9 +1701,13 @@ const handlers: Record<number, Handler> = {
         // 标题开放后才给，完成后的认识完成后才给（不提前剧透）。
         title: available ? CHAPTERS[i].title : null,
         learned: completed ? CHAPTERS[i].learned : null,
+        event: completed ? CHAPTERS[i].event : null,
+        finalBoss: chapter === 8 ? { floorId: 'tower-3', available: completed, defeated: (ctx.player.flags.towerCleared ?? []).includes('tower-3') } : null,
+        discoveries: completed ? CHAPTERS[i].discoveries : [],
       };
     }),
-  }),
+  };
+  },
 
   [OP.COMPLETE_STORY_EVENT]: (ctx, data) => {
     const chapter = asNumber(data.chapter, 'chapter');
@@ -1442,8 +1749,9 @@ const handlers: Record<number, Handler> = {
           shop: regionShop(region, rep),
           quests: questsForRegion(region).map(q => ({
             id: q.id, name: q.name, objective: q.objective, kind: q.kind, tier: q.tier,
-            costDays: q.costDays ?? QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, reward: q.reward,
-            enemyLevel: enemyLevel(ctx.player.day, regionById(region).offset),
+            costDays: q.costDays ?? QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, maxUnits: questMaxUnits(q), reward: q.reward,
+            enemyLevel: Math.min(q.enemyLevelCap ?? QUEST_LEVEL_CAP[q.tier], enemyLevel(ctx.player.day, regionById(region).offset) + (q.scenarioId ? classicAdaptation(q.scenarioId).difficulty : 0)),
+            enemyLevelCap: q.enemyLevelCap ?? QUEST_LEVEL_CAP[q.tier],
             toDay: ctx.player.day + (q.costDays ?? QUEST_DAY_COST[q.tier]), risk: 'permadeath',
             classic: q.classic ?? null,
             optionalReward: q.kind === 'gather' ? { item: region === 3 ? 'ore' : region === 5 ? 'herb' : 'wood', perExtraBox: 1 } : null,
@@ -1456,8 +1764,132 @@ const handlers: Record<number, Handler> = {
     };
   },
 
+  [OP.CLAIM_CONTROL]: ctx => {
+    const owner = ctx.actor ?? (ctx.agentModel ? 'agent' : 'human');
+    const lease = ctx.player.flags.controlLease;
+    if (lease && lease.expiresAt > Date.now() && lease.owner !== owner) throw new OpError('FORBIDDEN', '控制权由另一方持有，先等待租约到期或由对方释放');
+    ctx.player.flags.controlLease = { owner, expiresAt: Date.now() + 5 * 60_000 };
+    ctx.store.savePlayer(ctx.player);
+    return { owner, expiresAt: ctx.player.flags.controlLease.expiresAt };
+  },
+
+  [OP.RELEASE_CONTROL]: ctx => {
+    const owner = ctx.actor ?? (ctx.agentModel ? 'agent' : 'human');
+    if (ctx.player.flags.controlLease?.owner === owner) delete ctx.player.flags.controlLease;
+    ctx.store.savePlayer(ctx.player);
+    return { released: true, owner };
+  },
+
+  [OP.GET_MINIGAMES]: ctx => {
+    const quarter = Math.floor(ctx.player.day / DAYS_PER_SEASON);
+    if (ctx.player.flags.minigameQuarter !== quarter) {
+      ctx.player.flags.minigameQuarter = quarter;
+      ctx.player.flags.minigamePlays = 0;
+    }
+    return { quarter, played: ctx.player.flags.minigamePlays ?? 0, limit: MINIGAME_PLAYS_PER_QUARTER, bets: MINIGAME_BETS, games: ['dice', 'frogs'], frogNames: FROG_NAMES };
+  },
+
+  [OP.PLAY_MINIGAME]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id) || isActiveRun(ctx.store.activeRun(ctx.player.id)) || ctx.store.activeAnnualEntry(ctx.player.id)) {
+      throw new OpError('FORBIDDEN', '战斗／远征／年度赛事中不能下注');
+    }
+    if (ctx.player.day < 500) throw new OpError('FORBIDDEN', '酒馆在第二年开放');
+    const quarter = Math.floor(ctx.player.day / DAYS_PER_SEASON);
+    if (ctx.player.flags.minigameQuarter !== quarter) {
+      ctx.player.flags.minigameQuarter = quarter;
+      ctx.player.flags.minigamePlays = 0;
+    }
+    if ((ctx.player.flags.minigamePlays ?? 0) >= MINIGAME_PLAYS_PER_QUARTER) throw new OpError('FORBIDDEN', '本季度正式局已用完');
+    const game = asString(data.game, 'game');
+    const bet = asNumber(data.bet, 'bet');
+    if (!MINIGAME_BETS.includes(bet as never)) throw new OpError('BAD_REQUEST', '下注档位取 20／50／100');
+    if (ctx.player.gold < bet) throw new OpError('NOT_ENOUGH_GOLD', '金币不足以下注');
+    let result: unknown;
+    let payout = 0;
+    if (game === 'dice') {
+      const choice = asString(data.choice, 'choice');
+      if (choice !== 'big' && choice !== 'small') throw new OpError('BAD_REQUEST', 'choice 取 big / small');
+      const dice = rollDice(`${ctx.player.id}:${ctx.player.day}:${ctx.player.flags.minigamePlays ?? 0}:${randomUUID()}`);
+      payout = dicePayout(bet, choice, dice);
+      result = { game, choice, ...dice, payout };
+    } else if (game === 'frogs') {
+      const pick = asNumber(data.pick, 'pick');
+      if (!Number.isInteger(pick) || pick < 0 || pick > 3) throw new OpError('BAD_REQUEST', 'pick 取 0–3');
+      const race = frogRace(`${ctx.player.id}:${ctx.player.day}:${ctx.player.flags.minigamePlays ?? 0}:${randomUUID()}`);
+      payout = frogPayout(bet, pick, race);
+      result = { game, pick, ...race, payout };
+    } else {
+      throw new OpError('BAD_REQUEST', 'game 取 dice / frogs');
+    }
+    ctx.player.gold -= bet;
+    ctx.player.gold += payout;
+    ctx.player.flags.minigamePlays = (ctx.player.flags.minigamePlays ?? 0) + 1;
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'minigame', `${game === 'dice' ? '猜大小' : '青蛙赛跑'}：下注 ${bet}，返还 ${payout}。`, result);
+    return { ...result as Record<string, unknown>, bet, net: payout - bet, remaining: MINIGAME_PLAYS_PER_QUARTER - ctx.player.flags.minigamePlays, day: ctx.player.day };
+  },
+
+  [OP.GET_CHALLENGES]: ctx => ({
+    floors: CHALLENGE_FLOORS.map(floor => ({
+      ...floor,
+      mapName: classicMap(floor.mapId).name,
+      maxUnits: classicAdaptation(floor.mapId).deployment.max,
+      cleared: (ctx.player.flags.towerCleared ?? []).includes(floor.id),
+      available: floor.id !== 'tower-3' || (ctx.player.flags.storyCompleted ?? []).includes(8),
+      claimedFirst: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`),
+      claimedRepeat: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:repeat`),
+    })),
+  }),
+
+  [OP.START_CHALLENGE]: (ctx, data) => {
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中');
+    const floor = challengeById(asString(data.floorId, 'floorId'));
+    if (!floor) throw new OpError('NOT_FOUND', '没有这个塔层');
+    if (floor.id === 'tower-3' && !(ctx.player.flags.storyCompleted ?? []).includes(8)) throw new OpError('FORBIDDEN', '完成第八章后才能挑战最终首领');
+    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
+    const units = ids.map(id => requireUnit(ctx.store, ctx.player, id)).filter(unit => unit.status === 'active');
+    if (units.length === 0) throw new OpError('BAD_REQUEST', '没有可出战单位');
+    if (units.some(unit => unit.lockedRunId || unit.lockedDispatchId)) throw new OpError('FORBIDDEN', '远征或派遣中的单位不能挑战塔');
+    const maxUnits = classicAdaptation(floor.mapId).deployment.max;
+    if (units.length > maxUnits) throw new OpError('BAD_REQUEST', `该层最多出战 ${maxUnits} 人`);
+    const block = lifespanBlockers(ctx, ctx.player.day + floor.costDays);
+    if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
+    const record = createClassicBattle(units, { mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level });
+    record.playerId = ctx.player.id;
+    record.challengeId = floor.id;
+    record.costDays = floor.costDays;
+    ctx.store.saveBattle(record);
+    ctx.player.day += floor.costDays;
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+    return { battleId: record.id, floor, day: ctx.player.day };
+  },
+
+  [OP.CLAIM_CHALLENGE_REWARD]: (ctx, data) => {
+    const floor = challengeById(asString(data.floorId, 'floorId'));
+    if (!floor) throw new OpError('NOT_FOUND', '没有这个塔层');
+    if (floor.id === 'tower-3' && !(ctx.player.flags.storyCompleted ?? []).includes(8)) throw new OpError('FORBIDDEN', '完成第八章后才能挑战最终首领');
+    if (!(ctx.player.flags.towerCleared ?? []).includes(floor.id)) throw new OpError('FORBIDDEN', '该层尚未通关');
+    const first = !(ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`);
+    const key = `${floor.id}:${first ? 'first' : 'repeat'}`;
+    ctx.player.flags.challengeRewardsClaimed ??= [];
+    if (ctx.player.flags.challengeRewardsClaimed.includes(key)) throw new OpError('FORBIDDEN', '该层奖励已经领取');
+    const reward = first ? floor.first : floor.repeat;
+    ctx.player.flags.challengeRewardsClaimed.push(key);
+    ctx.player.gold += reward.gold;
+    for (const [item, count] of reward.items) ctx.store.addInventory(ctx.player.id, item, GAME_ITEMS[item].uses ?? 0, count);
+    ctx.store.savePlayer(ctx.player);
+    return { floorId: floor.id, key, gold: reward.gold, items: reward.items };
+  },
+
   [OP.START_QUEST]: (ctx, data) => {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    const questForLife = questById(asString(data.questId, 'questId'));
+    if (questForLife) {
+      const block = lifespanBlockers(ctx, ctx.player.day + (questForLife.costDays ?? QUEST_DAY_COST[questForLife.tier]));
+      if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
+    }
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const quest = questById(asString(data.questId, 'questId'));
     if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
@@ -1466,13 +1898,15 @@ const handlers: Record<number, Handler> = {
       throw new OpError('FORBIDDEN', '任务尚未解锁或已完成');
     }
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
+    const maxUnits = questMaxUnits(quest);
     const units = ids.length > 0
       ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
-      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, 6);
+      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, maxUnits);
     const busy = units.find(u => u.lockedRunId || u.lockedDispatchId);
     if (busy) throw new OpError('FORBIDDEN', `${unitName(busy)} 正在远征或派遣中`);
     const ready = units.filter(u => u.status === 'active');
     if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
+    if (ready.length > maxUnits) throw new OpError('BAD_REQUEST', `该任务最多出战 ${maxUnits} 人`);
     const seed = randomUUID().slice(0, 8);
     // 经典地图副本：按 scenarioIds 顺序逐图连战，跨图携带由 run.carry 维护（docs/24）。
     if (quest.scenarioIds?.length) {
@@ -1483,7 +1917,7 @@ const handlers: Record<number, Handler> = {
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += costDays;
       syncPlayer(ctx.store, ctx.player);
-      const record = createClassicBattle(ready, { mapId: quest.scenarioIds[0], seed, quest, stageIndex: 0, runId: run.id });
+      const record = createClassicBattle(ready, { mapId: quest.scenarioIds[0], seed, quest, stageIndex: 0, runId: run.id, day: ctx.player.day });
       record.playerId = ctx.player.id;
       run.battleId = record.id;
       ctx.store.saveRun(run);
@@ -1494,7 +1928,7 @@ const handlers: Record<number, Handler> = {
     }
     // 单张经典地图任务。
     if (quest.scenarioId) {
-      const record = createClassicBattle(ready, { mapId: quest.scenarioId, seed, quest });
+      const record = createClassicBattle(ready, { mapId: quest.scenarioId, seed, quest, day: ctx.player.day });
       record.playerId = ctx.player.id;
       ctx.player.day += quest.costDays ?? QUEST_DAY_COST[quest.tier];
       syncPlayer(ctx.store, ctx.player);
@@ -1545,8 +1979,10 @@ const handlers: Record<number, Handler> = {
       if (!owned && active >= ROSTER_LIMIT) throw new OpError('ROSTER_FULL', '名册已满，腾出位置后再领取（人物不会丢失）');
     }
     ctx.player.flags.questRewardsClaimed.push(quest.id);
+    if (quest.id.endsWith('9') && quest.tier === 'region') ctx.player.flags.legacyUnlocked = true;
     ctx.player.gold += quest.reward.gold;
     const items: [ItemKey, number][] = [...(quest.reward.items ?? [])];
+    if (quest.exclusive) items.push([quest.exclusive, 1]);
     if (quest.kind === 'gather') {
       const extra = Math.max(0, (ctx.player.flags.questBoxes?.[quest.id] ?? 1) - 1);
       if (extra) items.push([quest.region === 3 ? 'ore' : quest.region === 5 ? 'herb' : 'wood', extra]);
@@ -1626,7 +2062,7 @@ const handlers: Record<number, Handler> = {
     // 先移除占位主角，再建自捏主角与同伴（同一请求内一次写入）。
     const placeholder = ctx.store.units(ctx.player.id).find(u => u.isProtagonist);
     if (placeholder) ctx.store.removeUnit(ctx.player.id, placeholder.id);
-    const level = DEMO_LEVEL[cls.character] ?? 1;
+    const level = 1;
     // 1 级基础值随机（以职业 1 级基础值 + 个人成长率折算），再按成长率推导到起始等级的收益。
     const base = rollProtagonistBase(CLASSES[cls.classId].base, tendency.growth, seedRng(`protagonist:${ctx.player.id}`));
     const hero = createUnit(cls.character, level, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType, age: 16, base, personalGrowth: tendency.growth });
@@ -1642,7 +2078,7 @@ const handlers: Record<number, Handler> = {
     hero.isProtagonist = true;
     ctx.store.addUnit(ctx.player.id, hero);
     for (const id of ids) {
-      ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, DEMO_LEVEL[id] ?? CHARACTERS[id as CharacterId].level, `u_${id}`, ctx.player.day, true));
+      ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, 1, `u_${id}`, ctx.player.day, true));
     }
     ctx.player.protagonist = cls.character;
     ctx.player.flags.companions = ids as CharacterId[];
@@ -1662,15 +2098,20 @@ const handlers: Record<number, Handler> = {
     ctx.store.addNote(ctx.player.id, 'plan', text, null);
     return { ok: true };
   },
+  // 阶段意图挂到战斗与当时的回合上（不带 battleId 时用进行中的战斗），观战与回放按回合显示。
   [OP.AGENT_PHASE_NOTE]: (ctx, data) => {
     const text = asString(data.text, 'text');
-    ctx.store.addNote(ctx.player.id, 'phase', text, typeof data.battleId === 'string' ? data.battleId : null);
-    return { ok: true };
+    const battle = typeof data.battleId === 'string' ? ctx.store.battle(ctx.player.id, data.battleId) : ctx.store.activeBattle(ctx.player.id);
+    const battleId = battle?.id ?? (typeof data.battleId === 'string' ? data.battleId : null);
+    ctx.store.addNote(ctx.player.id, 'phase', text, battleId, battle?.state.turn ?? null);
+    return { ok: true, battleId, turn: battle?.state.turn ?? null };
   },
   [OP.AGENT_COMMENT_BATTLE]: (ctx, data) => {
     const text = asString(data.text, 'text');
-    ctx.store.addNote(ctx.player.id, 'comment', text, typeof data.battleId === 'string' ? data.battleId : null);
-    return { ok: true };
+    const battle = typeof data.battleId === 'string' ? ctx.store.battle(ctx.player.id, data.battleId) : ctx.store.activeBattle(ctx.player.id);
+    const battleId = battle?.id ?? (typeof data.battleId === 'string' ? data.battleId : null);
+    ctx.store.addNote(ctx.player.id, 'comment', text, battleId, battle?.state.turn ?? null);
+    return { ok: true, battleId };
   },
   [OP.AGENT_DAILY_REPORT]: (ctx, data) => {
     const text = asString(data.text, 'text');
@@ -1699,8 +2140,8 @@ interface ActionQuote {
 function dateEventsBetween(fromDay: number, toDay: number): { day: number; kind: string }[] {
   const out: { day: number; kind: string }[] = [];
   for (let day = fromDay + 1; day <= toDay; day++) {
-    if (day % 120 === 0) out.push({ day, kind: 'annual' });
-    if (day % 30 === 0) out.push({ day, kind: 'month' });
+    if (annualWindowOpen(day) && !annualWindowOpen(day - 1)) out.push({ day, kind: 'annual' });
+    if (day % DAYS_PER_SEASON === 0) out.push({ day, kind: 'month' });
     if (isArenaDay(day)) out.push({ day, kind: 'arena' });
   }
   return out;
@@ -1747,7 +2188,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
     }
     case 'rest': {
       op = OP.REST;
-      costDays = Math.max(1, Math.min(120, typeof data.days === 'number' ? data.days : 1));
+      costDays = Math.max(1, Math.min(500, typeof data.days === 'number' ? data.days : 1));
       payload = { days: costDays };
       break;
     }
@@ -1780,12 +2221,79 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / rest / recruit / dungeon / annual');
   }
   const toDay = player.day + costDays;
+  for (const unit of ctx.store.units(player.id).filter(unit => unit.status === 'active')) {
+    const end = nextLifespanEventDay(unit, player.day, toDay);
+    if (end !== null) blockers.push(`${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`);
+  }
   return { op, action, payload, costDays, costGold, fromDay: player.day, toDay, date: dateOf(toDay), risk, events: dateEventsBetween(player.day, toDay), blockers };
 }
 
+// ---- 战报与 Agent 说明 -----------------------------------------------------
+
+export const REPLAY_ACTIVITIES = [
+  { id: 'field', name: '野外遭遇战' }, { id: 'quest', name: '地区任务' }, { id: 'dungeon', name: '连续副本' },
+  { id: 'challenge', name: '挑战塔' }, { id: 'arena', name: '普通竞技场' }, { id: 'annual', name: '年度大竞技场' }, { id: 'sparring', name: '练习' },
+] as const;
+type ReplayActivity = (typeof REPLAY_ACTIVITIES)[number]['id'];
+
+export function replayActivity(record: BattleRecord): ReplayActivity {
+  if (record.mode === 'sparring') return 'sparring';
+  if (record.mode === 'arena') return 'arena';
+  if (record.mode === 'festival') return 'annual';
+  if (record.challengeId) return 'challenge';
+  if (record.runId) return 'dungeon';
+  if (record.questId) return 'quest';
+  return 'field';
+}
+
+function battleNotes(ctx: Context, battleId: string, owner = ctx.player.id) {
+  return ctx.store.notesForBattle(owner, battleId).map(note => ({ kind: note.kind, turn: note.turn ?? null, text: note.text, at: note.createdAt }));
+}
+
+function replaySummary(ctx: Context, r: { id: string; playerId: string; data: BattleRecord; publicAt: number; createdAt: number }) {
+  const record = r.data;
+  const compat = replayCompatibility(record as BattleRecord & { rulesetVersion?: string });
+  const players = record.state.units.filter(u => u.side === 'player' && !u.npc);
+  return {
+    id: r.id, name: record.name, kind: record.kind, mode: record.mode, activity: replayActivity(record),
+    winner: record.state.result?.winner ?? null, reason: record.state.result?.reason ?? null,
+    turns: record.state.turn, createdAt: r.createdAt, publicAt: r.publicAt, public: r.publicAt <= Date.now(), mine: r.playerId === ctx.player.id,
+    day: record.endDay ?? null, region: record.region ?? null, questId: record.questId ?? null, questName: record.questId ? questById(record.questId)?.name ?? null : null,
+    runId: record.runId ?? null, stageIndex: record.stageIndex ?? null, annualId: record.annualId ?? null, challengeId: record.challengeId ?? null,
+    opponentId: record.opponentId ?? null, arenaDay: record.arenaDay ?? null,
+    fielded: players.length, fallen: players.filter(u => !u.alive && !u.escaped).length,
+    // 兼容性单独成字段，不覆盖战斗结果的 reason。
+    rulesetVersion: record.rulesetVersion ?? 'rules-v1', compatible: compat.compatible, compatibilityNote: compat.reason,
+  };
+}
+
+// 参战记录：按已保存的本人战报统计出场、胜场与击败数（击败 = 由该单位出手把目标打到 0 HP）。
+function serviceRecords(ctx: Context): Map<string, { battles: number; wins: number; kills: number }> {
+  const out = new Map<string, { battles: number; wins: number; kills: number }>();
+  for (const replay of ctx.store.replays(ctx.player.id, 200).filter(r => r.playerId === ctx.player.id)) {
+    const record = replay.data;
+    const won = record.state.result?.winner === 'player';
+    for (const unit of record.initial.units.filter(u => u.side === 'player')) {
+      const row = out.get(unit.id) ?? { battles: 0, wins: 0, kills: 0 };
+      row.battles++;
+      if (won) row.wins++;
+      out.set(unit.id, row);
+    }
+    for (const event of record.events) {
+      if (event.t !== 'combat') continue;
+      for (const strike of event.strikes) {
+        if (strike.hpAfter !== 0 || strike.damage === 0) continue;
+        const row = out.get(strike.by);
+        if (row) row.kills++;
+      }
+    }
+  }
+  return out;
+}
+
 function requireArenaDay(ctx: Context, data: Json): ArenaDayRecord {
-  const day = typeof data.day === 'number' ? data.day : (isArenaDay(ctx.player.day) ? ctx.player.day : null);
-  const record = day !== null ? ctx.store.arenaDay(ctx.player.id, day) : ctx.store.latestArenaDay(ctx.player.id);
+  const day = typeof data.day === 'number' ? data.day : ctx.player.day;
+  const record = ctx.store.arenaDay(ctx.player.id, day) ?? ctx.store.latestArenaDay(ctx.player.id);
   if (!record) throw new OpError('ARENA_NOT_OPEN', '现在不是竞技场日，或你还没有报名');
   return record;
 }
@@ -1827,7 +2335,7 @@ export function dispatch(ctx: Context, op: number, data: Json): unknown {
   }
   // 幂等命令收据 (docs/13 §1.4、§2.1)：带 commandId 的写命令超时重发返回原结果，换负载则报冲突。
   const commandId = typeof data.commandId === 'string' && data.commandId.length > 0 ? data.commandId : null;
-  if (!commandId) return runHandler(ctx, op, handler, data);
+  if (!commandId) return WRITE_OPS.has(op) ? ctx.store.transaction(() => runHandler(ctx, op, handler, data)) : runHandler(ctx, op, handler, data);
   const payloadHash = commandHash(op, data);
   const existing = ctx.store.receipt(ctx.player.id, commandId);
   if (existing) {
@@ -1836,9 +2344,11 @@ export function dispatch(ctx: Context, op: number, data: Json): unknown {
     }
     return existing.response;
   }
-  const result = runHandler(ctx, op, handler, data);
-  ctx.store.saveReceipt(ctx.player.id, commandId, op, payloadHash, result);
-  return result;
+  return ctx.store.transaction(() => {
+    const result = runHandler(ctx, op, handler, data);
+    ctx.store.saveReceipt(ctx.player.id, commandId, op, payloadHash, result);
+    return result;
+  });
 }
 
 // 写命令成功后推进玩家版本，供预览／执行绑定（docs/13 §2.1）。
@@ -1847,15 +2357,40 @@ function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unk
   if (annual && WRITE_OPS.has(op) && !ANNUAL_OPS.has(op)) {
     throw new OpError('FORBIDDEN', '大竞技场名单已经报名，整届固定物资与培养，请先完成或退出本届赛事');
   }
+  const lease = ctx.player.flags.controlLease;
+  const actor = ctx.actor ?? (ctx.agentModel ? 'agent' : 'human');
+  if (lease && lease.expiresAt > Date.now() && lease.owner !== actor && WRITE_OPS.has(op) && op !== OP.CLAIM_CONTROL && op !== OP.RELEASE_CONTROL) {
+    throw new OpError('FORBIDDEN', `控制权由 ${lease.owner} 持有，租约至 ${new Date(lease.expiresAt).toISOString()}`);
+  }
   const battle = ctx.store.activeBattle(ctx.player.id);
   const unitId = typeof data.unitId === 'string' ? data.unitId : null;
   if (battle && unitId && battle.state.units.some(unit => unit.id === unitId) && WRITE_OPS.has(op) && !ANNUAL_OPS.has(op)) {
     throw new OpError('BATTLE_IN_PROGRESS', '战斗中的队员不能培养或调整物资');
   }
+  const expectedVersion = ctx.player.version ?? 0;
+  const opName = OP_BY_NUMBER.get(op)?.name;
+  const schema = opName ? schemaFor(opName) : undefined;
+  if (schema) {
+    for (const key of schema.required ?? []) {
+      if (data[key] === undefined) throw new OpError('BAD_REQUEST', `缺少字段 ${key}`);
+    }
+    for (const [key, rule] of Object.entries(schema.properties)) {
+      const value = data[key];
+      if (value === undefined) continue;
+      if (rule.type === 'string' && typeof value !== 'string') throw new OpError('BAD_REQUEST', `${key} 需要字符串`);
+      if (rule.type === 'number' && typeof value !== 'number') throw new OpError('BAD_REQUEST', `${key} 需要数字`);
+      if (rule.type === 'boolean' && typeof value !== 'boolean') throw new OpError('BAD_REQUEST', `${key} 需要布尔值`);
+      if (rule.type === 'array' && !Array.isArray(value)) throw new OpError('BAD_REQUEST', `${key} 需要数组`);
+      if (rule.type === 'object' && (typeof value !== 'object' || value === null || Array.isArray(value))) throw new OpError('BAD_REQUEST', `${key} 需要对象`);
+      if (rule.enum && !rule.enum.includes(value as string | number)) throw new OpError('BAD_REQUEST', `${key} 取值不合法`);
+      if (typeof value === 'number' && rule.minimum !== undefined && value < rule.minimum) throw new OpError('BAD_REQUEST', `${key} 低于下限`);
+      if (typeof value === 'number' && rule.maximum !== undefined && value > rule.maximum) throw new OpError('BAD_REQUEST', `${key} 超过上限`);
+    }
+  }
   const result = handler(ctx, data);
   if (WRITE_OPS.has(op)) {
-    ctx.player.version = (ctx.player.version ?? 0) + 1;
-    ctx.store.savePlayer(ctx.player);
+    ctx.player.version = expectedVersion + 1;
+    ctx.store.savePlayer(ctx.player, expectedVersion);
   }
   return result;
 }
@@ -1869,7 +2404,8 @@ const WRITE_OPS = new Set<number>([
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.WITHDRAW_ANNUAL, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
-  OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP,
+  OP.CLAIM_CONTROL, OP.RELEASE_CONTROL,
+  OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP, OP.START_CHALLENGE, OP.CLAIM_CHALLENGE_REWARD, OP.PLAY_MINIGAME, OP.ACCEPT_RECRUIT, OP.DECLINE_RECRUIT, OP.HIRE_TAVERN, OP.INN_REST, OP.USE_FOOD,
   OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);

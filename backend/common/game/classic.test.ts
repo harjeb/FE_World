@@ -5,6 +5,8 @@ import { CLASSIC_QUESTS } from './classic-quests.ts';
 import { createClassicBattle } from './battles.ts';
 import { createUnit } from './model.ts';
 import { CLASSES } from '../data/classes.ts';
+import classMapData from '../../../content/scenarios/classic-maps-v1/class-map.json' with { type: 'json' };
+import reportData from '../../../content/scenarios/classic-maps-v1/adaptation-report.json' with { type: 'json' };
 
 const TERRAINS = new Set(['plain', 'road', 'bridge', 'floor', 'village', 'forest', 'mountain', 'fort', 'shallow', 'water', 'wall', 'throne']);
 
@@ -24,6 +26,27 @@ test('the classic catalog covers six games, every terrain and every class', () =
     }
     assert.ok(map.enemies.some(enemy => enemy.boss), `${map.id} has a commander`);
   }
+});
+
+test('the class map covers all 39 FE7 enemy class IDs and every catalog source class', () => {
+  const entries = (classMapData as unknown as { classes: { game: string; sourceKey: string; sourceId: number; projectClass: string; review: string }[] }).classes;
+  const fe7 = entries.filter(entry => entry.game === 'fe7');
+  assert.equal(fe7.length, 39);
+  assert.equal(new Set(fe7.map(entry => entry.sourceId)).size, 39);
+  for (const entry of entries) {
+    assert.ok(CLASSES[entry.projectClass as keyof typeof CLASSES], `${entry.game}:${entry.sourceKey} -> ${entry.projectClass}`);
+    assert.equal(entry.review, 'accepted', `${entry.game}:${entry.sourceKey}`);
+  }
+  const byKey = new Map(entries.map(entry => [`${entry.game}:${entry.sourceKey}`, entry]));
+  for (const map of CLASSIC_MAPS) for (const enemy of map.enemies) {
+    if (!enemy.sourceClass) continue;
+    const mapped = byKey.get(`${map.game}:${enemy.sourceClass}`);
+    assert.ok(mapped, `${map.id}: ${enemy.sourceClass}`);
+    assert.equal(mapped!.projectClass, enemy.classId, `${map.id}: ${enemy.sourceClass}`);
+  }
+  const report = reportData as unknown as { maps: { mapId: string; release: { status: string } }[] };
+  assert.equal(report.maps.length, 60);
+  assert.ok(report.maps.every(map => map.release.status === 'accepted'));
 });
 
 test('every classic map has at least one usable deployment tile', () => {

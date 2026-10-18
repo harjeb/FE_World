@@ -1,5 +1,6 @@
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { cellKey, classOf, inBounds, keyPoint, living } from './units.ts';
+import { objectBlocks } from './scenario.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 
 export interface MoveRange {
@@ -39,7 +40,7 @@ export function moveRange(state: BattleState, unit: UnitState, budget = classOf(
       const next: Point = [cx + dx, cy + dy];
       if (!inBounds(state, next)) continue;
       const key = cellKey(state, next);
-      if (blocked.has(key)) continue;
+      if (blocked.has(key) || objectBlocks(state, next)) continue;
       const step = enterCost(state, unit, next);
       if (step === null) continue;
       const total = cost.get(current)! + step;
@@ -90,7 +91,7 @@ export function travelCosts(state: BattleState, unit: UnitState, sources: Point[
     if (step === null && dist.get(current)! > 0) continue;
     for (const [dx, dy] of STEPS) {
       const next: Point = [point[0] + dx, point[1] + dy];
-      if (!inBounds(state, next) || enterCost(state, unit, next) === null) continue;
+      if (!inBounds(state, next) || objectBlocks(state, next) || enterCost(state, unit, next) === null) continue;
       const key = cellKey(state, next);
       const total = dist.get(current)! + (step ?? 1);
       const known = dist.get(key);

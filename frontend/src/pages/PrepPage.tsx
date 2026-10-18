@@ -9,9 +9,9 @@ import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { BexpPanel, CARRY, CarriedPanel, cannotWield, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
 
-type Filter = 'all' | 'weapon' | 'item' | 'stat' | 'material';
-const FILTERS: [Filter, string][] = [['all', '全部'], ['weapon', '武器'], ['item', '道具'], ['stat', '能力药'], ['material', '材料']];
-const ORDER = ['weapon', 'consumable', 'stat', 'seal', 'material'];
+type Filter = 'all' | 'weapon' | 'item' | 'food' | 'stat' | 'material';
+const FILTERS: [Filter, string][] = [['all', '全部'], ['weapon', '武器'], ['item', '道具'], ['food', '食物'], ['stat', '能力药'], ['material', '材料']];
+const ORDER = ['weapon', 'consumable', 'food', 'stat', 'seal', 'material'];
 
 function inFilter(key: string, filter: Filter): boolean {
   const kind = itemOf(key)?.kind;
@@ -22,9 +22,9 @@ function inFilter(key: string, filter: Filter): boolean {
 const byKind = (a: string, b: string) => ORDER.indexOf(itemOf(a)?.kind ?? '') - ORDER.indexOf(itemOf(b)?.kind ?? '');
 const half = (key: string) => Math.floor((itemOf(key)?.price ?? 0) / 2);
 
-// 整备 (docs/00 §9: 整理、买卖、装备、分配公共经验都不耗日). Warehouse and shop on the left; on the
-// right, the character the warehouse buttons act on. Every change is a server op (TRANSFER_ITEM,
-// USE_ITEM, BUY, SELL, ASSIGN_BEXP) followed by a session refresh.
+// 整备 (docs/00 §9: 整理、买卖、装备、维修、分配公共经验都不耗日；旅馆休息耗 1 日). Warehouse and shop on
+// the left; on the right, the character the warehouse buttons act on. Every change is a server op
+// (TRANSFER_ITEM, USE_ITEM, BUY, SELL, REPAIR_ITEM, INN_REST, USE_FOOD, ASSIGN_BEXP) followed by a refresh.
 export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const { state } = useSession();
   const [filter, setFilter] = useState<Filter>('all');
@@ -32,7 +32,8 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const loadShop = () => session.shop().then(setShop).catch(() => setShop([]));
   useEffect(() => { void loadShop(); }, []);
 
-  const active = state?.units.filter(u => u.status === 'active') ?? [];
+  // 派遣中的角色不能搬运物品或使用道具（服务端拒绝），所以不列在这里。
+  const active = state?.units.filter(u => u.status === 'active' && !u.lockedDispatchId) ?? [];
   const unit = active.find(u => u.id === wanted) ?? active.find(u => u.character === wanted) ?? active[0];
   const gold = state?.gold ?? 0;
   const day = state?.day ?? 0;
@@ -72,7 +73,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
         <div>
           <div className="eyebrow">整备 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>仓库与商店</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>整理、买卖、装备和分配公共经验都不推进日期。</p>
+          <p style={{ fontSize: 14, color: '#4E473D' }}>整理、买卖、装备、维修和分配公共经验都不推进日期；旅馆休息推进 1 日。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>
           金币 <b className="num">{gold.toLocaleString()}</b> · 商店在{plainDate(nextSeason)}补货（{nextSeason - day} 日后）
@@ -91,11 +92,12 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
               {stock.map(r => {
                 const item = itemOf(r.item);
                 const wield = unit && item?.kind === 'weapon' && item.weapon ? cannotWield(unit, item.weapon as WeaponId) : null;
+                const perfect = state?.perfectWeapons[r.item] ?? 0;
                 return (
                   <li key={`${r.item}:${r.uses}`}>
                     <img className="px" src={itemIcon(r.item)} width={32} height={32} alt="" />
                     <div className="min-w-0">
-                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{item?.kind === 'consumable' && <span className="tag tag-grey">剩 {r.uses} 次</span>}</div>
+                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{item?.kind === 'consumable' && <span className="tag tag-grey">剩 {r.uses} 次</span>}{perfect > 0 && <span className="tag tag-brass" title="交给角色时消耗一张，生成耐久 +10 的实例">完美锻造 ×{perfect}</span>}</div>
                       <div className="sp">{itemSpec(r.item)}</div>
                       {wield && <div className="why">{unit!.name}现在用不了：{wield}（仍可携带）</div>}
                     </div>

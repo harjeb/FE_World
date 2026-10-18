@@ -2,7 +2,8 @@ import { classOf, living, unitAt, unitById } from '@common/engine/index.ts';
 import type { BattleState, UnitState } from '@common/engine/index.ts';
 import { ActionPanel } from './ActionPanel.tsx';
 import type { BattleController, Snapshot } from './controller.ts';
-import { ConfirmPanel, ForecastPanel, HealPreview } from './Forecast.tsx';
+import { CommandConfirm, CommandPreview, ConfirmPanel, ForecastPanel, HealPreview } from './Forecast.tsx';
+import { isCommand } from './commands.ts';
 import { stepIndex } from './selection.ts';
 import { HpLine, Portrait, Steps, UnitCard } from './UnitCard.tsx';
 
@@ -12,7 +13,9 @@ function RosterList({ title, units, onPick, state }: { title: string; units: Uni
       <div className="ph" style={{ minHeight: 38 }}><h2>{title}</h2><span className="tag tag-grey">{units.length} 人</span></div>
       <ul className="roster">
         {units.map(u => {
-          const status = u.side !== 'player' ? (u.boss ? '主将' : '') : u.acted && state.phase === 'player' ? '已行动' : '未行动';
+          const marks = [u.statuses?.sleep && '睡眠', u.statuses?.silence && '沉默', u.statuses?.berserk && '混乱', u.statuses?.regen && '再生', u.petrified && '石化', u.npc && '护送对象'].filter(Boolean).join('·');
+          const base = u.side !== 'player' ? (u.boss ? '主将' : '') : u.acted && state.phase === 'player' ? '已行动' : '未行动';
+          const status = [base, marks].filter(Boolean).join(' · ');
           return (
             <li key={u.id}>
               <button type="button" className="who" onClick={() => onPick(u.id)}>
@@ -38,7 +41,7 @@ function RosterList({ title, units, onPick, state }: { title: string; units: Uni
 export function SidePanel({ snap, ctl }: { snap: Snapshot; ctl: BattleController }) {
   const { view, mode, hover } = snap;
   const state = view;
-  const ownFlow = mode.kind === 'move' || mode.kind === 'action' || mode.kind === 'attack' || mode.kind === 'heal' || mode.kind === 'item';
+  const ownFlow = mode.kind === 'move' || mode.kind === 'action' || mode.kind === 'attack' || mode.kind === 'heal' || mode.kind === 'item' || isCommand(mode);
   const focusId = 'unit' in mode ? mode.unit : hover ? unitAt(state, hover)?.id : undefined;
   const focus = focusId ? unitById(state, focusId) : null;
   const weapon = mode.kind === 'attack' || mode.kind === 'heal' ? mode.weapon : null;
@@ -52,9 +55,11 @@ export function SidePanel({ snap, ctl }: { snap: Snapshot; ctl: BattleController
           点蓝色格预览落点（显示路线），或直接点红色范围内的敌人。<span className="muted">Esc 取消选择。</span>
         </p>
       )}
-      {(mode.kind === 'action' || mode.kind === 'attack' || mode.kind === 'heal' || mode.kind === 'item') && (
+      {(mode.kind === 'action' || mode.kind === 'attack' || mode.kind === 'heal' || mode.kind === 'item' || isCommand(mode)) && (
         <ActionPanel state={state} mode={mode} ctl={ctl} />
       )}
+      {isCommand(mode) && <CommandPreview state={state} mode={mode} />}
+      {isCommand(mode) && <CommandConfirm state={state} mode={mode} onConfirm={() => ctl.confirm()} onCancel={() => ctl.cancel()} />}
       {mode.kind === 'attack' && mode.target && (
         <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon} targetId={mode.target} />
       )}

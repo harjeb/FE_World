@@ -1,19 +1,24 @@
+import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import { actionOptions, forecast, terrainAt, unitById } from '@common/engine/index.ts';
 import type { BattleState } from '@common/engine/index.ts';
 import { TERRAINS } from '@common/maps/map.ts';
 import { VULNERARY, weaponIcon } from '../assets.ts';
-import { AttackIcon, BagIcon, HealIcon, RetreatIcon, SeizeIcon, WaitIcon } from '../ui/icons.tsx';
+import { ArtIcon, AttackIcon, BagIcon, DanceIcon, HealIcon, RetreatIcon, SeizeIcon, SpellIcon, StaffIcon, WaitIcon } from '../ui/icons.tsx';
+import { artInfo, commandDest, commandOptions, isCommand, spellInfo, STAFF_EFFECT_TEXT } from './commands.ts';
+import type { CommandMode } from './commands.ts';
 import type { BattleController } from './controller.ts';
 import { displayName } from './names.ts';
 import type { Mode } from './selection.ts';
 
 type ActMode = Extract<Mode, { to: unknown }>;
 
-// 行动 / 武器 / 目标 / 道具. Only actions that apply at the planned destination are offered (docs/08).
+// 行动 / 武器 / 目标 / 道具 / 战技 / 法术 / 杖 / 舞蹈. Only what applies at the planned destination is
+// offered (docs/08); the lists come from the engine's actionOptions, which the server also checks.
 export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: ActMode; ctl: BattleController }) {
   const unit = unitById(state, mode.unit);
   const options = actionOptions(state, unit, mode.to);
+  const commands = commandOptions(state, mode);
   const terrain = TERRAINS[terrainAt(state, mode.to)].name;
   const kind = mode.kind === 'attack' || mode.kind === 'heal' ? mode.kind : null;
   const weaponOptions = kind ? options[kind] : [];
@@ -46,11 +51,36 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
               <AttackIcon />攻击
             </button>
           )}
+          {commands.arts.length > 0 && (
+            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'art'} onClick={() => ctl.chooseAction('art')}>
+              <ArtIcon />战技
+            </button>
+          )}
+          {commands.casts.length > 0 && (
+            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'cast'} onClick={() => ctl.chooseAction('cast')}>
+              <SpellIcon />法术
+            </button>
+          )}
           {options.heal.length > 0 && (
             <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'heal'} onClick={() => ctl.chooseAction('heal')}>
               <HealIcon />治疗
             </button>
           )}
+          {commands.staves.length > 0 && (
+            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'staff'} onClick={() => ctl.chooseAction('staff')}>
+              <StaffIcon />杖
+            </button>
+          )}
+          {commands.dance.length > 0 && (
+            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'dance'} onClick={() => ctl.chooseAction('dance')}>
+              <DanceIcon />舞蹈
+            </button>
+          )}
+          {options.interactions.map(option => (
+            <button key={option.object} type="button" className="btn btn-sm btn-primary" onClick={() => ctl.interact(option.object)}>
+              {option.label}
+            </button>
+          ))}
           {options.items.length > 0 && (
             <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'item'} onClick={() => ctl.chooseAction('item')}>
               <BagIcon />道具
@@ -80,11 +110,12 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
                 const f = forecast(state, unit.id, mode.to, o.weapon, target);
                 desc = `伤害 ${f.attacker.damage}×${f.attacker.strikes} · 命中 ${f.attacker.hit}% · 必杀 ${f.attacker.crit}%`;
               }
+              const book = unit.bookInstances?.find(b => b.id === o.weapon);
               return (
                 <button key={o.weapon} type="button" className="wopt" aria-pressed={(mode as { weapon: string }).weapon === o.weapon}
                   onClick={() => ctl.chooseWeapon(o.weapon)}>
                   <img className="px" src={weaponIcon(w.type)} width={32} height={32} alt="" />
-                  <span className="wn">{w.name} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.rank}</span></span>
+                  <span className="wn">{w.name} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.rank}{book ? ` · 剩 ${book.charges} 次` : ''}</span></span>
                   <span className="wd num">{desc}</span>
                 </button>
               );
@@ -106,19 +137,121 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
         </div>
       )}
 
+      {isCommand(mode) && <CommandSection state={state} mode={mode} ctl={ctl} />}
+
       {mode.kind === 'item' && (
         <div className="sect">
           <div className="sect-k"><span>道具</span><small>使用后立即提交，结束该单位的行动</small></div>
           <div className="acts">
-            {unit.items.map((stack, i) => (
-              <button key={i} type="button" className="btn" onClick={() => ctl.useItem(i)}>
-                <img className="px" src={VULNERARY} width={32} height={32} alt="" />
-                使用{ITEMS[stack.id].name}（回复 {Math.min(ITEMS[stack.id].heal, unit.stats.hp - unit.hp)}，剩 {stack.uses} 次）
+            {options.items.map(i => {
+              const stack = unit.items[i];
+              return (
+                <button key={i} type="button" className="btn" onClick={() => ctl.useItem(i)}>
+                  <img className="px" src={VULNERARY} width={32} height={32} alt="" />
+                  使用{ITEMS[stack.id].name}（回复 {Math.min(ITEMS[stack.id].heal, unit.stats.hp - unit.hp)}，剩 {stack.uses} 次）
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CommandSection({ state, mode, ctl }: { state: BattleState; mode: CommandMode; ctl: BattleController }) {
+  const o = commandOptions(state, mode);
+  const targetsOf = (list: { id: string }[]) => list.map(t => state.units.find(u => u.id === t.id)!).filter(Boolean);
+  let title = '', hint = '', picker: React.ReactNode = null, targets: { id: string; hp: number; stats: { hp: number } }[] = [];
+  if (mode.kind === 'art') {
+    title = '战技'; hint = '物理战技消耗武器耐久；普通攻击与反击不耗';
+    picker = (
+      <div className="wopts" role="group" aria-label="选择战技">
+        {o.arts.map(a => {
+          const art = artInfo(a.art);
+          const w = WEAPONS[a.weapon];
+          return (
+            <button key={`${a.art}:${a.weapon}`} type="button" className="wopt" aria-pressed={mode.art === a.art && mode.weapon === a.weapon} disabled={!a.usable}
+              onClick={() => ctl.chooseArt(a.art, a.weapon)} title={art?.effect}>
+              <img className="px" src={weaponIcon(w.type)} width={32} height={32} alt="" />
+              <span className="wn">{art?.name ?? a.art} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.name}</span></span>
+              <span className="wd num">耐久 −{a.cost}{a.durability !== null ? `（现 ${a.durability}）` : ''} · 射程 {art?.range.join('–')}{art?.might ? ` · 威力 ${art.might > 0 ? '+' : ''}${art.might}` : ''}{art?.hit ? ` · 命中 ${art.hit > 0 ? '+' : ''}${art.hit}` : ''}{art?.crit ? ` · 必杀 +${art.crit}` : ''}{!a.usable ? ' · 耐久不足' : ''}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+    targets = o.arts.find(a => a.art === mode.art && a.weapon === mode.weapon)?.targets ?? [];
+  } else if (mode.kind === 'cast') {
+    title = '法术'; hint = '每本法术书有独立次数；沉默时不能施法';
+    picker = (
+      <div className="wopts" role="group" aria-label="选择法术">
+        {o.casts.map(c => {
+          const book = spellInfo(c.spell);
+          return (
+            <button key={c.spell} type="button" className="wopt" aria-pressed={mode.spell === c.spell} onClick={() => ctl.chooseSpell(c.spell)} title={book?.effect}>
+              <img className="px" src={weaponIcon(c.role === 'attack' || c.role === 'hostile_support' ? 'tome' : 'staff')} width={32} height={32} alt="" />
+              <span className="wn">{book?.name ?? c.spell} <span style={{ fontWeight: 400, color: '#6A6256' }}>剩 {c.charges} / {c.maxCharges} 次</span></span>
+              <span className="wd">{book?.effect}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+    targets = o.casts.find(c => c.spell === mode.spell)?.targets ?? [];
+  } else if (mode.kind === 'staff') {
+    title = '杖'; hint = '功能杖每次使用消耗 1 次';
+    picker = (
+      <div className="wopts" role="group" aria-label="选择杖">
+        {o.staves.map(st => {
+          const w = WEAPONS[st.weapon];
+          const book = state.units.find(u => u.id === mode.unit)?.bookInstances?.find(b => b.id === st.weapon);
+          return (
+            <button key={st.weapon} type="button" className="wopt" aria-pressed={mode.weapon === st.weapon} onClick={() => ctl.chooseStaff(st.weapon)}>
+              <img className="px" src={weaponIcon('staff')} width={32} height={32} alt="" />
+              <span className="wn">{w.name} <span style={{ fontWeight: 400, color: '#6A6256' }}>{STAFF_EFFECT_TEXT[st.effect]}{book ? ` · 剩 ${book.charges} 次` : ''}</span></span>
+              <span className="wd">{w.note} · 射程 {w.range.join('–')}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+    targets = o.staves.find(st => st.weapon === mode.weapon)?.targets ?? [];
+  } else {
+    title = '舞蹈'; hint = '让一名已行动的友军本回合再行动一次';
+    targets = targetsOf(o.dance);
+  }
+  const dest = mode.target ? commandDest(state, mode) : null;
+  const destPoint = mode.kind === 'cast' || mode.kind === 'staff' ? mode.dest : null;
+  return (
+    <>
+      <div className="sect">
+        <div className="sect-k"><span>{title}</span><small>{hint}</small></div>
+        {picker}
+      </div>
+      {targets.length > 0 && (
+        <div className="sect">
+          <div className="sect-k"><span>目标</span><small>也可以在地图上点选</small></div>
+          <div className="acts">
+            {targets.map(t => (
+              <button key={t.id} type="button" className="btn btn-sm" aria-pressed={mode.target === t.id} onClick={() => ctl.chooseTarget(t.id)}>
+                {displayName(state, t.id)} <span className="num" style={{ color: '#6A6256' }}>HP {t.hp}/{t.stats.hp}</span>
               </button>
             ))}
           </div>
         </div>
       )}
-    </section>
+      {dest && (
+        <div className="sect">
+          <div className="sect-k"><span>落点</span><small>{dest.rule.from === 'stand' ? `落点周围 ${dest.rule.max} 格内的空格` : `施法者原位周围 ${dest.rule.max} 格内的空格`}</small></div>
+          <p style={{ fontSize: 13 }}>
+            {destPoint ? <>已选落点 ({destPoint[0]},{destPoint[1]})。<button type="button" className="btn btn-sm btn-ghost" onClick={() => ctl.chooseDest(null)}>重选</button></>
+              : dest.cells.length === 0 ? '附近没有可用的空格。'
+                : dest.rule.required ? '在地图上点一个高亮的格子作为落点。' : '可以在地图上点选落点；不选时放到施法者相邻的第一个空格。'}
+          </p>
+        </div>
+      )}
+      {mode.kind === 'art' && mode.art && <p className="pfoot">{artInfo(mode.art)?.effect}{WEAPON_TYPE_NAMES[artInfo(mode.art)?.weapon as keyof typeof WEAPON_TYPE_NAMES] ? `（${WEAPON_TYPE_NAMES[artInfo(mode.art)!.weapon as keyof typeof WEAPON_TYPE_NAMES]}）` : ''}</p>}
+    </>
   );
 }

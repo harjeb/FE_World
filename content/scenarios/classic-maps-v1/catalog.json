@@ -1247,7 +1247,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 2,
      "pos": [
       44,
@@ -1255,7 +1257,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 12,
      "pos": [
       43,
@@ -1264,7 +1268,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 13,
      "pos": [
       43,
@@ -1272,7 +1278,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       41,
@@ -1280,7 +1288,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 13,
      "pos": [
       41,
@@ -1288,7 +1298,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 12,
      "pos": [
       42,
@@ -1297,6 +1309,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 3,
      "pos": [
       36,
@@ -1305,6 +1319,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 15,
      "pos": [
       34,
@@ -1313,6 +1329,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 15,
      "pos": [
       32,
@@ -1321,6 +1339,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 16,
      "pos": [
       33,
@@ -1329,6 +1349,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 16,
      "pos": [
       34,
@@ -1337,6 +1359,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       32,
@@ -1345,6 +1369,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 36,
+     "sourceClass": "JID_TROUBADOUR",
      "level": 14,
      "pos": [
       38,
@@ -1353,6 +1379,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 1,
      "pos": [
       20,
@@ -1361,6 +1389,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 14,
      "pos": [
       19,
@@ -1369,6 +1399,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 15,
      "pos": [
       21,
@@ -1377,6 +1409,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 14,
      "pos": [
       20,
@@ -1385,6 +1419,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 15,
      "pos": [
       20,
@@ -1393,6 +1429,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 14,
      "pos": [
       18,
@@ -1401,6 +1439,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 3,
      "pos": [
       11,
@@ -1409,6 +1449,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       10,
@@ -1417,6 +1459,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 15,
      "pos": [
       10,
@@ -1425,6 +1469,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       12,
@@ -1433,6 +1479,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       12,
@@ -1441,6 +1489,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 36,
+     "sourceClass": "JID_TROUBADOUR",
      "level": 14,
      "pos": [
       13,
@@ -1449,6 +1499,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 3,
      "pos": [
       32,
@@ -1457,6 +1509,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       33,
@@ -1465,6 +1519,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 15,
      "pos": [
       33,
@@ -1473,6 +1529,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       31,
@@ -1481,6 +1539,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       30,
@@ -1489,6 +1549,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 36,
+     "sourceClass": "JID_TROUBADOUR",
      "level": 15,
      "pos": [
       31,
@@ -1497,6 +1559,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 5,
      "pos": [
       34,
@@ -1505,6 +1569,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       33,
@@ -1513,6 +1579,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 1,
      "pos": [
       35,
@@ -1521,6 +1589,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 14,
      "pos": [
       33,
@@ -1529,6 +1599,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 2,
      "pos": [
       42,
@@ -1537,6 +1609,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 15,
      "pos": [
       40,
@@ -1545,6 +1619,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 14,
      "pos": [
       40,
@@ -2361,6 +2437,8 @@
    "enemies": [
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 10,
      "pos": [
       27,
@@ -2370,6 +2448,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 3,
      "pos": [
       19,
@@ -2378,6 +2458,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 17,
      "pos": [
       16,
@@ -2386,6 +2468,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       15,
@@ -2394,6 +2478,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 15,
      "pos": [
       15,
@@ -2402,6 +2488,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       17,
@@ -2410,6 +2498,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 5,
      "pos": [
       27,
@@ -2418,6 +2508,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 15,
      "pos": [
       25,
@@ -2426,6 +2518,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       23,
@@ -2434,6 +2528,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       25,
@@ -2442,6 +2538,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 14,
      "pos": [
       23,
@@ -2450,6 +2548,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 15,
      "pos": [
       28,
@@ -2458,6 +2558,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 2,
      "pos": [
       29,
@@ -2466,6 +2568,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 14,
      "pos": [
       29,
@@ -2474,6 +2578,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 14,
      "pos": [
       15,
@@ -2482,6 +2588,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 15,
      "pos": [
       11,
@@ -2490,6 +2598,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 15,
      "pos": [
       23,
@@ -2498,6 +2608,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 3,
      "pos": [
       24,
@@ -2506,6 +2618,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 1,
      "pos": [
       5,
@@ -2514,6 +2628,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 15,
      "pos": [
       18,
@@ -2522,6 +2638,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 20,
+     "sourceClass": "JID_PRIEST",
      "level": 17,
      "pos": [
       24,
@@ -2530,6 +2648,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 20,
+     "sourceClass": "JID_PRIEST",
      "level": 17,
      "pos": [
       16,
@@ -2538,6 +2658,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 4,
      "pos": [
       28,
@@ -2545,7 +2667,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 3,
      "pos": [
       4,
@@ -2553,7 +2677,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       3,
@@ -2561,7 +2687,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       5,
@@ -2569,7 +2697,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       4,
@@ -2577,7 +2707,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 3,
      "pos": [
       29,
@@ -2585,7 +2717,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       28,
@@ -2593,7 +2727,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       28,
@@ -2601,7 +2737,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 14,
      "pos": [
       30,
@@ -3757,7 +3895,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 10,
      "pos": [
       14,
@@ -3767,6 +3907,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 16,
      "pos": [
       15,
@@ -3775,6 +3917,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 17,
      "pos": [
       13,
@@ -3783,6 +3927,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 9,
      "pos": [
       27,
@@ -3791,6 +3937,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       7,
@@ -3799,6 +3947,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 17,
      "pos": [
       14,
@@ -3807,6 +3957,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 18,
      "pos": [
       23,
@@ -3815,6 +3967,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 17,
      "pos": [
       12,
@@ -3823,6 +3977,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 18,
      "pos": [
       11,
@@ -3831,6 +3987,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 18,
      "pos": [
       12,
@@ -3839,6 +3997,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 1,
      "pos": [
       8,
@@ -3847,6 +4007,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 1,
      "pos": [
       6,
@@ -3855,6 +4017,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 1,
      "pos": [
       8,
@@ -3863,6 +4027,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 17,
      "pos": [
       7,
@@ -3871,6 +4037,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 17,
      "pos": [
       9,
@@ -3879,6 +4047,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 16,
      "pos": [
       17,
@@ -3887,6 +4057,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 16,
      "pos": [
       20,
@@ -3895,6 +4067,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 17,
      "pos": [
       29,
@@ -3903,6 +4077,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       27,
@@ -3911,6 +4087,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       7,
@@ -3919,6 +4097,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       9,
@@ -3927,6 +4107,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       17,
@@ -3935,6 +4117,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 15,
      "pos": [
       16,
@@ -3943,6 +4127,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 16,
      "pos": [
       25,
@@ -3951,6 +4137,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 16,
      "pos": [
       27,
@@ -3959,6 +4147,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 16,
      "pos": [
       27,
@@ -3967,6 +4157,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 2,
      "pos": [
       28,
@@ -3975,6 +4167,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 1,
      "pos": [
       22,
@@ -3983,6 +4177,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 6,
      "pos": [
       5,
@@ -3991,6 +4187,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 5,
      "pos": [
       5,
@@ -3999,6 +4197,8 @@
     },
     {
      "classId": "general",
+     "sourceClassId": 14,
+     "sourceClass": "JID_GENERAL",
      "level": 10,
      "pos": [
       3,
@@ -4007,6 +4207,8 @@
     },
     {
      "classId": "general",
+     "sourceClassId": 14,
+     "sourceClass": "JID_GENERAL",
      "level": 6,
      "pos": [
       4,
@@ -4015,6 +4217,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 5,
      "pos": [
       3,
@@ -4023,6 +4227,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 24,
+     "sourceClass": "JID_MAGE",
      "level": 15,
      "pos": [
       22,
@@ -4891,6 +5097,8 @@
    "enemies": [
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 10,
      "pos": [
       19,
@@ -4899,7 +5107,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 43,
+     "sourceClass": "JID_FALCONKNIGHT",
      "level": 6,
      "pos": [
       8,
@@ -4907,7 +5117,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       7,
@@ -4915,7 +5127,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       8,
@@ -4923,7 +5137,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       9,
@@ -4931,7 +5147,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       10,
@@ -4939,7 +5157,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 43,
+     "sourceClass": "JID_FALCONKNIGHT",
      "level": 6,
      "pos": [
       22,
@@ -4947,7 +5167,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       21,
@@ -4955,7 +5177,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       21,
@@ -4963,7 +5187,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 17,
      "pos": [
       21,
@@ -4971,7 +5197,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 16,
      "pos": [
       21,
@@ -4979,7 +5207,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 17,
      "pos": [
       20,
@@ -4987,7 +5217,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 17,
      "pos": [
       20,
@@ -4995,7 +5227,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 16,
      "pos": [
       20,
@@ -5003,7 +5237,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 17,
      "pos": [
       20,
@@ -5012,6 +5248,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 17,
      "pos": [
       4,
@@ -5020,6 +5258,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       6,
@@ -5028,6 +5268,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       7,
@@ -5036,6 +5278,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 16,
      "pos": [
       4,
@@ -5044,6 +5288,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 17,
      "pos": [
       14,
@@ -5052,6 +5298,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 17,
      "pos": [
       13,
@@ -5060,6 +5308,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 17,
      "pos": [
       14,
@@ -5068,6 +5318,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 20,
+     "sourceClass": "JID_PRIEST",
      "level": 15,
      "pos": [
       6,
@@ -5076,6 +5328,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 20,
+     "sourceClass": "JID_PRIEST",
      "level": 15,
      "pos": [
       18,
@@ -5084,6 +5338,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 20,
+     "sourceClass": "JID_PRIEST",
      "level": 15,
      "pos": [
       15,
@@ -5092,6 +5348,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 20,
+     "sourceClass": "JID_PRIEST",
      "level": 15,
      "pos": [
       16,
@@ -5100,6 +5358,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       17,
@@ -5108,6 +5368,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       5,
@@ -5116,6 +5378,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 28,
+     "sourceClass": "JID_SHAMAN",
      "level": 18,
      "pos": [
       18,
@@ -5124,6 +5388,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 28,
+     "sourceClass": "JID_SHAMAN",
      "level": 18,
      "pos": [
       20,
@@ -5132,6 +5398,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 28,
+     "sourceClass": "JID_SHAMAN",
      "level": 18,
      "pos": [
       18,
@@ -5140,6 +5408,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 28,
+     "sourceClass": "JID_SHAMAN",
      "level": 18,
      "pos": [
       18,
@@ -5955,7 +6225,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 43,
+     "sourceClass": "JID_FALCONKNIGHT",
      "level": 9,
      "pos": [
       28,
@@ -5964,7 +6236,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 43,
+     "sourceClass": "JID_FALCONKNIGHT",
      "level": 7,
      "pos": [
       17,
@@ -5972,7 +6246,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       16,
@@ -5980,7 +6256,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       17,
@@ -5988,7 +6266,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       18,
@@ -5996,7 +6276,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       19,
@@ -6004,7 +6286,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 43,
+     "sourceClass": "JID_FALCONKNIGHT",
      "level": 6,
      "pos": [
       4,
@@ -6012,7 +6296,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       2,
@@ -6020,7 +6306,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       3,
@@ -6028,7 +6316,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       4,
@@ -6036,7 +6326,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       5,
@@ -6044,7 +6336,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 43,
+     "sourceClass": "JID_FALCONKNIGHT",
      "level": 8,
      "pos": [
       25,
@@ -6052,7 +6346,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       24,
@@ -6060,7 +6356,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 18,
      "pos": [
       24,
@@ -6068,7 +6366,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 16,
      "pos": [
       24,
@@ -6076,7 +6376,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 42,
+     "sourceClass": "JID_PEGASUSKNIGHT",
      "level": 16,
      "pos": [
       24,
@@ -6084,7 +6386,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 13,
+     "sourceClass": "JID_ARMOR_F",
      "level": 18,
      "pos": [
       27,
@@ -6092,7 +6396,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 13,
+     "sourceClass": "JID_ARMOR_F",
      "level": 18,
      "pos": [
       29,
@@ -6101,6 +6407,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 8,
      "pos": [
       19,
@@ -6109,6 +6417,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 19,
      "pos": [
       18,
@@ -6117,6 +6427,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 18,
      "pos": [
       19,
@@ -6125,6 +6437,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 18,
      "pos": [
       18,
@@ -6133,6 +6447,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 18,
      "pos": [
       19,
@@ -6141,6 +6457,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 36,
+     "sourceClass": "JID_TROUBADOUR",
      "level": 19,
      "pos": [
       20,
@@ -6149,6 +6467,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 34,
+     "sourceClass": "JID_PALADIN",
      "level": 7,
      "pos": [
       26,
@@ -6157,6 +6477,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 19,
      "pos": [
       25,
@@ -6165,6 +6487,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 18,
      "pos": [
       25,
@@ -6173,6 +6497,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 18,
      "pos": [
       27,
@@ -6181,6 +6507,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 32,
+     "sourceClass": "JID_CAVALIER",
      "level": 18,
      "pos": [
       27,
@@ -6189,6 +6517,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 36,
+     "sourceClass": "JID_TROUBADOUR",
      "level": 19,
      "pos": [
       26,
@@ -6197,6 +6527,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       4,
@@ -6205,6 +6537,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       13,
@@ -6213,6 +6547,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       22,
@@ -6221,6 +6557,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       23,
@@ -6229,6 +6567,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       29,
@@ -6237,6 +6577,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 6,
      "pos": [
       22,
@@ -6245,6 +6587,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 6,
      "pos": [
       11,
@@ -7197,6 +7541,8 @@
    "enemies": [
     {
      "classId": "general",
+     "sourceClassId": 14,
+     "sourceClass": "JID_GENERAL",
      "level": 10,
      "pos": [
       3,
@@ -7206,6 +7552,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       7,
@@ -7214,6 +7562,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       15,
@@ -7222,6 +7572,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 19,
      "pos": [
       12,
@@ -7230,6 +7582,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 19,
      "pos": [
       21,
@@ -7238,6 +7592,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       14,
@@ -7246,6 +7602,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       16,
@@ -7254,6 +7612,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 19,
      "pos": [
       9,
@@ -7262,6 +7622,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       22,
@@ -7270,6 +7632,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 19,
      "pos": [
       22,
@@ -7278,6 +7642,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       9,
@@ -7286,6 +7652,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       7,
@@ -7294,6 +7662,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 18,
      "pos": [
       28,
@@ -7302,6 +7672,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 7,
      "pos": [
       22,
@@ -7310,6 +7682,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 7,
      "pos": [
       15,
@@ -7318,6 +7692,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 8,
      "pos": [
       18,
@@ -7326,6 +7702,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 8,
      "pos": [
       22,
@@ -7334,6 +7712,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 8,
      "pos": [
       8,
@@ -7342,6 +7722,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 6,
      "pos": [
       14,
@@ -7350,6 +7732,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 6,
      "pos": [
       16,
@@ -7358,6 +7742,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 6,
      "pos": [
       23,
@@ -7366,6 +7752,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 6,
      "pos": [
       1,
@@ -7374,6 +7762,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 20,
      "pos": [
       14,
@@ -7382,6 +7772,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 20,
      "pos": [
       16,
@@ -7390,6 +7782,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 18,
      "pos": [
       20,
@@ -7398,6 +7792,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 10,
+     "sourceClass": "JID_FIGHTER",
      "level": 19,
      "pos": [
       23,
@@ -7406,6 +7802,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 7,
      "pos": [
       15,
@@ -7414,6 +7812,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 7,
      "pos": [
       12,
@@ -7422,6 +7822,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 7,
      "pos": [
       24,
@@ -7430,6 +7832,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       3,
@@ -7438,6 +7842,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       17,
@@ -7446,6 +7852,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 18,
      "pos": [
       28,
@@ -8738,6 +9146,8 @@
    "enemies": [
     {
      "classId": "general",
+     "sourceClassId": 14,
+     "sourceClass": "JID_GENERAL",
      "level": 20,
      "pos": [
       24,
@@ -8746,7 +9156,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 10,
      "pos": [
       29,
@@ -8754,7 +9166,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       28,
@@ -8762,7 +9176,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       28,
@@ -8770,7 +9186,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       27,
@@ -8778,7 +9196,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       27,
@@ -8786,7 +9206,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 10,
      "pos": [
       15,
@@ -8794,7 +9216,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       15,
@@ -8802,7 +9226,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       16,
@@ -8810,7 +9236,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       14,
@@ -8818,7 +9246,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       17,
@@ -8826,7 +9256,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 10,
      "pos": [
       3,
@@ -8834,7 +9266,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       3,
@@ -8842,7 +9276,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       4,
@@ -8850,7 +9286,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       2,
@@ -8858,7 +9296,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 10,
      "pos": [
       5,
@@ -8867,6 +9307,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 10,
      "pos": [
       28,
@@ -8875,6 +9317,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 10,
      "pos": [
       17,
@@ -8883,6 +9327,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 10,
      "pos": [
       12,
@@ -8891,6 +9337,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 10,
      "pos": [
       26,
@@ -8899,6 +9347,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 10,
      "pos": [
       14,
@@ -8907,6 +9357,8 @@
     },
     {
      "classId": "sage",
+     "sourceClassId": 26,
+     "sourceClass": "JID_SAGE",
      "level": 12,
      "pos": [
       23,
@@ -8915,6 +9367,8 @@
     },
     {
      "classId": "sage",
+     "sourceClassId": 26,
+     "sourceClass": "JID_SAGE",
      "level": 12,
      "pos": [
       4,
@@ -8923,6 +9377,8 @@
     },
     {
      "classId": "sage",
+     "sourceClassId": 26,
+     "sourceClass": "JID_SAGE",
      "level": 12,
      "pos": [
       24,
@@ -8931,6 +9387,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       9,
@@ -8939,6 +9397,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       16,
@@ -8947,6 +9407,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       23,
@@ -8955,6 +9417,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       22,
@@ -8963,6 +9427,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       26,
@@ -8971,6 +9437,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 19,
      "pos": [
       9,
@@ -8979,6 +9447,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 19,
      "pos": [
       16,
@@ -8987,6 +9457,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 19,
      "pos": [
       24,
@@ -8995,6 +9467,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 20,
      "pos": [
       8,
@@ -9003,6 +9477,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 20,
      "pos": [
       17,
@@ -9011,6 +9487,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 16,
+     "sourceClass": "JID_ARCHER",
      "level": 20,
      "pos": [
       23,
@@ -10167,6 +10645,8 @@
    "enemies": [
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       18,
@@ -10175,6 +10655,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 12,
      "pos": [
       20,
@@ -10183,6 +10665,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 12,
      "pos": [
       22,
@@ -10191,6 +10675,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 13,
      "pos": [
       16,
@@ -10199,6 +10685,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       4,
@@ -10207,6 +10695,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 12,
+     "sourceClass": "JID_ARMOR",
      "level": 20,
      "pos": [
       30,
@@ -10215,6 +10705,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 15,
      "pos": [
       1,
@@ -10223,6 +10715,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 15,
      "pos": [
       30,
@@ -10231,6 +10725,8 @@
     },
     {
      "classId": "general",
+     "sourceClassId": 14,
+     "sourceClass": "JID_GENERAL",
      "level": 14,
      "pos": [
       1,
@@ -10239,6 +10735,8 @@
     },
     {
      "classId": "general",
+     "sourceClassId": 14,
+     "sourceClass": "JID_GENERAL",
      "level": 14,
      "pos": [
       30,
@@ -10247,6 +10745,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 10,
      "pos": [
       6,
@@ -10255,6 +10755,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 10,
      "pos": [
       5,
@@ -10263,6 +10765,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 12,
      "pos": [
       5,
@@ -10271,6 +10775,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 10,
      "pos": [
       26,
@@ -10279,6 +10785,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 10,
      "pos": [
       28,
@@ -10287,6 +10795,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 12,
      "pos": [
       28,
@@ -10295,6 +10805,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 20,
      "pos": [
       8,
@@ -10303,6 +10815,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 9,
      "pos": [
       8,
@@ -10311,6 +10825,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 20,
      "pos": [
       8,
@@ -10319,6 +10835,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 20,
      "pos": [
       25,
@@ -10327,6 +10845,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 9,
      "pos": [
       25,
@@ -10335,6 +10855,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 2,
+     "sourceClass": "JID_MERCENARY",
      "level": 20,
      "pos": [
       25,
@@ -10343,6 +10865,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 11,
      "pos": [
       13,
@@ -10351,6 +10875,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 10,
      "pos": [
       17,
@@ -10359,6 +10885,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 16,
      "pos": [
       15,
@@ -10367,6 +10895,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 10,
      "pos": [
       10,
@@ -10375,6 +10905,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 51,
+     "sourceClass": "JID_BERSERKER",
      "level": 10,
      "pos": [
       20,
@@ -10383,6 +10915,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 15,
      "pos": [
       16,
@@ -10391,6 +10925,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 13,
      "pos": [
       13,
@@ -10399,6 +10935,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 13,
      "pos": [
       19,
@@ -10407,6 +10945,8 @@
     },
     {
      "classId": "general",
+     "sourceClassId": 61,
+     "sourceClass": "JID_KING",
      "level": 20,
      "pos": [
       15,
@@ -10416,6 +10956,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 10,
      "pos": [
       13,
@@ -10424,6 +10966,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 10,
      "pos": [
       17,
@@ -10432,6 +10976,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 12,
      "pos": [
       11,
@@ -10440,6 +10986,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 12,
      "pos": [
       19,
@@ -10448,6 +10996,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 9,
      "pos": [
       13,
@@ -10456,6 +11006,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 4,
+     "sourceClass": "JID_HERO",
      "level": 9,
      "pos": [
       17,
@@ -10464,6 +11016,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 22,
+     "sourceClass": "JID_BISHOP",
      "level": 12,
      "pos": [
       19,
@@ -10472,6 +11026,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 11,
      "pos": [
       11,
@@ -11373,7 +11929,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 27,
+     "sourceClass": "JID_SAGE_F",
      "level": 20,
      "pos": [
       5,
@@ -11383,6 +11941,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 12,
      "pos": [
       5,
@@ -11391,6 +11951,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 12,
      "pos": [
       15,
@@ -11399,6 +11961,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 12,
      "pos": [
       1,
@@ -11407,6 +11971,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 12,
      "pos": [
       19,
@@ -11414,7 +11980,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 14,
      "pos": [
       10,
@@ -11422,7 +11990,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       11,
@@ -11430,7 +12000,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       13,
@@ -11438,7 +12010,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       14,
@@ -11446,7 +12020,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 14,
      "pos": [
       21,
@@ -11454,7 +12030,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       20,
@@ -11462,7 +12040,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       22,
@@ -11470,7 +12050,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       21,
@@ -11478,7 +12060,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 15,
      "pos": [
       8,
@@ -11486,7 +12070,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       8,
@@ -11494,7 +12080,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       9,
@@ -11502,7 +12090,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       9,
@@ -11510,7 +12100,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 14,
      "pos": [
       20,
@@ -11518,7 +12110,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       19,
@@ -11526,7 +12120,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       21,
@@ -11534,7 +12130,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       20,
@@ -11542,7 +12140,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 14,
      "pos": [
       0,
@@ -11550,7 +12150,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       1,
@@ -11558,7 +12160,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       1,
@@ -11566,7 +12170,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       1,
@@ -11574,7 +12180,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 46,
+     "sourceClass": "JID_WYVERNLORD",
      "level": 14,
      "pos": [
       4,
@@ -11582,7 +12190,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       3,
@@ -11590,7 +12200,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       5,
@@ -11598,7 +12210,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 44,
+     "sourceClass": "JID_WYVERNRIDER",
      "level": 20,
      "pos": [
       5,
@@ -11607,6 +12221,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 12,
      "pos": [
       6,
@@ -11615,6 +12231,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 10,
      "pos": [
       7,
@@ -11623,6 +12241,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 10,
      "pos": [
       13,
@@ -11631,6 +12251,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 12,
      "pos": [
       6,
@@ -11639,6 +12261,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 18,
+     "sourceClass": "JID_SNIPER",
      "level": 12,
      "pos": [
       4,
@@ -11647,6 +12271,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 10,
      "pos": [
       4,
@@ -11655,6 +12281,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 10,
      "pos": [
       5,
@@ -11663,6 +12291,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 10,
      "pos": [
       6,
@@ -11671,6 +12301,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 10,
      "pos": [
       7,
@@ -11679,6 +12311,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 10,
      "pos": [
       13,
@@ -11687,6 +12321,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 9,
      "pos": [
       0,
@@ -11695,6 +12331,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 30,
+     "sourceClass": "JID_DRUID",
      "level": 9,
      "pos": [
       20,
@@ -13395,6 +14033,8 @@
    "enemies": [
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 18,
      "pos": [
       4,
@@ -13403,6 +14043,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 15,
      "pos": [
       14,
@@ -13411,6 +14053,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 15,
      "pos": [
       25,
@@ -13419,6 +14063,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 14,
      "pos": [
       12,
@@ -13427,6 +14073,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 14,
      "pos": [
       5,
@@ -13435,6 +14083,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 13,
      "pos": [
       5,
@@ -13443,6 +14093,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 13,
      "pos": [
       18,
@@ -13452,6 +14104,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       16,
@@ -13460,6 +14114,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       20,
@@ -13468,6 +14124,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       5,
@@ -13476,6 +14134,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       9,
@@ -13484,6 +14144,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       11,
@@ -13492,6 +14154,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       9,
@@ -13500,6 +14164,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       11,
@@ -13508,6 +14174,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       20,
@@ -13516,6 +14184,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       25,
@@ -13524,6 +14194,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       25,
@@ -13532,6 +14204,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       13,
@@ -13540,6 +14214,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       22,
@@ -13548,6 +14224,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       4,
@@ -13556,6 +14234,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       6,
@@ -13564,6 +14244,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       7,
@@ -13572,6 +14254,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       5,
@@ -13580,6 +14264,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       11,
@@ -13588,6 +14274,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       27,
@@ -13596,6 +14284,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       23,
@@ -13604,6 +14294,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 56,
+     "sourceClass": "JID_MANAKETE",
      "level": 8,
      "pos": [
       6,
@@ -14199,7 +14891,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "general",
+     "sourceClassId": 22,
+     "sourceClass": "CLASS_ID_22",
      "level": 5,
      "pos": [
       12,
@@ -14208,7 +14902,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "paladin",
+     "sourceClassId": 42,
+     "sourceClass": "CLASS_ID_42",
      "level": 4,
      "pos": [
       10,
@@ -14217,6 +14913,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       11,
@@ -14224,7 +14922,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 7,
      "pos": [
       11,
@@ -14232,7 +14932,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 7,
      "pos": [
       11,
@@ -14240,7 +14942,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       9,
@@ -14248,7 +14952,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       9,
@@ -14256,7 +14962,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 8,
      "pos": [
       6,
@@ -14264,7 +14972,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 8,
      "pos": [
       21,
@@ -14272,7 +14982,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       1,
@@ -14280,7 +14992,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 56,
+     "sourceClass": "CLASS_ID_56",
      "level": 8,
      "pos": [
       2,
@@ -14288,7 +15002,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 9,
      "pos": [
       0,
@@ -14296,7 +15012,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 15,
      "pos": [
       13,
@@ -14304,7 +15022,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       17,
@@ -14312,7 +15032,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 7,
      "pos": [
       15,
@@ -14320,7 +15042,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 44,
+     "sourceClass": "CLASS_ID_44",
      "level": 8,
      "pos": [
       18,
@@ -14328,7 +15052,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       1,
@@ -14336,7 +15062,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 6,
      "pos": [
       20,
@@ -14344,7 +15072,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       21,
@@ -14352,7 +15082,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 7,
      "pos": [
       4,
@@ -14360,7 +15092,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 7,
      "pos": [
       11,
@@ -14368,7 +15102,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 8,
      "pos": [
       0,
@@ -14376,7 +15112,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       18,
@@ -14384,7 +15122,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 7,
      "pos": [
       15,
@@ -14392,7 +15132,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 7,
      "pos": [
       17,
@@ -14400,7 +15142,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 7,
      "pos": [
       18,
@@ -14408,7 +15152,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       17,
@@ -14416,7 +15162,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       18,
@@ -14424,7 +15172,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       2,
@@ -14432,7 +15182,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 8,
      "pos": [
       1,
@@ -14440,7 +15192,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 6,
      "pos": [
       19,
@@ -14448,7 +15202,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 7,
      "pos": [
       10,
@@ -14456,7 +15212,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 7,
      "pos": [
       14,
@@ -14464,7 +15222,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 7,
      "pos": [
       6,
@@ -14473,6 +15233,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       16,
@@ -14481,6 +15243,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       1,
@@ -14968,7 +15732,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 5,
      "pos": [
       25,
@@ -14977,6 +15743,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 7,
      "pos": [
       24,
@@ -14986,6 +15754,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 7,
      "pos": [
       24,
@@ -14994,6 +15764,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 7,
      "pos": [
       23,
@@ -15001,7 +15773,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       11,
@@ -15009,7 +15783,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       12,
@@ -15017,7 +15793,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       10,
@@ -15025,7 +15803,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 6,
      "pos": [
       25,
@@ -15033,7 +15813,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 6,
      "pos": [
       25,
@@ -15041,7 +15823,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       19,
@@ -15049,7 +15833,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 7,
      "pos": [
       19,
@@ -15057,7 +15843,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       20,
@@ -15066,6 +15854,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 7,
      "pos": [
       24,
@@ -15074,6 +15864,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 7,
      "pos": [
       22,
@@ -15081,7 +15873,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       10,
@@ -15089,7 +15883,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       21,
@@ -15097,7 +15893,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       3,
@@ -15105,7 +15903,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       0,
@@ -15113,7 +15913,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       1,
@@ -15121,7 +15923,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       0,
@@ -15129,7 +15933,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       1,
@@ -15137,7 +15943,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 7,
      "pos": [
       0,
@@ -15145,7 +15953,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       13,
@@ -15153,7 +15963,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       14,
@@ -15161,7 +15973,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       19,
@@ -15169,7 +15983,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 7,
      "pos": [
       20,
@@ -15617,7 +16433,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 5,
      "pos": [
       13,
@@ -15625,7 +16443,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 4,
      "pos": [
       12,
@@ -15634,6 +16454,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 9,
      "pos": [
       18,
@@ -15642,6 +16464,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       20,
@@ -15649,7 +16473,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 9,
      "pos": [
       0,
@@ -15657,7 +16483,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       1,
@@ -15665,7 +16493,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 9,
      "pos": [
       14,
@@ -15673,7 +16503,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 9,
      "pos": [
       15,
@@ -15681,7 +16513,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 46,
+     "sourceClass": "CLASS_ID_46",
      "level": 9,
      "pos": [
       15,
@@ -15689,7 +16523,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 9,
      "pos": [
       16,
@@ -15698,6 +16534,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       15,
@@ -15705,7 +16543,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 9,
      "pos": [
       20,
@@ -15713,7 +16553,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 9,
      "pos": [
       21,
@@ -15722,6 +16564,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       10,
@@ -15729,7 +16573,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 15,
      "pos": [
       9,
@@ -15739,6 +16585,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       8,
@@ -15746,7 +16594,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       13,
@@ -15754,7 +16604,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       13,
@@ -15762,7 +16614,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       0,
@@ -15770,7 +16624,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 9,
      "pos": [
       1,
@@ -15778,7 +16634,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       2,
@@ -15786,7 +16644,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       3,
@@ -15794,7 +16654,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       3,
@@ -15802,7 +16664,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       2,
@@ -15810,7 +16674,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       13,
@@ -15818,7 +16684,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       12,
@@ -15827,6 +16695,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       10,
@@ -15834,7 +16704,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 9,
      "pos": [
       11,
@@ -15842,7 +16714,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       9,
@@ -15850,7 +16724,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       5,
@@ -15858,7 +16734,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 9,
      "pos": [
       6,
@@ -16447,7 +17325,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "assassin",
+     "sourceClassId": 16,
+     "sourceClass": "CLASS_ID_16",
      "level": 12,
      "pos": [
       7,
@@ -16455,7 +17335,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 15,
      "pos": [
       7,
@@ -16465,6 +17347,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 7,
      "pos": [
       16,
@@ -16472,7 +17356,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       6,
@@ -16480,7 +17366,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       8,
@@ -16488,7 +17376,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 15,
      "pos": [
       15,
@@ -16496,7 +17386,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 10,
      "pos": [
       3,
@@ -16504,7 +17396,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 10,
      "pos": [
       6,
@@ -16512,7 +17406,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 10,
      "pos": [
       8,
@@ -16520,7 +17416,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 10,
      "pos": [
       15,
@@ -16528,7 +17426,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 10,
      "pos": [
       5,
@@ -16536,7 +17436,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       2,
@@ -16544,7 +17446,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       1,
@@ -16552,7 +17456,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       2,
@@ -16560,7 +17466,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 10,
      "pos": [
       18,
@@ -16568,7 +17476,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 10,
      "pos": [
       16,
@@ -16577,6 +17487,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 9,
      "pos": [
       10,
@@ -16584,7 +17496,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 9,
      "pos": [
       13,
@@ -16593,6 +17507,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 7,
      "pos": [
       13,
@@ -16600,7 +17516,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       1,
@@ -16608,7 +17526,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       3,
@@ -16616,7 +17536,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 10,
      "pos": [
       17,
@@ -16624,7 +17546,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 15,
      "pos": [
       9,
@@ -16632,7 +17556,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 15,
      "pos": [
       10,
@@ -16640,7 +17566,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 15,
      "pos": [
       11,
@@ -16648,7 +17576,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       1,
@@ -16656,7 +17586,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 9,
      "pos": [
       2,
@@ -16665,6 +17597,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 7,
      "pos": [
       5,
@@ -17260,7 +18194,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 12,
      "pos": [
       20,
@@ -17269,7 +18205,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 1,
      "pos": [
       21,
@@ -17277,7 +18215,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 34,
+     "sourceClass": "CLASS_ID_34",
      "level": 10,
      "pos": [
       17,
@@ -17285,7 +18225,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       22,
@@ -17293,7 +18235,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       15,
@@ -17302,6 +18246,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       16,
@@ -17310,6 +18256,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       24,
@@ -17318,6 +18266,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       12,
@@ -17325,7 +18275,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 10,
      "pos": [
       1,
@@ -17333,7 +18285,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 1,
      "pos": [
       19,
@@ -17341,7 +18295,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       11,
@@ -17349,7 +18305,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       5,
@@ -17357,7 +18315,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       6,
@@ -17365,7 +18325,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       13,
@@ -17374,6 +18336,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       22,
@@ -17382,6 +18346,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       16,
@@ -17390,6 +18356,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       14,
@@ -17398,6 +18366,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       16,
@@ -17405,7 +18375,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       16,
@@ -17413,7 +18385,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       24,
@@ -17421,7 +18395,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       22,
@@ -17429,7 +18405,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       16,
@@ -17437,7 +18415,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       23,
@@ -17445,7 +18425,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       18,
@@ -17453,7 +18435,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       15,
@@ -17461,7 +18445,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       16,
@@ -17470,6 +18456,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 80,
+     "sourceClass": "CLASS_ID_80",
      "level": 10,
      "pos": [
       22,
@@ -17477,7 +18465,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       16,
@@ -17485,7 +18475,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       0,
@@ -17493,7 +18485,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       2,
@@ -17501,7 +18495,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       14,
@@ -17509,7 +18505,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       12,
@@ -17517,7 +18515,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       14,
@@ -17525,7 +18525,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       8,
@@ -17533,7 +18535,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 10,
      "pos": [
       6,
@@ -17541,7 +18545,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       24,
@@ -17549,7 +18555,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       25,
@@ -17557,7 +18565,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 10,
      "pos": [
       24,
@@ -18323,7 +19333,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 13,
      "pos": [
       21,
@@ -18332,7 +19344,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "assassin",
+     "sourceClassId": 16,
+     "sourceClass": "CLASS_ID_16",
      "level": 5,
      "pos": [
       21,
@@ -18341,6 +19355,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       20,
@@ -18349,6 +19365,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 5,
      "pos": [
       21,
@@ -18356,7 +19374,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       7,
@@ -18364,7 +19384,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       8,
@@ -18372,7 +19394,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       6,
@@ -18380,7 +19404,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "general",
+     "sourceClassId": 22,
+     "sourceClass": "CLASS_ID_22",
      "level": 8,
      "pos": [
       3,
@@ -18388,7 +19414,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       10,
@@ -18396,7 +19424,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 12,
      "pos": [
       19,
@@ -18404,7 +19434,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       20,
@@ -18412,7 +19444,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 12,
      "pos": [
       13,
@@ -18420,7 +19454,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 5,
      "pos": [
       13,
@@ -18429,6 +19465,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 5,
      "pos": [
       2,
@@ -18437,6 +19475,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       1,
@@ -18444,7 +19484,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       12,
@@ -18452,7 +19494,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       15,
@@ -18461,6 +19505,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       16,
@@ -18468,7 +19514,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       21,
@@ -18476,7 +19524,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       23,
@@ -18484,7 +19534,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 12,
      "pos": [
       4,
@@ -18492,7 +19544,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 12,
      "pos": [
       2,
@@ -18501,6 +19555,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       3,
@@ -18509,6 +19565,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       22,
@@ -18517,6 +19575,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       2,
@@ -18525,6 +19585,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       2,
@@ -18532,7 +19594,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 12,
      "pos": [
       2,
@@ -18540,7 +19604,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 12,
      "pos": [
       3,
@@ -18548,7 +19614,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 12,
      "pos": [
       12,
@@ -18556,7 +19624,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mercenary",
+     "sourceClassId": 10,
+     "sourceClass": "CLASS_ID_10",
      "level": 12,
      "pos": [
       14,
@@ -18565,6 +19635,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       21,
@@ -18573,6 +19645,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 24,
+     "sourceClass": "CLASS_ID_24",
      "level": 12,
      "pos": [
       21,
@@ -18580,7 +19654,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       22,
@@ -18588,7 +19664,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       6,
@@ -18596,7 +19674,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       8,
@@ -18604,7 +19684,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       16,
@@ -19374,7 +20456,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "thief",
+     "sourceClassId": 62,
+     "sourceClass": "CLASS_ID_62",
      "level": 13,
      "pos": [
       17,
@@ -19383,7 +20467,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       17,
@@ -19391,7 +20477,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       21,
@@ -19399,7 +20487,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       21,
@@ -19407,7 +20497,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 5,
      "pos": [
       14,
@@ -19415,7 +20507,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 5,
      "pos": [
       7,
@@ -19423,7 +20517,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 5,
      "pos": [
       4,
@@ -19431,7 +20527,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 12,
      "pos": [
       5,
@@ -19439,7 +20537,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 12,
      "pos": [
       6,
@@ -19447,7 +20547,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 12,
      "pos": [
       5,
@@ -19455,7 +20557,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 12,
      "pos": [
       6,
@@ -19463,7 +20567,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 5,
      "pos": [
       23,
@@ -19471,7 +20577,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       15,
@@ -19479,7 +20587,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       16,
@@ -19487,7 +20597,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       23,
@@ -19495,7 +20607,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       23,
@@ -19503,7 +20617,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       23,
@@ -19511,7 +20627,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 5,
      "pos": [
       16,
@@ -19519,7 +20637,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       16,
@@ -19527,7 +20647,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       15,
@@ -19535,7 +20657,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       17,
@@ -19543,7 +20667,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       9,
@@ -19551,7 +20677,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "paladin",
+     "sourceClassId": 42,
+     "sourceClass": "CLASS_ID_42",
      "level": 5,
      "pos": [
       21,
@@ -19559,7 +20687,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 12,
      "pos": [
       22,
@@ -19567,7 +20697,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 12,
      "pos": [
       10,
@@ -19575,7 +20707,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 12,
      "pos": [
       22,
@@ -19583,7 +20717,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "falcon",
+     "sourceClassId": 51,
+     "sourceClass": "CLASS_ID_51",
      "level": 5,
      "pos": [
       21,
@@ -19591,7 +20727,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 50,
+     "sourceClass": "CLASS_ID_50",
      "level": 12,
      "pos": [
       20,
@@ -19599,7 +20737,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 50,
+     "sourceClass": "CLASS_ID_50",
      "level": 12,
      "pos": [
       22,
@@ -19607,7 +20747,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 54,
+     "sourceClass": "CLASS_ID_54",
      "level": 5,
      "pos": [
       12,
@@ -19615,7 +20757,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       11,
@@ -19623,7 +20767,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       13,
@@ -19631,7 +20777,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 34,
+     "sourceClass": "CLASS_ID_34",
      "level": 5,
      "pos": [
       5,
@@ -19639,7 +20787,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 12,
      "pos": [
       6,
@@ -19647,7 +20797,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       4,
@@ -19656,6 +20808,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 12,
      "pos": [
       0,
@@ -19664,6 +20818,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 12,
      "pos": [
       1,
@@ -19671,7 +20827,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 48,
+     "sourceClass": "CLASS_ID_48",
      "level": 5,
      "pos": [
       11,
@@ -19679,7 +20837,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       9,
@@ -19687,7 +20847,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 12,
      "pos": [
       1,
@@ -19695,7 +20857,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       19,
@@ -19703,7 +20867,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 12,
      "pos": [
       24,
@@ -19711,7 +20877,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       15,
@@ -19719,7 +20887,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 12,
      "pos": [
       17,
@@ -19727,7 +20897,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       21,
@@ -19735,7 +20907,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       17,
@@ -19743,7 +20917,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordmaster",
+     "sourceClassId": 14,
+     "sourceClass": "CLASS_ID_14",
      "level": 12,
      "pos": [
       23,
@@ -19751,7 +20927,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 12,
      "pos": [
       20,
@@ -19759,7 +20937,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 12,
      "pos": [
       20,
@@ -19767,7 +20947,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 12,
      "pos": [
       12,
@@ -19775,7 +20957,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       11,
@@ -19783,7 +20967,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 12,
      "pos": [
       13,
@@ -19791,7 +20977,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 50,
+     "sourceClass": "CLASS_ID_50",
      "level": 12,
      "pos": [
       20,
@@ -19799,7 +20987,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "pegasus",
+     "sourceClassId": 50,
+     "sourceClass": "CLASS_ID_50",
      "level": 12,
      "pos": [
       22,
@@ -20700,7 +21890,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 34,
+     "sourceClass": "CLASS_ID_34",
      "level": 8,
      "pos": [
       22,
@@ -20708,7 +21900,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 14,
      "pos": [
       21,
@@ -20716,7 +21910,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       23,
@@ -20724,7 +21920,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 14,
      "pos": [
       21,
@@ -20732,7 +21930,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 8,
      "pos": [
       17,
@@ -20740,7 +21940,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       18,
@@ -20748,7 +21950,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       16,
@@ -20756,7 +21960,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       18,
@@ -20764,7 +21970,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       16,
@@ -20772,7 +21980,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 8,
      "pos": [
       7,
@@ -20780,7 +21990,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       6,
@@ -20788,7 +22000,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       6,
@@ -20796,7 +22010,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       8,
@@ -20804,7 +22020,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       8,
@@ -20812,7 +22030,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 14,
      "pos": [
       25,
@@ -20820,7 +22040,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 14,
      "pos": [
       27,
@@ -20828,7 +22050,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 14,
      "pos": [
       25,
@@ -20836,7 +22060,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 32,
+     "sourceClass": "CLASS_ID_32",
      "level": 14,
      "pos": [
       27,
@@ -20844,7 +22070,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       15,
@@ -20852,7 +22080,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       18,
@@ -20860,7 +22090,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       17,
@@ -20868,7 +22100,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       11,
@@ -20876,7 +22110,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       7,
@@ -20884,7 +22120,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 36,
+     "sourceClass": "CLASS_ID_36",
      "level": 14,
      "pos": [
       12,
@@ -20892,7 +22130,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       21,
@@ -20900,7 +22140,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       18,
@@ -20908,7 +22150,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "mage",
+     "sourceClassId": 28,
+     "sourceClass": "CLASS_ID_28",
      "level": 14,
      "pos": [
       19,
@@ -20916,7 +22160,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 39,
+     "sourceClass": "CLASS_ID_39",
      "level": 14,
      "pos": [
       9,
@@ -20924,7 +22170,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 39,
+     "sourceClass": "CLASS_ID_39",
      "level": 14,
      "pos": [
       5,
@@ -20932,7 +22180,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 44,
+     "sourceClass": "CLASS_ID_44",
      "level": 14,
      "pos": [
       16,
@@ -20940,7 +22190,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 14,
      "pos": [
       16,
@@ -20948,7 +22200,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 8,
      "pos": [
       6,
@@ -20956,7 +22210,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 8,
      "pos": [
       8,
@@ -20964,7 +22220,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       2,
@@ -20972,7 +22230,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       0,
@@ -20980,7 +22240,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       1,
@@ -20988,7 +22250,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       10,
@@ -20996,7 +22260,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       8,
@@ -21005,6 +22271,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 20,
      "pos": [
       12,
@@ -21013,7 +22281,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       12,
@@ -21021,7 +22291,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       13,
@@ -21030,6 +22302,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 14,
      "pos": [
       14,
@@ -21037,7 +22311,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       0,
@@ -21045,7 +22321,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 8,
      "pos": [
       2,
@@ -22009,7 +23287,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "dark_knight",
+     "sourceClassId": 35,
+     "sourceClass": "CLASS_ID_35",
      "level": 20,
      "pos": [
       24,
@@ -22018,7 +23298,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 8,
      "pos": [
       19,
@@ -22026,7 +23308,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 54,
+     "sourceClass": "CLASS_ID_54",
      "level": 8,
      "pos": [
       11,
@@ -22034,7 +23318,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       10,
@@ -22042,7 +23328,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       12,
@@ -22050,7 +23338,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       10,
@@ -22058,7 +23348,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       12,
@@ -22066,7 +23358,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_commander",
+     "sourceClassId": 54,
+     "sourceClass": "CLASS_ID_54",
      "level": 8,
      "pos": [
       26,
@@ -22074,7 +23368,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       26,
@@ -22082,7 +23378,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       26,
@@ -22090,7 +23388,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       25,
@@ -22098,7 +23398,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 52,
+     "sourceClass": "CLASS_ID_52",
      "level": 16,
      "pos": [
       27,
@@ -22106,7 +23408,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "paladin",
+     "sourceClassId": 42,
+     "sourceClass": "CLASS_ID_42",
      "level": 6,
      "pos": [
       23,
@@ -22114,7 +23418,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "paladin",
+     "sourceClassId": 42,
+     "sourceClass": "CLASS_ID_42",
      "level": 6,
      "pos": [
       23,
@@ -22122,7 +23428,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "paladin",
+     "sourceClassId": 42,
+     "sourceClass": "CLASS_ID_42",
      "level": 8,
      "pos": [
       23,
@@ -22130,7 +23438,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 16,
      "pos": [
       22,
@@ -22138,7 +23448,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 40,
+     "sourceClass": "CLASS_ID_40",
      "level": 16,
      "pos": [
       24,
@@ -22146,7 +23458,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       3,
@@ -22154,7 +23468,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 20,
      "pos": [
       9,
@@ -22162,7 +23478,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       2,
@@ -22170,7 +23488,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 8,
      "pos": [
       1,
@@ -22178,7 +23498,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "assassin",
+     "sourceClassId": 16,
+     "sourceClass": "CLASS_ID_16",
      "level": 20,
      "pos": [
       10,
@@ -22186,7 +23508,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 8,
      "pos": [
       18,
@@ -22194,7 +23518,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 8,
      "pos": [
       22,
@@ -22202,7 +23528,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 8,
      "pos": [
       20,
@@ -22211,6 +23539,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 16,
      "pos": [
       10,
@@ -22219,6 +23549,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 57,
+     "sourceClass": "CLASS_ID_57",
      "level": 16,
      "pos": [
       16,
@@ -22226,7 +23558,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 34,
+     "sourceClass": "CLASS_ID_34",
      "level": 10,
      "pos": [
       22,
@@ -22234,7 +23568,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 8,
      "pos": [
       10,
@@ -22242,7 +23578,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 8,
      "pos": [
       13,
@@ -22250,7 +23588,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 16,
      "pos": [
       0,
@@ -22258,7 +23598,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "knight",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_ID_20",
      "level": 16,
      "pos": [
       2,
@@ -22266,7 +23608,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "general",
+     "sourceClassId": 22,
+     "sourceClass": "CLASS_ID_22",
      "level": 8,
      "pos": [
       1,
@@ -22275,6 +23619,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 8,
      "pos": [
       27,
@@ -22283,6 +23629,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 8,
      "pos": [
       21,
@@ -22291,6 +23639,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 8,
      "pos": [
       19,
@@ -22299,6 +23649,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 8,
      "pos": [
       18,
@@ -22307,6 +23659,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 8,
      "pos": [
       9,
@@ -22315,6 +23669,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 8,
      "pos": [
       24,
@@ -22895,7 +24251,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "dragonkin",
+     "sourceClassId": 69,
+     "sourceClass": "CLASS_ID_69",
      "level": 20,
      "pos": [
       8,
@@ -22904,7 +24262,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 34,
+     "sourceClass": "CLASS_ID_34",
      "level": 18,
      "pos": [
       7,
@@ -22912,7 +24272,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 19,
      "pos": [
       9,
@@ -22920,7 +24282,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 38,
+     "sourceClass": "CLASS_ID_38",
      "level": 17,
      "pos": [
       0,
@@ -22928,7 +24292,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "sage",
+     "sourceClassId": 30,
+     "sourceClass": "CLASS_ID_30",
      "level": 20,
      "pos": [
       3,
@@ -22936,7 +24302,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "druid",
+     "sourceClassId": 34,
+     "sourceClass": "CLASS_ID_34",
      "level": 18,
      "pos": [
       4,
@@ -22944,7 +24312,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "assassin",
+     "sourceClassId": 16,
+     "sourceClass": "CLASS_ID_16",
      "level": 20,
      "pos": [
       10,
@@ -22952,7 +24322,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 12,
+     "sourceClass": "CLASS_ID_12",
      "level": 20,
      "pos": [
       14,
@@ -22960,7 +24332,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 19,
      "pos": [
       3,
@@ -22968,7 +24342,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "berserker",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_ID_19",
      "level": 20,
      "pos": [
       5,
@@ -22976,7 +24352,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "general",
+     "sourceClassId": 22,
+     "sourceClass": "CLASS_ID_22",
      "level": 18,
      "pos": [
       13,
@@ -22984,7 +24362,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "general",
+     "sourceClassId": 22,
+     "sourceClass": "CLASS_ID_22",
      "level": 20,
      "pos": [
       11,
@@ -22992,7 +24372,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "valkyrie",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_ID_45",
      "level": 20,
      "pos": [
       3,
@@ -23001,6 +24383,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 17,
      "pos": [
       12,
@@ -23008,7 +24392,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "bow_knight",
+     "sourceClassId": 48,
+     "sourceClass": "CLASS_ID_48",
      "level": 20,
      "pos": [
       12,
@@ -23016,7 +24402,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "thief",
+     "sourceClassId": 62,
+     "sourceClass": "CLASS_ID_62",
      "level": 20,
      "pos": [
       0,
@@ -23025,6 +24413,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 26,
+     "sourceClass": "CLASS_ID_26",
      "level": 18,
      "pos": [
       13,
@@ -23526,6 +24916,8 @@
    "enemies": [
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 9,
      "pos": [
       7,
@@ -23534,6 +24926,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 85,
+     "sourceClass": "CLASS_BONEWALKER_BOW",
      "level": 10,
      "pos": [
       7,
@@ -23542,7 +24936,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 84,
+     "sourceClass": "CLASS_BONEWALKER",
      "level": 9,
      "pos": [
       6,
@@ -23550,7 +24946,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 84,
+     "sourceClass": "CLASS_BONEWALKER",
      "level": 9,
      "pos": [
       7,
@@ -23559,6 +24957,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 9,
      "pos": [
       7,
@@ -23567,6 +24967,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 10,
      "pos": [
       7,
@@ -23575,6 +24977,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 9,
      "pos": [
       7,
@@ -23583,6 +24987,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 9,
      "pos": [
       7,
@@ -23591,6 +24997,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 85,
+     "sourceClass": "CLASS_BONEWALKER_BOW",
      "level": 9,
      "pos": [
       7,
@@ -23598,7 +25006,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 84,
+     "sourceClass": "CLASS_BONEWALKER",
      "level": 9,
      "pos": [
       7,
@@ -23606,7 +25016,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 84,
+     "sourceClass": "CLASS_BONEWALKER",
      "level": 10,
      "pos": [
       6,
@@ -23615,6 +25027,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 9,
      "pos": [
       6,
@@ -24338,7 +25752,9 @@
    ],
    "enemies": [
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       12,
@@ -24347,6 +25763,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 9,
      "pos": [
       11,
@@ -24355,6 +25773,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 10,
      "pos": [
       16,
@@ -24364,6 +25784,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 9,
      "pos": [
       15,
@@ -24372,6 +25794,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 9,
      "pos": [
       14,
@@ -24380,6 +25804,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 9,
      "pos": [
       18,
@@ -24388,6 +25814,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 9,
      "pos": [
       18,
@@ -24395,7 +25823,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 10,
      "pos": [
       13,
@@ -24403,7 +25833,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 9,
      "pos": [
       16,
@@ -24411,7 +25843,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 10,
      "pos": [
       3,
@@ -24419,7 +25853,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 9,
      "pos": [
       16,
@@ -24427,7 +25863,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 9,
      "pos": [
       7,
@@ -24435,7 +25873,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 9,
      "pos": [
       14,
@@ -24443,7 +25883,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 91,
+     "sourceClass": "CLASS_MAUTHEDOOG",
      "level": 9,
      "pos": [
       17,
@@ -24451,7 +25893,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 91,
+     "sourceClass": "CLASS_MAUTHEDOOG",
      "level": 10,
      "pos": [
       17,
@@ -24459,7 +25903,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 91,
+     "sourceClass": "CLASS_MAUTHEDOOG",
      "level": 9,
      "pos": [
       7,
@@ -24468,6 +25914,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 95,
+     "sourceClass": "CLASS_MOGALL",
      "level": 9,
      "pos": [
       1,
@@ -24475,7 +25923,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 84,
+     "sourceClass": "CLASS_BONEWALKER",
      "level": 7,
      "pos": [
       10,
@@ -24483,7 +25933,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "lancer",
+     "sourceClassId": 84,
+     "sourceClass": "CLASS_BONEWALKER",
      "level": 7,
      "pos": [
       13,
@@ -24492,6 +25944,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 95,
+     "sourceClass": "CLASS_MOGALL",
      "level": 9,
      "pos": [
       2,
@@ -24500,6 +25954,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 95,
+     "sourceClass": "CLASS_MOGALL",
      "level": 9,
      "pos": [
       5,
@@ -24508,6 +25964,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 95,
+     "sourceClass": "CLASS_MOGALL",
      "level": 9,
      "pos": [
       8,
@@ -24516,6 +25974,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 10,
      "pos": [
       9,
@@ -24524,6 +25984,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 82,
+     "sourceClass": "CLASS_REVENANT",
      "level": 10,
      "pos": [
       13,
@@ -24532,6 +25994,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 93,
+     "sourceClass": "CLASS_TARVOS",
      "level": 9,
      "pos": [
       12,
@@ -24540,6 +26004,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 93,
+     "sourceClass": "CLASS_TARVOS",
      "level": 9,
      "pos": [
       19,
@@ -24547,7 +26013,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 91,
+     "sourceClass": "CLASS_MAUTHEDOOG",
      "level": 8,
      "pos": [
       10,
@@ -24555,7 +26023,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 91,
+     "sourceClass": "CLASS_MAUTHEDOOG",
      "level": 8,
      "pos": [
       12,
@@ -24563,7 +26033,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 10,
      "pos": [
       3,
@@ -24571,7 +26043,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_fighter",
+     "sourceClassId": 88,
+     "sourceClass": "CLASS_BAEL",
      "level": 10,
      "pos": [
       17,
@@ -24580,6 +26054,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 83,
+     "sourceClass": "CLASS_ENTOUMBED",
      "level": 4,
      "pos": [
       18,
@@ -25172,6 +26648,8 @@
    "enemies": [
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       14,
@@ -25180,6 +26658,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       13,
@@ -25188,6 +26668,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 75,
+     "sourceClass": "CLASS_TROUBADOUR",
      "level": 12,
      "pos": [
       11,
@@ -25196,6 +26678,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       6,
@@ -25204,6 +26688,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       7,
@@ -25212,6 +26698,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       20,
@@ -25220,6 +26708,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       21,
@@ -25228,6 +26718,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       3,
@@ -25236,6 +26728,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       3,
@@ -25244,6 +26738,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       8,
@@ -25252,6 +26748,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       9,
@@ -25260,6 +26758,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       6,
@@ -25268,6 +26768,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 11,
      "pos": [
       7,
@@ -25276,6 +26778,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       0,
@@ -25284,6 +26788,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       2,
@@ -25292,6 +26798,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       20,
@@ -25300,6 +26808,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       21,
@@ -25308,6 +26818,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 11,
      "pos": [
       3,
@@ -25316,6 +26828,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       5,
@@ -25324,6 +26838,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 11,
      "pos": [
       8,
@@ -25332,6 +26848,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 11,
      "pos": [
       9,
@@ -25340,6 +26858,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 11,
      "pos": [
       4,
@@ -25348,6 +26868,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 78,
+     "sourceClass": "CLASS_SOLDIER",
      "level": 11,
      "pos": [
       20,
@@ -25356,6 +26878,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 78,
+     "sourceClass": "CLASS_SOLDIER",
      "level": 11,
      "pos": [
       21,
@@ -25364,6 +26888,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       8,
@@ -25373,6 +26899,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       16,
@@ -25381,6 +26909,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       8,
@@ -25389,6 +26919,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       10,
@@ -25397,6 +26929,8 @@
     },
     {
      "classId": "great_knight",
+     "sourceClassId": 53,
+     "sourceClass": "CLASS_GREAT_KNIGHT",
      "level": 5,
      "pos": [
       9,
@@ -25405,6 +26939,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 13,
      "pos": [
       0,
@@ -25413,6 +26949,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 12,
      "pos": [
       18,
@@ -25421,6 +26959,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 12,
      "pos": [
       17,
@@ -25429,6 +26969,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       12,
@@ -25437,6 +26979,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 11,
      "pos": [
       2,
@@ -26230,6 +27774,8 @@
    "enemies": [
     {
      "classId": "cleric",
+     "sourceClassId": 68,
+     "sourceClass": "CLASS_MONK",
      "level": 13,
      "pos": [
       7,
@@ -26238,6 +27784,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 68,
+     "sourceClass": "CLASS_MONK",
      "level": 13,
      "pos": [
       11,
@@ -26246,6 +27794,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 69,
+     "sourceClass": "CLASS_PRIEST",
      "level": 12,
      "pos": [
       10,
@@ -26254,6 +27804,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       9,
@@ -26262,6 +27814,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       10,
@@ -26270,6 +27824,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 12,
      "pos": [
       7,
@@ -26278,6 +27834,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 12,
      "pos": [
       9,
@@ -26286,6 +27844,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 12,
      "pos": [
       11,
@@ -26294,6 +27854,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 12,
      "pos": [
       22,
@@ -26302,6 +27864,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 12,
      "pos": [
       19,
@@ -26310,6 +27874,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       15,
@@ -26318,6 +27884,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       17,
@@ -26326,6 +27894,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       22,
@@ -26334,6 +27904,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       9,
@@ -26342,6 +27914,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       17,
@@ -26350,6 +27924,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       18,
@@ -26358,6 +27934,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       5,
@@ -26366,6 +27944,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       10,
@@ -26374,6 +27954,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       15,
@@ -26382,6 +27964,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       6,
@@ -26390,6 +27974,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 12,
      "pos": [
       12,
@@ -26398,6 +27984,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 12,
      "pos": [
       8,
@@ -26406,6 +27994,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 12,
      "pos": [
       13,
@@ -26414,6 +28004,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 14,
      "pos": [
       22,
@@ -26422,6 +28014,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       19,
@@ -26430,6 +28024,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       23,
@@ -26438,6 +28034,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       19,
@@ -26446,6 +28044,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       2,
@@ -26454,6 +28054,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       23,
@@ -26462,6 +28064,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 12,
      "pos": [
       17,
@@ -26470,6 +28074,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 12,
      "pos": [
       18,
@@ -26478,6 +28084,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       5,
@@ -26486,6 +28094,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       1,
@@ -26494,6 +28104,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       18,
@@ -26502,6 +28114,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       16,
@@ -26510,6 +28124,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 78,
+     "sourceClass": "CLASS_SOLDIER",
      "level": 12,
      "pos": [
       17,
@@ -26518,6 +28134,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 78,
+     "sourceClass": "CLASS_SOLDIER",
      "level": 12,
      "pos": [
       9,
@@ -26526,6 +28144,8 @@
     },
     {
      "classId": "assassin",
+     "sourceClassId": 51,
+     "sourceClass": "CLASS_ROGUE",
      "level": 1,
      "pos": [
       22,
@@ -26534,6 +28154,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       20,
@@ -26542,6 +28164,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       18,
@@ -26550,6 +28174,8 @@
     },
     {
      "classId": "swordmaster",
+     "sourceClassId": 21,
+     "sourceClass": "CLASS_SWORDMASTER",
      "level": 11,
      "pos": [
       9,
@@ -26559,6 +28185,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       19,
@@ -27590,6 +29218,8 @@
    "enemies": [
     {
      "classId": "bishop",
+     "sourceClassId": 43,
+     "sourceClass": "CLASS_BISHOP",
      "level": 6,
      "pos": [
       21,
@@ -27598,6 +29228,8 @@
     },
     {
      "classId": "bishop",
+     "sourceClassId": 43,
+     "sourceClass": "CLASS_BISHOP",
      "level": 6,
      "pos": [
       7,
@@ -27606,6 +29238,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 47,
+     "sourceClass": "CLASS_DRUID",
      "level": 5,
      "pos": [
       9,
@@ -27614,6 +29248,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 47,
+     "sourceClass": "CLASS_DRUID",
      "level": 5,
      "pos": [
       19,
@@ -27622,6 +29258,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 14,
      "pos": [
       14,
@@ -27631,6 +29269,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 14,
      "pos": [
       14,
@@ -27639,6 +29279,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       14,
@@ -27647,6 +29289,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       20,
@@ -27655,6 +29299,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       21,
@@ -27663,6 +29309,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 12,
      "pos": [
       7,
@@ -27671,6 +29319,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 12,
      "pos": [
       6,
@@ -27679,6 +29329,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 12,
      "pos": [
       7,
@@ -27687,6 +29339,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       8,
@@ -27695,6 +29349,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       14,
@@ -27703,6 +29359,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       3,
@@ -27711,6 +29369,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       3,
@@ -27719,6 +29379,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 78,
+     "sourceClass": "CLASS_SOLDIER",
      "level": 12,
      "pos": [
       25,
@@ -27727,6 +29389,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 78,
+     "sourceClass": "CLASS_SOLDIER",
      "level": 12,
      "pos": [
       25,
@@ -27735,6 +29399,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 13,
      "pos": [
       20,
@@ -27743,6 +29409,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       22,
@@ -27751,6 +29419,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       13,
@@ -27759,6 +29429,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       15,
@@ -27767,6 +29439,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       21,
@@ -27775,6 +29449,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       7,
@@ -27783,6 +29459,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       21,
@@ -27791,6 +29469,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 12,
      "pos": [
       3,
@@ -27799,6 +29479,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 12,
      "pos": [
       23,
@@ -27807,6 +29489,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 12,
      "pos": [
       5,
@@ -27815,6 +29499,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       20,
@@ -27823,6 +29509,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       22,
@@ -27831,6 +29519,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       8,
@@ -27839,6 +29529,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       6,
@@ -27847,6 +29539,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 13,
      "pos": [
       11,
@@ -27855,6 +29549,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 13,
      "pos": [
       17,
@@ -27863,6 +29559,8 @@
     },
     {
      "classId": "archer",
+     "sourceClassId": 25,
+     "sourceClass": "CLASS_ARCHER",
      "level": 13,
      "pos": [
       25,
@@ -27871,6 +29569,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       8,
@@ -27879,6 +29579,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       6,
@@ -27887,6 +29589,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       8,
@@ -27895,6 +29599,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       20,
@@ -27903,6 +29609,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       22,
@@ -27911,6 +29619,8 @@
     },
     {
      "classId": "sniper",
+     "sourceClassId": 27,
+     "sourceClass": "CLASS_SNIPER",
      "level": 5,
      "pos": [
       14,
@@ -28550,7 +30260,9 @@
    ],
    "enemies": [
     {
-     "classId": "fighter",
+     "classId": "dragon_knight",
+     "sourceClassId": 35,
+     "sourceClass": "CLASS_WYVERN_KNIGHT",
      "level": 13,
      "pos": [
       21,
@@ -28559,6 +30271,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 31,
+     "sourceClass": "CLASS_WYVERN_RIDER",
      "level": 13,
      "pos": [
       20,
@@ -28567,6 +30281,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 31,
+     "sourceClass": "CLASS_WYVERN_RIDER",
      "level": 13,
      "pos": [
       20,
@@ -28575,6 +30291,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 31,
+     "sourceClass": "CLASS_WYVERN_RIDER",
      "level": 13,
      "pos": [
       22,
@@ -28583,6 +30301,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 31,
+     "sourceClass": "CLASS_WYVERN_RIDER",
      "level": 13,
      "pos": [
       22,
@@ -28591,6 +30311,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 31,
+     "sourceClass": "CLASS_WYVERN_RIDER",
      "level": 13,
      "pos": [
       21,
@@ -28599,6 +30321,8 @@
     },
     {
      "classId": "paladin",
+     "sourceClassId": 7,
+     "sourceClass": "CLASS_PALADIN",
      "level": 4,
      "pos": [
       16,
@@ -28607,6 +30331,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 14,
      "pos": [
       15,
@@ -28616,6 +30342,8 @@
     },
     {
      "classId": "cavalier",
+     "sourceClassId": 5,
+     "sourceClass": "CLASS_CAVALIER",
      "level": 14,
      "pos": [
       14,
@@ -28624,6 +30352,8 @@
     },
     {
      "classId": "forest_knight",
+     "sourceClassId": 29,
+     "sourceClass": "CLASS_RANGER",
      "level": 4,
      "pos": [
       17,
@@ -28632,6 +30362,8 @@
     },
     {
      "classId": "forest_knight",
+     "sourceClassId": 29,
+     "sourceClass": "CLASS_RANGER",
      "level": 4,
      "pos": [
       15,
@@ -28640,6 +30372,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 75,
+     "sourceClass": "CLASS_TROUBADOUR",
      "level": 3,
      "pos": [
       17,
@@ -28648,6 +30382,8 @@
     },
     {
      "classId": "valkyrie",
+     "sourceClassId": 75,
+     "sourceClass": "CLASS_TROUBADOUR",
      "level": 3,
      "pos": [
       17,
@@ -28656,6 +30392,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 13,
      "pos": [
       12,
@@ -28664,6 +30402,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 13,
      "pos": [
       11,
@@ -28672,6 +30412,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 13,
      "pos": [
       12,
@@ -28680,6 +30422,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 12,
      "pos": [
       14,
@@ -28688,6 +30432,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 13,
      "pos": [
       13,
@@ -28696,6 +30442,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 12,
      "pos": [
       12,
@@ -28704,6 +30452,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 67,
+     "sourceClass": "CLASS_BERSERKER",
      "level": 6,
      "pos": [
       20,
@@ -28712,6 +30462,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       19,
@@ -28720,6 +30472,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 14,
      "pos": [
       10,
@@ -28728,6 +30482,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 13,
      "pos": [
       3,
@@ -28736,6 +30492,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 17,
+     "sourceClass": "CLASS_HERO",
      "level": 12,
      "pos": [
       1,
@@ -28744,6 +30502,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 65,
+     "sourceClass": "CLASS_BRIGAND",
      "level": 13,
      "pos": [
       1,
@@ -28752,6 +30512,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 14,
      "pos": [
       5,
@@ -28760,6 +30522,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 14,
      "pos": [
       15,
@@ -28768,6 +30532,8 @@
     },
     {
      "classId": "berserker",
+     "sourceClassId": 67,
+     "sourceClass": "CLASS_BERSERKER",
      "level": 5,
      "pos": [
       20,
@@ -28776,6 +30542,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 11,
      "pos": [
       2,
@@ -28784,6 +30552,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 11,
      "pos": [
       3,
@@ -28792,6 +30562,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 11,
      "pos": [
       16,
@@ -28800,6 +30572,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 11,
      "pos": [
       15,
@@ -28808,6 +30582,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 11,
      "pos": [
       1,
@@ -28816,6 +30592,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       1,
@@ -28824,6 +30602,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       0,
@@ -28832,6 +30612,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       4,
@@ -28840,6 +30622,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       0,
@@ -28848,6 +30632,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 13,
      "pos": [
       5,
@@ -28856,6 +30642,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 13,
      "pos": [
       3,
@@ -28864,6 +30652,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 13,
      "pos": [
       2,
@@ -29600,6 +31390,8 @@
    "enemies": [
     {
      "classId": "paladin",
+     "sourceClassId": 7,
+     "sourceClass": "CLASS_PALADIN",
      "level": 13,
      "pos": [
       13,
@@ -29609,6 +31401,8 @@
     },
     {
      "classId": "sage",
+     "sourceClassId": 39,
+     "sourceClass": "CLASS_SAGE",
      "level": 10,
      "pos": [
       15,
@@ -29617,6 +31411,8 @@
     },
     {
      "classId": "sage",
+     "sourceClassId": 39,
+     "sourceClass": "CLASS_SAGE",
      "level": 10,
      "pos": [
       11,
@@ -29625,6 +31421,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 64,
+     "sourceClass": "CLASS_WARRIOR",
      "level": 4,
      "pos": [
       18,
@@ -29633,6 +31431,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 64,
+     "sourceClass": "CLASS_WARRIOR",
      "level": 4,
      "pos": [
       19,
@@ -29641,6 +31441,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 64,
+     "sourceClass": "CLASS_WARRIOR",
      "level": 4,
      "pos": [
       20,
@@ -29649,6 +31451,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 64,
+     "sourceClass": "CLASS_WARRIOR",
      "level": 3,
      "pos": [
       6,
@@ -29657,6 +31461,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 64,
+     "sourceClass": "CLASS_WARRIOR",
      "level": 3,
      "pos": [
       7,
@@ -29665,6 +31471,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 47,
+     "sourceClass": "CLASS_DRUID",
      "level": 8,
      "pos": [
       5,
@@ -29673,6 +31481,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 16,
      "pos": [
       6,
@@ -29681,6 +31491,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 16,
      "pos": [
       6,
@@ -29689,6 +31501,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 16,
      "pos": [
       4,
@@ -29697,6 +31511,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 45,
+     "sourceClass": "CLASS_SHAMAN",
      "level": 16,
      "pos": [
       4,
@@ -29705,6 +31521,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 17,
+     "sourceClass": "CLASS_HERO",
      "level": 5,
      "pos": [
       14,
@@ -29713,6 +31531,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 17,
+     "sourceClass": "CLASS_HERO",
      "level": 5,
      "pos": [
       12,
@@ -29721,6 +31541,8 @@
     },
     {
      "classId": "hero",
+     "sourceClassId": 17,
+     "sourceClass": "CLASS_HERO",
      "level": 5,
      "pos": [
       13,
@@ -29729,6 +31551,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 69,
+     "sourceClass": "CLASS_PRIEST",
      "level": 3,
      "pos": [
       9,
@@ -29737,6 +31561,8 @@
     },
     {
      "classId": "cleric",
+     "sourceClassId": 69,
+     "sourceClass": "CLASS_PRIEST",
      "level": 3,
      "pos": [
       17,
@@ -29745,6 +31571,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 13,
      "pos": [
       2,
@@ -29753,6 +31581,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 14,
      "pos": [
       20,
@@ -29761,6 +31591,8 @@
     },
     {
      "classId": "mercenary",
+     "sourceClassId": 15,
+     "sourceClass": "CLASS_MERCENARY",
      "level": 14,
      "pos": [
       19,
@@ -29769,6 +31601,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 15,
      "pos": [
       14,
@@ -29777,6 +31611,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 15,
      "pos": [
       15,
@@ -29785,6 +31621,8 @@
     },
     {
      "classId": "fighter",
+     "sourceClassId": 63,
+     "sourceClass": "CLASS_FIGHTER",
      "level": 15,
      "pos": [
       14,
@@ -29793,6 +31631,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       10,
@@ -29801,6 +31641,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 37,
+     "sourceClass": "CLASS_MAGE",
      "level": 13,
      "pos": [
       10,
@@ -29809,6 +31651,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 14,
      "pos": [
       9,
@@ -29817,6 +31661,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 14,
      "pos": [
       9,
@@ -29825,6 +31671,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 47,
+     "sourceClass": "CLASS_DRUID",
      "level": 4,
      "pos": [
       4,
@@ -30417,7 +32265,9 @@
    ],
    "enemies": [
     {
-     "classId": "dragon_knight",
+     "classId": "dragon_commander",
+     "sourceClassId": 100,
+     "sourceClass": "CLASS_DEATHGOYLE",
      "level": 3,
      "pos": [
       20,
@@ -30425,7 +32275,9 @@
      ]
     },
     {
-     "classId": "dragon_knight",
+     "classId": "dragon_commander",
+     "sourceClassId": 100,
+     "sourceClass": "CLASS_DEATHGOYLE",
      "level": 2,
      "pos": [
       18,
@@ -30433,7 +32285,9 @@
      ]
     },
     {
-     "classId": "dragon_knight",
+     "classId": "dragon_commander",
+     "sourceClassId": 100,
+     "sourceClass": "CLASS_DEATHGOYLE",
      "level": 2,
      "pos": [
       22,
@@ -30441,7 +32295,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordsman",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_MYRMIDON_F",
      "level": 16,
      "pos": [
       18,
@@ -30450,7 +32306,9 @@
      "boss": true
     },
     {
-     "classId": "fighter",
+     "classId": "swordsman",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_MYRMIDON_F",
      "level": 16,
      "pos": [
       17,
@@ -30458,7 +32316,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "swordsman",
+     "sourceClassId": 20,
+     "sourceClass": "CLASS_MYRMIDON_F",
      "level": 16,
      "pos": [
       16,
@@ -30467,6 +32327,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 16,
      "pos": [
       4,
@@ -30475,6 +32337,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 16,
      "pos": [
       3,
@@ -30483,6 +32347,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 19,
+     "sourceClass": "CLASS_MYRMIDON",
      "level": 16,
      "pos": [
       5,
@@ -30490,7 +32356,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       4,
@@ -30498,7 +32366,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       3,
@@ -30506,7 +32376,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       19,
@@ -30514,7 +32386,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       18,
@@ -30522,7 +32396,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       22,
@@ -30530,7 +32406,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       11,
@@ -30539,6 +32417,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 16,
      "pos": [
       21,
@@ -30547,6 +32427,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 16,
      "pos": [
       20,
@@ -30555,6 +32437,8 @@
     },
     {
      "classId": "knight",
+     "sourceClassId": 9,
+     "sourceClass": "CLASS_ARMOR_KNIGHT",
      "level": 16,
      "pos": [
       19,
@@ -30562,7 +32446,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       3,
@@ -30570,7 +32456,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       4,
@@ -30578,7 +32466,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       5,
@@ -30587,6 +32477,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 2,
+     "sourceClass": "CLASS_EIRIKA_LORD",
      "level": 16,
      "pos": [
       12,
@@ -30595,6 +32487,8 @@
     },
     {
      "classId": "swordmaster",
+     "sourceClassId": 4,
+     "sourceClass": "CLASS_EIRIKA_MASTER_LORD",
      "level": 16,
      "pos": [
       13,
@@ -30603,6 +32497,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 2,
+     "sourceClass": "CLASS_EIRIKA_LORD",
      "level": 16,
      "pos": [
       12,
@@ -30611,6 +32507,8 @@
     },
     {
      "classId": "swordmaster",
+     "sourceClassId": 4,
+     "sourceClass": "CLASS_EIRIKA_MASTER_LORD",
      "level": 16,
      "pos": [
       13,
@@ -30619,6 +32517,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 2,
+     "sourceClass": "CLASS_EIRIKA_LORD",
      "level": 16,
      "pos": [
       12,
@@ -30627,6 +32527,8 @@
     },
     {
      "classId": "swordsman",
+     "sourceClassId": 2,
+     "sourceClass": "CLASS_EIRIKA_LORD",
      "level": 16,
      "pos": [
       14,
@@ -30635,6 +32537,8 @@
     },
     {
      "classId": "lancer",
+     "sourceClassId": 1,
+     "sourceClass": "CLASS_EPHRAIM_LORD",
      "level": 16,
      "pos": [
       16,
@@ -30642,7 +32546,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "cavalier",
+     "sourceClassId": 6,
+     "sourceClass": "CLASS_CAVALIER_F",
      "level": 16,
      "pos": [
       18,
@@ -31379,6 +33285,8 @@
    "enemies": [
     {
      "classId": "bishop",
+     "sourceClassId": 43,
+     "sourceClass": "CLASS_BISHOP",
      "level": 17,
      "pos": [
       9,
@@ -31387,7 +33295,9 @@
      "boss": true
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       8,
@@ -31395,7 +33305,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       8,
@@ -31403,7 +33315,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       16,
@@ -31411,7 +33325,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       15,
@@ -31419,7 +33335,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       17,
@@ -31427,7 +33345,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       16,
@@ -31435,7 +33355,9 @@
      ]
     },
     {
-     "classId": "general",
+     "classId": "berserker",
+     "sourceClassId": 90,
+     "sourceClass": "CLASS_CYCLOPS",
      "level": 4,
      "pos": [
       12,
@@ -31443,7 +33365,9 @@
      ]
     },
     {
-     "classId": "general",
+     "classId": "berserker",
+     "sourceClassId": 90,
+     "sourceClass": "CLASS_CYCLOPS",
      "level": 4,
      "pos": [
       12,
@@ -31452,6 +33376,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 95,
+     "sourceClass": "CLASS_MOGALL",
      "level": 14,
      "pos": [
       14,
@@ -31460,6 +33386,8 @@
     },
     {
      "classId": "mage",
+     "sourceClassId": 95,
+     "sourceClass": "CLASS_MOGALL",
      "level": 14,
      "pos": [
       14,
@@ -31468,6 +33396,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 15,
      "pos": [
       9,
@@ -31476,6 +33406,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 15,
      "pos": [
       11,
@@ -31484,6 +33416,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 15,
      "pos": [
       10,
@@ -31492,6 +33426,8 @@
     },
     {
      "classId": "dragon_knight",
+     "sourceClassId": 99,
+     "sourceClass": "CLASS_GARGOYLE",
      "level": 15,
      "pos": [
       10,
@@ -31499,7 +33435,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       21,
@@ -31507,7 +33445,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       20,
@@ -31515,7 +33455,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       22,
@@ -31523,7 +33465,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 3,
      "pos": [
       20,
@@ -31531,7 +33475,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 3,
      "pos": [
       20,
@@ -31539,7 +33485,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       15,
@@ -31547,7 +33495,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       14,
@@ -31555,7 +33505,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       16,
@@ -31563,7 +33515,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       15,
@@ -31571,7 +33525,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       4,
@@ -31579,7 +33535,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       3,
@@ -31587,7 +33545,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       7,
@@ -31595,7 +33555,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 3,
      "pos": [
       3,
@@ -31603,7 +33565,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       4,
@@ -31611,7 +33575,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       4,
@@ -31619,7 +33585,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       5,
@@ -31627,7 +33595,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 4,
      "pos": [
       4,
@@ -31635,7 +33605,9 @@
      ]
     },
     {
-     "classId": "general",
+     "classId": "berserker",
+     "sourceClassId": 90,
+     "sourceClass": "CLASS_CYCLOPS",
      "level": 6,
      "pos": [
       6,
@@ -31643,7 +33615,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       6,
@@ -31651,7 +33625,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       7,
@@ -31659,7 +33635,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       5,
@@ -31667,7 +33645,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       7,
@@ -31675,7 +33655,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       6,
@@ -31683,7 +33665,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 3,
      "pos": [
       5,
@@ -31691,7 +33675,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 3,
      "pos": [
       6,
@@ -31699,7 +33685,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 3,
      "pos": [
       7,
@@ -31707,7 +33695,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 3,
      "pos": [
       6,
@@ -31716,6 +33706,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 6,
      "pos": [
       18,
@@ -31724,6 +33716,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       5,
@@ -31732,6 +33726,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       2,
@@ -31739,7 +33735,9 @@
      ]
     },
     {
-     "classId": "mage",
+     "classId": "sage",
+     "sourceClassId": 96,
+     "sourceClass": "CLASS_ARCH_MOGALL",
      "level": 5,
      "pos": [
       0,
@@ -32433,6 +34431,8 @@
    "enemies": [
     {
      "classId": "druid",
+     "sourceClassId": 79,
+     "sourceClass": "CLASS_NECROMANCER",
      "level": 18,
      "pos": [
       11,
@@ -32442,6 +34442,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 8,
      "pos": [
       10,
@@ -32450,6 +34452,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 8,
      "pos": [
       12,
@@ -32458,6 +34462,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 101,
+     "sourceClass": "CLASS_DRACO_ZOMBIE",
      "level": 10,
      "pos": [
       4,
@@ -32466,6 +34472,8 @@
     },
     {
      "classId": "dragonkin",
+     "sourceClassId": 101,
+     "sourceClass": "CLASS_DRACO_ZOMBIE",
      "level": 10,
      "pos": [
       18,
@@ -32473,7 +34481,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 89,
+     "sourceClass": "CLASS_ELDER_BAEL",
      "level": 7,
      "pos": [
       19,
@@ -32481,7 +34491,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 92,
+     "sourceClass": "CLASS_GWYLLGI",
      "level": 8,
      "pos": [
       2,
@@ -32489,7 +34501,9 @@
      ]
     },
     {
-     "classId": "dragon_lord",
+     "classId": "bow_knight",
+     "sourceClassId": 94,
+     "sourceClass": "CLASS_MAELDUIN",
      "level": 8,
      "pos": [
       20,
@@ -32497,7 +34511,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       18,
@@ -32505,7 +34521,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       17,
@@ -32513,7 +34531,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       16,
@@ -32521,7 +34541,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       19,
@@ -32529,7 +34551,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       17,
@@ -32537,7 +34561,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 6,
      "pos": [
       18,
@@ -32545,7 +34571,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       4,
@@ -32553,7 +34581,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       5,
@@ -32561,7 +34591,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 6,
      "pos": [
       7,
@@ -32569,7 +34601,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       2,
@@ -32577,7 +34611,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 5,
      "pos": [
       9,
@@ -32585,7 +34621,9 @@
      ]
     },
     {
-     "classId": "archer",
+     "classId": "sniper",
+     "sourceClassId": 87,
+     "sourceClass": "CLASS_WIGHT_BOW",
      "level": 5,
      "pos": [
       13,
@@ -32593,7 +34631,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       10,
@@ -32601,7 +34641,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       11,
@@ -32609,7 +34651,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       12,
@@ -32618,6 +34662,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 8,
      "pos": [
       21,
@@ -32626,6 +34672,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       1,
@@ -32634,6 +34682,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       9,
@@ -32642,6 +34692,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       13,
@@ -32649,7 +34701,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 6,
      "pos": [
       7,
@@ -32657,7 +34711,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       2,
@@ -32665,7 +34721,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       20,
@@ -32673,7 +34731,9 @@
      ]
     },
     {
-     "classId": "fighter",
+     "classId": "hero",
+     "sourceClassId": 86,
+     "sourceClass": "CLASS_WIGHT",
      "level": 5,
      "pos": [
       15,
@@ -32681,7 +34741,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 89,
+     "sourceClass": "CLASS_ELDER_BAEL",
      "level": 5,
      "pos": [
       4,
@@ -32689,7 +34751,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 92,
+     "sourceClass": "CLASS_GWYLLGI",
      "level": 5,
      "pos": [
       3,
@@ -32697,7 +34761,9 @@
      ]
     },
     {
-     "classId": "dragonkin",
+     "classId": "beast_hero",
+     "sourceClassId": 89,
+     "sourceClass": "CLASS_ELDER_BAEL",
      "level": 5,
      "pos": [
       18,
@@ -32706,6 +34772,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       10,
@@ -32714,6 +34782,8 @@
     },
     {
      "classId": "druid",
+     "sourceClassId": 97,
+     "sourceClass": "CLASS_GORGON",
      "level": 7,
      "pos": [
       12,

@@ -61,10 +61,10 @@ export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: W
   const mods = skillMods(state, { unit, pos, weapon: w, moved: unit.movedTurn === state.turn });
   const as = attackSpeed(unit, weaponId);
   return {
-    attack: w ? ((w.type === 'tome' || w.type === 'dragon') ? unit.stats.mag : unit.stats.str) + w.might : 0,
+    attack: w ? ((w.type === 'tome' || w.type === 'dragon') ? unit.stats.mag : unit.stats.str) + w.might + mods.attack : 0,
     hit: w ? w.hit + unit.stats.skl * 2 + Math.floor(unit.stats.lck / 2) + mods.hit : 0,
     crit: w ? w.crit + Math.floor(unit.stats.skl / 2) + mods.crit : 0,
-    attackSpeed: as,
+    attackSpeed: as + mods.attackSpeed,
     avoid: as * 2 + unit.stats.lck + terrainBonus(state, unit, pos).avoid + mods.avoid,
   };
 }
@@ -77,9 +77,9 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
     || !!w?.effectiveRoutes?.some(route => route === classOf(foe.unit).route);
   const mods = skillMods(state, me), foeMods = skillMods(state, foe);
   const magic = w?.type === 'tome' || w?.type === 'dragon';
-  const attack = w ? (magic ? me.unit.stats.mag : me.unit.stats.str) + (w.might + tri) * (effective ? 3 : 1) : 0;
+  const attack = w ? (magic ? me.unit.stats.mag : me.unit.stats.str) + (w.might + tri) * (effective ? 3 : 1) + mods.attack : 0;
   const foeTerrain = terrainBonus(state, foe.unit, foe.pos);
-  const protection = (magic ? foe.unit.stats.res : foe.unit.stats.def + foeMods.def) + foeTerrain.def;
+  const protection = (magic ? foe.unit.stats.res + foeMods.res : foe.unit.stats.def + foeMods.def) + foeTerrain.def;
   const hitRaw = w ? w.hit + me.unit.stats.skl * 2 + Math.floor(me.unit.stats.lck / 2) + tri * 15 + mods.hit : 0;
   const foeAvoid = attackSpeed(foe.unit, foeWeapon) * 2 + foe.unit.stats.lck + foeTerrain.avoid + foeMods.avoid;
   const critRaw = w ? w.crit + Math.floor(me.unit.stats.skl / 2) + mods.crit : 0;
@@ -88,7 +88,7 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
     weapon: meWeapon,
     hp: me.unit.hp,
     maxHp: me.unit.stats.hp,
-    attackSpeed: attackSpeed(me.unit, meWeapon),
+    attackSpeed: attackSpeed(me.unit, meWeapon) + mods.attackSpeed,
     attack,
     damage: w ? Math.max(0, attack + mods.damage - protection) : 0,
     hit: w ? clamp(hitRaw - foeAvoid) : 0,
@@ -125,7 +125,7 @@ export function strikeOrder(attacker: SideForecast, defender: SideForecast, brav
   return order;
 }
 
-export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string): Forecast {
+export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: { might: number; hit: number; crit: number }): Forecast {
   const attackerUnit = unitById(state, attackerId), defenderUnit = unitById(state, defenderId);
   const counter = equipped(defenderUnit);
   const a: Fighter = {
@@ -138,6 +138,12 @@ export function forecast(state: BattleState, attackerId: string, from: Point, we
   };
   const attacker = sideVs(state, a, weaponId, d, counter);
   const defender = sideVs(state, d, counter, a, weaponId);
+  if (art) {
+    attacker.damage += art.might;
+    attacker.hit = clamp(attacker.hit + art.hit);
+    attacker.crit = clamp(attacker.crit + art.crit);
+    attacker.followUpCrit = clamp(attacker.followUpCrit + art.crit);
+  }
   attacker.canAttack = true;
   defender.canAttack = counter !== null && inRange(defenderUnit, counter, defenderUnit.pos, from);
   // Follow-up needs an attack-speed lead of 4 (docs/03).

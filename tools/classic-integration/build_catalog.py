@@ -46,9 +46,9 @@ GBA_CLASS = {
     'BRIGAND': 'fighter', 'PIRATE': 'fighter', 'BERSERKER': 'berserker', 'ARMOR': 'knight',
     'ARMOR_KNIGHT': 'knight', 'GENERAL': 'general', 'CAVALIER': 'cavalier', 'PALADIN': 'paladin',
     'GREAT_KNIGHT': 'great_knight', 'PEGASUS_KNIGHT': 'pegasus', 'FALCON_KNIGHT': 'falcon',
-    'WYVERN_RIDER': 'dragon_knight', 'WYVERN_LORD': 'dragon_commander', 'DRACO_ZOMBIE': 'dragonkin',
+    'WYVERN_RIDER': 'dragon_knight', 'WYVERN_LORD': 'dragon_commander', 'WYVERN_KNIGHT': 'dragon_knight', 'DRACO_ZOMBIE': 'dragonkin',
     'ARCHER': 'archer', 'SNIPER': 'sniper', 'RANGER': 'forest_knight', 'NOMAD': 'bow_knight',
-    'MAGE': 'mage', 'MAGE_KNIGHT': 'mage_knight', 'SAGE': 'sage', 'SHAMAN': 'druid', 'DRUID': 'druid',
+    'MAGE': 'mage', 'MAGE_KNIGHT': 'dark_knight', 'SAGE': 'sage', 'SHAMAN': 'druid', 'DRUID': 'druid',
     'CLERIC': 'cleric', 'PRIEST': 'cleric', 'MONK': 'cleric', 'BISHOP': 'bishop',
     'TROUBADOUR': 'valkyrie', 'VALKYRIE': 'valkyrie', 'THIEF': 'thief', 'ROGUE': 'assassin',
     'ASSASSIN': 'assassin', 'MYRMIDON': 'swordsman', 'SWORDMASTER': 'swordmaster',
@@ -56,14 +56,61 @@ GBA_CLASS = {
     'MANAKETE_2': 'dragonkin', 'CIVILIAN_F1': 'commoner', 'CIVILIAN_F2': 'commoner',
     'CIVILIAN_F3': 'commoner', 'CIVILIAN_M1': 'commoner', 'CIVILIAN_M2': 'commoner',
     'SOLDIER': 'lancer', 'SUPPLY': 'commoner', 'QUEEN': 'sage', 'KING': 'general',
-    'REVENANT': 'fighter', 'BONEWALKER': 'fighter', 'BONEWALKER_BOW': 'archer', 'WIGHT': 'fighter',
-    'WIGHT_BOW': 'archer', 'BAEL': 'dragonkin', 'ELDER_BAEL': 'dragonkin', 'MAUTHEDOOG': 'dragonkin',
-    'GARGOYLE': 'dragon_knight', 'DEATHGOYLE': 'dragon_knight', 'CYCLOPS': 'general',
-    'GWYLLGI': 'dragonkin', 'MOGALL': 'mage', 'ARCH_MOGALL': 'mage', 'GORGON': 'druid',
-    'NECROMANCER': 'druid', 'ENTOUMBED': 'fighter', 'FALLEN_PEER': 'general', 'MAELDUIN': 'dragon_lord',
+    'REVENANT': 'fighter', 'BONEWALKER': 'lancer', 'BONEWALKER_BOW': 'archer', 'WIGHT': 'hero',
+    'WIGHT_BOW': 'sniper', 'BAEL': 'beast_fighter', 'ELDER_BAEL': 'beast_hero', 'MAUTHEDOOG': 'beast_hero',
+    'GARGOYLE': 'dragon_knight', 'DEATHGOYLE': 'dragon_commander', 'CYCLOPS': 'berserker',
+    'GWYLLGI': 'beast_hero', 'MOGALL': 'mage', 'ARCH_MOGALL': 'sage', 'GORGON': 'druid',
+    'NECROMANCER': 'druid', 'ENTOUMBED': 'fighter', 'FALLEN_PEER': 'general', 'MAELDUIN': 'bow_knight',
     'ARCHSAGE': 'sage', 'PUPIL': 'mage', 'RECRUIT': 'lancer', 'TARVOS': 'lancer',
     'OBSTACLE': 'wall', 'CLERIC_F': 'cleric',
 }
+
+
+# FE7 的 classCatalog 没有符号名，只有数字 ID；这39个ID覆盖本批10图实际出场的敌军。
+# 名称按职业基础值、移动力和装备职责核对，映射到项目现有职业。不能拿 FE6/FE8 同编号硬套。
+FE7_CLASS_ID = {
+    10: ('Mercenary', 'mercenary'), 12: ('Hero', 'hero'), 14: ('Swordmaster', 'swordmaster'),
+    16: ('Assassin', 'assassin'), 18: ('Brigand', 'fighter'), 19: ('Berserker', 'berserker'),
+    20: ('Armor Knight', 'knight'), 22: ('General', 'general'), 24: ('Archer', 'archer'),
+    26: ('Sniper', 'sniper'), 28: ('Mage', 'mage'), 30: ('Sage', 'sage'),
+    32: ('Shaman', 'druid'), 33: ('Mage (F)', 'mage'), 34: ('Druid', 'druid'),
+    35: ('Mage Knight', 'dark_knight'), 36: ('Shaman (F)', 'druid'), 38: ('Druid (F)', 'druid'),
+    39: ('Necromancer', 'druid'), 40: ('Cavalier', 'cavalier'), 42: ('Paladin', 'paladin'),
+    44: ('Troubadour', 'valkyrie'), 45: ('Valkyrie', 'valkyrie'), 46: ('Nomad', 'bow_knight'),
+    48: ('Nomad Trooper', 'bow_knight'), 50: ('Pegasus Knight', 'pegasus'),
+    51: ('Falcon Knight', 'falcon'), 52: ('Wyvern Rider', 'dragon_knight'),
+    54: ('Wyvern Lord', 'dragon_commander'), 55: ('Wyvern Lord (F)', 'dragon_commander'),
+    56: ('Soldier', 'lancer'), 57: ('Fighter', 'fighter'), 59: ('Pirate', 'fighter'),
+    60: ('Thief', 'thief'), 62: ('Thief (F)', 'thief'), 69: ('Dragon', 'dragonkin'),
+    70: ('Fire Dragon', 'dragon_lord'), 80: ('Brigand', 'fighter'), 90: ('Sage', 'sage'),
+}
+
+
+# FE6/FE8 use several historical spellings for the same class symbol. Normalize
+# before looking up GBA_CLASS instead of silently falling back to fighter.
+CLASS_SYMBOL_ALIASES = {
+    'ARMOR_F': 'ARMOR', 'FALCONKNIGHT': 'FALCON_KNIGHT', 'PEGASUSKNIGHT': 'PEGASUS_KNIGHT',
+    'SAGE_F': 'SAGE', 'SHAMAN_F': 'SHAMAN', 'THIEF_F': 'THIEF',
+    'WYVERNLORD': 'WYVERN_LORD', 'WYVERNRIDER': 'WYVERN_RIDER',
+    'WYVERNRIDER_F': 'WYVERN_RIDER', 'ARMORKNIGHT': 'ARMOR_KNIGHT',
+    'GREATKNIGHT': 'GREAT_KNIGHT', 'MAGEKNIGHT': 'MAGE_KNIGHT',
+    'CAVALIER_F': 'CAVALIER', 'MAGE_KNIGHT_F': 'MAGE_KNIGHT', 'MYRMIDON_F': 'MYRMIDON',
+    'WYVERN_KNIGHT': 'WYVERN_RIDER',
+    'DRAGOZOMBIE': 'DRACO_ZOMBIE', 'ARCHMOGALL': 'ARCH_MOGALL',
+    'ELDERBAEL': 'ELDER_BAEL', 'BONEWALKER_BOW': 'BONEWALKER_BOW',
+}
+
+def project_class(unit: dict, game: str) -> str:
+    symbol = (unit.get('classSymbol') or '').replace('JID_', '').replace('CLASS_', '')
+    symbol = CLASS_SYMBOL_ALIASES.get(symbol, symbol)
+    if symbol and symbol in GBA_CLASS:
+        return GBA_CLASS[symbol]
+    if game == 'fe7':
+        cid = unit.get('effectiveClassId') or unit.get('classId')
+        if cid in FE7_CLASS_ID:
+            return FE7_CLASS_ID[cid][1]
+        raise SystemExit(f"FE7 class {cid} is not mapped; add it to FE7_CLASS_ID before release")
+    return 'fighter'
 
 FE1_CLASS = {
     'Cavalier': 'cavalier', 'Knight': 'knight', 'Pegasus Knight': 'pegasus', 'Paladin': 'paladin',
@@ -145,9 +192,12 @@ def load_gba() -> list[dict]:
         primary = max(groups, key=lambda g: (any(r.get('kind') == 'enemy-table' for r in g['references']), len(enemies_of(g))))
         enemies = []
         for unit in enemies_of(primary):
-            symbol = (unit['classSymbol'] or '').replace('JID_', '').replace('CLASS_', '')
-            enemies.append({'classId': GBA_CLASS.get(symbol, 'fighter'), 'level': max(1, unit['level']),
-                            'pos': list(unit['position'])})
+            cid = unit.get('effectiveClassId') or unit.get('classId')
+            symbol = unit.get('classSymbol')
+            enemies.append({'classId': project_class(unit, asset['source']['game']),
+                            'sourceClassId': cid,
+                            'sourceClass': f'CLASS_ID_{cid}' if asset['source']['game'] == 'fe7' else (symbol or f'CLASS_ID_{cid}'),
+                            'level': max(1, unit['level']), 'pos': list(unit['position'])})
         deploy = [u for g in groups for r in g['references'] if r.get('kind') == 'deployment-table'
                   for u in g['units'] if u['faction'] == 'player' and u['positionStatus'] == 'on-map']
         if not deploy:

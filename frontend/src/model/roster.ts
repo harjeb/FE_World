@@ -1,0 +1,74 @@
+// 名册视图（TODO UI-01）：全部由服务端单位推出，不再有模板主力／替补／重伤或武器阈值占位。
+// 出战人数按地图规则另算（GET_TODAY／GET_QUESTS 的 maxUnits），名册只记录谁现在能出、谁被活动占用。
+import { CLASSES, hasClassQualification, weaponRankCap } from '@common/data/classes.ts';
+import type { ClassId } from '@common/data/classes.ts';
+import { promotionsFor } from '@common/data/promotions.ts';
+import { RANKS } from '@common/data/types.ts';
+import type { Rank, WeaponType } from '@common/data/types.ts';
+import { RANK_EXP } from '@common/game/model.ts';
+import type { LifespanWarning, ServerAnnual, ServerUnit, UnitOrigin } from '../api/session.ts';
+
+export type UnitStatus = 'ready' | 'run' | 'dispatch' | 'annual';
+
+export const STATUS_TEXT: Record<UnitStatus, string> = { ready: '可出战', run: '远征中', dispatch: '派遣中', annual: '大竞技场名单' };
+export const STATUS_TAG: Record<UnitStatus, string> = { ready: 'tag-green', run: 'tag-brass', dispatch: 'tag-blue', annual: 'tag-blue' };
+export const ORIGIN_TEXT: Record<UnitOrigin, string> = { protagonist: '主角', fixed: '固定人物', recruit: '招募' };
+export const LIFESPAN_TEXT: Record<LifespanWarning, string | null> = { none: null, oneYear: '寿命不足一年', lastSeason: '寿命不足一季', due: '已到寿终' };
+
+// 本届大竞技场进行中（海选或正赛）：服务端暂停其他写操作，只能打比赛或退赛。
+export function annualLive(annual: ServerAnnual | null): boolean {
+  const entry = annual?.entry;
+  return !!entry && (entry.state === 'qualifier' || entry.state === 'knockout');
+}
+
+export function unitStatus(unit: ServerUnit, annual: ServerAnnual | null): UnitStatus {
+  if (unit.lockedRunId) return 'run';
+  if (unit.lockedDispatchId) return 'dispatch';
+  if (annualLive(annual) && annual!.entry!.unitIds.includes(unit.id)) return 'annual';
+  return 'ready';
+}
+
+// Why a unit cannot be picked for a new battle or dispatch right now (the server refuses it too).
+export function busyReason(unit: ServerUnit, annual: ServerAnnual | null): string | null {
+  const status = unitStatus(unit, annual);
+  return status === 'ready' ? null : STATUS_TEXT[status];
+}
+
+export const activeUnits = (units: ServerUnit[]) => units.filter(u => u.status === 'active');
+
+// 可转职：当前职业的推荐进阶里，至少有一个已经买到资格（PROMOTE 与 SWITCH_CLASS 共用这条校验）。
+export function canPromote(unit: ServerUnit): boolean {
+  return promotionsFor(unit.classId as ClassId).some(p => hasClassQualification(unit.classQualifications as ClassId[], p.to));
+}
+
+export interface WeaponProgress {
+  type: WeaponType; rank: Rank; exp: number;
+  // 本级起点与下一级门槛（服务端 RANK_EXP）；next 为 null 表示已到 SSS。
+  floor: number; next: number | null; nextRank: Rank | null;
+  // 当前职业的上限；null 表示当前职业不能用这类武器（换职前练的熟练度仍保留）。
+  cap: Rank | null; capped: boolean;
+}
+
+export function weaponProgress(unit: ServerUnit): WeaponProgress[] {
+  return (Object.entries(unit.ranks) as [WeaponType, Rank][]).map(([type, rank]) => {
+    const exp = Math.max(unit.weaponExp[type] ?? 0, RANK_EXP[rank]);
+    const nextRank = RANKS[RANKS.indexOf(rank) + 1] ?? null;
+    const cap = weaponRankCap(unit.classId as ClassId, type) ?? null;
+    const capped = !cap || RANKS.indexOf(rank) >= RANKS.indexOf(cap);
+    return { type, rank, exp, floor: RANK_EXP[rank], next: nextRank ? RANK_EXP[nextRank] : null, nextRank, cap, capped };
+  }).sort((a, b) => (a.cap ? 0 : 1) - (b.cap ? 0 : 1) || RANKS.indexOf(b.rank) - RANKS.indexOf(a.rank));
+}
+
+export const classOfUnit = (unit: ServerUnit) => CLASSES[unit.classId as ClassId];
+
+// 等级经验：100 一级；满级（职业 maxLevel）后不再累积。
+export function expLine(unit: ServerUnit): { exp: number; max: boolean } {
+  const max = unit.level >= (classOfUnit(unit)?.maxLevel ?? 99);
+  return { exp: max ? 100 : unit.exp, max };
+}
+
+// The ready units first (highest level first), then those an activity holds.
+export function rosterOrder(units: ServerUnit[], annual: ServerAnnual | null): ServerUnit[] {
+  const rank = (u: ServerUnit) => (u.isProtagonist ? 0 : unitStatus(u, annual) === 'ready' ? 1 : 2);
+  return [...units].sort((a, b) => rank(a) - rank(b) || b.level - a.level);
+}

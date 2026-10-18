@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { CLASSES } from '@common/data/classes.ts';
+import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
 import { STAT_KEYS, STAT_NAMES, rankAtLeast } from '@common/data/types.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from '@common/game/items.ts';
 import type { GameItem, ItemKey } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
-import { ICONS, portraitFor, spriteFor, weaponIcon } from '../assets.ts';
-import { session } from '../api/session.ts';
-import type { ServerUnit } from '../api/session.ts';
+import { ICONS, weaponIcon } from '../assets.ts';
+import { session, useSession } from '../api/session.ts';
+import type { BookInstance, ServerUnit } from '../api/session.ts';
+import { annualLive } from '../model/roster.ts';
 import { toast } from '../ui/toast.tsx';
-import { weaponSpec } from './RosterParts.tsx';
+import { instanceFor, ResourceBar, weaponSpec } from './RosterParts.tsx';
+import { stock, UnitFace } from './SystemParts.tsx';
 
 // Carry limits as TRANSFER_ITEM enforces them: weapons and battle items are counted separately.
 export const CARRY = 5;
@@ -22,6 +25,7 @@ export function itemIcon(key: string): string {
   if (item?.kind === 'weapon' && item.weapon) return weaponIcon(WEAPONS[item.weapon].type);
   if (item?.kind === 'consumable') return ICONS.vulnerary;
   if (item?.kind === 'stat') return ICONS.elixir;
+  if (item?.kind === 'food') return ICONS.herb;
   if (item?.kind === 'material') return ICONS[key as 'herb' | 'ore' | 'wood' | 'seed'] ?? ICONS.seal;
   return ICONS.seal;
 }
@@ -32,9 +36,10 @@ export function itemSpec(key: string): string {
   if (!item) return '';
   switch (item.kind) {
     case 'weapon': return item.weapon ? weaponSpec(item.weapon) : '';
-    case 'consumable': return item.item ? `回复 ${ITEMS[item.item].heal} HP · 每件 ${item.uses} 次` : '';
+    case 'consumable': return item.note ?? (item.item ? `回复 ${ITEMS[item.item].heal} HP · 每件 ${item.uses} 次` : '');
     case 'stat': return `${item.stat ? STAT_NAMES[item.stat] : ''}永久 +${item.amount} · 每人每项最多 ${DRUG_LIMIT_PER_STAT} 次，合计 ${DRUG_LIMIT_TOTAL} 次`;
-    case 'seal': return '目前转职不消耗转职印（解锁规则待定）';
+    case 'seal': return item.note ?? '转职印';
+    case 'food': return `${item.note ?? '恢复法术书次数'} · 在角色的书旁使用，不推进日期`;
     case 'material': return item.note ?? '生产材料：在「生产」里播种、炼药或锻造，也可以出售';
   }
 }
@@ -44,7 +49,7 @@ export function cannotWield(unit: ServerUnit, weapon: WeaponId): string | null {
   const w = WEAPONS[weapon];
   const cap = CLASSES[unit.classId as keyof typeof CLASSES]?.weapons[w.type];
   if (!cap) return `${unit.className}不能用${w.name}`;
-  return rankAtLeast(unit.snapshot.ranks[w.type], w.rank) ? null : `需要 ${w.rank} 级，现在 ${unit.snapshot.ranks[w.type] ?? 'E'}`;
+  return rankAtLeast(unit.ranks[w.type], w.rank) ? null : `需要 ${w.rank} 级，现在 ${unit.ranks[w.type] ?? 'E'}`;
 }
 
 // Why a 能力药 would be refused for this unit (game/model.ts::useDrug), or null if it can be used.
@@ -60,11 +65,13 @@ export function drugBlock(unit: ServerUnit, key: string): string | null {
   return null;
 }
 
-export async function runOp<T>(op: number, data: Record<string, unknown>, done: (result: T) => string): Promise<void> {
+export async function runOp<T>(op: number, data: Record<string, unknown>, done: (result: T) => string): Promise<boolean> {
   try {
     toast(done(await session.run<T>(op, data)));
+    return true;
   } catch (e) {
     toast(`操作失败：${e instanceof Error ? e.message : String(e)}`);
+    return false;
   }
 }
 
@@ -74,11 +81,11 @@ export function UnitPicker({ units, selected, onPick }: { units: ServerUnit[]; s
       <div className="ph"><h2 id="gu-h">选择角色</h2><span style={{ fontSize: 12, color: '#6A6256' }}>仓库里的按钮作用在选中的角色上</span></div>
       <div className="gear-units" role="radiogroup" aria-label="选择角色">
         {units.map(u => {
-          const looks = { classId: u.snapshot.classId, side: 'player' as const, character: u.character };
+          const worn = u.weaponInstances.some(w => w.durability < w.maxDurability) || [...u.bookInstances, ...u.spellbooks].some(b => b.charges < b.maxCharges);
           return (
             <button key={u.id} type="button" role="radio" aria-checked={u.id === selected?.id} className="gu" onClick={() => onPick(u.id)}>
-              <span className="pf ally" style={{ width: 40, height: 40 }}><img className="px" src={portraitFor(looks) ?? spriteFor(looks)} width={48} height={48} alt="" /></span>
-              <span className="n">{u.name}</span>
+              <UnitFace unit={u} size={40} />
+              <span className="n">{u.name}{worn && <i className="gu-dot" title="有装备需要维修或补充次数" />}</span>
               <span className="l">{u.className} · Lv {u.level}</span>
             </button>
           );
@@ -88,29 +95,90 @@ export function UnitPicker({ units, selected, onPick }: { units: ServerUnit[]; s
   );
 }
 
+// 维修费用与旅馆价格（handlers.ts REPAIR_ITEM / INN_REST 同一公式，服务端以执行时为准）。
+const repairCost = (max: number) => 100 + max * 5;
+const staffRefill = (missing: number) => 150 + missing * 20;
+const innCost = (unit: ServerUnit) => 200 + unit.level * 10;
+
+// 旅馆／食物不能在战斗、远征或年度赛事期间使用（服务端会拒绝）。
+function upkeepBlock(): string | null {
+  const { today, run, annual } = session.get();
+  if (today?.battle) return '战斗进行中';
+  if (run && (run.state === 'battle' || run.state === 'between_maps')) return '远征进行中';
+  if (annualLive(annual)) return '大竞技场进行中';
+  return null;
+}
+
+function BookActions({ unit, id, book, spellbook }: { unit: ServerUnit; id: string; book: BookInstance; spellbook: boolean }) {
+  const { state } = useSession();
+  const full = book.charges >= book.maxCharges;
+  const blocked = upkeepBlock();
+  const foods = (['ether_ration', 'full_meal'] as const).filter(f => stock(state, f) > 0);
+  const name = spellbook ? SPELLBOOK_BY_ID.get(id)?.name ?? id : WEAPONS[id as WeaponId]?.name ?? id;
+  if (full) return <span className="tag tag-green">次数已满</span>;
+  return (
+    <span className="acts">
+      <button type="button" className="btn btn-sm" disabled={!!blocked || (state?.gold ?? 0) < innCost(unit)} title={blocked ?? `旅馆休息 1 日，补满次数，${innCost(unit)} 金币`}
+        onClick={() => void runOp<{ charges: [number, number] }>(OP.INN_REST, { unitId: unit.id, book: id, spellbook }, r => `旅馆休息 1 日：${name}恢复到 ${r.charges[0]} / ${r.charges[1]}`)}>
+        旅馆 {innCost(unit)} 金 · 1 日
+      </button>
+      {foods.map(food => (
+        <button key={food} type="button" className="btn btn-sm btn-ghost" disabled={!!blocked} title={blocked ?? itemSpec(food)}
+          onClick={() => void runOp<{ restored: number; charges: [number, number] }>(OP.USE_FOOD, { unitId: unit.id, book: id, item: food, spellbook }, r => `${GAME_ITEMS[food].name}：${name}恢复 ${r.restored} 次（${r.charges[0]} / ${r.charges[1]}）`)}>
+          {GAME_ITEMS[food].name}（{stock(state, food)}）
+        </button>
+      ))}
+    </span>
+  );
+}
+
 export function CarriedPanel({ unit }: { unit: ServerUnit }) {
+  const { state } = useSession();
   const weapons = unit.snapshot.weapons as WeaponId[];
   const items = unit.snapshot.items;
+  const [busy, setBusy] = useState<string | null>(null);
+  const gold = state?.gold ?? 0;
   const move = (item: string, action: 'equip' | 'toWarehouse', done: string) =>
     runOp(OP.TRANSFER_ITEM, { unitId: unit.id, item, action }, () => done);
+  const repair = async (id: WeaponId, cost: number) => {
+    setBusy(id);
+    await runOp<{ repaired: number; gold: number }>(OP.REPAIR_ITEM, { unitId: unit.id, item: id }, r => `${WEAPONS[id].name}已修好${r.repaired > 1 ? `（${r.repaired} 件）` : ''}，金币 −${cost}`);
+    setBusy(null);
+  };
   return (
     <section className="panel" aria-labelledby="carry-h">
       <div className="ph">
         <h2 id="carry-h">{unit.name}的携带</h2>
         <span style={{ fontSize: 12, color: '#6A6256' }}>武器 {weapons.length} / {CARRY} · 道具 {items.length} / {CARRY}</span>
       </div>
-      <div className="grp">武器（第一把是装备中的）</div>
+      <div className="grp">武器（第一把是装备中的）· 物理武器的战技消耗耐久，魔道书与杖每次使用消耗次数</div>
       <ul className="eq">
-        {weapons.map((id, i) => (
-          <li key={`${id}${i}`}>
-            <img className="px" src={weaponIcon(WEAPONS[id].type)} width={32} height={32} alt="" />
-            <div className="min-w-0"><div className="nm">{WEAPONS[id].name}{i === 0 && <span className="tag tag-blue">✓ 装备中</span>}</div><div className="sp">{weaponSpec(id)}</div></div>
-            <span className="acts">
-              {i > 0 && <button type="button" className="btn btn-sm" onClick={() => void move(id, 'equip', `${unit.name}装备了${WEAPONS[id].name}`)}>装备</button>}
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => void move(id, 'toWarehouse', `${WEAPONS[id].name}放回了仓库`)}>放回仓库</button>
-            </span>
-          </li>
-        ))}
+        {weapons.map((id, i) => {
+          const res = instanceFor(unit, weapons, i);
+          const staff = WEAPONS[id].type === 'staff';
+          const damaged = res && res.now < res.max;
+          const cost = res ? (staff ? staffRefill(res.max - res.now) : repairCost(res.max)) : 0;
+          const book = res?.kind === 'charges' ? unit.bookInstances.filter(b => b.id === id)[weapons.slice(0, i).filter(w => w === id).length] : null;
+          return (
+            <li key={`${id}${i}`}>
+              <img className="px" src={weaponIcon(WEAPONS[id].type)} width={32} height={32} alt="" />
+              <div className="min-w-0">
+                <div className="nm">{WEAPONS[id].name}{i === 0 && <span className="tag tag-blue">✓ 装备中</span>}</div>
+                <div className="sp">{weaponSpec(id)}</div>
+                {res && <ResourceBar {...res} />}
+                {book && WEAPONS[id].type === 'tome' && <BookActions unit={unit} id={id} book={book} spellbook={false} />}
+              </div>
+              <span className="acts">
+                {damaged && (res.kind === 'durability' || staff) && (
+                  <button type="button" className="btn btn-sm" disabled={busy !== null || gold < cost} title={staff ? `补满杖的次数：${cost} 金币` : `修到 ${res.max} / ${res.max}：${cost} 金币`}
+                    onClick={() => void repair(id, cost)}>{busy === id ? '维修中…' : `${staff ? '补充' : '维修'} ${cost} 金`}</button>
+                )}
+                {i > 0 && <button type="button" className="btn btn-sm" onClick={() => void move(id, 'equip', `${unit.name}装备了${WEAPONS[id].name}`)}>装备</button>}
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => void move(id, 'toWarehouse', `${WEAPONS[id].name}放回了仓库`)}>放回仓库</button>
+              </span>
+            </li>
+          );
+        })}
         {weapons.length === 0 && <li className="empty-row">没有携带武器</li>}
       </ul>
       <div className="grp">道具</div>
@@ -118,12 +186,32 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
         {items.map((stack, i) => (
           <li key={`${stack.id}${i}`}>
             <img className="px" src={ICONS.vulnerary} width={32} height={32} alt="" />
-            <div className="min-w-0"><div className="nm">{ITEMS[stack.id as ItemId]?.name ?? stack.id}</div><div className="sp">剩 {stack.uses} / {ITEMS[stack.id as ItemId]?.uses ?? stack.uses} 次</div></div>
+            <div className="min-w-0"><div className="nm">{ITEMS[stack.id as ItemId]?.name ?? stack.id}</div><div className="sp">{stack.id === 'immortal_shield' ? '致命时自动消耗，保留 1 HP 并石化；每人最多 1 枚' : `剩 ${stack.uses} / ${ITEMS[stack.id as ItemId]?.uses ?? stack.uses} 次`}</div></div>
             <span className="acts"><button type="button" className="btn btn-sm btn-ghost" onClick={() => void move(stack.id, 'toWarehouse', `${ITEMS[stack.id as ItemId]?.name ?? stack.id}放回了仓库，剩 ${stack.uses} 次`)}>放回仓库</button></span>
           </li>
         ))}
         {items.length === 0 && <li className="empty-row">没有携带道具</li>}
       </ul>
+      {unit.spellbooks.length > 0 && <>
+        <div className="grp">职业法术书 · 每本独立次数，旅馆补满或用食物恢复</div>
+        <ul className="eq">
+          {unit.spellbooks.map(book => {
+            const def = SPELLBOOK_BY_ID.get(book.id);
+            return (
+              <li key={book.id}>
+                <img className="px" src={weaponIcon(def && (def.role === 'attack' || def.role === 'hostile_support') ? 'tome' : 'staff')} width={32} height={32} alt="" />
+                <div className="min-w-0">
+                  <div className="nm">{def?.name ?? book.id}</div>
+                  <div className="sp">{def?.effect}</div>
+                  <ResourceBar now={book.charges} max={book.maxCharges} kind="charges" />
+                  <BookActions unit={unit} id={book.id} book={book} spellbook />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </>}
+      {upkeepBlock() && <p className="pfoot">{upkeepBlock()}：旅馆和食物暂时不能用，维修仍可进行。</p>}
     </section>
   );
 }

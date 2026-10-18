@@ -38,6 +38,8 @@ export const RECIPES: Recipe[] = [
   { id: 'forge_armorslayer', name: '锻造破甲剑', facility: 'smithy', days: 14, input: [{ item: 'ore', count: 8 }, { item: 'wood', count: 3 }], output: { item: 'armorslayer', count: 1 }, kind: 'forge', requires: { region: 3, reputation: 250 } },
   { id: 'brew_recover', name: '调制恢复杖', facility: 'apothecary', days: 6, input: [{ item: 'herb', count: 8 }], output: { item: 'recover', count: 1 }, kind: 'brew', requires: { region: 5, reputation: 100 } },
   { id: 'brew_talisman', name: '缝制魔防符', facility: 'apothecary', days: 8, input: [{ item: 'herb', count: 10 }, { item: 'wood', count: 2 }], output: { item: 'talisman', count: 1 }, kind: 'brew', requires: { region: 5, reputation: 250 } },
+  { id: 'cook_ether_ration', name: '烹制以太口粮', facility: 'apothecary', days: 1, input: [{ item: 'herb', count: 2 }, { item: 'seed', count: 1 }], output: { item: 'ether_ration', count: 1 }, kind: 'brew' },
+  { id: 'cook_full_meal', name: '烹制完整料理', facility: 'apothecary', days: 2, input: [{ item: 'herb', count: 5 }, { item: 'seed', count: 2 }], output: { item: 'full_meal', count: 1 }, kind: 'brew' },
 ];
 
 export function recipeById(id: string): Recipe | undefined {
@@ -69,10 +71,10 @@ export interface ProductionOrder {
   quality: 'normal' | 'perfect';
 }
 
-export function createOrder(id: string, playerId: string, recipe: Recipe, startDay: number): ProductionOrder {
+export function createOrder(id: string, playerId: string, recipe: Recipe, startDay: number, quality: 'normal' | 'perfect' = 'normal'): ProductionOrder {
   return {
     id, playerId, recipeId: recipe.id, facility: recipe.facility, state: 'growing',
-    startedDay: startDay, readyDay: startDay + recipe.days, output: { ...recipe.output }, quality: 'normal',
+    startedDay: startDay, readyDay: startDay + recipe.days, output: { ...recipe.output }, quality,
   };
 }
 

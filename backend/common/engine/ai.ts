@@ -2,7 +2,7 @@ import { forecast } from './combat.ts';
 import { moveRange, travelCosts } from './movement.ts';
 import type { MoveRange } from './movement.ts';
 import { targetsFrom } from './ranges.ts';
-import { attackWeapons, cellKey, distance, keyPoint, living, staffWeapons } from './units.ts';
+import { attackWeapons, cellKey, distance, isAsleep, isBerserk, keyPoint, living, staffWeapons } from './units.ts';
 import type { ActAction, BattleState, Point, UnitState } from './types.ts';
 
 // Deterministic rule AI (docs/03「服务端规则 AI」). Same state, same decision; only combat rolls are random.
@@ -16,12 +16,12 @@ function sortedStops(range: MoveRange): number[] {
 
 // Score = expected damage + kill chance × large weight − expected counter damage.
 // maxRisk drops options whose chance of being defeated in the exchange is higher.
-function bestAttack(state: BattleState, unit: UnitState, stops: number[], maxRisk = 1): ActAction | null {
+function bestAttack(state: BattleState, unit: UnitState, stops: number[], maxRisk = 1, anySide = false): ActAction | null {
   let best: { score: number; action: ActAction } | null = null;
   for (const stop of stops) {
     const to = keyPoint(state, stop);
     for (const weapon of attackWeapons(unit)) {
-      for (const target of targetsFrom(state, unit, to, weapon, 'attack')) {
+      for (const target of targetsFrom(state, unit, to, weapon, 'attack', anySide)) {
         const f = forecast(state, unit.id, to, weapon, target.id);
         if (f.attackerDies > maxRisk) continue;
         const score = f.expectedDealt + KILL_WEIGHT * f.defenderDies - f.expectedTaken - KILL_WEIGHT * f.attackerDies;
@@ -61,7 +61,9 @@ function advance(state: BattleState, unit: UnitState, stops: number[], goals: Po
 
 export function decide(state: BattleState, unit: UnitState): ActAction {
   const stay: ActAction = { type: 'act', unit: unit.id, to: unit.pos, act: 'wait' };
-  const behavior = unit.behavior ?? 'aggressive';
+  if (isAsleep(unit)) return stay;
+  const berserk = isBerserk(unit);
+  const behavior = berserk ? 'aggressive' : unit.behavior ?? 'aggressive';
   if (behavior === 'hold') return stay;
   const range = moveRange(state, unit);
   let stops = sortedStops(range);
@@ -74,21 +76,21 @@ export function decide(state: BattleState, unit: UnitState): ActAction {
     const heal = bestHeal(state, unit, stops);
     if (heal) return heal;
   }
-  const foes = living(state).filter(u => u.side !== unit.side);
+  const foes = berserk ? living(state).filter(u => u.id !== unit.id) : living(state).filter(u => u.side !== unit.side);
   const goal = state.goal;
-  if (goal.kind === 'seize' && unit.side === 'player' && unit.boss) {
+  if (!berserk && goal.kind === 'seize' && unit.side === 'player' && unit.boss) {
     // The commander seizes as soon as it can, fights only safe exchanges, and heads for the throne
     // once at most two defenders are left.
     if (range.stops.has(cellKey(state, goal.throne))) return { type: 'act', unit: unit.id, to: goal.throne, act: 'seize' };
-    const safe = bestAttack(state, unit, stops, 0.05);
+    const safe = bestAttack(state, unit, stops, 0.05, berserk);
     if (safe) return safe;
     return foes.length <= 2 ? advance(state, unit, stops, [goal.throne]) : stay;
   }
   if (behavior === 'opportunist') {
     // 伺机: act only once a foe has stepped into this unit's reach.
-    return bestAttack(state, unit, stops) ?? stay;
+    return bestAttack(state, unit, stops, 1, berserk) ?? stay;
   }
-  const attack = bestAttack(state, unit, stops);
+  const attack = bestAttack(state, unit, stops, 1, berserk);
   if (attack) return attack;
   if (behavior === 'guard' && boss) return advance(state, unit, stops, [boss.pos]);
   if (behavior === 'healer') {

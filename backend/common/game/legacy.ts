@@ -85,7 +85,7 @@ export function sourceGrowthVector(unit: UnitRecord): Stats {
 // 生成一份可用遗产；同一来源只生成一次（调用方用 source_unit_id UNIQUE 兜底）。
 export function createLegacy(unit: UnitRecord, cause: LegacyCause, id: string, playerId: string): LegacyRecord {
   return {
-    id, playerId, sourceUnitId: unit.id, sourceName: CHARACTERS[unit.character].name, sourceCharacter: unit.character,
+    id, playerId, sourceUnitId: unit.id, sourceName: unit.name ?? CHARACTERS[unit.character].name, sourceCharacter: unit.character,
     sourceLineageDepth: 0, cause,
     sourceLevel: unit.level, sourceStats: { ...unit.stats }, sourceGrowth: sourceGrowthVector(unit),
     state: 'available', recipientUnitId: null, mode: null, createdAt: Date.now(),

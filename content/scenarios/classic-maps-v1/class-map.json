@@ -1,0 +1,2702 @@
+{
+ "format": "agent-tactics.classic-class-map",
+ "schemaVersion": 1,
+ "notes": {
+  "fe7": "FE7 classCatalog 的 symbol 多数为 null；数字 ID 与 classTable 原始记录是本映射的依据。",
+  "fe8": "FE8 classCatalog 带 symbol；LOAD3 通过 encounter-table 引用保留槽位。"
+ },
+ "classes": [
+  {
+   "game": "fe6",
+   "sourceKey": "JID_FIGHTER",
+   "sourceId": 10,
+   "sourceName": "Jid Fighter",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "fighter",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A3B8",
+    "sourceRecordHex": "b20772050a0b09009b000f1405020402000b053c141414141414035537231e0f0a0f0000000000000000330000000000a4286608e1c6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1970
+   },
+   "usedByMaps": [
+    "fe6-ch16-main",
+    "fe6-ch20-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_ARMOR",
+   "sourceId": 12,
+   "sourceName": "Jid Armor",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A448",
+    "sourceRecordHex": "b4076e050c0e0b019d00141105020009000d043c141414141414035028230f1c05190000000000000033000000000000d0286608aec6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1972
+   },
+   "usedByMaps": [
+    "fe6-ch16-main",
+    "fe6-ch20-ilia",
+    "fe6-ch21-main",
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_ARMOR_F",
+   "sourceId": 13,
+   "sourceName": "Jid Armor F",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A490",
+    "sourceRecordHex": "b5076e050d0f0b019d00151004030108010a043c141414141414035028230f1c05190000000000000033000000000000dc286608aec6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1973
+   },
+   "usedByMaps": [
+    "fe6-ch19-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_GENERAL",
+   "sourceId": 14,
+   "sourceName": "Jid General",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "general",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲/守点职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A4D8",
+    "sourceRecordHex": "b60789050e0c0c019e0016150804030d030f053c1b19151e1914034b1e190a170f140000000100000065010000000000e8286608aec6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1974
+   },
+   "usedByMaps": [
+    "fe6-ch16-main",
+    "fe6-ch20-ilia",
+    "fe6-ch21-main",
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_ARCHER",
+   "sourceId": 16,
+   "sourceName": "Jid Archer",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "archer",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A568",
+    "sourceRecordHex": "b8076d0510120d009f002812040303030007053c14141414141403462328200f0a230000800000000000003300000000182966087bc6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1976
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch18-ilia",
+    "fe6-ch19-ilia",
+    "fe6-ch20-ilia",
+    "fe6-ch21-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_SNIPER",
+   "sourceId": 18,
+   "sourceName": "Jid Sniper",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sniper",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A5F8",
+    "sourceRecordHex": "ba07880512100f00a0002915070605050208063c181e1d16171403411e1e140f0f1e00008001000000000065000000004829660848c6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1978
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch16-main",
+    "fe6-ch20-ilia",
+    "fe6-ch22-main",
+    "fe6-ch23-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_MERCENARY",
+   "sourceId": 2,
+   "sourceName": "Jid Mercenary",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "mercenary",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A178",
+    "sourceRecordHex": "aa07710502040100b7000812040808040009053c1414141414140350282820120f1e0000000000003300000000000000382866087bc6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1962
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch14-main",
+    "fe6-ch16-main",
+    "fe6-ch18-ilia",
+    "fe6-ch20-ilia",
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_PRIEST",
+   "sourceId": 20,
+   "sourceName": "Jid Priest",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "cleric",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A688",
+    "sourceRecordHex": "bc076f0514161100a1001a12010102010505053c14141414141402321e232008322d000000000000000000003300000078296608e0c7600878c96008abc96008dec9600843cb6008",
+    "nameTextId": 1980
+   },
+   "usedByMaps": [
+    "fe6-ch14-main",
+    "fe6-ch18-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_BISHOP",
+   "sourceId": 22,
+   "sourceName": "Jid Bishop",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "bishop",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "治疗与攻击职责由实际装备决定；不继承光魔法克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A718",
+    "sourceRecordHex": "be07860516141300a2001c15040404030806063c191a19161e14032d231916082828000000010000000000006500330090296608e0c7600878c96008abc96008dec9600843cb6008",
+    "nameTextId": 1982
+   },
+   "usedByMaps": [
+    "fe6-ch14-main",
+    "fe6-ch16-main",
+    "fe6-ch18-ilia",
+    "fe6-ch20-ilia",
+    "fe6-ch21-main",
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_MAGE",
+   "sourceId": 24,
+   "sourceName": "Jid Mage",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "mage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A7A8",
+    "sourceRecordHex": "c0077505181a1500a3001e10010203030306053c14141414141403373728230523140000000000000000000000330000c0296608e0c7600878c96008abc96008dec9600800000000",
+    "nameTextId": 1984
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch14-main",
+    "fe6-ch16-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_SAGE",
+   "sourceId": 26,
+   "sourceName": "Jid Sage",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A838",
+    "sourceRecordHex": "c20785051a181700a4002014050404050507063c1c1e19141914032d2d1e190a190f0000000100000000000001650000e8296608e0c7600878c96008abc96008dec9600800000000",
+    "nameTextId": 1986
+   },
+   "usedByMaps": [
+    "fe6-ch21-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_SAGE_F",
+   "sourceId": 27,
+   "sourceName": "Jid Sage F",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A880",
+    "sourceRecordHex": "c30785051b191800a4002113040605030605063c1e1c19141914032d2d1e190a190f0000000100000000000001650000002a6608e0c7600878c96008abc96008dec9600800000000",
+    "nameTextId": 1987
+   },
+   "usedByMaps": [
+    "fe6-ch23-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_SHAMAN",
+   "sourceId": 28,
+   "sourceName": "Jid Shaman",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A8C8",
+    "sourceRecordHex": "c40779051c1e1901a5002110020102020405053c141414141414033232201e0a25140000000000000000000000000033182a6608e0c7600878c96008abc96008dec9600800000000",
+    "nameTextId": 1988
+   },
+   "usedByMaps": [
+    "fe6-ch18-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_DRUID",
+   "sourceId": 30,
+   "sourceName": "Jid Druid",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "druid",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A958",
+    "sourceRecordHex": "c60780051e1c1b01a6002313060304040606063c1d181a151c14032d371e190a1b140000000100000000000001000065402a6608e0c7600878c96008abc96008dec9600800000000",
+    "nameTextId": 1990
+   },
+   "usedByMaps": [
+    "fe6-ch19-ilia",
+    "fe6-ch20-ilia",
+    "fe6-ch22-main",
+    "fe6-ch23-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_CAVALIER",
+   "sourceId": 32,
+   "sourceName": "Jid Cavalier",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "cavalier",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A9E8",
+    "sourceRecordHex": "c8076b0520221d00a7001814050205060009073c141414141414034b23281c0f0c1e0000030400000133000000000000702a660846c8600878c96008abc96008dec9600800000000",
+    "nameTextId": 1992
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch19-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_PALADIN",
+   "sourceId": 34,
+   "sourceName": "Jid Paladin",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "paladin",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860AA78",
+    "sourceRecordHex": "ca076c0522201f00a800191707040708030b083c191c191919140346191e120c11190000030500003365010000000000802a660879c8600878c96008abc96008dec9600800000000",
+    "nameTextId": 1994
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch16-main",
+    "fe6-ch19-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_TROUBADOUR",
+   "sourceId": 36,
+   "sourceName": "Jid Troubadour",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "valkyrie",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 troubadour；骑马杖/魔法职业统一映射到 valkyrie。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860AB08",
+    "sourceRecordHex": "cc07730524252100a900260f010103020505073c14141414141402321923370c1e2d0000030400000000000033000000942a660846c8600878c96008abc96008dec9600800000000",
+    "nameTextId": 1996
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch19-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_HERO",
+   "sourceId": 4,
+   "sourceName": "Jid Hero",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "hero",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860A208",
+    "sourceRecordHex": "ac077e0504020300b800091606090a08020a063c191e1a191614034b1e1e14140a1900000001000065000100000000004428660848c6600878c96008abc96008dec9600800000000",
+    "nameTextId": 1964
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch14-main",
+    "fe6-ch20-ilia",
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_PEGASUSKNIGHT",
+   "sourceId": 42,
+   "sourceName": "Jid Pegasusknight",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "pegasus",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860ACB8",
+    "sourceRecordHex": "d2077c052a2b2700ad00300e040505030205073c14141414141403412328280c19230000031000000033000000000000f02a660812c9600811ca600844ca600877ca600800000000",
+    "nameTextId": 2002
+   },
+   "usedByMaps": [
+    "fe6-ch18-ilia",
+    "fe6-ch19-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_FALCONKNIGHT",
+   "sourceId": 43,
+   "sourceName": "Jid Falconknight",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "falcon",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860AD00",
+    "sourceRecordHex": "d30782052b2a2800ae003114060707050406083c17191c181c14033c1e1e1e0c141e0000031100000165000000000000fc2a660812c9600811ca600844ca600877ca600800000000",
+    "nameTextId": 2003
+   },
+   "usedByMaps": [
+    "fe6-ch18-ilia",
+    "fe6-ch19-ilia"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_WYVERNRIDER",
+   "sourceId": 44,
+   "sourceName": "Jid Wyvernrider",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragon_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860AD48",
+    "sourceRecordHex": "d4077d052c2e2900af00321407030508000a073c14141414141403502d231e190a1900000308000000330000000000000c2b660812c9600811ca600844ca600877ca600800000000",
+    "nameTextId": 2004
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch14-main",
+    "fe6-ch18-ilia",
+    "fe6-ch21-main",
+    "fe6-ch23-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_WYVERNLORD",
+   "sourceId": 46,
+   "sourceName": "Jid Wyvernlord",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragon_commander",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Wyvern Lord 的贯通等技能不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860ADD8",
+    "sourceRecordHex": "d6078a052e2c2a00b00034190905070a010b083c1a1a171e1615034b281e141407140000030900000165000000000000242b660812c9600811ca600844ca600877ca600800000000",
+    "nameTextId": 2006
+   },
+   "usedByMaps": [
+    "fe6-ch13-main",
+    "fe6-ch14-main",
+    "fe6-ch16-main",
+    "fe6-ch21-main",
+    "fe6-ch23-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_BERSERKER",
+   "sourceId": 51,
+   "sourceName": "Jid Berserker",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "berserker",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Berserker 保留狂战士职责；不继承必杀/暴击相关原技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860AF40",
+    "sourceRecordHex": "db07840533312e00b400131807060706000d063c1e181c161814033a23190c0a0a0f0000400100000000650000000000782b660814c7600878c96008abc96008dec9600810cb6008",
+    "nameTextId": 2011
+   },
+   "usedByMaps": [
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_MANAKETE",
+   "sourceId": 56,
+   "sourceName": "Jid Manakete",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragonkin",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "尸龙/龙人使用 dragonkin；飞行等原能力不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860B0A8",
+    "sourceRecordHex": "e0078c0538443301b6000014000002010105053c141414141414035f281e14000a190000000104000000000000000000b42b660845c9600878c96008abc96008dec9600800000000",
+    "nameTextId": 2016
+   },
+   "usedByMaps": [
+    "fe6-ch14-main",
+    "fe6-ch16-main",
+    "fe6-ch21-main",
+    "fe6-ch22-main",
+    "fe6-ch23-main",
+    "fe6-ch24-main"
+   ]
+  },
+  {
+   "game": "fe6",
+   "sourceKey": "JID_KING",
+   "sourceId": 61,
+   "sourceName": "Jid King",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "general",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲/守点职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0860B210",
+    "sourceRecordHex": "e5078b053d443801b20037230e05050f0a1105501e1e1e1e1e14050a000000000000000000010000c900000000000000f82b6608aec6600878c96008abc96008dec9600876cb6008",
+    "nameTextId": 2021
+   },
+   "usedByMaps": [
+    "fe6-ch22-main"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_10",
+   "sourceId": 10,
+   "sourceName": "Mercenary",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "mercenary",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4F7B0",
+    "sourceRecordHex": "9c043b020a0c0600dc000312040808040009053c141414141414035028282012141e000000000000000000001f00000000000000ac0dd608d52bc5082630c5083634c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1180
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_12",
+   "sourceId": 12,
+   "sourceName": "Hero",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "hero",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4F858",
+    "sourceRecordHex": "9e0449020c0a0800dd00041606090a08020a063c191e1a191614034b1e1e14141419040002020202000100004700010000000000b80dd608942bc508e52fc508f533c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1182
+   },
+   "usedByMaps": [
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_14",
+   "sourceId": 14,
+   "sourceName": "Swordmaster",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "swordmaster",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4F900",
+    "sourceRecordHex": "a0043e020e100a00be000610040909020008053c14141414141403462328280f141e000000000000000002001f00000000000000e80dd608d52bc5082630c5083634c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1184
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_16",
+   "sourceId": 16,
+   "sourceName": "Assassin",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "assassin",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Assassin 保留刺客职责；瞬杀不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4F9A8",
+    "sourceRecordHex": "a2044f02100e0c00bf000815060b0a050209063c181d1e1617190341191e1e0f1619050200000201400102004700000000000000000ed608942bc508e52fc508f533c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1186
+   },
+   "usedByMaps": [
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_18",
+   "sourceId": 18,
+   "sourceName": "Brigand",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FA50",
+    "sourceRecordHex": "a4043c0212130e00c0000a1405020402000b053c141414141414035537231e0f0f0f0000000000000000000000001f0000000000180ed608572cc508a830c508b834c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1188
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_19",
+   "sourceId": 19,
+   "sourceName": "Berserker",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "berserker",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Berserker 保留狂战士职责；不继承必杀/暴击相关原技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FAA4",
+    "sourceRecordHex": "a5044a0213120f00c1000b1c08050605000d063c1e1c1a1a161403502d191410110f0301020003030001000000004701000000002c0ed608572cc508a830c508b834c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1189
+   },
+   "usedByMaps": [
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_20",
+   "sourceId": 20,
+   "sourceName": "Armor Knight",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "knight",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FAF8",
+    "sourceRecordHex": "a604360214161001c2000c1105020009000d043c1414141414140350281e0f1c141900000000000000000000001f000000000000440ed608162cc5086730c5087734c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1190
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_22",
+   "sourceId": 22,
+   "sourceName": "General",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "general",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲/守点职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FBA0",
+    "sourceRecordHex": "a804570216141101c3000e150804030d030f053c1d1b181e1914034b1e140a1719140402020302030001000000470100000000005c0ed608162cc5086730c5087734c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1192
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_24",
+   "sourceId": 24,
+   "sourceName": "Archer",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "archer",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FC48",
+    "sourceRecordHex": "aa043502181a1200c4001012040303030007053c14141414141403462328200f0f23000000000000800000000000001f000000008c0ed608d52bc5082630c5083634c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1194
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_26",
+   "sourceId": 26,
+   "sourceName": "Sniper",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "sniper",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FCF0",
+    "sourceRecordHex": "ac0456021a181400c5001215070605050208063c191e1c19171403411e1e140f141e030102020203800100000000004700000000bc0ed608942bc508e52fc508f533c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1196
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_28",
+   "sourceId": 28,
+   "sourceName": "Mage",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "mage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FD98",
+    "sourceRecordHex": "ae0437021c1e1600c6001412010102010506053c14141414141403321e232008282d000000000000000000000000000000000100ec0ed6089c2dc508ed31c508fd35c5080538c5084638c5088738c5084e3ac508",
+    "nameTextId": 1198
+   },
+   "usedByMaps": [
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_30",
+   "sourceId": 30,
+   "sourceName": "Sage",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "sage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FE40",
+    "sourceRecordHex": "b00454021e1c1800c7001615040404030807063c191a18161e19032d231916082828030201000302000100000000000047001f000c0fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c5084e3ac508",
+    "nameTextId": 1200
+   },
+   "usedByMaps": [
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_32",
+   "sourceId": 32,
+   "sourceName": "Shaman",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FEE8",
+    "sourceRecordHex": "b2043f0220221a00c8001810010203030306053c1414141414140337372823051e140000000000000000000000000000001f00003c0fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1202
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_33",
+   "sourceId": 33,
+   "sourceName": "Mage (F)",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "mage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FF3C",
+    "sourceRecordHex": "b3043f0221231b00c8001910010302020403053c14141414141403373728230528140000000000000000000000000000001f0000500fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1203
+   },
+   "usedByMaps": [
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_34",
+   "sourceId": 34,
+   "sourceName": "Druid",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "druid",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FF90",
+    "sourceRecordHex": "b404510222201c00c9001a14050404050507063c1c1e1a151914032d2d1e190a280f040100000303000100000000000001470000640fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1204
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_35",
+   "sourceId": 35,
+   "sourceName": "Mage Knight",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "dark_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目 mage_knight 是步行剑/书；源骑马魔法职业改映射到 dark_knight。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C4FFE4",
+    "sourceRecordHex": "b504510223211d00c9001b13040605030604063c1e1c1a151914032d2d1e190a280f0301010003030001000000000000014700007c0fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1205
+   },
+   "usedByMaps": [
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_36",
+   "sourceId": 36,
+   "sourceName": "Shaman (F)",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50038",
+    "sourceRecordHex": "b604440224261e01ca001c10020102020407053c141414141414033232201e0a1e1400000000000000000000000000000000001f940fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1206
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_38",
+   "sourceId": 38,
+   "sourceName": "Druid (F)",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "druid",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C500E0",
+    "sourceRecordHex": "b8044b0226242001cb001e13060304040608063c1d1a1a151c14032d371e190a2314040000030202000100000000000001000047bc0fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1208
+   },
+   "usedByMaps": [
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_39",
+   "sourceId": 39,
+   "sourceName": "Necromancer",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50134",
+    "sourceRecordHex": "b9044b0227252101cb001f11070304030704063c1d1a1a141d14032d371e190a2314000000000000000100000000000001000047d40fd6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1209
+   },
+   "usedByMaps": [
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_40",
+   "sourceId": 40,
+   "sourceName": "Cavalier",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "cavalier",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50188",
+    "sourceRecordHex": "bb043302282a2200cc002014050205060009073c141414141414034b23281c0f0f1e000000000000030400000101000000000000ec0fd6081e2ec5086f32c5087f36c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1211
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_42",
+   "sourceId": 42,
+   "sourceName": "Paladin",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "paladin",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50230",
+    "sourceRecordHex": "bd0434022a282300cd00211707040708030b083c191a181919190346191e120c1419020101010201030500001f1f0100000000000c10d6085f2ec508b032c508c036c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1213
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_44",
+   "sourceId": 44,
+   "sourceName": "Troubadour",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "valkyrie",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 troubadour；骑马杖/魔法职业统一映射到 valkyrie。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C502D8",
+    "sourceRecordHex": "bf043d022c2d2400ce00220f010103020505073c14141414141402321923370c282d00000000000003040000000000001f0000004410d6081e2ec5086f32c5087f36c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1215
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_45",
+   "sourceId": 45,
+   "sourceName": "Valkyrie",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "valkyrie",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 troubadour；骑马杖/魔法职业统一映射到 valkyrie。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C5032C",
+    "sourceRecordHex": "c0044d022d2c2500cf002313040305040806083c191819181c19032d23192d0a28280302010002030305000000000000470100005010d6085f2ec508b032c508c036c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1216
+   },
+   "usedByMaps": [
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_46",
+   "sourceId": 46,
+   "sourceName": "Nomad",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "bow_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 nomad；骑乘弓兵统一映射到 bow_knight。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50380",
+    "sourceRecordHex": "c10440022e302600d0002410050405040007073c14141414141403411e282d0c0f1e000000000000030400000000001f000000006810d608a02ec508f132c5080137c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1217
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_48",
+   "sourceId": 48,
+   "sourceName": "Nomad Trooper",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "bow_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 nomad；骑乘弓兵统一映射到 bow_knight。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50428",
+    "sourceRecordHex": "c3045502302e2800d1002615070607060308083c191c1e181714033c191e230f0f190302010103030305000001000047000000008010d608e12ec5083233c5084237c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1219
+   },
+   "usedByMaps": [
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_50",
+   "sourceId": 50,
+   "sourceName": "Pegasus Knight",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "pegasus",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C504D0",
+    "sourceRecordHex": "c504470232332a00d200280e040505030205073c14141414141403412328280c232300000000000003100000001f000000000000a010d608222fc5087333c5088337c508c838c5080939c5084a39c50800000000",
+    "nameTextId": 1221
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch20-eliwood",
+    "fe7-ch25-eliwood-jerme"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_51",
+   "sourceId": 51,
+   "sourceName": "Falcon Knight",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "falcon",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50524",
+    "sourceRecordHex": "c6044e0233322b00d3002914060707050406083c17191c171a19033c1e1e1e0c1e1e050200000202031100000147000000000000ac10d608222fc5087333c5088337c508c838c5080939c5084a39c50800000000",
+    "nameTextId": 1222
+   },
+   "usedByMaps": [
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_52",
+   "sourceId": 52,
+   "sourceName": "Wyvern Rider",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "dragon_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50578",
+    "sourceRecordHex": "c704480234362c00d4002a1407030508000a073c14141414141403502d231e190f1900000000000003080000001f000000000000bc10d608222fc5087333c5088337c508c838c5080939c5084a39c50800000000",
+    "nameTextId": 1223
+   },
+   "usedByMaps": [
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-linus",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_54",
+   "sourceId": 54,
+   "sourceName": "Wyvern Lord",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "dragon_commander",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Wyvern Lord 的贯通等技能不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50620",
+    "sourceRecordHex": "c904580236342d00d5002c190905070a010b083c1b19171c1619034b281e14141114040002020002030900000147000000000000d410d608222fc5087333c5088337c508c838c5080939c5084a39c50800000000",
+    "nameTextId": 1225
+   },
+   "usedByMaps": [
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_55",
+   "sourceId": 55,
+   "sourceName": "Wyvern Lord (F)",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "dragon_commander",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Wyvern Lord 的贯通等技能不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50674",
+    "sourceRecordHex": "ca04580237352d00d5002d1808070709020a083c191a181b1719034b281e14141114000000000000030900000147000000000000e410d608222fc5087333c5088337c508c838c5080939c5084a39c50800000000",
+    "nameTextId": 1226
+   },
+   "usedByMaps": [
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_56",
+   "sourceId": 56,
+   "sourceName": "Soldier",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "lancer",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C506C8",
+    "sourceRecordHex": "cb045d0238002e00d6002e14030001000006053c1414141414140250321e140c0f19000000000000000000000001000000000000f410d608d52bc5082630c5083634c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1227
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_57",
+   "sourceId": 57,
+   "sourceName": "Fighter",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "fighter",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C5071C",
+    "sourceRecordHex": "cc044102393b2f00d7002f1405010503000c053c1414141414140352321e140a0d0f0000000000000000000000001f00000000000011d608d92cc5082a31c5083a35c5080538c5084638c5088738c5088b39c508",
+    "nameTextId": 1228
+   },
+   "usedByMaps": [
+    "fe7-ch20-eliwood",
+    "fe7-ch22-eliwood",
+    "fe7-ch23-eliwood-lloyd",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-ch27-eliwood",
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_59",
+   "sourceId": 59,
+   "sourceName": "Pirate",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C507C4",
+    "sourceRecordHex": "cf0450023b393100d900311807060706000d063c1e1d1c171514034b3223190a0d0f0401010102024001000000004700000000002811d608982cc508e930c508f934c5080538c5084638c5088738c5080d3ac508",
+    "nameTextId": 1231
+   },
+   "usedByMaps": [
+    "fe7-ch27-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_60",
+   "sourceId": 60,
+   "sourceName": "Thief",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "thief",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50818",
+    "sourceRecordHex": "d00439023c3e3200da003210030109020006063c1414141414140232052d280514280000000000000c00000001000000000000003c11d6085b2dc508ac31c508bc35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1232
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch25-eliwood-kenneth"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_62",
+   "sourceId": 62,
+   "sourceName": "Thief (F)",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "thief",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C508C0",
+    "sourceRecordHex": "d2043a023e3c3400da003410030109020006063c141e1e1414140332052d280514280301000002020801000201000000000000005411d6085b2dc508ac31c508bc35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1234
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch25-eliwood-jerme",
+    "fe7-ch25-eliwood-kenneth",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_69",
+   "sourceId": 69,
+   "sourceName": "Dragon",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "dragonkin",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "尸龙/龙人使用 dragonkin；飞行等原能力不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50B0C",
+    "sourceRecordHex": "ba044c0245243b01cb001e4b1e120f1c1e0a06501e19191e1e19032d371e190a23140000000000000001000000000000fbfbfbfbc811d6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1210
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood",
+    "fe7-ch27-eliwood",
+    "fe7-chfinal-1-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_70",
+   "sourceId": 70,
+   "sourceName": "Fire Dragon",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "dragon_lord",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "终局龙族首领使用 dragon_lord + dragonstone；不继承原特殊技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50B60",
+    "sourceRecordHex": "d804590246003c00de00007811190f141e1908c8323232323219055f281e14001419000000000000000004000000000000000000e011d608632fc508632fc508632fc5080538c5084638c5088738c50800000000",
+    "nameTextId": 1240
+   },
+   "usedByMaps": [
+    "fe7-ch19-eliwood"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_80",
+   "sourceId": 80,
+   "sourceName": "Brigand",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C50EA8",
+    "sourceRecordHex": "ce044302503b3000d800301304020603000a053c141414141414034b3223190a0d0f0000000000000000000000001f0000000000ec11d6081a2dc5086b31c5087b35c5080538c5084638c5088738c508cc39c508",
+    "nameTextId": 1230
+   },
+   "usedByMaps": [
+    "fe7-ch23-eliwood-linus"
+   ]
+  },
+  {
+   "game": "fe7",
+   "sourceKey": "CLASS_ID_90",
+   "sourceId": 90,
+   "sourceName": "Sage",
+   "nameConfidence": "inferred-from-source-stats",
+   "projectClass": "sage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x08C511F0",
+    "sourceRecordHex": "b50451025a211d00c9001b13040605030607063c1e1c1a1e1e14032d2d1e190a280f0301010003030001000000000000014700001412d6089c2dc508ed31c508fd35c5080538c5084638c5088738c50800000000",
+    "nameTextId": 1205
+   },
+   "usedByMaps": [
+    "fe7-ch30-eliwood"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_EPHRAIM_LORD",
+   "sourceId": 1,
+   "sourceName": "Ephraim Lord",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "lancer",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B6BC",
+    "sourceRecordHex": "46029002010300008c000112060607060008053c141414141414035a2d282d0f0f2800000000000000200020001f0000000000006435900860fd8508b1018608c1058608d1098608120a8608530a860800000000",
+    "nameTextId": 582
+   },
+   "usedByMaps": [
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_DEATHGOYLE",
+   "sourceId": 100,
+   "sourceName": "Deathgoyle",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragon_commander",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Wyvern Lord 的贯通等技能不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D738",
+    "sourceRecordHex": "8902d50264635500a900001708050809010b073c1b19171c1619034b281e1914110a0000000000000001000000b5000000000000003c9008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 649
+   },
+   "usedByMaps": [
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_DRACO_ZOMBIE",
+   "sourceId": 101,
+   "sourceName": "Draco Zombie",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragonkin",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "尸龙/龙人使用 dragonkin；飞行等原能力不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D78C",
+    "sourceRecordHex": "8a02d602651f5600aa000035010001000319055032323232321903552314141e0a190000000000000001040000000000000000000c3c9008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 650
+   },
+   "usedByMaps": [
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MERCENARY",
+   "sourceId": 15,
+   "sourceName": "Mercenary",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "mercenary",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BB54",
+    "sourceRecordHex": "4d0299020f110a0091000312040808040009053c141414141414035028282012141e000000000000000000001f0000000000000044369008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 589
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim",
+    "fe8-ch15-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_HERO",
+   "sourceId": 17,
+   "sourceName": "Hero",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "hero",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BBFC",
+    "sourceRecordHex": "4e029a02110f0c009200041606090a08020b063c191e1a191619034b1e1e141414190401020202020001000047001f00000000005c36900860fd8508b1018608c1058608d1098608120a8608530a860800000000",
+    "nameTextId": 590
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MYRMIDON",
+   "sourceId": 19,
+   "sourceName": "Myrmidon",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "swordsman",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BCA4",
+    "sourceRecordHex": "4f029b0213150e0073000510040909020008053c14141414141403462328280f141e000000000000000002001f0000000000000094369008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 591
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim",
+    "fe8-ch15-eirika",
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_EIRIKA_LORD",
+   "sourceId": 2,
+   "sourceName": "Eirika Lord",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "swordsman",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B710",
+    "sourceRecordHex": "46029102020401008c000110040809030105053c141414141414035a2d282d0f14280000000000000020021001000000000000007035900860fd8508b1018608c1058608d1098608120a8608530a860800000000",
+    "nameTextId": 582
+   },
+   "usedByMaps": [
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MYRMIDON_F",
+   "sourceId": 20,
+   "sourceName": "Myrmidon F",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "swordsman",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BCF8",
+    "sourceRecordHex": "4f029b0214160f007300050f03090a010105053c14141414141403462328280f141e000000000000000002001f00000000000000a0369008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 591
+   },
+   "usedByMaps": [
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_SWORDMASTER",
+   "sourceId": 21,
+   "sourceName": "Swordmaster",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "swordmaster",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BD4C",
+    "sourceRecordHex": "50029c021513100074000615060b0a050209063c181d1e1617140341191e1e0f1619050200000201400102004700000000000000ac36900860fd8508b1018608c1058608d1098608120a8608530a860800000000",
+    "nameTextId": 592
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_ARCHER",
+   "sourceId": 25,
+   "sourceName": "Archer",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "archer",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BE9C",
+    "sourceRecordHex": "52029e02191b140079000a12040303030007053c14141414141403462328200f0f23000000000000800000000000001f00000000dc369008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 594
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_SNIPER",
+   "sourceId": 27,
+   "sourceName": "Sniper",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sniper",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BF44",
+    "sourceRecordHex": "53029f021b1916007a000b15070605050208063c191e1c19171403411e1e140f141e0301020202038001000000000047000000000c37900860fd8508b1018608c1058608d1098608120a8608530a860800000000",
+    "nameTextId": 595
+   },
+   "usedByMaps": [
+    "fe8-ch14-ephraim"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_RANGER",
+   "sourceId": 29,
+   "sourceName": "Ranger",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "forest_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885BFEC",
+    "sourceRecordHex": "5402a0021d19180098000c15070607060309073c191c1e181719033c191e230f0f19030201010303030500001f00001f000000003c379008ad008608fe0486080e098608d1098608120a8608530a860800000000",
+    "nameTextId": 596
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_WYVERN_RIDER",
+   "sourceId": 31,
+   "sourceName": "Wyvern Rider",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragon_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C094",
+    "sourceRecordHex": "5502a1021f21190089000d1407030508000a073c14141414141903502d231e190f1900000000000003080000001f0000000000005c379008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 597
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_WYVERN_KNIGHT",
+   "sourceId": 35,
+   "sourceName": "Wyvern Knight",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragon_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C1E4",
+    "sourceRecordHex": "5702a302231f1d0094000f1407070807010a083c191a1c1816190341231e1e0f111903010203000103090000004700000000000094379008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 599
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MAGE",
+   "sourceId": 37,
+   "sourceName": "Mage",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "mage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C28C",
+    "sourceRecordHex": "5802a40225271e007d001210010203030306053c1414141414140337372823051e140100010201020000000000000000001f0000ac37900868ff8508b9038608c9078608d1098608120a8608530a860800000000",
+    "nameTextId": 600
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim",
+    "fe8-ch15-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_SAGE",
+   "sourceId": 39,
+   "sourceName": "Sage",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sage",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C334",
+    "sourceRecordHex": "5902a502272520007e001314050404050507063c1c1e1a151914032d2d1e190a280f04010000030300010000000000001f471f00d437900868ff8508b9038608c9078608d1098608120a8608530a860800000000",
+    "nameTextId": 601
+   },
+   "usedByMaps": [
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_EIRIKA_MASTER_LORD",
+   "sourceId": 4,
+   "sourceName": "Eirika Master Lord",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "swordmaster",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B7B8",
+    "sourceRecordHex": "47029302040203008c000212030304050007073c181d1e161919035a2d282d0f1428040202010305032502104700000000000000883590082b0086087c0486088c088608d1098608120a8608530a860800000000",
+    "nameTextId": 583
+   },
+   "usedByMaps": [
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_BISHOP",
+   "sourceId": 43,
+   "sourceName": "Bishop",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "bishop",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "治疗与攻击职责由实际装备决定；不继承光魔法克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C484",
+    "sourceRecordHex": "5b02a7022b4524007c001815040404030807063c191a18161e14032d231916082828030201000302000100000000000047001f003438900868ff8508b9038608c9078608d1098608120a8608530a86081a0c8608",
+    "nameTextId": 603
+   },
+   "usedByMaps": [
+    "fe8-ch14-ephraim",
+    "fe8-ch20-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_SHAMAN",
+   "sourceId": 45,
+   "sourceName": "Shaman",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C52C",
+    "sourceRecordHex": "6802b3022d2f26017f001b10020102020407053c141414141414033232201e0a1e1401020001010200000000000000000000001f6438900868ff8508b9038608c9078608d1098608120a8608530a860800000000",
+    "nameTextId": 616
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim",
+    "fe8-ch15-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_DRUID",
+   "sourceId": 47,
+   "sourceName": "Druid",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "druid",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C5D4",
+    "sourceRecordHex": "6902b4022f2d270180001c13060304040608063c1d1a1a151c14032d371e190a23140400000302020001000000000000011f00478c38900868ff8508b9038608c9078608d1098608120a8608530a860800000000",
+    "nameTextId": 617
+   },
+   "usedByMaps": [
+    "fe8-ch14-ephraim",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_CAVALIER",
+   "sourceId": 5,
+   "sourceName": "Cavalier",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "cavalier",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B80C",
+    "sourceRecordHex": "480294020507040081002014050205060009073c141414141419034b23281c0f0f1e00000000000003040000011f00000000000094359008eaff85083b0486084b088608d1098608120a8608530a860800000000",
+    "nameTextId": 584
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_ROGUE",
+   "sourceId": 51,
+   "sourceName": "Rogue",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "assassin",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Assassin 保留刺客职责；瞬杀不自动继承。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C724",
+    "sourceRecordHex": "6202ad02330d290095000910030109020007063c141e1e14141403320a2d230514280201010002020c0100000100000000000000ec38900827ff85087803860888078608d1098608120a8608530a860800000000",
+    "nameTextId": 610
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_GREAT_KNIGHT",
+   "sourceId": 53,
+   "sourceName": "Great Knight",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "great_knight",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885C7CC",
+    "sourceRecordHex": "6702b20235092b01970022150804060b030d063c1c18181d191903461e140f15141403020102020103050000011f1f0000000000f83890082b0086087c0486088c088608d1098608120a8608530a860800000000",
+    "nameTextId": 615
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_CAVALIER_F",
+   "sourceId": 6,
+   "sourceName": "Cavalier F",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "cavalier",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B860",
+    "sourceRecordHex": "480294020608040081002012050303060009073c141414141419034b23281c0f0f1e01000202000203040000011f000000000000a4359008eaff85083b0486084b088608d1098608120a8608530a860800000000",
+    "nameTextId": 584
+   },
+   "usedByMaps": [
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_FIGHTER",
+   "sourceId": 63,
+   "sourceName": "Fighter",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "fighter",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CB14",
+    "sourceRecordHex": "6302ae023f4031007500231405020402000b053c141414141414035537231e0f0f0f0202010000010000000000001f0000000000c039900823fe85087402860884068608d1098608120a8608530a860800000000",
+    "nameTextId": 611
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim",
+    "fe8-ch15-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_WARRIOR",
+   "sourceId": 64,
+   "sourceName": "Warrior",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "hero",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CB68",
+    "sourceRecordHex": "6402af02403f32007600251c08050605000d063c1e1c1a1a161903502d191410110f030102000303000100000000470100000000d839900823fe85087402860884068608d1098608120a8608530a860800000000",
+    "nameTextId": 612
+   },
+   "usedByMaps": [
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_BRIGAND",
+   "sourceId": 65,
+   "sourceName": "Brigand",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CBBC",
+    "sourceRecordHex": "6502b002414333008c00001405010503000c053c1414141414140352321e140a0d0f0201010001010000000000001f0000000000f4399008a5fe8508f602860806078608d1098608120a8608530a8608570b8608",
+    "nameTextId": 613
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_BERSERKER",
+   "sourceId": 67,
+   "sourceName": "Berserker",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "berserker",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Berserker 保留狂战士职责；不继承必杀/暴击相关原技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CC64",
+    "sourceRecordHex": "6602b102434235008e00261807060706000d063c1e1d1c171519034b3223190a0d0f040101010202400100000000470000000000243a900864fe8508b5028608c5068608d1098608120a8608530a8608d90b8608",
+    "nameTextId": 614
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MONK",
+   "sourceId": 68,
+   "sourceName": "Monk",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "cleric",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CCB8",
+    "sourceRecordHex": "6b02b602440036007b001712010102010506053c14141414141403321e232008282d0000000000000000000000000000000001003c3a900868ff8508b9038608c9078608d1098608120a8608530a86081a0c8608",
+    "nameTextId": 619
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_PRIEST",
+   "sourceId": 69,
+   "sourceName": "Priest",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "cleric",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CD0C",
+    "sourceRecordHex": "6d02b702452737007b001512010102010505053c14141414141402321e232008322d00000000000000000000000000001f000000503a900868ff8508b9038608c9078608d1098608120a8608530a86081a0c8608",
+    "nameTextId": 621
+   },
+   "usedByMaps": [
+    "fe8-ch14-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_PALADIN",
+   "sourceId": 7,
+   "sourceName": "Paladin",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "paladin",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B8B4",
+    "sourceRecordHex": "49029502070505008200211707040708030b083c191a181919190346191e120c1419020101010201030500001f1f000000000000b43590082b0086087c0486088c088608d1098608120a8608530a860800000000",
+    "nameTextId": 585
+   },
+   "usedByMaps": [
+    "fe8-ch15-eirika",
+    "fe8-ch16-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_TROUBADOUR",
+   "sourceId": 75,
+   "sourceName": "Troubadour",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "valkyrie",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 troubadour；骑马杖/魔法职业统一映射到 valkyrie。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885CF04",
+    "sourceRecordHex": "7102bd024b4c3c008300190f010103020505063c14141414141902321923370c282d00000000000003040000000000001f000000903a9008eaff85083b0486084b088608d1098608120a8608530a860800000000",
+    "nameTextId": 625
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch15-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_SOLDIER",
+   "sourceId": 78,
+   "sourceName": "Soldier",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "lancer",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D000",
+    "sourceRecordHex": "7402c0024e003f008b000014030001000006053c1414141414140250321e140c0f19000000000000000000000001000000000000c83a9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 628
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_NECROMANCER",
+   "sourceId": 79,
+   "sourceName": "Necromancer",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D054",
+    "sourceRecordHex": "7602c2024f2d400080002b1209040503080706501e19191e1e19032d371e190a23140000000000000001000800000000fb0000fbd43a900868ff8508b9038608c9078608d1098608120a8608530a860800000000",
+    "nameTextId": 630
+   },
+   "usedByMaps": [
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_REVENANT",
+   "sourceId": 82,
+   "sourceName": "Revenant",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D150",
+    "sourceRecordHex": "7902c502520043009a000019020000000006043c141414141414035f321e140a0d0a000000000000000004000000000000000000ec3a9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 633
+   },
+   "usedByMaps": [
+    "fe8-ch11-ephraim",
+    "fe8-ch12-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_ENTOUMBED",
+   "sourceId": 83,
+   "sourceName": "Entoumbed",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Brigand/Pirate 统一映射到 fighter；不继承海盗/山贼特殊移动。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D1A4",
+    "sourceRecordHex": "7a02c602530044009b000023030001000006055019161518161901552819110a0d32000000000000000104000000000000000000f83a9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 634
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_BONEWALKER",
+   "sourceId": 84,
+   "sourceName": "Bonewalker",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "lancer",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D1F8",
+    "sourceRecordHex": "7b02c702545645009c000014040203030007053c1414141414140350321e140c0f0a000000000000000002004747000000000000043b9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 635
+   },
+   "usedByMaps": [
+    "fe8-ch11-ephraim",
+    "fe8-ch12-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_BONEWALKER_BOW",
+   "sourceId": 85,
+   "sourceName": "Bonewalker Bow",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "archer",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D24C",
+    "sourceRecordHex": "7b02c702555746009c000012040302030006053c14141414141403462328200f0f0a000000000000000000000000004700000000143b9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 635
+   },
+   "usedByMaps": [
+    "fe8-ch11-ephraim"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_WIGHT",
+   "sourceId": 86,
+   "sourceName": "Wight",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "hero",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D2A0",
+    "sourceRecordHex": "7c02c802565447009d000015070506050209063c181c1a16171903411919140f160a00000000000000010200b5b5000000000000203b9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 636
+   },
+   "usedByMaps": [
+    "fe8-ch20-eirika",
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_WIGHT_BOW",
+   "sourceId": 87,
+   "sourceName": "Wight Bow",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sniper",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D2F4",
+    "sourceRecordHex": "7c02c802575548009d000015060605050208063c191e1c19171403411e1e140f140a00000000000000010000000000b500000000303b9008a1fd8508f201860802068608d1098608120a8608530a860800000000",
+    "nameTextId": 636
+   },
+   "usedByMaps": [
+    "fe8-ch20-eirika",
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_BAEL",
+   "sourceId": 88,
+   "sourceName": "Bael",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "beast_fighter",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D348",
+    "sourceRecordHex": "7d02c902585949009e00001906030306010c053c1e1c1a1a16190352321e14120d0f0000000000000000040000000000000000003c3b9008a5fe8508f602860806078608d1098608120a8608530a8608570b8608",
+    "nameTextId": 637
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_ELDER_BAEL",
+   "sourceId": 89,
+   "sourceName": "Elder Bael",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "beast_hero",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D39C",
+    "sourceRecordHex": "7e02ca0259584a009f00001c08050509040f06501e1c1a1a161903552d191415110a000000000000000104000000000000000000483b9008a5fe8508f602860806078608d1098608120a8608530a8608570b8608",
+    "nameTextId": 638
+   },
+   "usedByMaps": [
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_ARMOR_KNIGHT",
+   "sourceId": 9,
+   "sourceName": "Armor Knight",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "knight",
+   "mapping": "direct",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "重甲职责保留；不继承原大盾技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885B95C",
+    "sourceRecordHex": "4a029602090b060177000c1105020009000d043c1414141414140350281e0f1c141900000000000000000000001f000000000000d4359008e2fd85083302860843068608d1098608120a8608530a860800000000",
+    "nameTextId": 586
+   },
+   "usedByMaps": [
+    "fe8-ch13-ephraim",
+    "fe8-ch14-eirika",
+    "fe8-ch14-ephraim",
+    "fe8-ch16-eirika",
+    "fe8-ch17-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_CYCLOPS",
+   "sourceId": 90,
+   "sourceName": "Cyclops",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "berserker",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "源 Berserker 保留狂战士职责；不继承必杀/暴击相关原技能。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D3F0",
+    "sourceRecordHex": "7f02cb025a094b00a000001c0805060d001005501d1d1c1e191903551e231918190a000000000000000100000000b50000000000543b900823fe85087402860884068608d1098608120a8608530a860800000000",
+    "nameTextId": 639
+   },
+   "usedByMaps": [
+    "fe8-ch20-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MAUTHEDOOG",
+   "sourceId": 91,
+   "sourceName": "Mauthedoog",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "beast_hero",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D444",
+    "sourceRecordHex": "8002cc025b5c4c00a1000010040a0a020006073c1414141414140346232d2d0f141e0000000000000000040000000000000000006c3b90086c008608bd048608cd088608d1098608120a8608530a860800000000",
+    "nameTextId": 640
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_GWYLLGI",
+   "sourceId": 92,
+   "sourceName": "Gwyllgi",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "beast_hero",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D498",
+    "sourceRecordHex": "8102cd025c5b4d00a2000015060c0c050208083c181d1e16171403411c2323101619000000000000000104000000000000000000783b9008ad008608fe0486080e098608d1098608120a8608530a860800000000",
+    "nameTextId": 641
+   },
+   "usedByMaps": [
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_TARVOS",
+   "sourceId": 93,
+   "sourceName": "Tarvos",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "lancer",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D4EC",
+    "sourceRecordHex": "8202ce025d5e4e00a300001506020507000a073c141414141414035023281c0f0f0a000000000000000000000000470000000000843b90086c008608bd048608cd088608d1098608120a8608530a860800000000",
+    "nameTextId": 642
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MAELDUIN",
+   "sourceId": 94,
+   "sourceName": "Maelduin",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "bow_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无 nomad；骑乘弓兵统一映射到 bow_knight。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D540",
+    "sourceRecordHex": "8302cf025e5e4f00a400001908040709030c0850191a18191919034b1e1e120d140a000000000000000100000000b5b5000000009c3b9008ad008608fe0486080e098608d1098608120a8608530a860800000000",
+    "nameTextId": 643
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika",
+    "fe8-ch20-eirika",
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_MOGALL",
+   "sourceId": 95,
+   "sourceName": "Mogall",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "mage",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D594",
+    "sourceRecordHex": "8402d0025f605000a500000f020102020404053c14141414141403322d201e0a1c1e000000000000000004000000000000000047b83b9008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 644
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika",
+    "fe8-ch20-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_ARCH_MOGALL",
+   "sourceId": 96,
+   "sourceName": "Arch Mogall",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "sage",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目统一使用 tome；不保留理/光/暗三系克制。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D5E8",
+    "sourceRecordHex": "8502d102605f5100a6000011060303030705063c1d1a1a141d14032d371e190a1c140000000000000001040000000000000000b5cc3b9008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 645
+   },
+   "usedByMaps": [
+    "fe8-ch20-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_GORGON",
+   "sourceId": 97,
+   "sourceName": "Gorgon",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "druid",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "项目无独立暗魔法书；源暗魔法按现有火焰/雷霆/etc.替换，不继承吸血/石化。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D63C",
+    "sourceRecordHex": "8602d20261005200a700001308030405070b063c1d1a1a151c19032d3c1e190a281e0000000000000001040000000000000000b5e03b9008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 646
+   },
+   "usedByMaps": [
+    "fe8-ch20-eirika",
+    "fe8-chfinal-1-eirika"
+   ]
+  },
+  {
+   "game": "fe8",
+   "sourceKey": "CLASS_GARGOYLE",
+   "sourceId": 99,
+   "sourceName": "Gargoyle",
+   "nameConfidence": "symbol-annotation",
+   "projectClass": "dragon_knight",
+   "mapping": "replacement",
+   "equipmentPolicy": "runtime uses the project class default weapon; source items are recorded for role review",
+   "differences": "对应/替换为项目现有职业。",
+   "review": "accepted",
+   "sourceEvidence": {
+    "sourceAddress": "0x0885D6E4",
+    "sourceRecordHex": "8802d40263645400a8000013060306060008063c14141414141403502d2323190f0a000000000000000000000047000000000000f43b9008ee0086083f0586084f098608940a8608d50a8608160b860800000000",
+    "nameTextId": 648
+   },
+   "usedByMaps": [
+    "fe8-ch12-eirika",
+    "fe8-ch20-eirika"
+   ]
+  }
+ ],
+ "encounterTables": {
+  "fe8-ch11-ephraim": [],
+  "fe8-ch12-eirika": [],
+  "fe8-ch13-ephraim": [
+   {
+    "group": "group-919a90",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 12
+     }
+    ],
+    "selected": false,
+    "enemyCount": 0
+   },
+   {
+    "group": "group-919b58",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 15
+     }
+    ],
+    "selected": false,
+    "enemyCount": 28
+   },
+   {
+    "group": "group-919d9c",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 13
+     }
+    ],
+    "selected": false,
+    "enemyCount": 0
+   },
+   {
+    "group": "group-919e64",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 16
+     }
+    ],
+    "selected": false,
+    "enemyCount": 28
+   },
+   {
+    "group": "group-91a0a8",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 14
+     }
+    ],
+    "selected": false,
+    "enemyCount": 0
+   },
+   {
+    "group": "group-91a170",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 17
+     }
+    ],
+    "selected": false,
+    "enemyCount": 28
+   }
+  ],
+  "fe8-ch14-eirika": [],
+  "fe8-ch14-ephraim": [],
+  "fe8-ch15-eirika": [],
+  "fe8-ch16-eirika": [],
+  "fe8-ch17-eirika": [
+   {
+    "group": "group-912ad4",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 12
+     }
+    ],
+    "selected": false,
+    "enemyCount": 0
+   },
+   {
+    "group": "group-912b9c",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 15
+     }
+    ],
+    "selected": true,
+    "enemyCount": 29
+   },
+   {
+    "group": "group-912df4",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 13
+     }
+    ],
+    "selected": false,
+    "enemyCount": 0
+   },
+   {
+    "group": "group-912ebc",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 16
+     }
+    ],
+    "selected": false,
+    "enemyCount": 29
+   },
+   {
+    "group": "group-913114",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 14
+     }
+    ],
+    "selected": false,
+    "enemyCount": 0
+   },
+   {
+    "group": "group-9131dc",
+    "references": [
+     {
+      "kind": "encounter-table",
+      "slot": 17
+     }
+    ],
+    "selected": false,
+    "enemyCount": 29
+   }
+  ],
+  "fe8-ch20-eirika": [],
+  "fe8-chfinal-1-eirika": []
+ }
+}

@@ -6,12 +6,13 @@ import { loginOrRegister } from './auth.ts';
 import { seedFullRoster } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
-import { syncPlayer } from './services.ts';
+import { applyBattleOutcome, syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { decide } from '../common/engine/index.ts';
 import { stats } from '../common/data/types.ts';
 import type { Player } from './store.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
+import { createClassicBattle } from '../common/game/battles.ts';
 
 function setup() {
   const store = new Store(openDb(':memory:'));
@@ -56,6 +57,17 @@ function playOut(ctx: Context, battleId: string): string {
 }
 
 const TEAM = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'];
+
+test('classic quests expose the per-map deployment limit and reject over-deployment', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; quests: { id: string; maxUnits: number }[] }[] };
+  const entry = view.regions.find(region => region.region === 2)!.quests.find(quest => quest.id === 'cl-fe1-ch16')!;
+  assert.equal(entry.maxUnits, 8, 'GET_QUESTS exposes the adaptation deployment limit');
+  const nine = store.units(player.id).filter(unit => unit.status === 'active').slice(0, 9).map(unit => unit.id);
+  assert.equal(nine.length, 9);
+  assert.throws(() => dispatch(ctx, OP.START_QUEST, { questId: 'cl-fe1-ch16', unitIds: nine }), /最多出战 8 人/);
+});
 
 test('a classic single-map quest uses the source map, pays its days and resolves its reward', () => {
   const { store, accountId, player } = setup();
@@ -170,4 +182,50 @@ test('a four-map classic dungeon starts with four stages and the correct first m
   assert.equal(battle.state.map.width, classicMap('fe7-ch23-eliwood-linus').width);
   assert.equal(battle.state.units.filter(unit => unit.side === 'enemy').length, classicMap('fe7-ch23-eliwood-linus').enemies.length);
   dispatch(ctx, OP.RETREAT, { battleId: started.battleId });
+});
+
+test('a classic chest can be opened through UNIT_ACT and exposes its loot ledger', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  empower(store, player, TEAM);
+  player.flags.questsDone = ['cl-fe8-ch13-ephraim', 'cl-fe8-ch14-eirika'];
+  store.savePlayer(player);
+  const started = dispatch(ctx, OP.START_QUEST, { questId: 'cl-fe8-ch14-ephraim', unitIds: TEAM }) as { battleId: string };
+  const battle = store.battle(player.id, started.battleId)!;
+  const chest = battle.state.objects!.find(object => object.kind === 'chest' && object.state === 'closed')!;
+  const unit = battle.state.units.find(entry => entry.side === 'player')!;
+  const spot = ([[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][])
+    .map(([dx, dy]) => [chest.pos[0] + dx, chest.pos[1] + dy] as [number, number])
+    .find(([x, y]) => x >= 0 && y >= 0 && x < battle.state.map.width && y < battle.state.map.height
+      && !['wall', 'water'].includes(battle.state.map.tiles[y][x])
+      && !battle.state.units.some(entry => entry.alive && entry.pos[0] === x && entry.pos[1] === y))!;
+  unit.pos = spot;
+  unit.acted = false;
+  store.saveBattle(battle);
+  const result = dispatch(ctx, OP.UNIT_ACT, {
+    battleId: started.battleId, unitId: unit.id, moveTo: spot, action: 'interact', targetId: chest.id,
+  }) as { events: { t: string }[] };
+  assert.ok(result.events.some(event => event.t === 'treasure'));
+  const after = store.battle(player.id, started.battleId)!;
+  assert.equal(after.state.objects!.find(object => object.id === chest.id)!.state, 'opened');
+  assert.equal(after.state.loot!.length, 1);
+  const full = dispatch(ctx, OP.GET_BATTLE, { battleId: started.battleId, full: true }) as { state: { objects: { id: string; state: string }[] } };
+  assert.equal(full.state.objects.find(object => object.id === chest.id)!.state, 'opened');
+  dispatch(ctx, OP.RETREAT, { battleId: started.battleId });
+});
+
+test('classic chest loot is settled once on victory and duplicate ledger ids are ignored', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const record = createClassicBattle([store.unit(player.id, 'u_erin')!], { mapId: 'fe8-ch14-ephraim', seed: 'loot-settle', day: player.day });
+  record.playerId = player.id;
+  record.state.result = { winner: 'player', reason: 'test victory' };
+  record.state.loot = [
+    { id: 'object:chest-1', item: 'vulnerary', count: 2 },
+    { id: 'object:chest-1', item: 'vulnerary', count: 2 },
+  ];
+  const before = store.countInventory(player.id, 'vulnerary');
+  const rewards = applyBattleOutcome(store, ctx.player, record);
+  assert.equal(store.countInventory(player.id, 'vulnerary'), before + 2);
+  assert.deepEqual(rewards.items.filter(item => item.item === 'vulnerary'), [{ item: 'vulnerary', count: 2 }]);
 });

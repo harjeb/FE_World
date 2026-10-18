@@ -83,6 +83,39 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       case 'escape':
         edit(d => { const unit = unitIn(d, e.unit); unit.alive = false; unit.escaped = true; });
         break;
+      case 'object':
+        edit(d => {
+          const object = d.objects?.find(o => o.id === e.object);
+          if (object) object.state = e.state;
+          if (e.state === 'destroyed' && object) d.map.tiles[object.pos[1]][object.pos[0]] = 'floor';
+        });
+        break;
+      case 'treasure':
+      case 'scenario':
+        break;
+      case 'hazard':
+        edit(d => {
+          const u = unitIn(d, e.unit);
+          u.hp = e.hpAfter;
+          if (e.kind === 'petrified') u.petrified = true;
+        });
+        break;
+      case 'status':
+        edit(d => {
+          const u = unitIn(d, e.unit);
+          if (e.status === 'petrified') u.petrified = e.active;
+          else {
+            u.statuses ??= {};
+            if (e.status === 'sleep') u.statuses.sleep = e.active || undefined;
+            else if (e.active) u.statuses[e.status] = e.turns ?? 3;
+            else delete u.statuses[e.status];
+            if (Object.keys(u.statuses).length === 0) delete u.statuses;
+          }
+        });
+        break;
+      case 'spawn':
+        edit(d => { if (!d.units.some(u => u.id === e.unit)) d.units.push(structuredClone(e.spawned)); });
+        break;
       case 'defeated':
         ctl.set({ fading: new Set([...ctl.get().fading, e.unit]) });
         await sleep(450);
@@ -122,6 +155,22 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       }
       case 'wait':
         edit(d => { unitIn(d, e.unit).acted = true; });
+        break;
+      case 'dance':
+        ctl.float(unitIn(view, e.target).pos, '再行动', 'heal');
+        edit(d => { unitIn(d, e.unit).acted = true; unitIn(d, e.target).acted = false; });
+        await sleep(500);
+        break;
+      case 'shield':
+        ctl.float(unitIn(view, e.unit).pos, '不朽盾', 'seize');
+        edit(d => { const u = unitIn(d, e.unit); u.petrified = true; });
+        await sleep(500);
+        break;
+      case 'cast':
+        ctl.focus(unitIn(view, e.target).pos);
+        edit(d => { unitIn(d, e.unit).acted = true; });
+        break;
+      case 'art':
         break;
       case 'seize': {
         const at = unitIn(view, e.unit).pos;

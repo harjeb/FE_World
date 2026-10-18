@@ -48,6 +48,15 @@ export interface UnitState {
   shields?: number;
   shieldsUsed?: number;
   petrified?: boolean;
+  // 睡眠：无法行动，受击或复原杖解除；沉默/混乱按己方阶段计数。
+  statuses?: { sleep?: boolean; silence?: number; berserk?: number; regen?: number };
+  // 已学习的主动战技稳定 ID（最多五格；具体学习由成长系统写入）。
+  arts?: string[];
+  // 当前职业固有能力的参考资料 ID（sk-*）；精通节点另由 learnedSkills 提供。
+  classSkills?: string[];
+  weaponInstances?: { id: WeaponId; durability: number; maxDurability: number }[];
+  bookInstances?: { id: WeaponId; charges: number; maxCharges: number }[];
+  spellbooks?: { id: string; charges: number; maxCharges: number }[];
   // 友方 NPC（护卫对象）：不归玩家操作，每个己方阶段自动向撤离点移动（docs/20 §2）。
   npc?: boolean;
   // 已从战场撤离（不算死亡，结算时视为存活）。
@@ -78,6 +87,59 @@ export type Goal =
   | { kind: 'gather'; exits: Point[]; need: number }
   | { kind: 'escort'; exits: Point[]; npc: string };
 
+export type BattleObjectKind = 'door' | 'chest' | 'village' | 'wall' | 'switch' | 'ballista';
+export type BattleObjectState = 'closed' | 'open' | 'opened' | 'visited' | 'intact' | 'destroyed' | 'idle' | 'triggered';
+
+export interface BattleObject {
+  id: string;
+  kind: BattleObjectKind;
+  pos: Point;
+  state: BattleObjectState;
+  hp?: number;
+  maxHp?: number;
+  label?: string;
+  // Stable chest/village loot; settlement reads this ledger only once.
+  loot?: { item: string; count: number };
+  // Switch-bound map change id.
+  change?: string;
+  // 临时墙等法术物件在指定回合后消失。
+  expiresTurn?: number;
+}
+
+export interface ScenarioMapChange { id: string; position: Point; terrain: (Terrain | null)[][] }
+
+export interface ScenarioSpawn { classId: ClassId; pos: Point; levelOffset: number; boss?: boolean; behavior?: Behavior }
+
+export type ScenarioAction =
+  | { kind: 'spawn'; units: ScenarioSpawn[] }
+  | { kind: 'setObject'; object: string; state: BattleObjectState }
+  | { kind: 'mapChange'; change: string }
+  | { kind: 'flag'; flag: string }
+  | { kind: 'loot'; item: string; count: number }
+  | { kind: 'goal'; goal: Goal }
+  | { kind: 'end'; winner: Side; reason: string }
+  | { kind: 'damage'; target: 'player' | 'enemy'; amount: number; count?: number; from?: Point; range?: number }
+  | { kind: 'status'; target: 'player' | 'enemy'; status: 'sleep' | 'silence' | 'berserk' | 'petrified'; turns?: number; count?: number; from?: Point; range?: number }
+  | { kind: 'scenario'; message: string };
+
+export type ScenarioTrigger =
+  | { kind: 'turn'; turn: number }
+  | { kind: 'object'; object: string; state: BattleObjectState }
+  | { kind: 'flag'; flag: string };
+
+export interface ScenarioEvent { id: string; trigger: ScenarioTrigger; actions: ScenarioAction[] }
+
+export interface ScenarioRuntime {
+  id: string;
+  adapterVersion: string;
+  sourceSha256: string | null;
+  baseLevel: number;
+  events: ScenarioEvent[];
+  mapChanges: ScenarioMapChange[];
+  fired: string[];
+  flags: string[];
+}
+
 export interface BattleState {
   engineVersion: 1;
   id: string;
@@ -92,6 +154,14 @@ export interface BattleState {
   goal: Goal;
   // 场上未拾取的物资箱（gather 任务）。
   boxes?: Point[];
+  // 护送固定路线与下一步预告（保存后可重连复现）。
+  npcRoute?: Point[];
+  nextObjective?: string;
+  // Interactive scenario layer (classic maps): doors, chests, villages, switches, waves.
+  objects?: BattleObject[];
+  // One-time loot found on the map; settlement validates and de-duplicates by stable id.
+  loot?: { id: string; item: string; count: number }[];
+  scenario?: ScenarioRuntime;
   // Combat rolls and level-up rolls use separate streams (docs/02).
   rng: RngState;
   growthRng: RngState;
@@ -105,7 +175,12 @@ export type ActAction =
   | ActBase & { act: 'heal'; target: string; weapon: WeaponId }
   | ActBase & { act: 'item'; item: number }
   | ActBase & { act: 'seize' }
-  | ActBase & { act: 'escape' };
+  | ActBase & { act: 'escape' }
+  | ActBase & { act: 'interact'; target: string }
+  | ActBase & { act: 'dance'; target: string }
+  | ActBase & { act: 'art'; target: string; weapon: WeaponId; art: string }
+  | ActBase & { act: 'cast'; target: string; spell: string; dest?: Point }
+  | ActBase & { act: 'staff'; target: string; weapon: WeaponId; dest?: Point };
 // retreat: 全军撤退 in field battles (docs/06 op 56); surrender: 投降 in arena attacks (op 67).
 // Both end the battle as a loss.
 export type Action = ActAction | { type: 'endPhase' } | { type: 'retreat' } | { type: 'surrender' };
@@ -122,9 +197,18 @@ export type BattleEvent =
   | { t: 'levelUp'; unit: string; level: number; gains: Partial<Stats>; rerolls: number }
   | { t: 'wait'; unit: string }
   | { t: 'seize'; unit: string }
+  | { t: 'dance'; unit: string; target: string }
+  | { t: 'art'; unit: string; target: string; art: string }
+  | { t: 'cast'; unit: string; target: string; spell: string }
   | { t: 'loot'; unit: string; boxes: number }
   | { t: 'drop'; unit: string; boxes: number; at: Point }
   | { t: 'escape'; unit: string }
+  | { t: 'object'; object: string; by: string; state: BattleObjectState }
+  | { t: 'treasure'; unit: string; object: string; item: string; count: number }
+  | { t: 'spawn'; unit: string; event: string; spawned: UnitState }
+  | { t: 'scenario'; event: string; message: string }
+  | { t: 'hazard'; unit: string; source: 'ballista' | 'status'; kind: 'damage' | 'petrified'; amount?: number; hpAfter: number }
+  | { t: 'status'; unit: string; status: 'sleep' | 'silence' | 'berserk' | 'petrified' | 'regen'; active: boolean; turns?: number }
   | { t: 'phase'; side: Side; turn: number }
   | { t: 'end'; winner: Side; reason: string };
 

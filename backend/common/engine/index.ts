@@ -13,7 +13,10 @@ export { expPreview, growthRates } from './growth.ts';
 export { healAmount } from './resolve.ts';
 export { seedRng } from './rng.ts';
 export {
-  attackWeapons, cellKey, classOf, distance, equipped, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,
+  attackWeapons, cellKey, classOf, distance, equipped, hasCurableStatus, isAsleep, isBerserk, isSilenced, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,
 } from './units.ts';
 export { EngineError } from './types.ts';
-export type { Action, ActAction, BattleEvent, BattleState, Behavior, Point, Side, Strike, UnitState } from './types.ts';
+export type { Action, ActAction, BattleEvent, BattleObject, BattleObjectState, BattleState, Behavior, Point, ScenarioEvent, Side, Strike, UnitState } from './types.ts';
+export { interactionOptions, objectAt, objectBlocks, runScenarioEvents, scenarioLoot } from './scenario.ts';
+export { artTargets, defaultDestination, destinationCells, destinationValid, freeCell, isHostileSpell, spellDestination, spellTargets, spellWeapon, staffDestination, staffEffect, staffTargets, withSpellWeapon } from './support.ts';
+export type { DestinationRule, StaffEffect } from './support.ts';

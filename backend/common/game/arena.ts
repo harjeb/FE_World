@@ -37,6 +37,8 @@ export interface ArenaDayRecord {
   // 报名时锁定的防守快照；结算只用它，赛后改阵不影响当日结果 (docs/00 §10.1)。
   defense: Defense | null;
   settled: boolean;
+  ruleVersion: string;
+  frozenAt: number;
 }
 
 export const OPPONENT_COUNT = 3;
@@ -51,7 +53,7 @@ export function createArenaDay(playerId: string, day: number, opponents?: Defens
   const list = (opponents && opponents.length > 0 ? opponents : officialOpponents()).slice(0, OPPONENT_COUNT);
   const attacks: Record<string, ArenaAttack> = {};
   for (const opponent of list) attacks[opponent.id] = { opponentId: opponent.id, status: 'new', bans: [], battleId: null, points: 0 };
-  return { id: `day-${playerId}-${day}`, playerId, day, opponents: list, attacks, defenseTrials: [], defensePoints: 0, defense, settled: false };
+  return { id: `day-${playerId}-${day}`, playerId, day, opponents: list, attacks, defenseTrials: [], defensePoints: 0, defense, settled: false, ruleVersion: 'arena-v2', frozenAt: Date.now() };
 }
 
 export function mapOf(opponent: Defense) {

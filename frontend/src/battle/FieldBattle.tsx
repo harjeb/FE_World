@@ -5,18 +5,9 @@ import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { BattlePage } from './BattlePage.tsx';
 import { fallenLine } from './Dialogs.tsx';
+import { goalLabel } from './names.ts';
 import type { BattleSession } from './session.ts';
 import { SortiePrep } from './SortiePrep.tsx';
-
-const GOAL_TEXT: Record<BattleState['goal']['kind'], (s: BattleState) => string> = {
-  boss: () => '击败敌方主将或全灭',
-  rout: () => '全灭敌军',
-  seize: () => '主将压制目标点',
-  defend: s => `坚守 ${s.turnLimit} 回合`,
-  escape: s => `撤离 ${s.goal.kind === 'escape' ? s.goal.need : 1} 人到撤离点`,
-  gather: s => `带 ${s.goal.kind === 'gather' ? s.goal.need : 1} 箱物资撤离`,
-  escort: () => '护送对象抵达撤离点',
-};
 
 // 出击 is a real server battle (docs/00 §8.1.2). The page resumes an unfinished field battle; otherwise
 // it shows 出征准备 and spends nothing until the player confirms there. Every command then goes
@@ -28,12 +19,15 @@ export function FieldBattle() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const build = (state: BattleState, costDays?: number | null): BattleSession => {
+  const build = (state: BattleState, costDays?: number | null, from: { questId?: string | null; challengeId?: string | null } = {}): BattleSession => {
     const cost = costDays ?? session.get().today?.actions.find(a => a.key === 'sortie')?.costDays;
+    // 任务与挑战塔的战斗也在这一页打；结束后回到各自的页面领奖。
+    const back = from.challengeId ? { label: '返回挑战塔', href: links.tower } : from.questId ? { label: '返回任务', href: links.quests } : null;
+    const where = from.challengeId ? '挑战塔' : from.questId ? '地区任务' : state.name.split(' · ')[0];
     return {
       key: state.id,
       initial: state,
-      meta: { region: state.name.split(' · ')[0], goal: GOAL_TEXT[state.goal.kind](state), extraLabel: '行动日消耗', extraValue: cost ? `${cost} 日` : '—' },
+      meta: { region: where, goal: goalLabel(state), extraLabel: '行动日消耗', extraValue: cost ? `${cost} 日` : '—' },
       surrender: false,
       apply: action => session.applyBattle(state.id, action),
       exit: { label: '返回军营', href: links.camp },
@@ -42,9 +36,13 @@ export function FieldBattle() {
         return {
           title: won ? '胜利' : '战败',
           won,
-          lines: [fallenLine(end), won ? '战后经验、武器熟练度与战利品已结算到名册。' : '撤退保留已获得的经验；阵亡的普通单位不会归来。'],
-          // Back to 出征准备, never straight into another 8-day sortie.
-          action: { label: '再次出击', run: () => setCheck(c => c + 1) },
+          lines: [
+            fallenLine(end),
+            won ? '战后经验、武器熟练度与战利品已结算到名册。' : '撤退保留已获得的经验；阵亡的普通单位不会归来。',
+            from.challengeId && won ? '塔层已记为通关：回到挑战塔领取首通／重复奖励。' : from.questId && won ? '任务已完成：回到任务页领取奖励。' : '战报已保存，可以在「战报」里回看。',
+          ],
+          // Back to 出征准备 (or the quest / tower page), never straight into another sortie.
+          action: back ? { label: back.label, run: () => go(back.href) } : { label: '再次出击', run: () => setCheck(c => c + 1) },
         };
       },
     };
@@ -61,7 +59,7 @@ export function FieldBattle() {
       if (active?.mode === 'festival') go(links.annual);
       else if (active?.state.kind === 'field' && session.get().run?.battleId === active.state.id) go(links.dungeon);
       else if (active?.state.kind === 'field') {
-        setBuilt(build(active.state, active.costDays));
+        setBuilt(build(active.state, active.costDays, { questId: active.questId, challengeId: active.challengeId }));
         setStage('battle');
       } else {
         setStage('prep');

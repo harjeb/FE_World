@@ -19,7 +19,7 @@ function setup(classId: ClassId) {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'species-classes', undefined, '测试军团');
   seedFullRoster(store, player);
-  player.day = 840;
+  player.day = 3500;
   player.gold = 100_000;
   const unit = createUnit('erin', 1, 'special-recruit', player.day, false, { classId });
   store.addUnit(player.id, unit);
@@ -87,7 +87,7 @@ for (const species of ['beast', 'dragon'] as const) test(`${species} reincarnati
   const { ctx, unit, player, store } = setup(chain[4]);
   unit.level = 99;
   const before = structuredClone(unit);
-  assert.throws(() => reincarnate(unit, {}, 'gladiator', 120, player.day), /本族初始/);
+  assert.throws(() => reincarnate(unit, {}, 'gladiator', 500, player.day), /本族初始/);
   assert.deepEqual(unit, before, 'an invalid reincarnation cannot partially mutate the recruit');
   store.saveUnit(unit, player.id);
   store.addInventory(player.id, 'reincarnation_core', 0, 1);

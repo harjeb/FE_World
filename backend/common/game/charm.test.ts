@@ -50,7 +50,7 @@ test('charm participates in permanent totals, growth inheritance and reincarnati
   claimLegacy(legacy, recipient, 'growth');
   assert.equal(recipient.inheritedGrowth!.cha, 35);
   recipient.level = 99;
-  reincarnate(recipient, { cha: 10 }, 'hunter', 120, 500);
+  reincarnate(recipient, { cha: 10 }, 'hunter', 500, 500);
   assert.equal(recipient.stats.cha, CHARACTERS.owen.base.cha);
   assert.equal(growthRates(recipient).cha, 45);
 });

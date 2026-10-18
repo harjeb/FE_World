@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
+import { OP } from '@common/protocol/ops.ts';
 import { agentToken } from '../api/client.ts';
 import { session, useSession } from '../api/session.ts';
+import { useServerData } from '../api/useServerData.ts';
 import { loadSettings, saveSettings } from '../battle/settings.ts';
 import type { ScenePolicy, Settings } from '../battle/settings.ts';
-import { WORLD } from '../demo/live.ts';
 import { go, links } from '../router.ts';
-import { Shell } from '../shell/Shell.tsx';
+import { agentOnline, Shell } from '../shell/Shell.tsx';
+import { clockTime } from '../ui/calendar.ts';
 import { toast } from '../ui/toast.tsx';
 import { useAct } from './SystemParts.tsx';
 
@@ -25,7 +27,10 @@ export function SettingsPage() {
   const [agent, setAgent] = useState<{ token: string; ws: string; docVersion: number } | null>(null);
   const [shown, setShown] = useState(false);
   const [view, setView] = useState<Settings>(loadSettings);
+  const { data: info } = useServerData(() => session.agentInfo(), []);
   if (!state) return null;
+  const online = agentOnline(state);
+  const lease = state.control;
   const update = (patch: Partial<Settings>) => setView(v => { const next = { ...v, ...patch }; saveSettings(next); return next; });
   const hero = state.units.find(u => u.isProtagonist);
   const protagonist = hero?.name ?? CHARACTERS[state.player.protagonist as keyof typeof CHARACTERS]?.name ?? state.player.protagonist;
@@ -45,8 +50,8 @@ export function SettingsPage() {
           <section className="panel" aria-labelledby="ag-h">
             <div className="ph">
               <h2 id="ag-h">Agent 接入</h2>
-              <span className="inline-flex items-center gap-1.5" style={{ fontSize: 13, color: WORLD.agent.online ? '#45603B' : '#6A6256' }}>
-                <span className="dot" style={{ background: WORLD.agent.online ? '#536D49' : '#9A9184' }} />{WORLD.agent.online ? '在线' : '离线（5 分钟内没有收到请求）'}
+              <span className="inline-flex items-center gap-1.5" style={{ fontSize: 13, color: online ? '#45603B' : '#6A6256' }}>
+                <span className="dot" style={{ background: online ? '#536D49' : '#9A9184' }} />{online ? '在线' : '离线（5 分钟内没有收到请求）'}
               </span>
             </div>
             <p className="sys-note">Agent 用接入令牌通过 WebSocket 发送 LOGIN，之后能做的事和网页一样：出击、整备、竞技场、观战说明都走同一套协议。令牌等同账号密码，只交给你自己的 Agent。</p>
@@ -73,6 +78,19 @@ export function SettingsPage() {
               )}
           </section>
 
+          <section className="panel" aria-labelledby="ct-h">
+            <div className="ph"><h2 id="ct-h">控制权</h2><span className={`tag ${lease ? 'tag-brass' : 'tag-grey'}`}>{lease ? `${lease.owner === 'agent' ? 'Agent' : '网页'}持有 · 至 ${clockTime(lease.expiresAt)}` : '未锁定'}</span></div>
+            <p className="sys-note">网页与 Agent 做的事完全一样。两边同时在线时，可以先取得 5 分钟的控制租约：租约期内只有持有方能写入（出击、买卖、行动……），另一方仍可查看。到期自动释放，也可以主动释放。</p>
+            <div className="go-bar" style={{ borderTop: 0 }}>
+              {lease?.owner === 'human' && <button type="button" className="btn" disabled={busy !== null} onClick={() => void act('release', () => session.run(OP.RELEASE_CONTROL), () => '已释放控制权')}>释放</button>}
+              <button type="button" className="btn btn-primary" disabled={busy !== null || (!!lease && lease.owner !== 'human')}
+                onClick={() => void act('claim', () => session.run<{ expiresAt: number }>(OP.CLAIM_CONTROL), r => `网页取得控制权，至 ${clockTime(r.expiresAt)}`)}>
+                {lease?.owner === 'human' ? '续期 5 分钟' : '由网页取得控制权'}
+              </button>
+            </div>
+            {lease && lease.owner !== 'human' && <p className="pfoot">Agent 持有控制权时，网页的写操作会被拒绝；等租约到期或请 Agent 发送 RELEASE_CONTROL。</p>}
+          </section>
+
           <section className="panel" aria-labelledby="bs-h">
             <div className="ph"><h2 id="bs-h">战斗显示</h2><span style={{ fontSize: 12, color: '#6A6256' }}>进入战斗时的默认值，战斗中也能随时切换</span></div>
             <div className="set-rows">
@@ -95,6 +113,15 @@ export function SettingsPage() {
         </div>
 
         <div className="colstack">
+          <section className="panel" aria-labelledby="ar-h">
+            <div className="ph"><h2 id="ar-h">Agent 的报告</h2>{info?.model && <span className="tag tag-grey">{info.model}</span>}</div>
+            <dl className="facts">
+              <dt>培养计划</dt><dd>{info?.plan ?? '还没有上报（AGENT_REPORT_PLAN）'}</dd>
+              <dt>离线日报</dt><dd>{info?.dailyReport ?? '还没有日报（AGENT_DAILY_REPORT）'}</dd>
+            </dl>
+            <div className="go-bar"><a className="btn btn-sm" href={links.spectate}>实时观战</a><a className="btn btn-sm btn-ghost" href={links.reports}>战报</a></div>
+          </section>
+
           <section className="panel" aria-labelledby="ac-h">
             <div className="ph"><h2 id="ac-h">账号</h2></div>
             <dl className="facts">

@@ -92,12 +92,18 @@ test('reputation recipes stay locked until the region reputation is high enough'
   assert.ok(started.order.id);
 });
 
-test('production rejects missing inputs and disabled durability repair', () => {
+test('production rejects missing inputs and repairs damaged weapon durability', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   // Drain the seed stock so the next order has no input.
   store.takeInventory(player.id, 'herb', store.countInventory(player.id, 'herb'));
   assert.throws(() => dispatch(ctx, OP.START_PRODUCTION, { recipeId: 'brew_vulnerary' }), /缺少/);
   assert.throws(() => dispatch(ctx, OP.START_PRODUCTION, { recipeId: 'nope' }), /配方/);
-  assert.throws(() => dispatch(ctx, OP.REPAIR_ITEM, { unitId: 'u_erin', item: 'iron_sword' }), /尚未启用/);
+  const unit = store.unit(player.id, 'u_erin')!;
+  const row = unit.weaponInstances![0];
+  const item = row.id;
+  row.durability = 1;
+  store.saveUnit(unit, player.id);
+  const repaired = dispatch(ctx, OP.REPAIR_ITEM, { unitId: 'u_erin', item }) as { durability: [number, number][] };
+  assert.equal(repaired.durability[0][0], repaired.durability[0][1]);
 });

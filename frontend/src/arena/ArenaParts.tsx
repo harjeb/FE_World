@@ -1,11 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
-import { MY_LEGION, MY_POINTS, OPPONENTS, WORLD } from '../demo/live.ts';
 import { plainDate } from '../ui/calendar.ts';
 import { throneOf } from '@common/arena/maps.ts';
 import type { ArenaMap } from '@common/arena/maps.ts';
-import type { Defense } from '@common/arena/rules.ts';
 import type { Point } from '@common/engine/index.ts';
+import { useSession } from '../api/session.ts';
+import type { ServerOpponent } from '../api/session.ts';
+import { arena } from './store.ts';
 import { CRESTS, MAPS } from '../assets.ts';
 import { BossFlag } from '../ui/icons.tsx';
 
@@ -18,7 +19,7 @@ export function Crest({ id, size = 48 }: { id: string; size?: 40 | 48 }) {
   return <span className="crest" style={{ background: color, width: size, height: size }} aria-hidden="true">{letter}</span>;
 }
 
-export const attackIndex = (id: string) => OPPONENTS.findIndex(o => o.id === id) + 1;
+export const attackIndex = (id: string) => arena.index(id);
 
 // ARENA_ATTACK builds the battle from both sides as they stand when it starts (docs/00 §10「每场报名锁定双方状态」).
 export function SnapshotTag({ text = '开战时锁定双方阵容' }: { text?: string }) {
@@ -31,20 +32,21 @@ export function SnapshotTag({ text = '开战时锁定双方阵容' }: { text?: s
 }
 
 // Attacker on the left (us), defender on the right.
-export function Versus({ defense }: { defense: Defense }) {
+export function Versus({ opponent }: { opponent: ServerOpponent }) {
+  const { state, arena: info } = useSession();
   return (
     <div className="versus" aria-label="对阵">
       <div className="vs-side me">
         <Crest id="mine" />
-        <div><div className="vs-name">{MY_LEGION} <span className="tag tag-blue">● 进攻方 · 我方</span></div><div className="vs-sub num">积分 {MY_POINTS.toLocaleString()}</div></div>
+        <div><div className="vs-name">{state?.player.legion} <span className="tag tag-blue">● 进攻方 · 我方</span></div><div className="vs-sub num">积分 {(state?.arena.points ?? 0).toLocaleString()}</div></div>
       </div>
       <div className="vs-mid">
-        <div style={{ fontSize: 13, color: '#4E473D' }}>竞技场 · {plainDate(WORLD.day)} · 进攻 <b>{attackIndex(defense.id)}</b> / {OPPONENTS.length}</div>
+        <div style={{ fontSize: 13, color: '#4E473D' }}>竞技场 · {plainDate(info?.day ?? state?.day ?? 0)} · 进攻 <b>{attackIndex(opponent.id)}</b> / {arena.opponents().length}</div>
         <div style={{ marginTop: 4 }}><SnapshotTag /></div>
       </div>
       <div className="vs-side foe">
-        <Crest id={defense.id} />
-        <div><div className="vs-name"><span className="tag tag-red">◆ 防守方</span> {defense.legion}</div><div className="vs-sub num">积分 {defense.points.toLocaleString()} · {defense.record}</div></div>
+        <Crest id={opponent.id} />
+        <div><div className="vs-name"><span className="tag tag-red">◆ 防守方</span> {opponent.legion}</div><div className="vs-sub num">积分 {opponent.points.toLocaleString()} · {opponent.record}</div></div>
       </div>
     </div>
   );

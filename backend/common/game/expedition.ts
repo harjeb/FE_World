@@ -29,6 +29,7 @@ export interface RunRecord {
   // 经典地图副本：按顺序使用的场景 id 与显示名（不填则沿用随机地图三图副本）。
   scenarioIds?: string[];
   stageNames?: string[];
+  rulesetVersion?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -40,7 +41,7 @@ export function createRun(id: string, playerId: string, region: number, unitIds:
     level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
     scenarioIds: opts.scenarioIds ? [...opts.scenarioIds] : undefined,
     stageNames: opts.stageNames ? [...opts.stageNames] : undefined,
-    createdAt: Date.now(), updatedAt: Date.now(),
+    rulesetVersion: 'run-v2', createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 
@@ -77,12 +78,12 @@ export function stageLoot(region: number, stageIndex: number): { item: string; c
 export function runSummary(run: RunRecord): Record<string, unknown> {
   const count = stageCount(run);
   return {
-    id: run.id, region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level,
+    id: run.id, region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level, questId: run.questId ?? null,
     unitIds: run.unitIds, survivingIds: survivingIds(run.carry), battleId: run.battleId,
     // What each survivor brings into the next map: HP and supplies do not recover between maps.
     carry: run.carry,
     pendingLoot: run.pendingLoot, canContinue: run.state === 'between_maps',
-    stageCount: count, stageDays: run.stageDays ?? DUNGEON_STAGE_DAYS, stageNames: run.stageNames ?? null,
+    rulesetVersion: run.rulesetVersion ?? 'run-v1', stageCount: count, stageDays: run.stageDays ?? DUNGEON_STAGE_DAYS, stageNames: run.stageNames ?? null,
     stageName: run.stageNames?.[run.stageIndex] ?? null,
     nextStageName: run.stageNames?.[run.stageIndex + 1] ?? null,
   };

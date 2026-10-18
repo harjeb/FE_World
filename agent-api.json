@@ -448,6 +448,97 @@
       "push": false
     },
     {
+      "op": 128,
+      "name": "ACCEPT_RECRUIT",
+      "group": "日历",
+      "agentNote": "接受当前游历候选；名册满时保留候选，不重掷。",
+      "push": false
+    },
+    {
+      "op": 129,
+      "name": "DECLINE_RECRUIT",
+      "group": "日历",
+      "agentNote": "拒绝当前游历候选；已支付日期不退，之后可重新游历。",
+      "push": false
+    },
+    {
+      "op": 130,
+      "name": "GET_TAVERN",
+      "group": "整备",
+      "agentNote": "读取第二年后当地酒馆本季度候选、职业、种族、等级与价格。",
+      "push": false
+    },
+    {
+      "op": 131,
+      "name": "HIRE_TAVERN",
+      "group": "整备",
+      "agentNote": "用金币雇佣酒馆候选；不耗行动日，满员/重复/金币不足会拒绝。",
+      "push": false
+    },
+    {
+      "op": 132,
+      "name": "INN_REST",
+      "group": "整备",
+      "agentNote": "旅馆休息 1 日，恢复指定法术书的全部次数；战斗中/远征/年度赛事中不可用。",
+      "push": false
+    },
+    {
+      "op": 133,
+      "name": "USE_FOOD",
+      "group": "整备",
+      "agentNote": "使用以太口粮或完整料理，恢复指定法术书 25%/全部次数；消耗食物，不耗日。",
+      "push": false
+    },
+    {
+      "op": 134,
+      "name": "GET_CHALLENGES",
+      "group": "任务",
+      "agentNote": "读取挑战塔层、风险、首通/重复奖励与已通层数。",
+      "push": false
+    },
+    {
+      "op": 135,
+      "name": "START_CHALLENGE",
+      "group": "任务",
+      "agentNote": "带固定名单挑战塔层；支付层日数并创建经典地图战斗，普通角色真实死亡。",
+      "push": false
+    },
+    {
+      "op": 136,
+      "name": "CLAIM_CHALLENGE_REWARD",
+      "group": "任务",
+      "agentNote": "领取已通关塔层的首通或重复奖励；同一层同一奖励只发一次。",
+      "push": false
+    },
+    {
+      "op": 137,
+      "name": "GET_MINIGAMES",
+      "group": "酒馆",
+      "agentNote": "读取本季度剩余酒馆小游戏局数、下注档位与赔率。",
+      "push": false
+    },
+    {
+      "op": 138,
+      "name": "PLAY_MINIGAME",
+      "group": "酒馆",
+      "agentNote": "服务端结算一局猜大小或青蛙赛跑；扣金币、占季度额度、生成并保存赛果，重试不重掷。",
+      "push": false
+    },
+    {
+      "op": 139,
+      "name": "CLAIM_CONTROL",
+      "group": "Agent",
+      "agentNote": "取得短期控制租约；同一账号的其它写操作在租约期内被拒绝。",
+      "push": false
+    },
+    {
+      "op": 140,
+      "name": "RELEASE_CONTROL",
+      "group": "Agent",
+      "agentNote": "释放自己持有的控制租约；人工接管前先释放。",
+      "push": false
+    },
+    {
       "op": 50,
       "name": "GET_BATTLE",
       "group": "战斗",
@@ -458,14 +549,14 @@
       "op": 51,
       "name": "GET_REACHABLE",
       "group": "战斗",
-      "agentNote": "某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器。",
+      "agentNote": "某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。",
       "push": false
     },
     {
       "op": 52,
       "name": "PREVIEW_COMBAT",
       "group": "战斗",
-      "agentNote": "从某格用某武器打某个目标：双方伤害、命中、必杀、出手次数与击杀概率。",
+      "agentNote": "从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数与击杀概率。",
       "push": false
     },
     {
@@ -479,7 +570,7 @@
       "op": 54,
       "name": "UNIT_ACT",
       "group": "战斗",
-      "agentNote": "原子提交「移动 + 行动」，确认后不能悔棋；先查询再提交。",
+      "agentNote": "原子提交「移动 + 行动」，action 取 attack／heal／item／seize／escape／interact／wait／dance／art／cast／staff；传送与临时墙带 dest。确认后不能悔棋，先查询再提交。",
       "push": false
     },
     {

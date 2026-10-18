@@ -22,7 +22,8 @@ function withContext(run: (ctx: Context) => void): void {
   try {
     const { player, accountId } = loginOrRegister(store, 'regression', undefined, 'Regression');
     player.registered = false;
-    player.day = 120;
+    player.flags.legacyUnlocked = true;
+    player.day = 499;
     run({ store, player, accountId, agentModel: null, push: () => {} });
   } finally { store.db.close(); }
 }
@@ -100,14 +101,14 @@ test('invalid inheritance weights preserve the stone and old growth contracts st
 
 test('reincarnated ages stay at the new epoch across reloads and birthdays', () => withContext(ctx => {
   const unit = createUnit('karl', 99, 'reborn', 0, true);
-  unit.ageBaseDays = 16 * 120 + 30;
-  unit.ageEpochDay = 960;
+  unit.ageBaseDays = 16 * 500 + 125;
+  unit.ageEpochDay = 4000;
   unit.baseAge = 16;
   ctx.store.addUnit(ctx.player.id, unit);
-  ctx.player.day = 960;
+  ctx.player.day = 4000;
   syncPlayer(ctx.store, ctx.player);
   assert.equal(ctx.store.unit(ctx.player.id, unit.id)!.age, 16);
-  ctx.player.day = 1050;
+  ctx.player.day = 4500;
   syncPlayer(ctx.store, ctx.player);
   assert.equal(ctx.store.unit(ctx.player.id, unit.id)!.age, 17);
 }));
@@ -115,8 +116,8 @@ test('reincarnated ages stay at the new epoch across reloads and birthdays', () 
 test('quest previews expose current enemy levels, dates and optional rewards; extra boxes pay once', () => withContext(ctx => {
   const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { quests: { id: string; enemyLevel: number; toDay: number; risk: string; optionalReward: unknown }[] }[] };
   const quest = view.regions.flatMap(region => region.quests).find(quest => quest.id === 'gw3')!;
-  assert.equal(quest.enemyLevel, 20);
-  assert.equal(quest.toDay, 122);
+  assert.equal(quest.enemyLevel, 19);
+  assert.equal(quest.toDay, 501);
   assert.equal(quest.risk, 'permadeath');
   assert.deepEqual(quest.optionalReward, { item: 'wood', perExtraBox: 1 });
   ctx.player.flags.questsDone = ['gw3'];
@@ -129,14 +130,14 @@ test('quest previews expose current enemy levels, dates and optional rewards; ex
 }));
 
 test('an older active annual entry remains resumable after crossing a year boundary', () => withContext(ctx => {
-  ctx.player.day = 0;
+  ctx.player.day = 499;
   assert.equal((dispatch(ctx, OP.GET_ANNUAL, {}) as { annualIndex: number }).annualIndex, 1);
-  ctx.player.day = 120;
   dispatch(ctx, OP.REGISTER_ANNUAL, { unitIds: ['u_erin'] });
-  ctx.player.day = 240;
+  ctx.player.day = 999;
   assert.equal((dispatch(ctx, OP.GET_ANNUAL, {}) as { annualIndex: number }).annualIndex, 1);
   dispatch(ctx, OP.START_ANNUAL_MATCH, {});
   dispatch(ctx, OP.WITHDRAW_ANNUAL, {});
+  ctx.player.day = 999;
   dispatch(ctx, OP.REGISTER_ANNUAL, { unitIds: ['u_erin'] });
   assert.equal(ctx.store.activeAnnualEntry(ctx.player.id)!.annualIndex, 2);
 }));

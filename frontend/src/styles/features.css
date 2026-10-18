@@ -1,0 +1,139 @@
+/* Screens added with the 2026-10 UI pass: 酒馆, 派遣, 挑战塔, 战报, 观战, the 名册 精通 tab, equipment
+   resources and the battle commands. Same parchment tokens and components as the other pages. */
+
+.chip[aria-checked='true'], .chip[aria-selected='true'] { background: var(--color-blue); border-color: var(--color-blue); color: #fff; }
+.chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.chips-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px 12px; }
+.chip-static { display: inline-flex; align-items: baseline; gap: 6px; min-height: 28px; padding: 3px 10px; border-radius: 14px; border: 1px solid #d7c08a; background: var(--color-brass-soft); color: var(--color-brass-deep); font-size: 13px; font-weight: 700; }
+.chip-static small { font-weight: 500; color: var(--color-ink-2); font-size: 12px; }
+.why { font-size: 12px; color: var(--color-red-deep); }
+.pfoot.why { color: var(--color-red-deep); }
+
+/* The annual-arena lock strip at the top of every page while an entry is live. */
+.lock-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lock-strip a { font-weight: 700; color: var(--color-brass-deep); }
+
+/* 游历候选 */
+.recruit-card { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 6px; padding: 8px 10px; border: 1px solid #d7c08a; border-radius: 6px; background: var(--color-brass-soft); }
+.rc-n { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; }
+.rc-s { font-size: 12px; color: var(--color-ink-2); }
+.rc-acts { display: flex; gap: 6px; }
+
+/* 耐久／次数 */
+.res-bar { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12px; color: var(--color-ink-2); }
+.res-bar .rb { width: 90px; height: 6px; border-radius: 3px; background: #e0d6c2; overflow: hidden; }
+.res-bar .rb > i { display: block; height: 100%; background: var(--color-blue); }
+.res-bar.low { color: var(--color-red-deep); font-weight: 700; }
+.res-bar.low .rb > i { background: var(--color-red); }
+/* 魔道书补次数的按钮排在耐久条下面，不挤占名称列。 */
+.eq .min-w-0 > .acts { justify-content: flex-start; margin-top: 6px; }
+.eq .min-w-0 > .tag { margin-left: 6px; }
+.gu .n { display: inline-flex; align-items: center; gap: 4px; }
+.gu-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-red); display: inline-block; }
+.r-warn { color: var(--color-red-deep); font-weight: 700; }
+
+/* 名册 · 精通与技能 */
+.nodes li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 14px; border-bottom: 1px solid #e6ddcb; font-size: 13px; }
+.nodes li:last-child { border-bottom: 0; }
+.nodes li.on { background: var(--color-green-soft); }
+.nd-t { display: inline-flex; justify-content: center; font-family: var(--font-pixel); font-size: 13px; color: var(--color-blue-deep); }
+.skill-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 10px 14px; }
+.sslot { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--color-blue); background: var(--color-blue-soft); font-size: 13px; }
+.sslot small { font-size: 11px; color: var(--color-ink-2); line-height: 1.35; }
+.sslot.empty { border-style: dashed; border-color: #cdbfa3; background: transparent; color: var(--color-faint); align-items: center; justify-content: center; }
+
+/* 生产 · 完美锻造 */
+.perfect { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--color-brass-deep); }
+.perfect input { accent-color: var(--color-brass); }
+
+/* 酒馆 */
+.roster-mini.tavern li { grid-template-columns: 40px minmax(0, 1fr) auto; }
+.mg-tabs { display: flex; gap: 6px; padding: 10px 14px 0; }
+.mg-body { padding: 4px 14px 0; display: flex; flex-direction: column; gap: 6px; }
+.mg-body .sys-note { padding: 6px 0; }
+.mg-quote { font-size: 13px; color: var(--color-ink-2); }
+.mg-result { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 14px 0; padding: 10px 12px; border-radius: 6px; border: 1px solid; font-size: 13px; }
+.mg-result.won { border-color: #bacaac; background: var(--color-green-soft); color: var(--color-green-deep); }
+.mg-result.lost { border-color: #ddb0a8; background: var(--color-red-soft); color: var(--color-red-deep); }
+.dice { display: inline-flex; gap: 4px; }
+.dice b { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 5px; background: var(--color-paper); border: 1px solid #9a9080; color: var(--color-ink); font-family: var(--font-pixel); font-size: 14px; }
+
+/* 派遣 */
+.dispatches .dispatch { padding: 9px 14px; border-bottom: 1px solid #e6ddcb; font-size: 13px; }
+.dispatches .dispatch:last-child { border-bottom: 0; }
+.dp-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.dp-h .tag { margin-left: auto; }
+.dp-s { color: var(--color-ink-2); margin-top: 2px; }
+.dp-rows { margin-top: 4px; padding-left: 16px; list-style: disc; color: var(--color-ink-2); }
+
+/* 任务 · 地区列表 */
+.quest-cols { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.region-list li + li { border-top: 1px solid #e6ddcb; }
+.rg-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; padding: 9px 14px; cursor: pointer; }
+.rg-row b { display: block; font-size: 15px; }
+.rg-row .rm-sub { display: block; font-size: 12px; color: var(--color-muted); }
+.rg-row:hover { background: #efe7d6; }
+.rg-row:focus-visible { outline: 2px solid var(--color-brass); outline-offset: -2px; }
+.rg-row[aria-pressed='true'] { background: var(--color-blue-soft); box-shadow: inset 3px 0 0 var(--color-blue); }
+.rep-bar { display: block; height: 4px; margin-top: 5px; border-radius: 2px; background: #e0d6c2; overflow: hidden; }
+.rep-bar > i { display: block; height: 100%; background: var(--color-brass); }
+/* Quest rows reuse the chapter list, without the chapter-number column. */
+.chapters.quest-list .chap { grid-template-columns: minmax(0, 1fr) auto; }
+.chapters.quest-list .chap.locked { background: #f1ece1; }
+.ch-req { display: flex; align-items: center; gap: 4px; }
+.ch-req .ico { width: 14px; height: 14px; }
+.quest-prep { border-color: var(--color-blue); box-shadow: 0 0 0 1px var(--color-blue), 0 4px 12px -8px rgba(48, 45, 40, 0.28); }
+
+/* 挑战塔 */
+.tower { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.floor.cleared { border-color: #bacaac; }
+.floor.locked { opacity: 0.75; }
+.floor .facts { grid-template-columns: 52px minmax(0, 1fr); }
+
+/* 竞技场 · 报名 */
+.register { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-color: #d7c08a; background: var(--color-brass-soft); }
+.register > div { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 4px; }
+
+.rw.rw-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* 战报 */
+.report-filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 14px; }
+.reports { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+.report-list { max-height: 720px; overflow-y: auto; }
+.report-list li + li { border-top: 1px solid #e6ddcb; }
+.rp-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+.rp-row .res { width: 30px; }
+.rp-row:hover { background: #efe7d6; }
+.rp-row:focus-visible { outline: 2px solid var(--color-brass); outline-offset: -2px; }
+.rp-row[aria-pressed='true'] { background: var(--color-blue-soft); box-shadow: inset 3px 0 0 var(--color-blue); }
+.rp-row .rm-sub { display: block; font-size: 12px; color: var(--color-muted); }
+.report .roster-mini li { grid-template-columns: auto minmax(0, 1fr) auto; }
+
+/* 观战 */
+.live-badge.off { background: #5c554a; }
+.live-badge.off i { animation: none; opacity: 0.6; }
+
+/* 纪念名册 */
+.memorial .mem-row { display: block; padding: 0; }
+.mem-h { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; padding: 7px 14px; cursor: pointer; }
+.mem-h:hover { background: #efe7d6; }
+.mem-h:focus-visible { outline: 2px solid var(--color-brass); outline-offset: -2px; }
+.mem-detail { background: var(--color-paper); border-top: 1px dashed var(--color-line-soft); font-size: 13px; }
+
+/* 主线 · 发现 */
+.ch-disc { margin-top: 4px; padding-left: 18px; list-style: disc; font-size: 13px; color: var(--color-ink-2); }
+
+/* 战斗 · 传送与临时墙的落点 */
+.dest { background-color: rgba(168, 132, 69, 0.32); background-image: repeating-linear-gradient(90deg, rgba(255, 246, 220, 0.5) 0 2px, transparent 2px 7px); box-shadow: inset 0 0 0 1px rgba(110, 83, 34, 0.9); }
+
+@media (max-width: 1100px) {
+  .quest-cols, .reports, .tower { grid-template-columns: 1fr; }
+  .rw.rw-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .skill-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .recruit-card { grid-template-columns: 48px minmax(0, 1fr); }
+  .recruit-card .rc-acts { grid-column: 2; }
+  .chapters.quest-list .chap { grid-template-columns: minmax(0, 1fr); }
+  .chapters.quest-list .ch-acts { grid-column: 1; }
+}

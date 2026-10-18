@@ -90,22 +90,22 @@ const CASTLE = [
 
 export const ARENA_MAPS: Record<ArenaMapId, ArenaMap> = {
   plains: {
-    id: 'plains', name: '平原会战', rows: PLAINS, deploy: 6, bans: 2, turnLimit: 20,
+    id: 'plains', name: '塔林原野', rows: PLAINS, deploy: 6, bans: 2, turnLimit: 20,
     goal: 'boss', goalText: '击败主将或全灭', feature: '开阔地，骑兵与弓兵强',
     attackerZone: zone(PLAINS, [0, 2], [2, 7]), defenderZone: zone(PLAINS, [11, 14], [2, 7]),
   },
   pass: {
-    id: 'pass', name: '山间隘口', rows: PASS, deploy: 5, bans: 1, turnLimit: 15,
+    id: 'pass', name: '灰岩隘口', rows: PASS, deploy: 5, bans: 1, turnLimit: 15,
     goal: 'boss', goalText: '击败主将', feature: '狭窄通道，重甲守口，飞行可绕路',
     attackerZone: zone(PASS, [0, 2], [3, 7]), defenderZone: zone(PASS, [11, 15], [2, 8]),
   },
   woods: {
-    id: 'woods', name: '林中遭遇', rows: WOODS, deploy: 4, bans: 2, turnLimit: 15,
+    id: 'woods', name: '暮影林地', rows: WOODS, deploy: 4, bans: 2, turnLimit: 15,
     goal: 'rout', goalText: '全灭', feature: '小规模、森林密布，精英单位决胜',
     attackerZone: zone(WOODS, [0, 2], [1, 5]), defenderZone: zone(WOODS, [9, 11], [1, 6]),
   },
   castle: {
-    id: 'castle', name: '王城', rows: CASTLE, deploy: 8, bans: 3, turnLimit: 25,
+    id: 'castle', name: '阿斯塔王城', rows: CASTLE, deploy: 8, bans: 3, turnLimit: 25,
     goal: 'seize', goalText: '压制王座', feature: '大规模攻城，防守方有堡垒和城墙',
     attackerZone: zone(CASTLE, [0, 2], [4, 10]), defenderZone: zone(CASTLE, [13, 18], [2, 12]),
   },

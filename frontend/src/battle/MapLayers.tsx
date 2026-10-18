@@ -67,12 +67,32 @@ interface UnitsProps {
   fading: ReadonlySet<string>;
 }
 
+export function ObjectLayer({ state, cell }: { state: BattleState; cell: number }) {
+  const glyph: Record<string, string> = { door: '门', chest: '宝', village: '村', wall: '墙', switch: '机', ballista: '弩' };
+  return (
+    <>
+      {(state.objects ?? []).map(object => {
+        const done = object.state === 'open' || object.state === 'opened' || object.state === 'visited' || object.state === 'destroyed' || object.state === 'triggered';
+        return (
+          <span key={object.id} className={`map-object ${object.kind}${done ? ' done' : ''}`}
+            title={`${object.label ?? object.kind}${object.hp !== undefined ? ` ${object.hp}/${object.maxHp ?? object.hp}` : ''}`}
+            aria-label={object.label ?? object.kind}
+            style={{ left: object.pos[0] * cell, top: object.pos[1] * cell, fontSize: Math.max(9, cell * 0.42) }}>
+            {glyph[object.kind] ?? '?'}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 export function UnitLayer({ view, cell, selected, ghostElsewhere, fading }: UnitsProps) {
   return (
     <>
       {view.units.filter(u => u.alive || fading.has(u.id)).map(unit => {
         const ally = unit.side === 'player';
         const done = ally && unit.acted && view.phase === 'player';
+        const marks = [unit.statuses?.sleep && '睡', unit.statuses?.silence && '默', unit.statuses?.berserk && '乱', unit.petrified && '石'].filter(Boolean).join('');
         const classes = ['unit', ally ? 'ally' : 'enemy'];
         if (done) classes.push('done');
         if (unit.id === selected) classes.push(ghostElsewhere ? 'origin' : 'active');
@@ -84,6 +104,7 @@ export function UnitLayer({ view, cell, selected, ghostElsewhere, fading }: Unit
             <img className="px spr" src={spriteFor(unit)} width={cell} height={cell} alt="" />
             <span className="hp"><i style={{ width: `${(unit.hp / unit.stats.hp) * 100}%` }} /></span>
             {done && <span className="acted-mark" aria-hidden="true">✓</span>}
+            {marks && <span className="status-mark" aria-hidden="true">{marks}</span>}
             {unit.boss && <BossFlag />}
           </div>
         );

@@ -7,11 +7,11 @@ import type { ItemId, WeaponId } from '../data/weapons.ts';
 // engine's ItemId; the rest exist only for the economy (docs/09「物品」, prices are drafts).
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
   | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
-  | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric';
+  | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal';
 
 export interface GameItem {
   name: string;
-  kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material';
+  kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food';
   price: number;
   // Weapons carry the engine id; 伤药 uses uses; 能力药 names the stat and amount.
   weapon?: WeaponId;
@@ -19,6 +19,7 @@ export interface GameItem {
   uses?: number;
   stat?: StatKey;
   amount?: number;
+  weight?: number;
   note?: string;
 }
 
@@ -51,7 +52,9 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   reincarnation_core: { name: '轮回核心', kind: 'material', price: 30_000, note: '轮回消耗一枚；来自主线后期或挑战塔' },
   legacy_stone_growth: { name: '成长传承石', kind: 'material', price: 12_000, note: '兑现成长遗产时消耗' },
   legacy_stone_numeric: { name: '数值传承石', kind: 'material', price: 12_000, note: '兑现数值遗产时消耗' },
-  immortal_shield: { name: '不朽盾', kind: 'consumable', price: 6_000, uses: 1, note: '致命时消耗一枚，保留 1HP 并石化至下个己方阶段；只能战前携带' },
+  immortal_shield: { name: '不朽盾', kind: 'consumable', price: 6_000, uses: 1, weight: 1, note: '致命时消耗一枚，保留 1HP 并石化至下个己方阶段；只能战前携带' },
+  ether_ration: { name: '以太口粮', kind: 'food', price: 300, note: '恢复一本法术书 25% 次数' },
+  full_meal: { name: '完整料理', kind: 'food', price: 900, note: '恢复一本法术书全部次数' },
 };
 
 export const ITEM_KEYS = Object.keys(GAME_ITEMS) as ItemKey[];
@@ -77,12 +80,13 @@ export const SHOP_STOCK: { item: ItemKey; stock: number }[] = [
   { item: 'iron_bow', stock: 5 }, { item: 'fire', stock: 4 }, { item: 'heal', stock: 4 },
   { item: 'steel_sword', stock: 3 }, { item: 'steel_lance', stock: 3 }, { item: 'steel_axe', stock: 3 },
   { item: 'steel_bow', stock: 3 }, { item: 'thunder', stock: 3 }, { item: 'recover', stock: 2 },
-  { item: 'javelin', stock: 3 }, { item: 'hand_axe', stock: 3 },
+  { item: 'javelin', stock: 3 }, { item: 'hand_axe', stock: 3 }, { item: 'restore', stock: 2 },
   { item: 'killing_edge', stock: 1 }, { item: 'killer_lance', stock: 1 }, { item: 'killer_axe', stock: 1 },
   { item: 'killer_bow', stock: 1 }, { item: 'wind', stock: 1 },
-  { item: 'vulnerary', stock: 9 },
+  { item: 'vulnerary', stock: 9 }, { item: 'immortal_shield', stock: 1 },
   { item: 'seal_promote', stock: 2 },
   { item: 'energy_drop', stock: 1 }, { item: 'secret_book', stock: 1 }, { item: 'speedwing', stock: 1 },
   { item: 'goddess_icon', stock: 1 }, { item: 'dracoshield', stock: 1 }, { item: 'talisman', stock: 1 },
   { item: 'herb', stock: 10 }, { item: 'ore', stock: 10 }, { item: 'wood', stock: 10 }, { item: 'seed', stock: 10 },
+  { item: 'ether_ration', stock: 6 }, { item: 'full_meal', stock: 2 },
 ];

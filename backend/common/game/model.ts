@@ -1,6 +1,7 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
-import { CLASSES, classChangeReason, classSpecies } from '../data/classes.ts';
+import { CLASSES, classChangeReason, classSpecies, weaponRankCap } from '../data/classes.ts';
+import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
 import type { ClassId } from '../data/classes.ts';
 import { applyGrowthBonus } from '../data/growth-types.ts';
 import type { GrowthType } from '../data/growth-types.ts';
@@ -8,6 +9,7 @@ import type { Promotion } from '../data/promotions.ts';
 import { RANKS, STAT_KEYS, withCharm } from '../data/types.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
+import { SPELLBOOKS } from '../data/spellbooks.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
 import { nextU32 } from '../engine/rng.ts';
@@ -15,7 +17,7 @@ import type { RngState } from '../engine/rng.ts';
 import type { ItemStack, Point, Side, UnitState } from '../engine/types.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from './items.ts';
 import type { ItemKey } from './items.ts';
-import { DAYS_PER_YEAR } from './calendar.ts';
+import { DAYS_PER_SEASON, DAYS_PER_YEAR } from './calendar.ts';
 import { applyInheritanceFloor } from './legacy.ts';
 import type { InheritanceContract } from './legacy.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
@@ -38,6 +40,10 @@ export interface UnitRecord {
   // Out-of-battle HP; battles carry their own copy and never write back into this (docs/00 §8.1.3).
   hp: number;
   weapons: WeaponId[];
+  // 每件装备的独立资源实例；保留重复模板，旧存档缺省时按满值补齐。
+  weaponInstances?: { id: WeaponId; durability: number; maxDurability: number }[];
+  bookInstances?: { id: WeaponId; charges: number; maxCharges: number }[];
+  spellbooks?: { id: string; charges: number; maxCharges: number }[];
   items: ItemStack[];
   ranks: Partial<Record<WeaponType, Rank>>;
   weaponExp: Partial<Record<WeaponType, number>>;
@@ -70,6 +76,7 @@ export interface UnitRecord {
   learningProgress: Partial<Record<ClassId, string[]>>;
   // 已学会、可跨职业自由装备的技能（共用 5 格）；个人技能单列，不算在 5 格内。
   learnedSkills: SkillId[];
+  learnedArts?: string[];
   equippedSkills: SkillId[];
   // 传承血缘锁（docs/00 §7.3）：接收过遗产的 B 为 1，永不再接或再产。
   lineageDepth: 0 | 1;
@@ -131,10 +138,15 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   unit.classMastery ??= {};
   unit.learningProgress ??= {};
   unit.learnedSkills ??= [];
+  unit.learnedArts ??= [];
   unit.equippedSkills ??= [];
   if (unit.ageEpochDay === undefined) unit.ageEpochDay = unit.joinedDay;
   if (unit.ageBaseDays === undefined) unit.ageBaseDays = (unit.baseAge ?? CHARACTERS[unit.character].age) * DAYS_PER_YEAR;
   unit.lifespanYears ??= lifespanYearsFor(unit.id, unit.species);
+  unit.weaponInstances ??= unit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) }));
+  const magicClass = (Object.keys(CLASSES[unit.classId]?.weapons ?? {}) as WeaponType[]).some(type => type === 'tome' || type === 'staff');
+  unit.spellbooks ??= magicClass ? SPELLBOOKS.filter(book => book.role === 'attack' || book.role === 'heal').slice(0, 4).map(book => ({ id: book.id, charges: book.maxCharges, maxCharges: book.maxCharges })) : [];
+  unit.bookInstances ??= unit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) }));
   return unit;
 }
 
@@ -144,6 +156,19 @@ export const ROSTER_LIMIT = 18;
 // expectation (deterministic) — the seed roster and opponents use it; real level-ups roll randomly.
 // `opts` lets recruitment override the character default's growth type and age.
 export interface UnitOptions { growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1; base?: Stats; personalGrowth?: Stats }
+
+export function weaponMax(id: WeaponId): number {
+  const w = WEAPONS[id];
+  if (w.maxDurability) return w.maxDurability;
+  if (w.type === 'staff') return 10;
+  if (w.type === 'tome') return 20;
+  if (w.type === 'beast' || w.type === 'dragon') return 30;
+  return 40;
+}
+
+export function bookMax(id: WeaponId): number {
+  return WEAPONS[id].maxCharges ?? 10;
+}
 
 export function createUnit(character: CharacterId, level: number, id: string, joinedDay: number, expected = true, opts: UnitOptions = {}): UnitRecord {
   const def = CHARACTERS[character];
@@ -175,12 +200,15 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character];
   return {
     id, character, classId, species, level, exp: 0, stats, con: classBased ? cls.con : def.con, hp: stats.hp,
-    weapons: [...kit.weapons], items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
+    weapons: [...kit.weapons], weaponInstances: kit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) })),
+    bookInstances: kit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) })),
+    items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
     ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
-    learnedSkills: [], equippedSkills: [],
+    learnedSkills: [], learnedArts: classId === 'charioteer' ? ['chariot_line'] : [], equippedSkills: [],
+    spellbooks: (Object.keys(cls.weapons) as WeaponType[]).some(type => type === 'tome' || type === 'staff') ? SPELLBOOKS.filter(book => book.role === 'attack' || book.role === 'heal').slice(0, 4).map(book => ({ id: book.id, charges: book.maxCharges, maxCharges: book.maxCharges })) : [],
     lineageDepth: 0, receivedLegacyId: null,
   };
 }
@@ -215,6 +243,29 @@ export function lifespanEndDayOf(unit: UnitRecord): number {
   return unit.ageEpochDay + unit.lifespanYears * DAYS_PER_YEAR - unit.ageBaseDays;
 }
 
+export function daysUntilBirthday(unit: UnitRecord, day: number): number {
+  if (unit.isProtagonist) return 0;
+  const elapsed = Math.max(0, day - (unit.ageEpochDay ?? unit.joinedDay));
+  const remainder = (unit.ageBaseDays + elapsed) % DAYS_PER_YEAR;
+  return remainder === 0 ? 0 : DAYS_PER_YEAR - remainder;
+}
+
+export type LifespanWarning = 'none' | 'oneYear' | 'lastSeason' | 'due';
+
+export function lifespanWarning(unit: UnitRecord, day: number): LifespanWarning {
+  if (unit.isProtagonist) return 'none';
+  const remaining = lifespanEndDayOf(unit) - day;
+  if (remaining <= 0) return 'due';
+  if (remaining <= DAYS_PER_SEASON) return 'lastSeason';
+  if (remaining <= DAYS_PER_YEAR) return 'oneYear';
+  return 'none';
+}
+
+export function nextLifespanEventDay(unit: UnitRecord, fromDay: number, toDay: number): number | null {
+  const end = lifespanEndDayOf(unit);
+  return end > fromDay && end <= toDay ? end : null;
+}
+
 // Recomputes a unit's age from the calendar; callers persist the record when it changes.
 export function ageAt(unit: UnitRecord, day: number, daysPerYear: number): number {
   // Old saves may predate baseAge; fall back to the character's written age (docs/02).
@@ -231,7 +282,10 @@ export function growthRates(unit: UnitRecord): Stats {
   const personal = unit.inheritedGrowth ?? CHARACTERS[unit.character].growth;
   const own = CLASSES[unit.classId].growth;
   const rates = {} as Stats;
-  for (const key of STAT_KEYS) rates[key] = Math.max(0, (personal[key] ?? 0) + (unit.growthAllocation?.[key] ?? 0) + own[key]);
+  for (const key of STAT_KEYS) {
+    const equipment = unit.weapons.reduce((sum, id) => sum + (WEAPONS[id].grants?.growth?.[key] ?? 0), 0);
+    rates[key] = Math.max(0, (personal[key] ?? 0) + (unit.growthAllocation?.[key] ?? 0) + own[key] + equipment);
+  }
   return applyGrowthBonus(rates, unit.growthType, unit.age);
 }
 
@@ -303,6 +357,14 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
 }
 
 // 单位显示名：自捏主角用自己的名字，其余角色用预设名。
+export function equipmentArts(unit: UnitRecord): string[] {
+  return [...new Set(unit.weapons.flatMap(id => WEAPONS[id].grants?.art ? [WEAPONS[id].grants!.art!] : []))];
+}
+
+export function equipmentSkills(unit: UnitRecord): SkillId[] {
+  return [...new Set(unit.weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
+}
+
 export function unitName(unit: UnitRecord): string {
   return unit.name ?? CHARACTERS[unit.character].name;
 }
@@ -318,13 +380,16 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
     inheritance: unit.inheritance ? structuredClone(unit.inheritance) : undefined,
-    skills: [...(unit.equippedSkills ?? [])],
-    shields: unit.items.filter(i => i.id === 'immortal_shield').length,
+    skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])], classSkills: [...(CLASS_ABILITY_BY_ID.get(unit.classId as never)?.inherentIds ?? [])], arts: [...new Set([...(unit.learnedArts ?? []), ...equipmentArts(unit)])],
+    weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
+    bookInstances: unit.bookInstances?.map(row => ({ ...row })),
+    spellbooks: unit.spellbooks?.map(row => ({ ...row })),
+    shields: Math.min(1, unit.items.filter(i => i.id === 'immortal_shield').length),
     acted: false, alive: true, ...extra,
   };
 }
 
-export const RANK_EXP: Record<Rank, number> = { E: 0, D: 30, C: 70, B: 120, A: 180, S: 250 };
+export const RANK_EXP: Record<Rank, number> = { E: 0, D: 30, C: 70, B: 120, A: 180, S: 250, SS: 340, SSS: 450 };
 
 export function rankFromExp(exp: number): Rank {
   let rank: Rank = 'E';
@@ -340,7 +405,7 @@ export function addWeaponExp(unit: UnitRecord, type: WeaponType, amount: number,
   const exp = Math.max(unit.weaponExp[type] ?? 0, RANK_EXP[before]) + amount;
   unit.weaponExp[type] = exp;
   const after = rankFromExp(exp);
-  const cap = CLASSES[classId].weapons[type];
+  const cap = weaponRankCap(classId, type);
   const capped = cap && RANKS[Math.min(RANKS.indexOf(after), RANKS.indexOf(cap))];
   if (capped && RANKS.indexOf(capped) > RANKS.indexOf(before)) {
     unit.ranks[type] = capped;

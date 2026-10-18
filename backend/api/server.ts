@@ -30,7 +30,7 @@ function playerFor(accountId: string): Player {
 
 function runOp(accountId: string, op: number, data: Record<string, unknown>, agentModel: string | null, push: Context['push']): unknown {
   if (PUSH_OPS.has(op)) throw new OpError('BAD_REQUEST', `op ${op} 是推送，不能主动发送`);
-  const ctx: Context = { store, player: playerFor(accountId), accountId, agentModel, push };
+  const ctx: Context = { store, player: playerFor(accountId), accountId, agentModel, actor: agentModel ? 'agent' : 'human', push };
   return dispatch(ctx, op, data ?? {});
 }
 
@@ -97,7 +97,7 @@ app.post('/api/login', (req, reply) => {
   try {
     const result = loginOrRegister(store, String(body.name ?? ''), body.password, body.legion);
     const player = syncPlayer(store, result.player);
-    reply.send({ token: result.token, state: dispatch({ store, player, accountId: result.accountId, agentModel: null, push: () => {} }, 10, {}) });
+    reply.send({ token: result.token, state: dispatch({ store, player, accountId: result.accountId, agentModel: null, actor: 'human', push: () => {} }, 10, {}) });
   } catch (error) {
     reply.code(400).send(error instanceof Error ? { error: error.message } : { error: String(error) });
   }

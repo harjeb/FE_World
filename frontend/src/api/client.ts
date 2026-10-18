@@ -32,12 +32,25 @@ export function setToken(value: string | null): void {
   }
 }
 
-export async function call<T = unknown>(op: number, data: Record<string, unknown> = {}): Promise<T> {
-  const response = await fetch('/api/op', {
+export function newCommandId(): string {
+  try { return crypto.randomUUID(); } catch { return `cmd-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+}
+
+export async function call<T = unknown>(op: number, data: Record<string, unknown> = {}, commandId?: string): Promise<T> {
+  const body = JSON.stringify({ op, seq: Date.now() % 100000, data: commandId ? { ...data, commandId } : data });
+  const send = () => fetch('/api/op', {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...(token() ? { authorization: `Bearer ${token()}` } : {}) },
-    body: JSON.stringify({ op, seq: Date.now() % 100000, data }),
+    body,
   });
+  let response: Response;
+  try {
+    response = await send();
+  } catch {
+    // 网络断开时用同一 commandId 重试一次；服务端收据保证只执行一次。
+    await new Promise(resolve => setTimeout(resolve, 250));
+    response = await send();
+  }
   const frame = await response.json() as { ok: boolean; data?: T; error?: FrameError };
   if (!frame.ok) throw new ApiError(frame.error ?? { code: 'INTERNAL', message: '未知错误', action: '重试' });
   return frame.data as T;

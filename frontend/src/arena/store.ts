@@ -1,22 +1,24 @@
-// Today's arena, now owned by the server (docs/05): bans and attacks go through the Agent protocol and
-// the returned battle state is what the battle page animates. This module only keeps the small local
-// deltas between server refreshes and hands the screens a stable snapshot.
+// Today's arena, owned by the server (docs/05, TODO ARENA-02): opponents and each attack's status come
+// from GET_ARENA / GET_ARENA_RESULTS, the reveal after bans from ARENA_BAN (asked again with the same
+// bans after a reload — the server answers a revealed attack the same way). The first release is
+// attack-only, so nothing here reads or edits a player defense.
 import { useSyncExternalStore } from 'react';
-import { applyBans, arenaPoints } from '@common/arena/rules.ts';
-import type { AttackPlan, Defense, Reveal } from '@common/arena/rules.ts';
+import { arenaPoints } from '@common/arena/rules.ts';
 import type { CharacterId } from '@common/data/characters.ts';
 import type { BattleState } from '@common/engine/index.ts';
 import { session } from '../api/session.ts';
-import { MY_ROSTER, OPPONENTS } from '../demo/live.ts';
+import type { ArenaReveal, ServerOpponent } from '../api/session.ts';
 
 export type AttackStatus = 'new' | 'revealed' | 'fighting' | 'won' | 'lost';
 
 export interface AttackRecord {
   status: AttackStatus;
-  bans: CharacterId[];
+  bans: string[];
   battle: BattleState | null;
   battleId: string | null;
   points: number;
+  noShow?: boolean;
+  surrender?: boolean;
 }
 
 export interface ArenaDay {
@@ -25,8 +27,11 @@ export interface ArenaDay {
   done: number;
 }
 
+const FRESH: AttackRecord = { status: 'new', bans: [], battle: null, battleId: null, points: 0 };
+
 class ArenaStore {
   private overrides = new Map<string, Partial<AttackRecord>>();
+  private reveals = new Map<string, ArenaReveal>();
   private listeners = new Set<() => void>();
   private snap: ArenaDay = { attacks: {}, points: 0, done: 0 };
 
@@ -42,61 +47,69 @@ class ArenaStore {
 
   get = (): ArenaDay => this.snap;
 
-  opponent(id: string): Defense | undefined {
-    return OPPONENTS.find(o => o.id === id);
+  opponents(): ServerOpponent[] {
+    return session.get().arena?.opponents ?? [];
+  }
+
+  opponent(id: string): ServerOpponent | undefined {
+    return this.opponents().find(o => o.id === id);
+  }
+
+  // 1-based position of an opponent in today's list.
+  index(id: string): number {
+    return this.opponents().findIndex(o => o.id === id) + 1;
+  }
+
+  // The day's record is open until it settles (leaving the day settles it; unplayed attacks lose).
+  open(): boolean {
+    const arena = session.get().arena;
+    return !!arena && arena.day !== null && !arena.settled && arena.opponents.length > 0;
   }
 
   record(id: string): AttackRecord {
-    return this.snap.attacks[id] ?? { status: 'new', bans: [], battle: null, battleId: null, points: 0 };
+    return this.snap.attacks[id] ?? FRESH;
   }
 
-  // Bans are deterministic in the shared rules, so the local reveal matches the server's exactly.
-  reveal(id: string): Reveal | null {
-    const defense = this.opponent(id), record = this.record(id);
-    return defense && record.status !== 'new' ? applyBans(defense, record.bans, MY_ROSTER) : null;
+  cachedReveal(id: string): ArenaReveal | null {
+    return this.reveals.get(id) ?? null;
   }
 
-  async confirmBans(id: string, bans: CharacterId[]): Promise<void> {
-    const defense = this.opponent(id);
-    if (!defense || this.record(id).status !== 'new') return;
-    applyBans(defense, bans, MY_ROSTER);
+  // The reveal for a revealed attack; after a reload it is fetched again with the stored bans.
+  async reveal(id: string): Promise<ArenaReveal> {
+    const known = this.reveals.get(id);
+    if (known) return known;
+    const reveal = await session.arenaBan(id, this.record(id).bans);
+    this.reveals.set(id, reveal);
+    this.recompute();
+    return reveal;
+  }
+
+  async confirmBans(id: string, bans: string[]): Promise<ArenaReveal> {
+    const reveal = await session.arenaBan(id, bans);
+    this.reveals.set(id, reveal);
     this.overrides.set(id, { status: 'revealed', bans });
     this.recompute();
-    try {
-      await session.arenaBan(id, bans);
-    } catch (error) {
-      this.overrides.delete(id);
-      this.recompute();
-      throw error;
-    }
+    await session.refresh();
+    return reveal;
   }
 
-  async start(id: string, plan: AttackPlan): Promise<void> {
-    const record = this.record(id);
-    if (!this.opponent(id) || record.status !== 'revealed') return;
-    const battleId = await session.arenaAttack(id, plan.picks, plan.commander);
+  async start(id: string, picks: { character: CharacterId; unitId: string; pos: [number, number] }[], commander: CharacterId): Promise<void> {
+    if (this.record(id).status !== 'revealed') return;
+    const battleId = await session.arenaAttack(id, picks, commander);
     this.overrides.set(id, { status: 'fighting', battle: session.battleFor(id), battleId });
     this.recompute();
   }
 
   saveBattle(id: string, battle: BattleState): void {
-    if (this.record(id).status !== 'fighting') return;
     this.overrides.set(id, battle.result
       ? { status: battle.result.winner === 'player' ? 'won' : 'lost', battle, points: arenaPoints(battle).total }
-      : { battle });
+      : { status: 'fighting', battle });
     this.recompute();
   }
 
   // Restores a battle after a reload, from the server's full state.
   resume(id: string, battle: BattleState, battleId: string): void {
-    if (this.record(id).status === 'fighting') return;
     this.overrides.set(id, { status: 'fighting', battle, battleId });
-    this.recompute();
-  }
-
-  // Clears local deltas; the server keeps the real state.
-  reset(): void {
-    this.overrides.clear();
     this.recompute();
   }
 
@@ -105,12 +118,17 @@ class ArenaStore {
     for (const attack of session.get().results?.attacks ?? []) {
       server.set(attack.opponentId, {
         status: attack.status as AttackStatus, bans: attack.bans, battle: null, battleId: attack.battleId, points: attack.points,
+        noShow: attack.noShow, surrender: attack.surrender,
       });
     }
+    // Server results win once they are final; local deltas only bridge the gap until the next refresh.
+    for (const [id, base] of server) {
+      const local = this.overrides.get(id);
+      if (local && (base.status === 'won' || base.status === 'lost') && local.status !== base.status && !local.battle?.result) this.overrides.delete(id);
+    }
     const attacks: Record<string, AttackRecord> = {};
-    for (const id of Object.keys(Object.fromEntries([...server, ...this.overrides]))) {
-      const base = server.get(id) ?? { status: 'new' as const, bans: [], battle: null, battleId: null, points: 0 };
-      attacks[id] = { ...base, ...this.overrides.get(id) };
+    for (const id of new Set([...server.keys(), ...this.overrides.keys()])) {
+      attacks[id] = { ...(server.get(id) ?? FRESH), ...this.overrides.get(id) };
     }
     const records = Object.values(attacks);
     this.snap = {
@@ -123,11 +141,6 @@ class ArenaStore {
 }
 
 export const arena = new ArenaStore();
-
-// Today's earned points (attacks settled today), shown next to the season total.
-export function todayPoints(day: ArenaDay): number {
-  return day.points;
-}
 
 export function useArena(): ArenaDay {
   return useSyncExternalStore(arena.subscribe, arena.get);

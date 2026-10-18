@@ -12,6 +12,8 @@ export const ANNUAL_FIRST_KNOCKOUT_ROUND = 4;
 
 export type AnnualState = 'qualifier' | 'knockout' | 'eliminated' | 'champion' | 'withdrawn';
 
+export interface AnnualBracket { size: 64; slots: string[]; winners: string[][]; }
+
 export interface AnnualEntry {
   id: string;
   playerId: string;
@@ -24,26 +26,80 @@ export interface AnnualEntry {
   carry: Record<string, RunCarry>;
   roster?: Record<string, UnitRecord>;
   matchSeeds?: string[];
+  bracket?: AnnualBracket;
+  ruleVersion?: string;
   battleId: string | null;
   createdAt: number;
   updatedAt: number;
 }
 
-// 第一届在累计 D=120 开放，第八届 D=960（docs/13 §3.1）。
+// 每届窗口是年度最后 18 日（D482–499、D982–999……），第八届最迟 D3982 开始。
+// 届次与显示年份分开：D482 前仍是上一届，D3982 起是第八届。
 export function annualIndexFor(day: number): number {
-  return Math.floor(day / 120);
+  return Math.max(0, Math.min(8, Math.floor((day + 18) / 500)));
 }
 
-// Open at D120 and subsequent year boundaries, leaving eighteen days for a full run.
 export function annualWindowOpen(day: number): boolean {
-  return day >= 120 && day % 120 <= 120 - 18;
+  return day >= 482 && day % 500 >= 500 - 18 && day < 4000;
+}
+
+export function annualWindowStart(annualIndex: number): number {
+  return annualIndex * 500 - 18;
+}
+
+export function nextAnnualWindowStart(day: number): number {
+  for (let index = Math.max(1, annualIndexFor(day)); index <= 8; index++) {
+    const start = annualWindowStart(index);
+    if (start > day) return start;
+  }
+  return 4000;
 }
 
 export function createAnnualEntry(id: string, playerId: string, annualIndex: number, unitIds: string[]): AnnualEntry {
-  return {
+  const entry: AnnualEntry = {
     id, playerId, annualIndex, state: 'qualifier', qualifierWins: 0, qualifierCount: 0, round: 0,
-    unitIds: [...unitIds], carry: {}, battleId: null, createdAt: Date.now(), updatedAt: Date.now(),
+    unitIds: [...unitIds], carry: {}, battleId: null, ruleVersion: 'annual-v2', createdAt: Date.now(), updatedAt: Date.now(),
   };
+  entry.bracket = createBracket(entry);
+  return entry;
+}
+
+function bracketSeed(entry: AnnualEntry): number {
+  let h = 2166136261;
+  for (const ch of `${entry.id}:${entry.annualIndex}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  return h;
+}
+
+export function createBracket(entry: AnnualEntry): AnnualBracket {
+  const seed = bracketSeed(entry);
+  const slots = Array.from({ length: 64 }, (_, i) => i === 0 ? `player:${entry.playerId}` : `official:${(seed + i * 37) % 64}:${i}`);
+  return { size: 64, slots, winners: [slots] };
+}
+
+// 玩家只打自己的比赛；其余对局用固定 seed 规则 AI 结算，整届签表因此可复现。
+export function advanceBracket(entry: AnnualEntry, playerWon: boolean): AnnualBracket | null {
+  if (!entry.bracket) entry.bracket = createBracket(entry);
+  const bracket = entry.bracket;
+  if (entry.state !== 'knockout' || bracket.winners.length < entry.round) return bracket;
+  const previous = bracket.winners[entry.round - 1] ?? bracket.slots;
+  const next: string[] = [];
+  for (let i = 0; i < previous.length; i += 2) {
+    const a = previous[i], b = previous[i + 1];
+    if (a?.startsWith('player:')) next.push(playerWon ? a : b);
+    else if (b?.startsWith('player:')) next.push(playerWon ? b : a);
+    else {
+      const hash = Math.imul(seedForMatch(entry, entry.round, i) ^ (a?.length ?? 0), 16777619) >>> 0;
+      next.push(hash % 2 === 0 ? a : b);
+    }
+  }
+  bracket.winners[entry.round] = next;
+  return bracket;
+}
+
+function seedForMatch(entry: AnnualEntry, round: number, index: number): number {
+  let h = bracketSeed(entry) ^ Math.imul(round, 2654435761) ^ index;
+  h = Math.imul(h ^ (h >>> 13), 0x5bd1e995) >>> 0;
+  return h;
 }
 
 // 海选打完三场判断；未通过为 eliminated（docs/00 §9.4.1）。
@@ -74,5 +130,6 @@ export function annualSummary(entry: AnnualEntry): Record<string, unknown> {
     id: entry.id, annualIndex: entry.annualIndex, state: entry.state,
     qualifierWins: entry.qualifierWins, qualifierCount: entry.qualifierCount, round: entry.round,
     unitIds: entry.unitIds, survivingIds: Object.keys(entry.carry), battleId: entry.battleId,
+    bracket: entry.bracket ? { size: entry.bracket.size, round: entry.bracket.winners.length - 1, remaining: entry.bracket.winners.at(-1)?.length ?? 64 } : null,
   };
 }

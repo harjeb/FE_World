@@ -8,6 +8,8 @@ import { generateMap } from '../maps/generate.ts';
 import type { Theme } from '../maps/themes.ts';
 import { tilesFromGlyphs } from '../maps/map.ts';
 import { classicMap } from './classic-catalog.ts';
+import { classicAdaptation } from './classic-adaptation.ts';
+import { assertClassicScenario } from './classic-validation.ts';
 import { ARENA_MAPS, throneOf } from '../arena/maps.ts';
 import type { ArenaMapId } from '../arena/maps.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
@@ -17,7 +19,8 @@ import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
 import { createEnemy, pickClasses } from './enemies.ts';
 import { enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
-import { QUEST_DAY_COST } from './quests.ts';
+import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
+import { QUEST_DAY_COST, QUEST_LEVEL_CAP } from './quests.ts';
 import type { Quest } from './quests.ts';
 
 export interface BattleRecord {
@@ -40,9 +43,16 @@ export interface BattleRecord {
   costDays?: number;
   // 年度大竞技场的报名（docs/13 §6）。
   annualId?: string;
+  // 挑战塔层（docs/00 §9.6）。
+  challengeId?: string;
+  // 冻结引擎/目录版本，旧回放按此判断能否安全重算。
+  rulesetVersion?: string;
+  catalogVersion?: number;
   // Arena attacks remember which day and opponent they belong to so the result can settle.
   opponentId?: string;
   arenaDay?: number;
+  // 结束时的个人日期，战报按它检索（结算时写入）。
+  endDay?: number;
   // The untouched opening board, so a stored replay can be rebuilt step by step (GET_REPLAY).
   initial: BattleState;
   state: BattleState;
@@ -86,8 +96,9 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const region = regionById(options.region);
   const dungeon = options.stageIndex !== undefined;
   const stage = options.stageIndex ?? 0;
-  const base = options.level ?? enemyLevel(options.day ?? 0, region.offset);
-  const level = dungeon ? Math.min(99, base + stage * 2) : base;
+  const cap = options.quest?.enemyLevelCap ?? QUEST_LEVEL_CAP[options.quest?.tier ?? 'standard'];
+  const base = Math.min(cap, options.level ?? enemyLevel(options.day ?? 0, region.offset));
+  const level = dungeon ? Math.min(cap, base + stage * 2) : base;
   const theme = REGION_THEMES[(options.region - 1) % REGION_THEMES.length];
   const count = Math.max(1, Math.min(FIELD_BATTLE.maxUnits, units.length));
   const quest = options.quest;
@@ -113,10 +124,14 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
   const exit = map.objective.position;
   // 连续副本每图目标不同（docs/00 §8.1.3）：探路压制、消耗战全灭、首领战斩首。
+  const configuredGoal = quest?.stageGoals?.[stage];
   const dungeonGoal: BattleState['goal'] =
-    stage === 0 ? { kind: 'seize', throne: exit }
-      : stage === 1 ? { kind: 'rout' }
-        : { kind: 'boss', target: 'e0' };
+    configuredGoal === 'seize' ? { kind: 'seize', throne: exit }
+      : configuredGoal === 'rout' ? { kind: 'rout' }
+        : configuredGoal === 'boss' ? { kind: 'boss', target: 'e0' }
+          : stage === 0 ? { kind: 'seize', throne: exit }
+            : stage === 1 ? { kind: 'rout' }
+              : { kind: 'boss', target: 'e0' };
   const goal: BattleState['goal'] = dungeon
     ? dungeonGoal
     : quest
@@ -132,6 +147,8 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     map: { width: tiles[0].length, height: tiles.length, tiles },
     units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
     goal, boxes: quest?.kind === 'gather' ? gatherBoxes(exit, tiles[0].length, tiles.length) : undefined,
+    npcRoute: quest?.kind === 'escort' ? (quest.npcRoute?.map(p => [p.x, p.y] as Point) ?? [exit]) : undefined,
+    nextObjective: quest?.nextObjective ?? (quest?.kind === 'escort' ? '护送 NPC 抵达撤离点' : undefined),
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   return {
@@ -139,7 +156,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
     costDays: quest ? QUEST_DAY_COST[quest.tier] : ACTION_DAYS.sortie,
     goalText: dungeon ? (stage === 0 ? '压制指定地点' : stage === 1 ? '消灭全部敌军' : '击败敌方主将') : quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
-    createdAt: Date.now(), updatedAt: Date.now(),
+    rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION, createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 
@@ -149,7 +166,11 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 export interface ClassicBattleOptions {
   mapId: string;
   seed: string;
+  // 出发日决定目标等级；经典图按副本曲线缩放，不再直接使用原作等级。
+  day?: number;
   quest?: Quest;
+  // 覆盖目标等级（测试/预览用）；默认按出发日计算。
+  level?: number;
   stageIndex?: number;
   runId?: string;
   carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }>;
@@ -162,9 +183,10 @@ function classicPassable(map: ReturnType<typeof classicMap>, x: number, y: numbe
 }
 
 // 出击格：优先使用原作的出击位置；不足时从这些位置向外寻找可站立格。
-function classicSpawns(map: ReturnType<typeof classicMap>, need: number): Point[] {
+function classicSpawns(map: ReturnType<typeof classicMap>, need: number, blockedByObject: Set<number>): Point[] {
   const key = (p: Point) => p[1] * map.width + p[0];
   const blocked = new Set(map.enemies.map(enemy => key(enemy.pos)));
+  for (const cell of blockedByObject) blocked.add(cell);
   const used = new Set<number>();
   const chosen: Point[] = [];
   const tryAdd = (p: Point) => {
@@ -198,9 +220,15 @@ function classicSpawns(map: ReturnType<typeof classicMap>, need: number): Point[
 }
 
 export function createClassicBattle(units: UnitRecord[], options: ClassicBattleOptions): BattleRecord {
+  assertClassicScenario(options.mapId);
   const map = classicMap(options.mapId);
   const stage = options.stageIndex ?? 0;
-  const spawns = classicSpawns(map, Math.min(8, units.length));
+  const adaptation = classicAdaptation(map.id);
+  if (units.length > adaptation.deployment.max) {
+    throw new Error(`经典地图 ${map.id} 最多出战 ${adaptation.deployment.max} 人`);
+  }
+  const objectBlocked = new Set(adaptation.objects.map(object => object.pos[1] * map.width + object.pos[0]));
+  const spawns = classicSpawns(map, Math.min(adaptation.deployment.max, units.length), objectBlocked);
   if (spawns.length === 0) throw new Error(`经典地图 ${map.id} 没有可用的出击位置`);
   const count = Math.min(units.length, spawns.length);
   const playerUnits = units.slice(0, count).map((unit, index) => {
@@ -213,11 +241,21 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     }
     return toBattleUnit(unit, 'player', unit.id, spawns[index], extra);
   });
+  const originalLevels = map.enemies.map(enemy => enemy.level).sort((a, b) => a - b);
+  const median = originalLevels[Math.floor(originalLevels.length / 2)] ?? 1;
+  const regionOffset = options.quest ? regionById(options.quest.region).offset : 0;
+  const policy = adaptation.levelPolicy;
+  const stageBonus = options.stageIndex === undefined ? adaptation.difficulty : (options.stageIndex * policy.stageBonus);
+  const baseLevel = Math.max(1, Math.min(95, (options.level ?? enemyLevel(options.day ?? 0, regionOffset)) + stageBonus));
   const enemies = map.enemies.map((enemy, index) => {
     const boss = !!enemy.boss;
+    const spread = Math.max(-policy.spread, Math.min(policy.spread, enemy.level - median));
+    const level = Math.max(1, Math.min(95, baseLevel + (boss ? policy.bossBonus : spread)));
+    const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
     return createEnemy(`e${index}`, {
-      classId: enemy.classId as Parameters<typeof createEnemy>[1]['classId'], level: Math.max(1, enemy.level),
+      classId: enemy.classId as Parameters<typeof createEnemy>[1]['classId'], level,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
+      behavior: boss ? 'hold' : guard ? 'guard' : undefined,
     });
   });
   if (enemies.length === 0) throw new Error(`经典地图 ${map.id} 没有初始敌军`);
@@ -233,6 +271,13 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     map: { width: map.width, height: map.height, tiles: map.terrain.map(row => [...row]) },
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: options.quest?.turnLimit ?? map.turnLimit,
     phase: 'player', goal,
+    objects: adaptation.objects.map(object => structuredClone(object)),
+    loot: [],
+    scenario: {
+      id: map.id, adapterVersion: adaptation.adapterVersion, sourceSha256: adaptation.sourceSha256,
+      baseLevel, events: structuredClone(adaptation.events), mapChanges: structuredClone(adaptation.mapChanges),
+      fired: [], flags: [],
+    },
     rng: seedRng(`${options.seed}:classic:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   return {
@@ -241,19 +286,21 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     stageIndex: options.stageIndex, questId: options.quest?.id,
     costDays: options.quest?.costDays ?? (options.quest ? QUEST_DAY_COST[options.quest.tier] : ACTION_DAYS.sortie),
     goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
-    createdAt: Date.now(), updatedAt: Date.now(),
+    rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION, createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 
 // 大竞技场 (docs/00 §9.4): the player's squad attacks an official bracket team on an arena map.
 // `round` 1–3 are the qualifiers, 4–9 the knockout rounds. Arena kind: no per-hit experience.
 // 大竞技场每轮的地图：海选 1–3 平原，正赛逐步换成隘口、林地与王城。每场按名单顺序出战前 deploy 人。
-export function festivalMapId(round: number): ArenaMapId {
-  return round <= 3 ? 'plains' : round <= 5 ? 'pass' : round <= 7 ? 'woods' : 'castle';
+export function festivalMapId(round: number, edition = 0): ArenaMapId {
+  const tier = round <= 3 ? 0 : round <= 5 ? 1 : round <= 7 ? 2 : 3;
+  const offset = round <= 3 ? 0 : edition % 4;
+  return (['plains', 'pass', 'woods', 'castle'] as ArenaMapId[])[(tier + offset) % 4];
 }
 
-export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; annualId?: string; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
-  const map = ARENA_MAPS[festivalMapId(round)];
+export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; annualId?: string; edition?: number; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
+  const map = ARENA_MAPS[festivalMapId(round, opts.edition ?? 0)];
   const level = Math.min(99, enemyLevel(opts.day ?? 0) + Math.floor((round - 1) / 2));
   const tiles = tilesFromGlyphs(map.rows);
   const count = Math.max(1, Math.min(units.length, map.deploy));

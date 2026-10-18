@@ -5,6 +5,8 @@ import type { ClassId, ClassRoute } from '../data/classes.ts';
 import { STAT_KEYS } from '../data/types.ts';
 import type { StatKey, Stats } from '../data/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
+import { CHARACTER_IDS } from '../data/characters.ts';
+import type { CharacterId } from '../data/characters.ts';
 import type { RngState } from '../engine/rng.ts';
 
 // 随机招募角色的成长率生成（docs/00 §3.4「随机角色」）。用户定案：
@@ -76,10 +78,10 @@ export function regionRoutes(regionId: number): ClassRoute[] {
 }
 
 // 入队等级：用户定案——第二年结束时到顶 30，之后固定 30，剩下靠自己练。
-// 一年 120 天，day/8 每天 +1 级，240 天正好 30 级。
+// 一年 500 天；第二年结束（D1000）到顶 30，之后固定 30。
 export const RECRUIT_LEVEL_CAP = 30;
 export function recruitLevel(day: number): number {
-  return Math.min(RECRUIT_LEVEL_CAP, 1 + Math.floor(Math.max(0, day) / 8));
+  return Math.min(RECRUIT_LEVEL_CAP, 1 + Math.floor(Math.max(0, day) / 34));
 }
 // 招募职业阶段（用户定案「上级也允许」）：等级越高越可能拿到上级职业。
 // Lv1–9 初级、10–19 二级、20–29 三级、30+ 四级，取该路线第一条进阶链。
@@ -87,9 +89,13 @@ export function recruitClass(route: ClassRoute, level: number): ClassId {
   const path = CLASS_PATHS[route][0];
   return path[Math.min(path.length - 1, Math.floor(Math.max(0, level) / 10))];
 }
-// 酒馆解锁（用户定案「第二年」）：一年 120 天。注意演示存档 SEED_DAY=209 已在第二年，
-// 对新演示账号等于开局就解锁；正式开局按个人日历走。
-export const RECRUIT_UNLOCK_DAY = 120;
+// 酒馆解锁（用户定案「第二年」）：一年 500 天，第二年从 D500 开始。
+export const RECRUIT_UNLOCK_DAY = 500;
+
+// 随机角色的形象锚点（也是个人技能锚点），与加入时用同一个种子，候选阶段就能显示同一张脸。
+export function recruitPortrait(seed: string): CharacterId {
+  return CHARACTER_IDS[seedRng(`recruit-traits:${seed}`)[2] % CHARACTER_IDS.length];
+}
 const ARCHETYPE_ROUTES: { value: ClassRoute[]; weight: number }[] = [
   { weight: 40, value: ['sword', 'axe', 'fist'] },
   { weight: 20, value: ['bow', 'stealth'] },
@@ -164,18 +170,33 @@ function pickClass(rng: RngState, species: RandomRecruit['species'], allowed: Cl
   return initialClass(routes[nextU32(rng) % routes.length]);
 }
 
-// 名字池只是首稿占位，可整体替换。兽／龙不给姓。
-const SURNAMES = ['林', '苏', '陆', '沈', '程', '顾', '叶', '韩', '许', '钟', '秦', '萧', '方', '白', '江', '温', '裴', '薛', '黎', '霍'];
-const GIVEN_MALE = ['岳', '衡', '砚', '骁', '珩', '屿', '彻', '钧', '朔', '岐', '柏', '隼', '棠', '琛', '临'];
-const GIVEN_FEMALE = ['苓', '薇', '瑶', '荞', '澜', '瑾', '纭', '曦', '蝉', '绫', '菡', '笺', '柠', '黛', '栖'];
-const BEAST_NAMES = ['灰鬃', '断牙', '铁蹄', '赤爪', '孤嗥', '石脊', '夜行', '裂耳', '沉角', '霜背'];
-const DRAGON_NAMES = ['苍鳞', '曜瞳', '沉渊', '白垠', '陨爪', '长眠', '穹翼', '焚息', '灰烬', '渊牙'];
+// 名字池只是首稿，可整体替换：西方幻想风格的音译名，人类为「名·姓」，兽人与龙人用种族风格的单名。
+// 避开固定人物的名字（艾琳、卡尔、维克托……），名字最后抽取，不影响其它随机结果。
+const GIVEN_MALE = [
+  '阿德里安', '奥斯温', '巴尔德', '本尼迪克', '卡斯珀', '达里安', '埃德蒙', '法恩', '加雷斯', '哈尔多',
+  '贾斯帕', '凯兰', '兰德尔', '马库斯', '奈杰尔', '奥瑞克', '珀西瓦尔', '昆廷', '拉格纳', '塞德里克',
+  '塔里克', '瓦伦丁', '泽维尔', '艾德温', '伯纳德', '席恩', '托里安', '布兰德', '康拉德', '德里克',
+  '埃里克', '芬恩', '格兰特', '亨德里克', '伊万', '约瑟', '凯尔', '洛根', '马蒂亚斯', '西奥',
+];
+const GIVEN_FEMALE = [
+  '阿德拉', '贝娅特丽丝', '布琳', '卡莉丝', '塞西莉亚', '黛芙妮', '埃莉诺', '菲奥娜', '弗蕾雅', '格温',
+  '海伦娜', '伊索尔德', '茱莉亚', '凯拉', '梅里达', '妮维娅', '奥菲莉亚', '佩妮洛普', '罗莎琳', '西尔维娅',
+  '塔丽莎', '尤菲米娅', '薇薇安', '温妮', '伊薇特', '泽菲拉', '索菲娅', '娜塔莉', '奥黛特', '维奥拉',
+  '萝温娜', '玛蒂尔达', '赫尔加', '伊莲', '诺拉', '黛安娜', '芙洛拉', '吉赛尔', '艾薇', '克拉拉',
+];
+const FAMILY_NAMES = [
+  '霍克', '斯通', '格雷', '温特', '阿什', '布伦', '卡弗', '达尔', '埃弗', '哈特',
+  '凯恩', '洛克', '默瑟', '诺斯', '奥克', '奎因', '罗斯', '索恩', '塔尔', '维尔',
+  '沃德', '雅尔', '泽恩', '莫兰', '贝恩', '克罗', '弗林', '海尔', '兰登', '斯塔克',
+];
+const BEAST_NAMES = ['格罗克', '乌尔夫', '布鲁恩', '卡格', '拉克沙', '莫格', '霍格', '斯卡尔', '芬里克', '加斯克', '托格', '瓦尔格', '鲁克', '奥格兰'];
+const DRAGON_NAMES = ['瓦拉西恩', '赛勒克斯', '伊格瑞斯', '阿兹瑞尔', '莫德瑞丝', '卡里欧斯', '泰兰妮', '奥克修斯', '薇瑟拉', '德拉格隆', '萨菲罗', '艾瑟林'];
 
 function rollName(rng: RngState, species: RandomRecruit['species'], sex: 'male' | 'female'): string {
   if (species === 'beast') return BEAST_NAMES[nextU32(rng) % BEAST_NAMES.length];
   if (species === 'dragon') return DRAGON_NAMES[nextU32(rng) % DRAGON_NAMES.length];
   const given = sex === 'male' ? GIVEN_MALE : GIVEN_FEMALE;
-  return SURNAMES[nextU32(rng) % SURNAMES.length] + given[nextU32(rng) % given.length];
+  return `${given[nextU32(rng) % given.length]}·${FAMILY_NAMES[nextU32(rng) % FAMILY_NAMES.length]}`;
 }
 
 // 入口：一个种子生成一个完整随机角色（种族／职业／姓名／固定个人成长）。

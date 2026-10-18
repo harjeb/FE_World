@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { WEAPONS } from '@common/data/weapons.ts';
+import type { WeaponId } from '@common/data/weapons.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { ICONS } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
@@ -11,12 +14,15 @@ import { itemName, stock, useAct } from './SystemParts.tsx';
 type Recipe = ServerProduction['recipes'][number];
 type Facility = ServerProduction['facilities'][number];
 const MATERIALS = ['seed', 'herb', 'ore', 'wood'] as const;
+// 完美锻造：额外 1,500 金币，产出的武器第一次交给角色时耐久 +10（handlers.ts START_PRODUCTION）。
+const PERFECT_GOLD = 1_500;
 
 // 生产 (docs/00 §9.2): 种子→药草→伤药，矿石＋木材→铁匠铺→武器. Orders ripen on the personal calendar;
 // collecting never moves the date. Planting spends a day, brewing and forging only hold a slot.
 export function WorkshopPage() {
   const { production, state } = useSession();
   const { busy, act } = useAct();
+  const [perfect, setPerfect] = useState<Record<string, boolean>>({});
   if (!production || !state) {
     return <Shell current="workshop"><p style={{ color: '#4E473D' }}>暂时读不到生产信息（GET_PRODUCTION），刷新页面再试。</p></Shell>;
   }
@@ -35,7 +41,7 @@ export function WorkshopPage() {
       <li key={order.id} className={`order ${order.state}`}>
         <img className="px" src={itemIcon(recipe?.output.item ?? '')} width={32} height={32} alt="" />
         <div className="min-w-0">
-          <div className="nm">{order.recipe} <span className="muted">→ {order.output}</span></div>
+          <div className="nm">{order.recipe} <span className="muted">→ {order.output}</span>{order.quality === 'perfect' && <span className="tag tag-brass">完美锻造</span>}</div>
           {order.state === 'ready'
             ? <div className="sp">已成熟，领取不推进日期</div>
             : <div className="sp ord-prog"><span className="bar grow"><i style={{ width: `${((span - left) / span) * 100}%` }} /></span>还要 {left} 日 · {plainDate(order.readyDay)}</div>}
@@ -58,10 +64,13 @@ export function WorkshopPage() {
     const lockWhy = !recipe.unlocked && req
       ? `需要 ${regions.find(r => r.id === req.region)?.name ?? `地区${req.region}`} 声望 ${req.reputation}`
       : null;
-    const why = lockWhy ?? (full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}` : null);
+    const forge = recipe.kind === 'forge' && WEAPONS[recipe.output.item as WeaponId] !== undefined;
+    const fine = forge && !!perfect[recipe.id];
+    const why = lockWhy ?? (full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}`
+      : fine && state!.gold < PERFECT_GOLD ? `完美锻造需要 ${PERFECT_GOLD.toLocaleString()} 金币` : null);
     const run = plant
       ? () => session.run<{ day: number }>(OP.PLANT)
-      : () => session.run(OP.START_PRODUCTION, { recipeId: recipe.id });
+      : () => session.run(OP.START_PRODUCTION, { recipeId: recipe.id, ...(fine ? { perfect: true } : {}) });
     return (
       <li key={recipe.id} className="recipe">
         <img className="px" src={itemIcon(recipe.output.item)} width={32} height={32} alt="" />
@@ -74,10 +83,16 @@ export function WorkshopPage() {
             <span>{recipe.days} 日成熟</span>
             {plant && <span className="cost"><img className="px" src={ICONS.hourglass} width={12} height={12} alt="" />播种 1 日 → {advance(day, 1).label}</span>}
           </div>
+          {forge && (
+            <label className="perfect">
+              <input type="checkbox" checked={fine} onChange={e => setPerfect(p => ({ ...p, [recipe.id]: e.target.checked }))} />
+              完美锻造 +{PERFECT_GOLD.toLocaleString()} 金：第一次交给角色时耐久 +10（如 40 → 50），维修回到新的上限
+            </label>
+          )}
           {why && <div className="why">{why}</div>}
         </div>
         <button type="button" className="btn btn-sm" disabled={busy !== null || !!why}
-          onClick={() => void act(recipe.id, run, () => (plant ? `播下种子，${recipe.days} 日后收获药草` : `${facility.name}开工：${recipe.name}`))}>
+          onClick={() => void act(recipe.id, run, () => (plant ? `播下种子，${recipe.days} 日后收获药草` : `${facility.name}开工：${recipe.name}${fine ? '（完美锻造）' : ''}`))}>
           {busy === recipe.id ? '开工中…' : !recipe.unlocked ? '未解锁' : plant ? '播种' : '开工'}
         </button>
       </li>
@@ -126,7 +141,51 @@ export function WorkshopPage() {
           );
         })}
       </div>
-      <p className="sys-note">首版两条生产链；产量、周期与工位数量仍是草案。完美锻造与耐久、维修尚未启用。</p>
+      <RepairList />
+      <p className="sys-note">产量、周期与工位数量是首版数值；配方按地区声望解锁。物理武器的战技消耗耐久，维修只恢复到它已有的上限；完美锻造的 +10 不会叠第二次。</p>
     </Shell>
+  );
+}
+
+// 铁匠铺 · 维修（REPAIR_ITEM）：全名册里耐久没满的武器和次数没满的杖，在这里或整备里都能修。
+function RepairList() {
+  const { state } = useSession();
+  const { busy, act } = useAct();
+  if (!state) return null;
+  interface Row { unit: typeof state.units[number]; id: string; now: number; max: number; cost: number; staff: boolean }
+  const rows: Row[] = state.units.filter(u => u.status === 'active').flatMap(unit => {
+    const seen = new Set<string>();
+    return unit.snapshot.weapons.flatMap((id): Row[] => {
+      if (seen.has(id)) return [];
+      seen.add(id);
+      const staff = WEAPONS[id as WeaponId].type === 'staff';
+      if (staff) {
+        const book = unit.bookInstances.find(b => b.id === id && b.charges < b.maxCharges);
+        return book ? [{ unit, id, now: book.charges, max: book.maxCharges, cost: 150 + (book.maxCharges - book.charges) * 20, staff }] : [];
+      }
+      if (WEAPONS[id as WeaponId].type === 'tome') return [];
+      const worn = unit.weaponInstances.filter(w => w.id === id && w.durability < w.maxDurability);
+      if (worn.length === 0) return [];
+      const max = Math.max(...worn.map(w => w.maxDurability));
+      return [{ unit, id, now: Math.min(...worn.map(w => w.durability)), max, cost: 100 + max * 5, staff }];
+    });
+  });
+  return (
+    <section className="panel" aria-labelledby="rep-h">
+      <div className="ph"><h2 id="rep-h">铁匠铺 · 维修</h2><span style={{ fontSize: 12, color: '#6A6256' }}>不推进日期</span></div>
+      <ul className="eq">
+        {rows.map(r => (
+          <li key={`${r.unit.id}:${r.id}`}>
+            <img className="px" src={itemIcon(r.id)} width={32} height={32} alt="" />
+            <div className="min-w-0"><div className="nm">{r.unit.name} · {WEAPONS[r.id as WeaponId].name}</div><div className="sp">{r.staff ? '次数' : '耐久'} {r.now} / {r.max}</div></div>
+            <button type="button" className="btn btn-sm" disabled={busy !== null || state.gold < r.cost}
+              onClick={() => void act(`${r.unit.id}:${r.id}`, () => session.run(OP.REPAIR_ITEM, { unitId: r.unit.id, item: r.id }), () => `${r.unit.name}的${WEAPONS[r.id as WeaponId].name}已${r.staff ? '补满' : '修好'}，金币 −${r.cost}`)}>
+              {busy === `${r.unit.id}:${r.id}` ? '维修中…' : `${r.staff ? '补充' : '维修'} ${r.cost} 金`}
+            </button>
+          </li>
+        ))}
+        {rows.length === 0 && <li className="empty-row">没有需要维修的武器或杖。</li>}
+      </ul>
+    </section>
   );
 }

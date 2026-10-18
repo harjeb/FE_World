@@ -41,6 +41,14 @@ export const ScrollIcon = () => (
 );
 export const CandleIcon = () => <Icon stroke={1.8}><path d="M12 3c1.6 1.8 1.6 3.4 0 4.6-1.6-1.2-1.6-2.8 0-4.6z" /><rect x="9" y="9.5" width="6" height="9" rx="1" /><path d="M6 21h12" /></Icon>;
 export const CycleIcon = () => <Icon stroke={1.8}><path d="M4.5 12a7.5 7.5 0 0 1 13-5.1" /><path d="M17.5 3.5v3.5H14" /><path d="M19.5 12a7.5 7.5 0 0 1-13 5.1" /><path d="M6.5 20.5V17H10" /></Icon>;
+// 酒馆 / 派遣 / 挑战塔 and the battle commands added with the 战技・法术 runtime.
+export const MugIcon = () => <Icon stroke={1.8}><path d="M5 8h10v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z" /><path d="M15 10h2a2.5 2.5 0 0 1 0 5h-2" /><path d="M7 5c0-1 1-1.5 1-2.5M10.5 5c0-1 1-1.5 1-2.5" /></Icon>;
+export const CompassIcon = () => <Icon stroke={1.8}><circle cx="12" cy="12" r="8.5" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></Icon>;
+export const TowerIcon = () => <Icon stroke={1.8}><path d="M7 21V9l-1.5-2V4h3v1.5h2V4h3v1.5h2V4h3v3L17 9v12" /><path d="M5 21h14" /><path d="M10.5 21v-4a1.5 1.5 0 0 1 3 0v4" /><path d="M11 11h2" /></Icon>;
+export const ArtIcon = () => <Icon><path d="M4 20l9-9" /><path d="M13 11l2-6 2 2-1 3 3-1 2 2-6 2" /><path d="M5 15l4 4" /></Icon>;
+export const SpellIcon = () => <Icon><path d="M5 19l9-9" /><path d="M15 4l1 2.5L18.5 7 16 8l-1 2.5L14 8l-2.5-1L14 6.5z" /><path d="M19 13l.6 1.4L21 15l-1.4.6L19 17l-.6-1.4L17 15l1.4-.6z" /></Icon>;
+export const StaffIcon = () => <Icon><path d="M7 21L16.5 8.5" /><circle cx="17.5" cy="6.5" r="2.5" /><path d="M20.5 3.5l-1 1M14.5 3.5l1 1M20.5 9.5l-1-1" /></Icon>;
+export const DanceIcon = () => <Icon><path d="M9 18V6l10-2v12" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="16.5" cy="16" r="2.5" /></Icon>;
 export const LockIcon = () => <Icon><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></Icon>;
 export const EyeIcon = () => <Icon><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /></Icon>;
 export const BackIcon = () => <Icon><path d="M15 6l-6 6 6 6" /></Icon>;

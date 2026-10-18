@@ -14,8 +14,14 @@ export function describeAction(state: BattleState, action: ActAction): string {
   switch (action.act) {
     case 'attack': return `${moved ? '移动后' : ''}攻击 ${displayName(state, action.target)} · ${WEAPONS[action.weapon].name}`;
     case 'heal': return `${moved ? '移动后' : ''}治疗 ${displayName(state, action.target)} · ${WEAPONS[action.weapon].name}`;
-    case 'item': return '使用伤药';
+    case 'item': return '使用道具';
     case 'seize': return '压制王座';
+    case 'escape': return '撤离战场';
+    case 'interact': return `${moved ? '移动后' : ''}使用物件`;
+    case 'dance': return `为 ${displayName(state, action.target)} 起舞`;
+    case 'art': return `${moved ? '移动后' : ''}战技 · ${displayName(state, action.target)} · ${WEAPONS[action.weapon].name}`;
+    case 'cast': return `${moved ? '移动后' : ''}施法 · ${displayName(state, action.target)}`;
+    case 'staff': return `${moved ? '移动后' : ''}用杖 · ${displayName(state, action.target)} · ${WEAPONS[action.weapon].name}`;
     default: return moved ? `移动到 (${action.to[0]},${action.to[1]})，待机` : '原地待机';
   }
 }

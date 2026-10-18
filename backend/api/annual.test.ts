@@ -58,7 +58,7 @@ test('the annual arena runs three qualifiers then a six-round knockout', () => {
   const ctx = ctxFor(store, accountId, player);
   empower(store, player);
   const view = dispatch(ctx, OP.GET_ANNUAL, {}) as { annualIndex: number; windowOpen: boolean; entry: unknown };
-  assert.equal(view.annualIndex, 1);
+  assert.equal(view.annualIndex, 2);
   assert.equal(view.windowOpen, true);
   assert.equal(view.entry, null);
   const registered = dispatch(ctx, OP.REGISTER_ANNUAL, {}) as { entry: { state: string; id: string } };
@@ -90,9 +90,10 @@ test('story chapters open on the personal calendar and pay once', () => {
   const ctx = ctxFor(store, accountId, player);
   const story = dispatch(ctx, OP.GET_STORY, {}) as { chapters: { chapter: number; available: boolean; completed: boolean; claimed: boolean }[] };
   assert.equal(story.chapters.length, 8);
-  assert.equal(story.chapters[0].available, true, 'chapter 1 is open at day 209');
-  assert.equal(story.chapters[1].available, false, 'chapter 2 opens at day 240');
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 2 }), /尚未开放/);
+  assert.equal(story.chapters[0].available, true, 'chapter 1 is open at day 999');
+  assert.equal(story.chapters[1].available, true, 'chapter 2 opens at day 982');
+  assert.equal(story.chapters[2].available, false, 'chapter 3 opens at day 1482');
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 3 }), /尚未开放/);
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
   const bexp = player.bexp;
   const claimed = dispatch(ctx, OP.CLAIM_REWARD, { rewardKey: 'chapter:1' }) as { bexp: number };

@@ -1,58 +1,44 @@
 import { useState } from 'react';
-import { CHARACTERS } from '@common/data/characters.ts';
 import { CLASSES, classUnavailableReason, hasClassQualification } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
-import { GROWTH_TYPE_NAMES } from '@common/data/growth-types.ts';
+import { promotionsFor } from '@common/data/promotions.ts';
+import type { Promotion } from '@common/data/promotions.ts';
 import { MOVE_TYPE_NAMES, STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { weaponIcon } from '../assets.ts';
-import { session } from '../api/session.ts';
-import { promotionsFor } from '../demo/promotions.ts';
-import { serverUnit, UNIT_TRAITS } from '../demo/live.ts';
-import type { Promotion } from '../demo/promotions.ts';
-import { ROSTER, rosterEntry } from '../demo/roster.ts';
-import type { RosterEntry } from '../demo/roster.ts';
+import { session, useSession } from '../api/session.ts';
+import type { ClassMarketRow, ServerUnit } from '../api/session.ts';
+import { useServerData } from '../api/useServerData.ts';
+import { busyReason } from '../model/roster.ts';
 import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { CheckIcon } from '../ui/icons.tsx';
 import { toast } from '../ui/toast.tsx';
 import { asUnit, combatLine } from './profile.ts';
-import { Portrait, ProfileTabs } from './RosterParts.tsx';
+import { ProfileTabs } from './RosterParts.tsx';
+import { UnitFace } from './SystemParts.tsx';
 
-const delta = (d: number) => (d > 0 ? <i className="d-up">+{d}</i> : d < 0 ? <i className="d-dn">−{-d}</i> : <i className="d-eq">—</i>);
 const trend = (d: number) => (d > 0 ? <i className="d-up">▲{d}</i> : d < 0 ? <i className="d-dn">▼{-d}</i> : <i className="d-eq">=</i>);
 
-function OptionCard({ entry, option, chosen, onPick }: { entry: RosterEntry; option: Promotion; chosen: boolean; onPick: () => void }) {
-  const { unit } = entry;
-  const def = CHARACTERS[unit.character], cls = CLASSES[unit.classId];
-  const after = { ...unit, classId: option.to, stats: { ...unit.stats }, con: unit.con + option.con };
-  // 成长类型/年龄修正与职业无关，转职前后都一样 (docs/02)。
-  const bonus = UNIT_TRAITS[unit.id ?? unit.character]?.growthBonus ?? 0;
-  for (const key of STAT_KEYS) after.stats[key] += option.bonus[key];
+function OptionCard({ unit, option, market, chosen, onPick }: { unit: ServerUnit; option: Promotion; market: ClassMarketRow[] | null; chosen: boolean; onPick: () => void }) {
+  const cls = CLASSES[unit.classId as ClassId];
+  const after = { ...unit.snapshot, classId: option.to, stats: { ...unit.snapshot.stats } };
   const line = combatLine(asUnit(after), option.mods);
-  // 转职不赠送即时属性或体格 (docs/00 §5)；转职表里真有加成时才列出来。
-  const gains: [string, number, number][] = [
-    ...STAT_KEYS.map(k => [STAT_NAMES[k], unit.stats[k], option.bonus[k]] as [string, number, number]),
-    ['体格', unit.con, option.con],
-  ].filter(([, , d]) => d !== 0) as [string, number, number][];
+  // 合计成长：服务端按该职业重算的数值（含个人、分配、装备与年龄修正），转职前后都用同一来源。
+  const next = market?.find(c => c.id === option.to)?.growth ?? null;
+  const owned = hasClassQualification(unit.classQualifications as ClassId[], option.to);
   return (
     <section className={`opt${chosen ? ' on' : ''}`} aria-label={option.name}>
       <div className="o-head">
         <img className="px" src={weaponIcon(Object.keys(option.weapons)[0] as WeaponType)} width={48} height={48} alt="" />
         <div className="min-w-0 flex-1">
           <h2 className="serif o-name">{option.name}</h2>
-          <div className="o-tag">{option.tagline}</div>
+          <div className="o-tag">{option.tagline} · {owned ? <b style={{ color: '#45603B' }}>已拥有资格</b> : '尚未购买资格'}</div>
         </div>
         <button type="button" className="btn pick" aria-pressed={chosen} onClick={onPick}>{chosen ? '✓ 已选择' : `选择${option.name}`}</button>
       </div>
-      {gains.length > 0 && <div className="o-sec">
-        <div className="o-k"><span>立即获得 · 转职加成</span><span style={{ fontWeight: 500 }}>当前 → 转职后</span></div>
-        <div className="gain">
-          {gains.map(([k, from, d]) => <div key={k}><span>{k}</span><b>{from} → {from + d}</b>{delta(d)}</div>)}
-        </div>
-      </div>}
       <div className="o-sec">
         <dl className="perm">
           <dt>武器</dt>
@@ -65,13 +51,12 @@ function OptionCard({ entry, option, chosen, onPick }: { entry: RosterEntry; opt
         </dl>
       </div>
       <div className="o-sec">
-        <div className="o-k"><span>今后成长率 · 合计（个人 + 职业）</span><span style={{ fontWeight: 500 }}>与{cls.name}相比</span></div>
-        <div className="grow">
-          {STAT_KEYS.map(k => {
-            const now = Math.max(0, def.growth[k] + cls.growth[k] + bonus), next = Math.max(0, def.growth[k] + option.growth[k] + bonus);
-            return <div key={k}><span>{STAT_NAMES[k]}</span><b>{next}% {trend(next - now)}</b></div>;
-          })}
-        </div>
+        <div className="o-k"><span>今后的合计成长</span><span style={{ fontWeight: 500 }}>与{cls.name}相比</span></div>
+        {next
+          ? <div className="grow">
+            {STAT_KEYS.map(k => <div key={k}><span>{STAT_NAMES[k]}</span><b>{next[k]}% {trend(next[k] - (unit.totalGrowth[k] ?? 0))}</b></div>)}
+          </div>
+          : <p style={{ fontSize: 13, color: '#6A6256' }}>读取服务端成长…</p>}
       </div>
       <div className="o-sec" style={{ fontSize: 13, color: '#4E473D' }}>
         {line
@@ -82,59 +67,59 @@ function OptionCard({ entry, option, chosen, onPick }: { entry: RosterEntry; opt
   );
 }
 
-// Five class stages share one character level, from 1 through 99.
-export function PromotePage({ unit }: { unit: string }) {
-  const entry = rosterEntry(unit) ?? ROSTER[0];
-  const options = promotionsFor(entry.unit.classId);
+// Five class stages share one character level, from 1 through 99. Promotion is SWITCH_CLASS to the next
+// stage: it needs the qualification, keeps level, experience and attributes, and only changes later growth.
+export function PromotePage({ unit: wanted }: { unit: string }) {
+  const { state, annual } = useSession();
+  const active = state?.units.filter(u => u.status === 'active') ?? [];
+  const unit = active.find(u => u.id === wanted) ?? active.find(u => u.character === wanted);
+  const { data: market } = useServerData(() => (unit ? session.classMarket(unit.id) : Promise.resolve(null)), [unit?.id]);
   const [pick, setPick] = useState(0);
-  const chosen = options[Math.min(pick, options.length - 1)];
-  const cls = CLASSES[entry.unit.classId];
-  const name = entry.unit.name;
   const [busy, setBusy] = useState(false);
-  const live = serverUnit(entry.unit.id ?? entry.unit.character);
-  const qualified = !!live && !!chosen && hasClassQualification(live.classQualifications as ClassId[], chosen.to);
-  const ready = !!live && live.status === 'active' && !!chosen && qualified && !classUnavailableReason(chosen.to);
+  if (!unit) return <Shell current="roster"><p style={{ color: '#4E473D' }}>找不到这名角色。</p></Shell>;
+  const options = promotionsFor(unit.classId as ClassId);
+  const chosen = options[Math.min(pick, options.length - 1)];
+  const cls = CLASSES[unit.classId as ClassId];
+  const qualified = !!chosen && hasClassQualification(unit.classQualifications as ClassId[], chosen.to);
+  const away = busyReason(unit, annual);
+  const ready = !!chosen && qualified && !classUnavailableReason(chosen.to) && !away;
   return (
     <Shell current="roster">
       <section className="panel" aria-labelledby="who-h">
         <div className="flex flex-wrap items-center gap-3.5" style={{ padding: '12px 16px' }}>
-          <div className="pf ally" style={{ width: 66, height: 66 }}><Portrait entry={entry} size={64} /></div>
+          <UnitFace unit={unit} size={64} />
           <div style={{ flex: 1, minWidth: 240 }}>
             <div className="flex flex-wrap items-baseline gap-2.5">
-              <h1 id="who-h" className="serif" style={{ fontSize: 24 }}>{name} · 转职</h1>
-              <span className="tag tag-grey">{cls.name} · {cls.stage} 阶 · Lv {entry.unit.level}</span>
-              <span className="tag tag-grey">{UNIT_TRAITS[entry.unit.id ?? entry.unit.character]?.growthTypeName ?? GROWTH_TYPE_NAMES[CHARACTERS[entry.unit.character].growthType]}</span>
+              <h1 id="who-h" className="serif" style={{ fontSize: 24 }}>{unit.name} · 转职</h1>
+              <span className="tag tag-grey">{cls.name} · {cls.stage} 阶 · Lv {unit.level}</span>
+              <span className="tag tag-grey">{unit.growthTypeName}</span>
             </div>
-            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>查看推荐职业，保留总等级与经验。人物最高 Lv99，HP 上限150，其他属性上限99。</div>
+            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>推荐的下一阶职业；转职保留总等级与经验。人物最高 Lv99，HP 上限 150，其他属性上限 99。</div>
           </div>
         </div>
-        <ProfileTabs entry={entry} current="promote" />
+        <ProfileTabs unit={unit} current="promote" />
         <div className="cond">
-          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? '可预览推荐职业' : '此推荐路径暂无后续职业，可在职业资格中选择其他职业。'}</span>
-          <span>任何职业均可升至 Lv99。转职保留等级、经验和已有属性，只改变后续成长。</span>
-          <span>按年份开放后购买资格，已购资格可免费切换；推荐路径不是购买其他职业的前置条件。</span>
-          {chosen && !qualified && <a href={links.roster(entry.unit.id ?? entry.unit.character, 'classes')}>尚未拥有该资格，前往职业资格购买。</a>}
+          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? (qualified ? '已拥有资格，可以转职' : '需要先购买资格') : '这条路线没有后续职业，可在职业资格里选择其他职业。'}</span>
+          <span>任何职业都能升到 Lv99。转职保留等级、经验和已有属性，只改变之后的成长与武器上限。</span>
+          {away && <span>{unit.name}{away}，现在不能换职。</span>}
+          {chosen && !qualified && <a href={links.roster(unit.id, 'classes')}>前往职业资格购买「{chosen.name}」。</a>}
         </div>
       </section>
 
       <div className="opts">
-        {options.map((o, i) => <OptionCard key={o.name} entry={entry} option={o} chosen={o === chosen} onPick={() => setPick(i)} />)}
+        {options.map((o, i) => <OptionCard key={o.to} unit={unit} option={o} market={market?.classes ?? null} chosen={o === chosen} onPick={() => setPick(i)} />)}
       </div>
 
       {chosen && <section className="panel promo-confirm" aria-label="确认转职">
         <img className="px" src={weaponIcon(Object.keys(chosen.weapons)[0] as WeaponType)} width={32} height={32} alt="" />
         <div style={{ flex: 1, minWidth: 260 }}>
           <div style={{ fontSize: 15, fontWeight: 700 }}>已选择：{cls.name} → {chosen.name}</div>
-          <div style={{ fontSize: 13, color: '#4E473D' }}>
-            转职不会补发属性或经验。可以保持当前职业一直升到 Lv99。
-          </div>
+          <div style={{ fontSize: 13, color: '#4E473D' }}>转职不会补发属性或经验，也可以保持当前职业一直升到 Lv99。</div>
         </div>
-        <a className="btn btn-ghost" href={links.roster(entry.unit.id ?? entry.unit.character)}>暂不转职</a>
+        <a className="btn btn-ghost" href={links.roster(unit.id)}>暂不转职</a>
         <button type="button" className="btn btn-primary btn-lg" disabled={!ready || busy} onClick={async () => {
-          const u = serverUnit(entry.unit.id ?? entry.unit.character);
-          if (!u) return;
           setBusy(true);
-          try { await session.run(OP.PROMOTE, { unitId: u.id, promotion: chosen.to }); setPick(0); toast(`已转职为${chosen.name}`); }
+          try { await session.run(OP.PROMOTE, { unitId: unit.id, promotion: chosen.to }); setPick(0); toast(`已转职为${chosen.name}`); }
           catch (e) { toast(`转职失败：${e instanceof Error ? e.message : String(e)}`); }
           finally { setBusy(false); }
         }}>确认转职为{chosen.name}</button>

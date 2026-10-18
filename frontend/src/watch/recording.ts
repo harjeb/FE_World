@@ -26,7 +26,9 @@ export interface Recording {
 // The unit an event starts acting with, if it is an action event.
 function actorOf(e: BattleEvent): string | null {
   switch (e.t) {
-    case 'move': case 'wait': case 'seize': return e.unit;
+    case 'move': case 'wait': case 'seize': case 'spawn': case 'dance': case 'cast': return e.unit;
+    case 'object': return e.by;
+    case 'treasure': case 'hazard': case 'status': return e.unit;
     case 'combat': return e.attacker;
     case 'heal': return e.source === 'terrain' ? null : e.by;
     default: return null;
@@ -97,9 +99,45 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
         }
         break;
       }
-      case 'wait': case 'seize':
+      case 'wait': case 'seize': case 'cast':
         unit(e.unit).acted = true;
         break;
+      case 'dance':
+        unit(e.unit).acted = true;
+        unit(e.target).acted = false;
+        break;
+      case 'shield':
+        unit(e.unit).petrified = true;
+        break;
+      case 'object': {
+        const object = d.objects?.find(o => o.id === e.object);
+        if (object) object.state = e.state;
+        if (e.state === 'destroyed' && object) d.map.tiles[object.pos[1]][object.pos[0]] = 'floor';
+        break;
+      }
+      case 'spawn':
+        if (!d.units.some(u => u.id === e.unit)) d.units.push(structuredClone(e.spawned));
+        break;
+      case 'treasure': case 'scenario':
+        break;
+      case 'hazard': {
+        const u = unit(e.unit);
+        u.hp = e.hpAfter;
+        if (e.kind === 'petrified') u.petrified = true;
+        break;
+      }
+      case 'status': {
+        const u = unit(e.unit);
+        if (e.status === 'petrified') u.petrified = e.active;
+        else {
+          u.statuses ??= {};
+          if (e.status === 'sleep') u.statuses.sleep = e.active || undefined;
+          else if (e.active) u.statuses[e.status] = e.turns ?? 3;
+          else delete u.statuses[e.status];
+          if (Object.keys(u.statuses).length === 0) delete u.statuses;
+        }
+        break;
+      }
       case 'end':
         d.result = { winner: e.winner, reason: e.reason };
         break;

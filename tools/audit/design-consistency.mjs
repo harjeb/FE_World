@@ -66,11 +66,11 @@ function inheritanceFixture(mode, weights) {
 }
 const allWeights = Object.fromEntries(STAT_KEYS.map(key => [key, 1]));
 
-probe('A01', 'Annual entry opens at D120 and leaves 18 days before the next boundary',
-  [false, true, false], () => [27, 120, 239].map(annualWindowOpen));
+probe('A01', 'Annual entry opens at D482 and leaves 18 days before the next boundary',
+  [false, true, false], () => [481, 482, 500].map(annualWindowOpen));
 
 probe('A02', 'An active annual entry blocks unrelated calendar actions', false, () => withContext(ctx => {
-  ctx.player.day = 147;
+  ctx.player.day = 482;
   dispatch(ctx, OP.REGISTER_ANNUAL, { unitIds: ['u_erin'] });
   const before = ctx.player.day;
   try { dispatch(ctx, OP.REST, { days: 5 }); } catch { return false; }
@@ -78,7 +78,7 @@ probe('A02', 'An active annual entry blocks unrelated calendar actions', false, 
 }));
 
 probe('A03', 'Annual match units retain the level frozen at registration', true, () => withContext(ctx => {
-  ctx.player.day = 147;
+  ctx.player.day = 482;
   const unit = ctx.store.unit(ctx.player.id, 'u_erin');
   const before = unit.level;
   ctx.player.bexp = 1000;
@@ -128,8 +128,8 @@ probe('L04', 'A source does not pass its separate reincarnation bonus to an heir
 
 probe('P01', 'A reincarnated unit is still 16 when its age is refreshed on that day', 16, () => {
   const unit = createUnit('karl', 99, 'reborn', 0, false);
-  reincarnate(unit, {}, 'fighter', 120, 960);
-  return ageAt(unit, 960, 120);
+  reincarnate(unit, {}, 'fighter', 500, 4000);
+  return ageAt(unit, 4000, 500);
 });
 
 probe('Q01', 'Eliminating enemies cannot replace gathering; a dead escort loses',

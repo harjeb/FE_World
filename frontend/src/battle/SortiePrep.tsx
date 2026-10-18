@@ -5,13 +5,15 @@ import { portraitFor, spriteFor } from '../assets.ts';
 import { useSession } from '../api/session.ts';
 import type { ServerUnit } from '../api/session.ts';
 import { links } from '../router.ts';
+import type { FieldTab } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
+import { busyReason } from '../model/roster.ts';
 
 const DEFAULT_TEAM = 6;
 
-function UnitRow({ unit, picked, locked, protagonist, onToggle }: { unit: ServerUnit; picked: boolean; locked: boolean; protagonist: boolean; onToggle: () => void }) {
-  const looks = { classId: unit.snapshot.classId, side: 'player' as const, character: unit.character };
+function UnitRow({ unit, picked, locked, protagonist, why, onToggle }: { unit: ServerUnit; picked: boolean; locked: boolean; protagonist: boolean; why: string | null; onToggle: () => void }) {
+  const looks = { classId: unit.snapshot.classId, side: 'player' as const, character: unit.character, portrait: unit.portrait ?? undefined };
   const items = unit.snapshot.items.map(i => `${ITEMS[i.id as ItemId]?.name ?? i.id}（${i.uses}）`);
   return (
     <li>
@@ -20,7 +22,7 @@ function UnitRow({ unit, picked, locked, protagonist, onToggle }: { unit: Server
         <span className="pf ally" style={{ width: 40, height: 40 }}><img className="px" src={portraitFor(looks) ?? spriteFor(looks)} width={48} height={48} alt="" /></span>
         <span className="min-w-0">
           <span className="tm-n">{unit.name}{protagonist && <span className="tag tag-brass">主角</span>}</span>
-          <span className="tm-s">{unit.className} · Lv {unit.level} · HP {unit.maxHp}{unit.equipped ? ` · ${WEAPONS[unit.equipped as WeaponId].name}` : ''}</span>
+          <span className="tm-s">{unit.className} · Lv {unit.level} · HP {unit.maxHp}{unit.equipped ? ` · ${WEAPONS[unit.equipped as WeaponId].name}` : ''}{why ? ` · ${why}` : ''}</span>
           <span className="tm-s">携带：{items.length > 0 ? items.join('、') : '无'}</span>
         </span>
       </label>
@@ -28,12 +30,13 @@ function UnitRow({ unit, picked, locked, protagonist, onToggle }: { unit: Server
   );
 }
 
-// The two ways out of camp: one field battle, or a three-map dungeon with a fixed team.
-export function FieldTabs({ current }: { current: 'field' | 'dungeon' }) {
+// The ways out of camp: one field battle, a three-map dungeon with a fixed team, or a background dispatch.
+export function FieldTabs({ current }: { current: FieldTab }) {
   return (
     <nav className="ptabs field-tabs" aria-label="出击方式">
       <a className="ptab" href={links.field} aria-current={current === 'field' ? 'page' : undefined}>野外遭遇战 <span className="tag tag-grey">单场</span></a>
       <a className="ptab" href={links.dungeon} aria-current={current === 'dungeon' ? 'page' : undefined}>三图大副本 <span className="tag tag-grey">连续 3 图</span></a>
+      <a className="ptab" href={links.dispatch} aria-current={current === 'dispatch' ? 'page' : undefined}>后台派遣 <span className="tag tag-grey">不耗日</span></a>
     </nav>
   );
 }
@@ -41,12 +44,12 @@ export function FieldTabs({ current }: { current: 'field' | 'dungeon' }) {
 // 出征准备 (docs/00 §11「出征前展示胜负条件、回合截止、真实死亡风险及携带保命道具」): nothing is
 // spent until 确认出征. Every number here comes from GET_TODAY / GET_STATE.
 export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: string | null; onStart: (region: number, unitIds: string[]) => void }) {
-  const { today, state } = useSession();
+  const { today, state, annual } = useSession();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const sortie = today?.actions.find(a => a.key === 'sortie');
   const max = sortie?.maxUnits ?? DEFAULT_TEAM;
   const [region, setRegion] = useState(1);
-  const [team, setTeam] = useState<string[]>(() => active.slice(0, Math.min(DEFAULT_TEAM, max)).map(u => u.id));
+  const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(DEFAULT_TEAM, max)).map(u => u.id));
 
   if (!today || !state || !sortie) {
     return (
@@ -103,13 +106,16 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
           <section className="panel" aria-labelledby="tm-h">
             <div className="ph">
               <h2 id="tm-h">出战队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2>
-              <span style={{ fontSize: 12, color: '#6A6256' }}>敌方人数与出战人数相同</span>
+              <span style={{ fontSize: 12, color: '#6A6256' }}>本图最多 {max} 人 · 敌方人数与出战人数相同</span>
             </div>
             <ul className="team" aria-label="现役单位">
-              {active.map(u => (
-                <UnitRow key={u.id} unit={u} picked={team.includes(u.id)} locked={!team.includes(u.id) && team.length >= max}
-                  protagonist={u.isProtagonist} onToggle={() => toggle(u.id)} />
-              ))}
+              {active.map(u => {
+                const why = busyReason(u, annual);
+                return (
+                  <UnitRow key={u.id} unit={u} picked={team.includes(u.id)} locked={!team.includes(u.id) && (team.length >= max || !!why)}
+                    protagonist={u.isProtagonist} why={why} onToggle={() => toggle(u.id)} />
+                );
+              })}
             </ul>
           </section>
         </div>

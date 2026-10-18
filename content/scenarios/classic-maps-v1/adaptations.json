@@ -1,0 +1,9575 @@
+{
+ "format": "agent-tactics.classic-adaptations",
+ "schemaVersion": 1,
+ "count": 60,
+ "maps": [
+  {
+   "mapId": "fe6-ch13-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "f0c146fc5c5625ab104ea91fb2d2f67c809e3275cbf381d838e0ac5307453cb7",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-44-2",
+     "kind": "village",
+     "pos": [
+      44,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "village-43-4",
+     "kind": "village",
+     "pos": [
+      43,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-41-5",
+     "kind": "village",
+     "pos": [
+      41,
+      5
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "wall-50-6-6",
+     "kind": "wall",
+     "pos": [
+      6,
+      6
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-51-8-6",
+     "kind": "wall",
+     "pos": [
+      8,
+      6
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-54",
+     "kind": "switch",
+     "pos": [
+      6,
+      3
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    },
+    {
+     "id": "ballista-35-4",
+     "kind": "ballista",
+     "pos": [
+      35,
+      4
+     ],
+     "state": "idle",
+     "label": "炮台"
+    },
+    {
+     "id": "ballista-20-16",
+     "kind": "ballista",
+     "pos": [
+      20,
+      16
+     ],
+     "state": "idle",
+     "label": "炮台"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-67dec4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 5
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          41,
+          7
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 5 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-54",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "ballista-35-4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 8,
+       "count": 1,
+       "from": [
+        35,
+        4
+       ],
+       "range": 12
+      }
+     ]
+    },
+    {
+     "id": "ballista-20-16",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 6,
+       "count": 1,
+       "from": [
+        20,
+        16
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      6,
+      4
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch14-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "aee7bc7dfe90b59db63c398fc95b76c189481b06772860c39233ccd70f523bd4",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-26-4",
+     "kind": "village",
+     "pos": [
+      26,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-29-4",
+     "kind": "village",
+     "pos": [
+      29,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-25-6",
+     "kind": "village",
+     "pos": [
+      25,
+      6
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-42-19-1",
+     "kind": "wall",
+     "pos": [
+      19,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-43-19-2",
+     "kind": "wall",
+     "pos": [
+      19,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-67e50c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "fighter",
+         "pos": [
+          0,
+          16
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          0,
+          18
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          9,
+          21
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-67e55c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "fighter",
+         "pos": [
+          30,
+          19
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          30,
+          20
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          30,
+          21
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "status-24-10",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "silence",
+       "count": 1,
+       "from": [
+        24,
+        10
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch16-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "0ff7b9e1eff63d49583191ad9d40e2265d48eda9049d77f429d651010730f521",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "chest-object-0",
+     "kind": "chest",
+     "pos": [
+      30,
+      11
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     },
+     "sourceId": "0x08668BC0"
+    },
+    {
+     "id": "chest-object-1",
+     "kind": "chest",
+     "pos": [
+      30,
+      9
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "restore",
+      "count": 1
+     },
+     "sourceId": "0x08668BCC"
+    },
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      30,
+      6
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     },
+     "sourceId": "0x08668BD8"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      30,
+      3
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "javelin",
+      "count": 1
+     },
+     "sourceId": "0x08668BE4"
+    },
+    {
+     "id": "chest-object-4",
+     "kind": "chest",
+     "pos": [
+      28,
+      2
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     },
+     "sourceId": "0x08668BF0"
+    },
+    {
+     "id": "chest-object-5",
+     "kind": "chest",
+     "pos": [
+      3,
+      23
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "steel_bow",
+      "count": 1
+     },
+     "sourceId": "0x08668BFC"
+    },
+    {
+     "id": "chest-object-6",
+     "kind": "chest",
+     "pos": [
+      2,
+      22
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "sourceId": "0x08668C08"
+    },
+    {
+     "id": "chest-object-7",
+     "kind": "chest",
+     "pos": [
+      1,
+      20
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "hand_axe",
+      "count": 1
+     },
+     "sourceId": "0x08668C14"
+    },
+    {
+     "id": "chest-object-8",
+     "kind": "chest",
+     "pos": [
+      2,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     },
+     "sourceId": "0x08668C20"
+    },
+    {
+     "id": "chest-object-9",
+     "kind": "chest",
+     "pos": [
+      1,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "ore",
+      "count": 4
+     },
+     "sourceId": "0x08668C2C"
+    },
+    {
+     "id": "door-object-11",
+     "kind": "door",
+     "pos": [
+      5,
+      15
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08668C44"
+    },
+    {
+     "id": "door-object-12",
+     "kind": "door",
+     "pos": [
+      11,
+      15
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08668C50"
+    },
+    {
+     "id": "door-object-13",
+     "kind": "door",
+     "pos": [
+      12,
+      15
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08668C5C"
+    },
+    {
+     "id": "door-object-14",
+     "kind": "door",
+     "pos": [
+      27,
+      4
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08668C68"
+    },
+    {
+     "id": "wall-56-2-1",
+     "kind": "wall",
+     "pos": [
+      2,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-57-26-1",
+     "kind": "wall",
+     "pos": [
+      26,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-62",
+     "kind": "switch",
+     "pos": [
+      1,
+      2
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-10"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-67ef74",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          12,
+          22
+         ],
+         "levelOffset": -2,
+         "boss": false
+        },
+        {
+         "classId": "thief",
+         "pos": [
+          21,
+          2
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-67ef54",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "mage",
+         "pos": [
+          30,
+          22
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-10",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-62",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-10"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-28-11",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "silence",
+       "count": 1,
+       "from": [
+        28,
+        11
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-10",
+     "position": [
+      2,
+      2
+     ],
+     "terrain": [
+      [
+       "wall",
+       null
+      ],
+      [
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch18-ilia",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "9d4af392d2bef49a3ed9d7be05b0d7723f76a45ac65667cc5f2a92de36555fd4",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-2-4",
+     "kind": "village",
+     "pos": [
+      2,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-20-9",
+     "kind": "village",
+     "pos": [
+      20,
+      9
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-7-17",
+     "kind": "village",
+     "pos": [
+      7,
+      17
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-43-18-3",
+     "kind": "wall",
+     "pos": [
+      18,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-44-20-3",
+     "kind": "wall",
+     "pos": [
+      20,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-50",
+     "kind": "switch",
+     "pos": [
+      1,
+      1
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    },
+    {
+     "id": "ballista-5-14",
+     "kind": "ballista",
+     "pos": [
+      5,
+      14
+     ],
+     "state": "idle",
+     "label": "炮台"
+    },
+    {
+     "id": "ballista-17-17",
+     "kind": "ballista",
+     "pos": [
+      17,
+      17
+     ],
+     "state": "idle",
+     "label": "炮台"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-67f95c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "pegasus",
+         "pos": [
+          10,
+          0
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "pegasus",
+         "pos": [
+          12,
+          0
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-67f98c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 6
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "pegasus",
+         "pos": [
+          22,
+          9
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "pegasus",
+         "pos": [
+          22,
+          11
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 6 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-50",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "ballista-5-14",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 8,
+       "count": 1,
+       "from": [
+        5,
+        14
+       ],
+       "range": 10
+      }
+     ]
+    },
+    {
+     "id": "ballista-17-17",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 8,
+       "count": 1,
+       "from": [
+        17,
+        17
+       ],
+       "range": 10
+      }
+     ]
+    },
+    {
+     "id": "status-18-15",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "silence",
+       "count": 1,
+       "from": [
+        18,
+        15
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      1,
+      2
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch19-ilia",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "a962677867954808181ddbf28a9a8183de2f4898fb0d938f44176b8e9063268c",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-3-11",
+     "kind": "village",
+     "pos": [
+      3,
+      11
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-1-14",
+     "kind": "village",
+     "pos": [
+      1,
+      14
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-10-14",
+     "kind": "village",
+     "pos": [
+      10,
+      14
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-48-27-3",
+     "kind": "wall",
+     "pos": [
+      27,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-49-29-3",
+     "kind": "wall",
+     "pos": [
+      29,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-56",
+     "kind": "switch",
+     "pos": [
+      9,
+      11
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    },
+    {
+     "id": "ballista-4-2",
+     "kind": "ballista",
+     "pos": [
+      4,
+      2
+     ],
+     "state": "idle",
+     "label": "炮台"
+    },
+    {
+     "id": "ballista-23-4",
+     "kind": "ballista",
+     "pos": [
+      23,
+      4
+     ],
+     "state": "idle",
+     "label": "炮台"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-67fdb8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "fighter",
+         "pos": [
+          13,
+          21
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          17,
+          21
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-67fde8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "pegasus",
+         "pos": [
+          1,
+          1
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "pegasus",
+         "pos": [
+          16,
+          21
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "pegasus",
+         "pos": [
+          18,
+          1
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-56",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "ballista-4-2",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 8,
+       "count": 1,
+       "from": [
+        4,
+        2
+       ],
+       "range": 10
+      }
+     ]
+    },
+    {
+     "id": "ballista-23-4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 7,
+       "count": 1,
+       "from": [
+        23,
+        4
+       ],
+       "range": 15
+      }
+     ]
+    },
+    {
+     "id": "status-22-15",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "silence",
+       "count": 1,
+       "from": [
+        22,
+        15
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      9,
+      12
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch20-ilia",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "24b75d0cc51caead1647d762648fa031048b9d9fcf1a2488907e048003eac0b7",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      2,
+      10
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "steel_axe",
+      "count": 1
+     },
+     "sourceId": "0x08669114"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      3,
+      11
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "sourceId": "0x08669120"
+    },
+    {
+     "id": "chest-object-4",
+     "kind": "chest",
+     "pos": [
+      4,
+      11
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 3
+     },
+     "sourceId": "0x0866912C"
+    },
+    {
+     "id": "chest-object-5",
+     "kind": "chest",
+     "pos": [
+      5,
+      10
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_sword",
+      "count": 1
+     },
+     "sourceId": "0x08669138"
+    },
+    {
+     "id": "chest-object-6",
+     "kind": "chest",
+     "pos": [
+      16,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "fire",
+      "count": 1
+     },
+     "sourceId": "0x08669144"
+    },
+    {
+     "id": "chest-object-7",
+     "kind": "chest",
+     "pos": [
+      17,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "sourceId": "0x08669150"
+    },
+    {
+     "id": "chest-object-9",
+     "kind": "chest",
+     "pos": [
+      12,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "hand_axe",
+      "count": 1
+     },
+     "sourceId": "0x08669168"
+    },
+    {
+     "id": "door-object-10",
+     "kind": "door",
+     "pos": [
+      7,
+      11
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08669174"
+    },
+    {
+     "id": "door-object-11",
+     "kind": "door",
+     "pos": [
+      7,
+      17
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08669180"
+    },
+    {
+     "id": "door-object-12",
+     "kind": "door",
+     "pos": [
+      9,
+      8
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x0866918C"
+    },
+    {
+     "id": "door-object-13",
+     "kind": "door",
+     "pos": [
+      18,
+      20
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08669198"
+    },
+    {
+     "id": "door-object-14",
+     "kind": "door",
+     "pos": [
+      22,
+      18
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x086691A4"
+    },
+    {
+     "id": "village-8-0",
+     "kind": "village",
+     "pos": [
+      8,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-5-1",
+     "kind": "village",
+     "pos": [
+      5,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-28-3",
+     "kind": "village",
+     "pos": [
+      28,
+      3
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-55-5-6",
+     "kind": "wall",
+     "pos": [
+      5,
+      6
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-56-5-7",
+     "kind": "wall",
+     "pos": [
+      5,
+      7
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-63",
+     "kind": "switch",
+     "pos": [
+      6,
+      10
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-9"
+    },
+    {
+     "id": "ballista-28-12",
+     "kind": "ballista",
+     "pos": [
+      28,
+      12
+     ],
+     "state": "idle",
+     "label": "炮台"
+    },
+    {
+     "id": "ballista-3-15",
+     "kind": "ballista",
+     "pos": [
+      3,
+      15
+     ],
+     "state": "idle",
+     "label": "炮台"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-6801e4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "mercenary",
+         "pos": [
+          31,
+          19
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "mercenary",
+         "pos": [
+          31,
+          20
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-680214",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "fighter",
+         "pos": [
+          29,
+          0
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          30,
+          0
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          31,
+          0
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-9",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-63",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-9"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "ballista-28-12",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 7,
+       "count": 1,
+       "from": [
+        28,
+        12
+       ],
+       "range": 15
+      }
+     ]
+    },
+    {
+     "id": "ballista-3-15",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 10,
+       "count": 1,
+       "from": [
+        3,
+        15
+       ],
+       "range": 12
+      }
+     ]
+    },
+    {
+     "id": "status-16-14",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "sleep",
+       "count": 1,
+       "from": [
+        16,
+        14
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-9",
+     "position": [
+      7,
+      10
+     ],
+     "terrain": [
+      [
+       "wall"
+      ],
+      [
+       "floor"
+      ],
+      [
+       "wall"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch21-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "22279297e511d8199667243b13c2c3f090820ea80097065323b26893d517a0af",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-5-1",
+     "kind": "village",
+     "pos": [
+      5,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-9-1",
+     "kind": "village",
+     "pos": [
+      9,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "village-11-11",
+     "kind": "village",
+     "pos": [
+      11,
+      11
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-46-10-11",
+     "kind": "wall",
+     "pos": [
+      10,
+      11
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-47-12-11",
+     "kind": "wall",
+     "pos": [
+      12,
+      11
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-53",
+     "kind": "switch",
+     "pos": [
+      10,
+      8
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-680784",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          10,
+          6
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-6807a4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          9,
+          5
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          11,
+          5
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          9,
+          7
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-53",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      10,
+      9
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch22-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "a414f2328d3f33f5f1a67c35822c0f291dfb01fbc69b22af4bf046b1ca57d89d",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "chest-object-0",
+     "kind": "chest",
+     "pos": [
+      1,
+      8
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "killer_lance",
+      "count": 1
+     },
+     "sourceId": "0x08669430"
+    },
+    {
+     "id": "chest-object-1",
+     "kind": "chest",
+     "pos": [
+      1,
+      10
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "energy_drop",
+      "count": 1
+     },
+     "sourceId": "0x0866943C"
+    },
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      1,
+      12
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "sourceId": "0x08669448"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      29,
+      8
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "dracoshield",
+      "count": 1
+     },
+     "sourceId": "0x08669454"
+    },
+    {
+     "id": "chest-object-4",
+     "kind": "chest",
+     "pos": [
+      29,
+      11
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_lance",
+      "count": 1
+     },
+     "sourceId": "0x08669460"
+    },
+    {
+     "id": "chest-object-5",
+     "kind": "chest",
+     "pos": [
+      29,
+      14
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "immortal_shield",
+      "count": 1
+     },
+     "sourceId": "0x0866946C"
+    },
+    {
+     "id": "wall-53-3-1",
+     "kind": "wall",
+     "pos": [
+      3,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-54-10-1",
+     "kind": "wall",
+     "pos": [
+      10,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-6810a0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "bishop",
+         "pos": [
+          10,
+          0
+         ],
+         "levelOffset": -2,
+         "boss": false
+        },
+        {
+         "classId": "bishop",
+         "pos": [
+          20,
+          0
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-6810d0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 8
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "hero",
+         "pos": [
+          12,
+          16
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "berserker",
+         "pos": [
+          18,
+          16
+         ],
+         "levelOffset": -1,
+         "boss": false
+        },
+        {
+         "classId": "druid",
+         "pos": [
+          11,
+          8
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 8 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "status-15-31",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "silence",
+       "count": 1,
+       "from": [
+        15,
+        31
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [
+    "已静态应用地图变化：change-0"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch23-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "f4c9775e6cd711d6d7a6a0c06a01648d1c95fbd4d527d5daaceca5afb306cf7a",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-0-6",
+     "kind": "village",
+     "pos": [
+      0,
+      6
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-22-23",
+     "kind": "village",
+     "pos": [
+      22,
+      23
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-17-25",
+     "kind": "village",
+     "pos": [
+      17,
+      25
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "wall-52-4-1",
+     "kind": "wall",
+     "pos": [
+      4,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-53-6-1",
+     "kind": "wall",
+     "pos": [
+      6,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-55",
+     "kind": "switch",
+     "pos": [
+      21,
+      20
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    },
+    {
+     "id": "ballista-7-17",
+     "kind": "ballista",
+     "pos": [
+      7,
+      17
+     ],
+     "state": "idle",
+     "label": "炮台"
+    },
+    {
+     "id": "ballista-13-18",
+     "kind": "ballista",
+     "pos": [
+      13,
+      18
+     ],
+     "state": "idle",
+     "label": "炮台"
+    }
+   ],
+   "events": [
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-55",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "ballista-7-17",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 9,
+       "count": 1,
+       "from": [
+        7,
+        17
+       ],
+       "range": 15
+      }
+     ]
+    },
+    {
+     "id": "ballista-13-18",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "damage",
+       "target": "player",
+       "amount": 12,
+       "count": 1,
+       "from": [
+        13,
+        18
+       ],
+       "range": 12
+      }
+     ]
+    },
+    {
+     "id": "status-4-3",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "berserk",
+       "count": 1,
+       "from": [
+        4,
+        3
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      21,
+      21
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe6-ch24-main",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "06a1417dd6b9d13ead25dffd9266959b307c7d403d90dba2571c8c143039c2c4",
+   "difficulty": 3,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-35-23-44",
+     "kind": "wall",
+     "pos": [
+      23,
+      44
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-38",
+     "kind": "switch",
+     "pos": [
+      24,
+      10
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-2"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-681b88",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragonkin",
+         "pos": [
+          18,
+          38
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-2",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-38",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-2"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-2",
+     "position": [
+      24,
+      12
+     ],
+     "terrain": [
+      [
+       null,
+       null,
+       "wall",
+       "wall",
+       "wall",
+       null,
+       null
+      ],
+      [
+       "wall",
+       "floor",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "throne",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "wall",
+       "wall",
+       "floor",
+       "wall",
+       "wall",
+       "wall"
+      ],
+      [
+       null,
+       null,
+       "wall",
+       "floor",
+       "wall",
+       null,
+       null
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch19-eliwood",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "62543f6b50a9fc89a819da87c847fb4323a713b57648518f51ab861a9961f86a",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      0,
+      9
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "sourceId": "0x08D6B450"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      1,
+      8
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "hand_axe",
+      "count": 1
+     },
+     "sourceId": "0x08D6B45C"
+    },
+    {
+     "id": "chest-object-4",
+     "kind": "chest",
+     "pos": [
+      2,
+      17
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     },
+     "sourceId": "0x08D6B468"
+    },
+    {
+     "id": "chest-object-5",
+     "kind": "chest",
+     "pos": [
+      21,
+      7
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "steel_lance",
+      "count": 1
+     },
+     "sourceId": "0x08D6B474"
+    },
+    {
+     "id": "chest-object-6",
+     "kind": "chest",
+     "pos": [
+      21,
+      9
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "sourceId": "0x08D6B480"
+    },
+    {
+     "id": "door-object-7",
+     "kind": "door",
+     "pos": [
+      6,
+      8
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6B48C"
+    },
+    {
+     "id": "door-object-8",
+     "kind": "door",
+     "pos": [
+      9,
+      16
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6B498"
+    },
+    {
+     "id": "door-object-9",
+     "kind": "door",
+     "pos": [
+      2,
+      19
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6B4A4"
+    },
+    {
+     "id": "door-object-10",
+     "kind": "door",
+     "pos": [
+      12,
+      6
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6B4B0"
+    },
+    {
+     "id": "wall-53-1-4",
+     "kind": "wall",
+     "pos": [
+      1,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-54-2-4",
+     "kind": "wall",
+     "pos": [
+      2,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-59",
+     "kind": "switch",
+     "pos": [
+      3,
+      3
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-d97ed4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "archer",
+         "pos": [
+          15,
+          19
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          17,
+          19
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-d97f24",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "archer",
+         "pos": [
+          1,
+          18
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-59",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      3,
+      4
+     ],
+     "terrain": [
+      [
+       "wall",
+       "floor",
+       "wall"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch20-eliwood",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "175d78773997b086855476386cf8d10ad80c4ac96fba15570a499e5a4b407041",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-11-1",
+     "kind": "village",
+     "pos": [
+      11,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "village-15-1",
+     "kind": "village",
+     "pos": [
+      15,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-19-1",
+     "kind": "village",
+     "pos": [
+      19,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-37-7-1",
+     "kind": "wall",
+     "pos": [
+      7,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-38-12-1",
+     "kind": "wall",
+     "pos": [
+      12,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-44",
+     "kind": "switch",
+     "pos": [
+      2,
+      4
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-1"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-d98d68",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "mage",
+         "pos": [
+          25,
+          8
+         ],
+         "levelOffset": -1,
+         "boss": false
+        },
+        {
+         "classId": "mage",
+         "pos": [
+          25,
+          5
+         ],
+         "levelOffset": -1,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-d98ee8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          25,
+          1
+         ],
+         "levelOffset": -2,
+         "boss": false
+        },
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          25,
+          14
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-1",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-44",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-1"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-1",
+     "position": [
+      2,
+      5
+     ],
+     "terrain": [
+      [
+       "wall",
+       "floor",
+       "floor"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch22-eliwood",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "4e5a9dd3dcc1839d78cf8ad5d579e4560fbd1ebfa58a5269dec7bf2cafa15690",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-12-13",
+     "kind": "village",
+     "pos": [
+      12,
+      13
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-40-2-4",
+     "kind": "wall",
+     "pos": [
+      2,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-41-2-5",
+     "kind": "wall",
+     "pos": [
+      2,
+      5
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-d9ac7c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          2,
+          15
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          0,
+          4
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-d9acac",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          4,
+          15
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          0,
+          2
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch23-eliwood-lloyd",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "d37c35500766d348acec8206406a4c06ce340fbf18f55efc3bc2fcbd1a910b6f",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-17-2",
+     "kind": "village",
+     "pos": [
+      17,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-2-13",
+     "kind": "village",
+     "pos": [
+      2,
+      13
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-17-14",
+     "kind": "village",
+     "pos": [
+      17,
+      14
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-39-6-2",
+     "kind": "wall",
+     "pos": [
+      6,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-40-8-2",
+     "kind": "wall",
+     "pos": [
+      8,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-45",
+     "kind": "switch",
+     "pos": [
+      15,
+      0
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-d9c138",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "swordmaster",
+         "pos": [
+          8,
+          5
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "swordmaster",
+         "pos": [
+          7,
+          5
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-d9c1b8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "fighter",
+         "pos": [
+          4,
+          0
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-45",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      16,
+      0
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch23-eliwood-linus",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "fa4c85f9f811e1c816a03b99aa4af370c6ca20cdce675593bfeff864d9d2bc39",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-1-1",
+     "kind": "village",
+     "pos": [
+      1,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "village-6-1",
+     "kind": "village",
+     "pos": [
+      6,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-11-1",
+     "kind": "village",
+     "pos": [
+      11,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "wall-49-2-1",
+     "kind": "wall",
+     "pos": [
+      2,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-50-5-1",
+     "kind": "wall",
+     "pos": [
+      5,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-55",
+     "kind": "switch",
+     "pos": [
+      0,
+      2
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-d9d01c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_knight",
+         "pos": [
+          25,
+          3
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-d9d04c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 5
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "fighter",
+         "pos": [
+          25,
+          7
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "fighter",
+         "pos": [
+          25,
+          8
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 5 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-55",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      0,
+      0
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch25-eliwood-kenneth",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "9f35e1f75db78f52f53fab437b17249e95ec8f6508f8e9892bdf1d97ff537d01",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "chest-object-0",
+     "kind": "chest",
+     "pos": [
+      14,
+      3
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "ore",
+      "count": 4
+     },
+     "sourceId": "0x08D6CCD8"
+    },
+    {
+     "id": "chest-object-1",
+     "kind": "chest",
+     "pos": [
+      15,
+      4
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_axe",
+      "count": 1
+     },
+     "sourceId": "0x08D6CCE4"
+    },
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      16,
+      5
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 3
+     },
+     "sourceId": "0x08D6CCF0"
+    },
+    {
+     "id": "door-object-3",
+     "kind": "door",
+     "pos": [
+      15,
+      21
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6CCFC"
+    },
+    {
+     "id": "door-object-4",
+     "kind": "door",
+     "pos": [
+      16,
+      21
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6CD08"
+    },
+    {
+     "id": "door-object-5",
+     "kind": "door",
+     "pos": [
+      15,
+      6
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6CD14"
+    },
+    {
+     "id": "door-object-6",
+     "kind": "door",
+     "pos": [
+      13,
+      11
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6CD20"
+    },
+    {
+     "id": "wall-51-5-1",
+     "kind": "wall",
+     "pos": [
+      5,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-52-5-2",
+     "kind": "wall",
+     "pos": [
+      5,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-da0a58",
+     "trigger": {
+      "kind": "turn",
+      "turn": 9
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "hero",
+         "pos": [
+          3,
+          8
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 9 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-da0a78",
+     "trigger": {
+      "kind": "turn",
+      "turn": 10
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "druid",
+         "pos": [
+          11,
+          3
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 10 回合增援抵达"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch25-eliwood-jerme",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "70974e01b186660a9ee4b888d85a83b64ef10bff9d1f186420132b2ea2d6530c",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "door-object-9",
+     "kind": "door",
+     "pos": [
+      15,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6D0B0"
+    },
+    {
+     "id": "door-object-10",
+     "kind": "door",
+     "pos": [
+      16,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6D0BC"
+    },
+    {
+     "id": "switch-68",
+     "kind": "switch",
+     "pos": [
+      1,
+      0
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-d9fc90",
+     "trigger": {
+      "kind": "turn",
+      "turn": 13
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "bow_knight",
+         "pos": [
+          24,
+          8
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "bow_knight",
+         "pos": [
+          24,
+          10
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "bow_knight",
+         "pos": [
+          24,
+          9
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 13 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-68",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      2,
+      0
+     ],
+     "terrain": [
+      [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall"
+      ],
+      [
+       "wall",
+       "floor",
+       "wall",
+       "floor",
+       "floor",
+       "wall",
+       "floor",
+       "wall",
+       null,
+       null,
+       null,
+       null,
+       "floor",
+       null,
+       null
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      [
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       "floor",
+       "floor",
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch27-eliwood",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "2737235304a12801f1ae1f08e8e246b6b34e720a9efeded57471eb7825759008",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-3-23",
+     "kind": "village",
+     "pos": [
+      3,
+      23
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-7-26",
+     "kind": "village",
+     "pos": [
+      7,
+      26
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-8-26",
+     "kind": "village",
+     "pos": [
+      8,
+      26
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-55-2-23",
+     "kind": "wall",
+     "pos": [
+      2,
+      23
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-56-4-23",
+     "kind": "wall",
+     "pos": [
+      4,
+      23
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-63",
+     "kind": "switch",
+     "pos": [
+      2,
+      20
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-da4350",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "general",
+         "pos": [
+          15,
+          11
+         ],
+         "levelOffset": -2,
+         "boss": false
+        },
+        {
+         "classId": "knight",
+         "pos": [
+          15,
+          10
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "knight",
+         "pos": [
+          15,
+          12
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-da4390",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "knight",
+         "pos": [
+          14,
+          11
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "knight",
+         "pos": [
+          16,
+          11
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-63",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-9-5",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "sleep",
+       "count": 1,
+       "from": [
+        9,
+        5
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      2,
+      21
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-ch30-eliwood",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "fe034d55b25d682f03d998d856fdfa274dadc8ad0ad766903bbf69275f9ca402",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-5-2",
+     "kind": "village",
+     "pos": [
+      5,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-11-9",
+     "kind": "village",
+     "pos": [
+      11,
+      9
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-23-26",
+     "kind": "village",
+     "pos": [
+      23,
+      26
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "wall-50-5-1",
+     "kind": "wall",
+     "pos": [
+      5,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-51-4-2",
+     "kind": "wall",
+     "pos": [
+      4,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-58",
+     "kind": "switch",
+     "pos": [
+      4,
+      0
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-da7bb0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "cavalier",
+         "pos": [
+          11,
+          14
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "cavalier",
+         "pos": [
+          12,
+          15
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-da7be0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "general",
+         "pos": [
+          24,
+          6
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "knight",
+         "pos": [
+          23,
+          5
+         ],
+         "levelOffset": 2,
+         "boss": false
+        },
+        {
+         "classId": "knight",
+         "pos": [
+          25,
+          5
+         ],
+         "levelOffset": 2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-58",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-13-10",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "berserk",
+       "count": 1,
+       "from": [
+        13,
+        10
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      4,
+      1
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe7-chfinal-1-eliwood",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "20238626f4c0a54e45ca966ec3f340ff8c1e9cb27541c8e9c512dd68b93393d0",
+   "difficulty": 3,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "door-object-1",
+     "kind": "door",
+     "pos": [
+      12,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6E768"
+    },
+    {
+     "id": "door-object-4",
+     "kind": "door",
+     "pos": [
+      4,
+      23
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08D6E78C"
+    },
+    {
+     "id": "wall-27-5-13",
+     "kind": "wall",
+     "pos": [
+      5,
+      13
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-28-11-13",
+     "kind": "wall",
+     "pos": [
+      11,
+      13
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-30",
+     "kind": "switch",
+     "pos": [
+      1,
+      0
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-30",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-9-3",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "berserk",
+       "count": 1,
+       "from": [
+        9,
+        3
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      3,
+      0
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       "floor",
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "wall",
+       "floor",
+       null
+      ],
+      [
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "wall",
+       null,
+       null,
+       null,
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null,
+       null,
+       null,
+       null,
+       null
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch11-ephraim",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "28868c62eeea1905f8553448ecddd9e7b1d8f22afcf3e812d8f048c8882e6f3e",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-20-3-4",
+     "kind": "wall",
+     "pos": [
+      3,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-21-5-7",
+     "kind": "wall",
+     "pos": [
+      5,
+      7
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-23",
+     "kind": "switch",
+     "pos": [
+      5,
+      0
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-1"
+    }
+   ],
+   "events": [
+    {
+     "id": "event-lever-change-1",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-23",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-1"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-1",
+     "position": [
+      9,
+      0
+     ],
+     "terrain": [
+      [
+       null,
+       null,
+       null,
+       "water",
+       "water",
+       null,
+       null,
+       null
+      ],
+      [
+       null,
+       null,
+       "water",
+       "floor",
+       "floor",
+       "water",
+       null,
+       null
+      ],
+      [
+       "water",
+       "water",
+       "water",
+       "floor",
+       "floor",
+       "water",
+       "water",
+       null
+      ],
+      [
+       "water",
+       "water",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water",
+       "water"
+      ],
+      [
+       "water",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       "water",
+       "floor",
+       "wall",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       "water",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "wall",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "wall",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       "water",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       "water",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       "water",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "water"
+      ],
+      [
+       null,
+       "water",
+       "water",
+       "water",
+       "water",
+       "water",
+       "water",
+       null
+      ],
+      [
+       null,
+       null,
+       "water",
+       "water",
+       "water",
+       "water",
+       null,
+       null
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch12-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "35b00fbbc6924523fadbb0d68f0adce5e8a1a3261191549ba512fc90bb9f9a00",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-17-6",
+     "kind": "village",
+     "pos": [
+      17,
+      6
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-6-10",
+     "kind": "village",
+     "pos": [
+      6,
+      10
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-5-12",
+     "kind": "village",
+     "pos": [
+      5,
+      12
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "wall-42-11-1",
+     "kind": "wall",
+     "pos": [
+      11,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-43-13-1",
+     "kind": "wall",
+     "pos": [
+      13,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch13-ephraim",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "d40d37663a77338c5611bb4536483e83dcc0167e6658caf9b775cc7b3d64086f",
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-17-13",
+     "kind": "village",
+     "pos": [
+      17,
+      13
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-4-18",
+     "kind": "village",
+     "pos": [
+      4,
+      18
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "wall-44-16-13",
+     "kind": "wall",
+     "pos": [
+      16,
+      13
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-45-3-18",
+     "kind": "wall",
+     "pos": [
+      3,
+      18
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-49",
+     "kind": "switch",
+     "pos": [
+      2,
+      16
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-9197d4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "pegasus",
+         "pos": [
+          10,
+          21
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-919810",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "pegasus",
+         "pos": [
+          6,
+          21
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-49",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-11-9",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "sleep",
+       "count": 1,
+       "from": [
+        11,
+        9
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      3,
+      16
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch14-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "6d452a6befcb88c130a60641aea5ca9eeaa20f0529a49df314dd6b04f8187730",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "door-object-1",
+     "kind": "door",
+     "pos": [
+      17,
+      19
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5B7CC"
+    },
+    {
+     "id": "door-object-2",
+     "kind": "door",
+     "pos": [
+      10,
+      14
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5B7D8"
+    },
+    {
+     "id": "door-object-6",
+     "kind": "door",
+     "pos": [
+      18,
+      2
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5B808"
+    },
+    {
+     "id": "door-object-7",
+     "kind": "door",
+     "pos": [
+      17,
+      2
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5B814"
+    },
+    {
+     "id": "chest-object-14",
+     "kind": "chest",
+     "pos": [
+      18,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "steel_lance",
+      "count": 1
+     },
+     "sourceId": "0x08A5B868"
+    },
+    {
+     "id": "wall-55-2-4",
+     "kind": "wall",
+     "pos": [
+      2,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-56-2-5",
+     "kind": "wall",
+     "pos": [
+      2,
+      5
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-62",
+     "kind": "switch",
+     "pos": [
+      18,
+      1
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-9105e0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "druid",
+         "pos": [
+          0,
+          12
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "druid",
+         "pos": [
+          0,
+          13
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-910694",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "hero",
+         "pos": [
+          10,
+          7
+         ],
+         "levelOffset": -1,
+         "boss": false
+        },
+        {
+         "classId": "druid",
+         "pos": [
+          10,
+          8
+         ],
+         "levelOffset": -1,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-62",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-10-1",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "berserk",
+       "count": 1,
+       "from": [
+        10,
+        1
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      19,
+      0
+     ],
+     "terrain": [
+      [
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       "wall",
+       null
+      ],
+      [
+       null,
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       "floor",
+       "floor",
+       "floor",
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       "floor",
+       null,
+       null
+      ],
+      [
+       null,
+       null,
+       null,
+       "floor",
+       null,
+       null
+      ]
+     ]
+    }
+   ],
+   "notes": [
+    "已静态应用地图变化：change-3"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch14-ephraim",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "7195eddae98b498b739e80aa1bf5fc25b4e9fdb2df4c201bb64a0731b7ce20de",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "door-object-1",
+     "kind": "door",
+     "pos": [
+      13,
+      7
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CA4C"
+    },
+    {
+     "id": "door-object-2",
+     "kind": "door",
+     "pos": [
+      13,
+      20
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CA58"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      13,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "restore",
+      "count": 1
+     },
+     "sourceId": "0x08A5CA64"
+    },
+    {
+     "id": "door-object-4",
+     "kind": "door",
+     "pos": [
+      6,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CA70"
+    },
+    {
+     "id": "door-object-5",
+     "kind": "door",
+     "pos": [
+      7,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CA7C"
+    },
+    {
+     "id": "door-object-6",
+     "kind": "door",
+     "pos": [
+      8,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CA88"
+    },
+    {
+     "id": "door-object-7",
+     "kind": "door",
+     "pos": [
+      6,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CA94"
+    },
+    {
+     "id": "door-object-8",
+     "kind": "door",
+     "pos": [
+      7,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAA0"
+    },
+    {
+     "id": "door-object-9",
+     "kind": "door",
+     "pos": [
+      8,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAAC"
+    },
+    {
+     "id": "door-object-10",
+     "kind": "door",
+     "pos": [
+      20,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAB8"
+    },
+    {
+     "id": "door-object-11",
+     "kind": "door",
+     "pos": [
+      21,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAC4"
+    },
+    {
+     "id": "door-object-12",
+     "kind": "door",
+     "pos": [
+      22,
+      12
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAD0"
+    },
+    {
+     "id": "door-object-13",
+     "kind": "door",
+     "pos": [
+      22,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CADC"
+    },
+    {
+     "id": "door-object-14",
+     "kind": "door",
+     "pos": [
+      21,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAE8"
+    },
+    {
+     "id": "door-object-15",
+     "kind": "door",
+     "pos": [
+      20,
+      13
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CAF4"
+    },
+    {
+     "id": "chest-object-16",
+     "kind": "chest",
+     "pos": [
+      15,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_lance",
+      "count": 1
+     },
+     "sourceId": "0x08A5CB00"
+    },
+    {
+     "id": "chest-object-18",
+     "kind": "chest",
+     "pos": [
+      27,
+      1
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "fire",
+      "count": 1
+     },
+     "sourceId": "0x08A5CB18"
+    },
+    {
+     "id": "chest-object-19",
+     "kind": "chest",
+     "pos": [
+      3,
+      1
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "sourceId": "0x08A5CB24"
+    },
+    {
+     "id": "chest-object-20",
+     "kind": "chest",
+     "pos": [
+      14,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 3
+     },
+     "sourceId": "0x08A5CB30"
+    },
+    {
+     "id": "door-object-21",
+     "kind": "door",
+     "pos": [
+      14,
+      20
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB3C"
+    },
+    {
+     "id": "door-object-22",
+     "kind": "door",
+     "pos": [
+      15,
+      20
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB48"
+    },
+    {
+     "id": "door-object-23",
+     "kind": "door",
+     "pos": [
+      15,
+      21
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB54"
+    },
+    {
+     "id": "door-object-24",
+     "kind": "door",
+     "pos": [
+      14,
+      21
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB60"
+    },
+    {
+     "id": "door-object-25",
+     "kind": "door",
+     "pos": [
+      13,
+      21
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB6C"
+    },
+    {
+     "id": "door-object-26",
+     "kind": "door",
+     "pos": [
+      14,
+      7
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB78"
+    },
+    {
+     "id": "door-object-27",
+     "kind": "door",
+     "pos": [
+      15,
+      7
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB84"
+    },
+    {
+     "id": "door-object-28",
+     "kind": "door",
+     "pos": [
+      13,
+      8
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB90"
+    },
+    {
+     "id": "door-object-29",
+     "kind": "door",
+     "pos": [
+      14,
+      8
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CB9C"
+    },
+    {
+     "id": "door-object-30",
+     "kind": "door",
+     "pos": [
+      15,
+      8
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5CBA8"
+    },
+    {
+     "id": "wall-79-11-3",
+     "kind": "wall",
+     "pos": [
+      11,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-80-17-3",
+     "kind": "wall",
+     "pos": [
+      17,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-91a990",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "lancer",
+         "pos": [
+          1,
+          19
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "lancer",
+         "pos": [
+          1,
+          20
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-91ac9c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "mercenary",
+         "pos": [
+          27,
+          19
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "mercenary",
+         "pos": [
+          27,
+          20
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "status-21-11",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "silence",
+       "count": 1,
+       "from": [
+        21,
+        11
+       ],
+       "range": 10,
+       "turns": 3
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch15-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "31192c6ce0033e9a790ab20d2075270f53c527b1e0512d14e08ac7bf5a2d8e73",
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-8-4",
+     "kind": "village",
+     "pos": [
+      8,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-17-6",
+     "kind": "village",
+     "pos": [
+      17,
+      6
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-5-13",
+     "kind": "village",
+     "pos": [
+      5,
+      13
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-51-13-4",
+     "kind": "wall",
+     "pos": [
+      13,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-52-22-8",
+     "kind": "wall",
+     "pos": [
+      22,
+      8
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-60",
+     "kind": "switch",
+     "pos": [
+      0,
+      11
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-9110e8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "druid",
+         "pos": [
+          14,
+          1
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "druid",
+         "pos": [
+          16,
+          2
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "druid",
+         "pos": [
+          5,
+          1
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-911138",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "paladin",
+         "pos": [
+          1,
+          18
+         ],
+         "levelOffset": -2,
+         "boss": false
+        },
+        {
+         "classId": "cavalier",
+         "pos": [
+          2,
+          19
+         ],
+         "levelOffset": 1,
+         "boss": false
+        },
+        {
+         "classId": "cavalier",
+         "pos": [
+          2,
+          17
+         ],
+         "levelOffset": 1,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-60",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    },
+    {
+     "id": "status-17-21",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "sleep",
+       "count": 1,
+       "from": [
+        17,
+        21
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      0,
+      12
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch16-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "c0057272f3012e5e99ffe333630f4d50ffe0ab4ec9407c7a7c6bd042c7d0c219",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "chest-object-1",
+     "kind": "chest",
+     "pos": [
+      20,
+      5
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "sourceId": "0x08A5BBAC"
+    },
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      20,
+      3
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "goddess_icon",
+      "count": 1
+     },
+     "sourceId": "0x08A5BBB8"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      3,
+      12
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "killer_axe",
+      "count": 1
+     },
+     "sourceId": "0x08A5BBC4"
+    },
+    {
+     "id": "door-object-4",
+     "kind": "door",
+     "pos": [
+      1,
+      4
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5BBD0"
+    },
+    {
+     "id": "door-object-5",
+     "kind": "door",
+     "pos": [
+      4,
+      3
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5BBDC"
+    },
+    {
+     "id": "door-object-6",
+     "kind": "door",
+     "pos": [
+      3,
+      10
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5BBE8"
+    },
+    {
+     "id": "chest-object-7",
+     "kind": "chest",
+     "pos": [
+      20,
+      1
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "talisman",
+      "count": 1
+     },
+     "sourceId": "0x08A5BBF4"
+    },
+    {
+     "id": "wall-44-3-3",
+     "kind": "wall",
+     "pos": [
+      3,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-45-5-3",
+     "kind": "wall",
+     "pos": [
+      5,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-48",
+     "kind": "switch",
+     "pos": [
+      3,
+      2
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-9118cc",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "druid",
+         "pos": [
+          21,
+          10
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-48",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      3,
+      3
+     ],
+     "terrain": [
+      [
+       "wall",
+       "floor"
+      ],
+      [
+       null,
+       "floor"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch17-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "54221edfd4c50000f6f2ce2443a82b69e34457f2536f3e4394ff66e5eb4dbf70",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-12-2",
+     "kind": "village",
+     "pos": [
+      12,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-1-20",
+     "kind": "village",
+     "pos": [
+      1,
+      20
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-39-19-6",
+     "kind": "wall",
+     "pos": [
+      19,
+      6
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-40-21-6",
+     "kind": "wall",
+     "pos": [
+      21,
+      6
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "switch-46",
+     "kind": "switch",
+     "pos": [
+      4,
+      13
+     ],
+     "state": "idle",
+     "label": "机关",
+     "change": "lever-change-0"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-912700",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "druid",
+         "pos": [
+          19,
+          7
+         ],
+         "levelOffset": -2,
+         "boss": false
+        },
+        {
+         "classId": "druid",
+         "pos": [
+          20,
+          7
+         ],
+         "levelOffset": -2,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-9127c8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "cavalier",
+         "pos": [
+          0,
+          8
+         ],
+         "levelOffset": 0,
+         "boss": false
+        },
+        {
+         "classId": "cavalier",
+         "pos": [
+          0,
+          9
+         ],
+         "levelOffset": 0,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "event-lever-change-0",
+     "trigger": {
+      "kind": "object",
+      "object": "switch-46",
+      "state": "triggered"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "lever-change-0"
+      },
+      {
+       "kind": "scenario",
+       "message": "机关启动，地图发生变化"
+      }
+     ]
+    }
+   ],
+   "mapChanges": [
+    {
+     "id": "lever-change-0",
+     "position": [
+      4,
+      14
+     ],
+     "terrain": [
+      [
+       "plain"
+      ],
+      [
+       "bridge"
+      ],
+      [
+       "plain"
+      ]
+     ]
+    }
+   ],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-ch20-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "474328ef008793aee141a2a906310797c5a8f4f07c6cafea5f7055f519892392",
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-55-11-10",
+     "kind": "wall",
+     "pos": [
+      11,
+      10
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-56-10-11",
+     "kind": "wall",
+     "pos": [
+      10,
+      11
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-915860",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          12,
+          7
+         ],
+         "levelOffset": -1,
+         "boss": false
+        },
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          13,
+          8
+         ],
+         "levelOffset": -1,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-91589c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          14,
+          7
+         ],
+         "levelOffset": -1,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "status-18-10",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "petrified",
+       "count": 1,
+       "from": [
+        18,
+        10
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe8-chfinal-1-eirika",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": "5c2b5c9d2518c92b02b4f4c7634803a7accc40ed79701837f0e65c48c51e971f",
+   "difficulty": 3,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "door-object-0",
+     "kind": "door",
+     "pos": [
+      4,
+      19
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5C1CC"
+    },
+    {
+     "id": "door-object-1",
+     "kind": "door",
+     "pos": [
+      18,
+      19
+     ],
+     "state": "closed",
+     "label": "门",
+     "sourceId": "0x08A5C1D8"
+    },
+    {
+     "id": "chest-object-2",
+     "kind": "chest",
+     "pos": [
+      21,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_axe",
+      "count": 1
+     },
+     "sourceId": "0x08A5C1E4"
+    },
+    {
+     "id": "chest-object-3",
+     "kind": "chest",
+     "pos": [
+      2,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_sword",
+      "count": 1
+     },
+     "sourceId": "0x08A5C1F0"
+    },
+    {
+     "id": "wall-48-1-1",
+     "kind": "wall",
+     "pos": [
+      1,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-49-21-1",
+     "kind": "wall",
+     "pos": [
+      21,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [
+    {
+     "id": "wave-group-916164",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          2,
+          6
+         ],
+         "levelOffset": 1,
+         "boss": false
+        },
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          1,
+          8
+         ],
+         "levelOffset": 1,
+         "boss": false
+        },
+        {
+         "classId": "dragon_commander",
+         "pos": [
+          1,
+          10
+         ],
+         "levelOffset": 1,
+         "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "status-21-20",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "status",
+       "target": "player",
+       "status": "petrified",
+       "count": 1,
+       "from": [
+        21,
+        20
+       ],
+       "range": 10
+      }
+     ]
+    }
+   ],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch16",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-26-15",
+     "kind": "village",
+     "pos": [
+      26,
+      15
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-8-23",
+     "kind": "village",
+     "pos": [
+      8,
+      23
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-10-23",
+     "kind": "village",
+     "pos": [
+      10,
+      23
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-31-26-16",
+     "kind": "wall",
+     "pos": [
+      26,
+      16
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-32-10-19",
+     "kind": "wall",
+     "pos": [
+      10,
+      19
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch17",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-24-6",
+     "kind": "village",
+     "pos": [
+      24,
+      6
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-26-6",
+     "kind": "village",
+     "pos": [
+      26,
+      6
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-24-7",
+     "kind": "village",
+     "pos": [
+      24,
+      7
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-30-20-2",
+     "kind": "wall",
+     "pos": [
+      20,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-31-21-2",
+     "kind": "wall",
+     "pos": [
+      21,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch18",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-28-20-2",
+     "kind": "wall",
+     "pos": [
+      20,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-29-21-2",
+     "kind": "wall",
+     "pos": [
+      21,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch19",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-6-1",
+     "kind": "village",
+     "pos": [
+      6,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-7-1",
+     "kind": "village",
+     "pos": [
+      7,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-9-1",
+     "kind": "village",
+     "pos": [
+      9,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-31-3-4",
+     "kind": "wall",
+     "pos": [
+      3,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-32-4-4",
+     "kind": "wall",
+     "pos": [
+      4,
+      4
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch20",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-28-27-3",
+     "kind": "wall",
+     "pos": [
+      27,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-29-27-11",
+     "kind": "wall",
+     "pos": [
+      27,
+      11
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch21",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-28-18-1",
+     "kind": "wall",
+     "pos": [
+      18,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-29-17-2",
+     "kind": "wall",
+     "pos": [
+      17,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch22",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-2-0",
+     "kind": "village",
+     "pos": [
+      2,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-3-0",
+     "kind": "village",
+     "pos": [
+      3,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "village-4-0",
+     "kind": "village",
+     "pos": [
+      4,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-31-10-6",
+     "kind": "wall",
+     "pos": [
+      10,
+      6
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-32-24-12",
+     "kind": "wall",
+     "pos": [
+      24,
+      12
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch23",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-27-4",
+     "kind": "village",
+     "pos": [
+      27,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "village-28-4",
+     "kind": "village",
+     "pos": [
+      28,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "wood",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-29-4",
+     "kind": "village",
+     "pos": [
+      29,
+      4
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "wall-31-26-2",
+     "kind": "wall",
+     "pos": [
+      26,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-32-13-3",
+     "kind": "wall",
+     "pos": [
+      13,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch24",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-16-7",
+     "kind": "village",
+     "pos": [
+      16,
+      7
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-17-7",
+     "kind": "village",
+     "pos": [
+      17,
+      7
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-14-8",
+     "kind": "village",
+     "pos": [
+      14,
+      8
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-31-5-1",
+     "kind": "wall",
+     "pos": [
+      5,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-32-3-2",
+     "kind": "wall",
+     "pos": [
+      3,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe1-ch25",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 3,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-17-7",
+     "kind": "village",
+     "pos": [
+      17,
+      7
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-17-8",
+     "kind": "village",
+     "pos": [
+      17,
+      8
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     }
+    },
+    {
+     "id": "village-14-9",
+     "kind": "village",
+     "pos": [
+      14,
+      9
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "wall-31-16-1",
+     "kind": "wall",
+     "pos": [
+      16,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-32-13-2",
+     "kind": "wall",
+     "pos": [
+      13,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch11",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-28-11-1",
+     "kind": "wall",
+     "pos": [
+      11,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch12",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-27-20-3",
+     "kind": "wall",
+     "pos": [
+      20,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-28-25-3",
+     "kind": "wall",
+     "pos": [
+      25,
+      3
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch13",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-16-2",
+     "kind": "village",
+     "pos": [
+      16,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-9-9",
+     "kind": "village",
+     "pos": [
+      9,
+      9
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-12-9",
+     "kind": "village",
+     "pos": [
+      12,
+      9
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-34-11-17",
+     "kind": "wall",
+     "pos": [
+      11,
+      17
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch14",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-16-13",
+     "kind": "village",
+     "pos": [
+      16,
+      13
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     }
+    },
+    {
+     "id": "wall-33-13-1",
+     "kind": "wall",
+     "pos": [
+      13,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-34-20-1",
+     "kind": "wall",
+     "pos": [
+      20,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch15",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-3-0",
+     "kind": "village",
+     "pos": [
+      3,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-4-0",
+     "kind": "village",
+     "pos": [
+      4,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-11-0",
+     "kind": "village",
+     "pos": [
+      11,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch16",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-20-2",
+     "kind": "village",
+     "pos": [
+      20,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-21-2",
+     "kind": "village",
+     "pos": [
+      21,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-22-2",
+     "kind": "village",
+     "pos": [
+      22,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     }
+    },
+    {
+     "id": "wall-34-5-5",
+     "kind": "wall",
+     "pos": [
+      5,
+      5
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "出击区已按可达性调整"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch17",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-31-11-1",
+     "kind": "wall",
+     "pos": [
+      11,
+      1
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch18",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-18-27-2",
+     "kind": "wall",
+     "pos": [
+      27,
+      2
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch19",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "village-24-0",
+     "kind": "village",
+     "pos": [
+      24,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-26-0",
+     "kind": "village",
+     "pos": [
+      26,
+      0
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     }
+    },
+    {
+     "id": "village-24-1",
+     "kind": "village",
+     "pos": [
+      24,
+      1
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     }
+    },
+    {
+     "id": "wall-40-5-8",
+     "kind": "wall",
+     "pos": [
+      5,
+      8
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-41-13-8",
+     "kind": "wall",
+     "pos": [
+      13,
+      8
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe3-book1-ch20",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 3,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-01",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-02",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-03",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 0,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-04",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-05",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-06",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 1,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-07",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-17-8-11",
+     "kind": "wall",
+     "pos": [
+      8,
+      11
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-08",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-09",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 2,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  },
+  {
+   "mapId": "fe2-map-10",
+   "adapterVersion": "classic-adaptation-v1",
+   "sourceSha256": null,
+   "difficulty": 3,
+   "levelPolicy": {
+    "base": "quest",
+    "stageBonus": 2,
+    "bossBonus": 2,
+    "spread": 2
+   },
+   "deployment": {
+    "max": 8
+   },
+   "objects": [
+    {
+     "id": "wall-20-5-18",
+     "kind": "wall",
+     "pos": [
+      5,
+      18
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    },
+    {
+     "id": "wall-21-1-22",
+     "kind": "wall",
+     "pos": [
+      1,
+      22
+     ],
+     "state": "intact",
+     "hp": 24,
+     "maxHp": 24,
+     "label": "可破坏的墙"
+    }
+   ],
+   "events": [],
+   "mapChanges": [],
+   "notes": [
+    "FE2 程序守军／生成式敌军"
+   ],
+   "release": {
+    "status": "accepted",
+    "checks": [
+     "terrain",
+     "spawns",
+     "enemies",
+     "goal",
+     "objects",
+     "reachability",
+     "loot",
+     "events",
+     "special-mechanisms",
+     "loot-settlement"
+    ]
+   }
+  }
+ ]
+}

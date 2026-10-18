@@ -1,15 +1,21 @@
 import type { WeaponId } from '../data/weapons.ts';
-import { ITEMS } from '../data/weapons.ts';
+import { ITEMS, WEAPONS } from '../data/weapons.ts';
+import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
+import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { moveRange } from './movement.ts';
 import type { MoveRange } from './movement.ts';
-import { attackWeapons, cellKey, distance, inBounds, inRange, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
+import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
+import { interactionOptions } from './scenario.ts';
+import { artTargets, spellDestination, spellTargets, staffDestination, staffEffect, staffTargets } from './support.ts';
+import type { DestinationRule, StaffEffect } from './support.ts';
 
 // Foes a weapon can hit from a cell, or injured allies a staff can reach.
-export function targetsFrom(state: BattleState, unit: UnitState, from: Point, weaponId: WeaponId, kind: 'attack' | 'heal'): UnitState[] {
+export function targetsFrom(state: BattleState, unit: UnitState, from: Point, weaponId: WeaponId, kind: 'attack' | 'heal', anySide = false): UnitState[] {
   const pool = kind === 'attack'
-    ? living(state).filter(u => u.side !== unit.side)
-    : living(state, unit.side).filter(u => u.id !== unit.id && u.hp < u.stats.hp);
+    ? living(state).filter(u => anySide ? u.id !== unit.id : u.side !== unit.side)
+    : living(state, unit.side).filter(u => u.id !== unit.id
+      && (u.hp < u.stats.hp || (WEAPONS[weaponId].cure && hasCurableStatus(u))));
   return pool.filter(u => inRange(unit, weaponId, from, u.pos));
 }
 
@@ -19,10 +25,18 @@ export interface ActionOptions {
   items: number[];
   seize: boolean;
   escape: boolean;
+  interactions: { object: string; kind: 'door' | 'chest' | 'village' | 'wall' | 'switch' | 'ballista'; label: string }[];
+  dance: string[];
+  // 战技：已学（或装备授予）的战技 × 可用的同类武器；cost 是耐久消耗，durability 为该武器当前耐久。
+  arts: { art: string; weapon: WeaponId; cost: number; durability: number | null; usable: boolean; targets: UnitState[] }[];
+  // 法术书：有剩余次数、未被沉默；dest 不为 null 时需要（或可以）指定落点。
+  casts: { spell: string; role: string; charges: number; maxCharges: number; targets: UnitState[]; dest: DestinationRule | null }[];
+  staff: { weapon: WeaponId; effect: StaffEffect; targets: UnitState[]; dest: DestinationRule | null }[];
 }
 
 // Everything the unit could do after moving to `to`; only applicable actions are listed (docs/08).
 export function actionOptions(state: BattleState, unit: UnitState, to: Point): ActionOptions {
+  if (isBerserk(unit)) return { attack: [], heal: [], items: [], seize: false, escape: false, interactions: [], dance: [], arts: [], casts: [], staff: [] };
   const attack = attackWeapons(unit)
     .map(weapon => ({ weapon, targets: targetsFrom(state, unit, to, weapon, 'attack') }))
     .filter(o => o.targets.length > 0);
@@ -33,7 +47,24 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
   const items = unit.hp < unit.stats.hp
     ? unit.items.map((_, i) => i).filter(i => !(ITEMS[unit.items[i].id] as { shield?: boolean }).shield)
     : [];
-  return { attack, heal, items, seize: canSeize(state, unit, to), escape: canEscape(state, unit, to) };
+  const dance = (unit.classId === 'dancer' || unit.classId === 'apsara')
+    ? living(state, unit.side).filter(target => target.id !== unit.id && target.acted && !target.petrified && !target.npc).map(target => target.id)
+    : [];
+  const arts = (unit.arts ?? []).flatMap(art => {
+    const entry = WEAPON_ART_BY_ID.get(art as never);
+    if (!entry) return [];
+    const targets = artTargets(state, unit, to, entry);
+    return attackWeapons(unit).filter(id => WEAPONS[id].type === entry.weapon).map(weapon => {
+      const durability = unit.weaponInstances?.find(row => row.id === weapon)?.durability ?? null;
+      return { art, weapon, cost: entry.cost, durability, usable: durability === null || durability >= entry.cost, targets };
+    });
+  });
+  const staffActions = staffWeapons(unit).map(weapon => ({ weapon, effect: staffEffect(weapon), targets: staffTargets(state, unit, to, weapon), dest: staffDestination(weapon) }));
+  const casts = isSilenced(unit) ? [] : (unit.spellbooks ?? []).filter(book => book.charges > 0).map(book => ({
+    spell: book.id, role: SPELLBOOK_BY_ID.get(book.id)?.role ?? 'attack', charges: book.charges, maxCharges: book.maxCharges,
+    targets: spellTargets(state, unit, to, book.id), dest: spellDestination(book.id),
+  }));
+  return { attack, heal, items, seize: canSeize(state, unit, to), escape: canEscape(state, unit, to), interactions: interactionOptions(state, unit, to), dance, arts, casts, staff: staffActions };
 }
 
 // 撤离: any player unit (or the escort NPC) standing on an exit tile may leave the map (docs/20 §2).

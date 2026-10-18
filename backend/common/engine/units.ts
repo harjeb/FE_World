@@ -64,12 +64,74 @@ export function canWield(unit: UnitState, id: WeaponId): boolean {
   return classOf(unit).weapons[w.type] !== undefined && rankAtLeast(unit.ranks[w.type], w.rank);
 }
 
+export function isAsleep(unit: UnitState): boolean {
+  return !!unit.statuses?.sleep;
+}
+
+export function isSilenced(unit: UnitState): boolean {
+  return (unit.statuses?.silence ?? 0) > 0;
+}
+
+export function isBerserk(unit: UnitState): boolean {
+  return (unit.statuses?.berserk ?? 0) > 0;
+}
+
+// 沉默只封法术/杖；物理武器、兽爪、龙石仍可用。战技尚未接入运行时。
+export function canUseWeapon(unit: UnitState, id: WeaponId): boolean {
+  if (isAsleep(unit)) return false;
+  if (isSilenced(unit) && (WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff')) return false;
+  return canWield(unit, id);
+}
+
+export function hasCurableStatus(unit: UnitState): boolean {
+  return !!unit.statuses?.sleep || (unit.statuses?.silence ?? 0) > 0 || (unit.statuses?.berserk ?? 0) > 0;
+}
+
+export function cureStatuses(unit: UnitState): ('sleep' | 'silence' | 'berserk')[] {
+  const cured: ('sleep' | 'silence' | 'berserk')[] = [];
+  if (unit.statuses?.sleep) cured.push('sleep');
+  if ((unit.statuses?.silence ?? 0) > 0) cured.push('silence');
+  if ((unit.statuses?.berserk ?? 0) > 0) cured.push('berserk');
+  if (unit.statuses) {
+    delete unit.statuses.sleep;
+    delete unit.statuses.silence;
+    delete unit.statuses.berserk;
+    if (Object.keys(unit.statuses).length === 0) delete unit.statuses;
+  }
+  return cured;
+}
+
+export function tickStatuses(unit: UnitState): ('silence' | 'berserk')[] {
+  const expired: ('silence' | 'berserk')[] = [];
+  if (!unit.statuses) return expired;
+  if (unit.statuses.silence !== undefined) {
+    unit.statuses.silence -= 1;
+    if (unit.statuses.silence <= 0) { delete unit.statuses.silence; expired.push('silence'); }
+  }
+  if (unit.statuses.berserk !== undefined) {
+    unit.statuses.berserk -= 1;
+    if (unit.statuses.berserk <= 0) { delete unit.statuses.berserk; expired.push('berserk'); }
+  }
+  if (unit.statuses.regen !== undefined) {
+    unit.statuses.regen -= 1;
+    if (unit.statuses.regen <= 0) delete unit.statuses.regen;
+  }
+  if (Object.keys(unit.statuses).length === 0) delete unit.statuses;
+  return expired;
+}
+
+function hasCharge(unit: UnitState, id: WeaponId): boolean {
+  if (!unit.bookInstances) return true;
+  const row = unit.bookInstances.find(entry => entry.id === id);
+  return !row || row.charges > 0;
+}
+
 export function attackWeapons(unit: UnitState): WeaponId[] {
-  return unit.weapons.filter(id => WEAPONS[id].type !== 'staff' && canWield(unit, id));
+  return unit.weapons.filter(id => WEAPONS[id].type !== 'staff' && canUseWeapon(unit, id) && hasCharge(unit, id));
 }
 
 export function staffWeapons(unit: UnitState): WeaponId[] {
-  return unit.weapons.filter(id => WEAPONS[id].type === 'staff' && canWield(unit, id));
+  return unit.weapons.filter(id => WEAPONS[id].type === 'staff' && canUseWeapon(unit, id) && hasCharge(unit, id));
 }
 
 // The equipped weapon decides counterattacks; it is the first usable attack weapon in the list.

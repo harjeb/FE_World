@@ -6,12 +6,13 @@ import { actionOptions, EngineError, living, step, unitById } from '@common/engi
 import type { Action, BattleEvent, BattleState, Point, Side, UnitState } from '@common/engine/index.ts';
 import { describe } from './log.ts';
 import type { LogEntry } from './log.ts';
-import { back, canCommand, clickCell, IDLE } from './selection.ts';
+import { back, canCommand, clickCell, IDLE, weaponMode } from './selection.ts';
 import type { Mode } from './selection.ts';
 import { loadSettings, saveSettings } from './settings.ts';
 import type { Settings } from './settings.ts';
 import { playEvents } from './playback.ts';
 import type { BattleSession } from './session.ts';
+import { commandAction, commandOptions, commandTargets, isCommand } from './commands.ts';
 
 export type CombatEvent = Extract<BattleEvent, { t: 'combat' }>;
 export type LevelUpEvent = Extract<BattleEvent, { t: 'levelUp' }>;
@@ -102,9 +103,26 @@ export class BattleController {
     else if (!this.blocked) this.set({ mode: back(this.snap.mode), notice: null });
   }
 
-  chooseAction(kind: 'attack' | 'heal' | 'item' | 'wait' | 'seize' | 'escape'): void {
+  chooseAction(kind: 'attack' | 'heal' | 'item' | 'wait' | 'seize' | 'escape' | 'art' | 'cast' | 'staff' | 'dance'): void {
     const mode = this.snap.mode;
     if (this.blocked || !('to' in mode)) return;
+    if (kind === 'art' || kind === 'cast' || kind === 'staff' || kind === 'dance') {
+      // Open the menu; with a single option (or a single dance target) pick it right away.
+      const o = commandOptions(this.snap.state, mode);
+      const base = { unit: mode.unit, to: mode.to, target: null };
+      if (kind === 'art') {
+        const only = o.arts.length === 1 ? o.arts[0] : null;
+        this.set({ mode: { kind, ...base, art: only?.art ?? null, weapon: only?.weapon ?? null } });
+      } else if (kind === 'cast') {
+        this.set({ mode: { kind, ...base, spell: o.casts.length === 1 ? o.casts[0].spell : null, dest: null } });
+      } else if (kind === 'staff') {
+        this.set({ mode: { kind, ...base, weapon: o.staves.length === 1 ? o.staves[0].weapon : null, dest: null } });
+      } else {
+        this.set({ mode: { kind, ...base, target: o.dance.length === 1 ? o.dance[0].id : null } });
+      }
+      this.autoTarget();
+      return;
+    }
     if (kind === 'wait' || kind === 'seize' || kind === 'escape') {
       void this.commit({ type: 'act', unit: mode.unit, to: mode.to, act: kind });
       return;
@@ -116,7 +134,13 @@ export class BattleController {
     const options = actionOptions(this.snap.state, unitById(this.snap.state, mode.unit), mode.to)[kind];
     if (options.length === 0) return;
     const only = options.flatMap(o => o.targets).filter((t, i, all) => all.findIndex(u => u.id === t.id) === i);
-    this.set({ mode: { kind, unit: mode.unit, to: mode.to, weapon: options[0].weapon, target: only.length === 1 ? only[0].id : null } });
+    this.set({ mode: weaponMode(kind, mode.unit, mode.to, options[0].weapon, only.length === 1 ? only[0].id : null) });
+  }
+
+  interact(objectId: string): void {
+    const mode = this.snap.mode;
+    if (this.blocked || !('to' in mode)) return;
+    void this.commit({ type: 'act', unit: mode.unit, to: mode.to, act: 'interact', target: objectId });
   }
 
   chooseWeapon(weapon: WeaponId): void {
@@ -131,8 +155,52 @@ export class BattleController {
 
   chooseTarget(targetId: string): void {
     const mode = this.snap.mode;
-    if (this.blocked || (mode.kind !== 'attack' && mode.kind !== 'heal')) return;
-    this.set({ mode: { ...mode, target: targetId } });
+    if (this.blocked) return;
+    if (mode.kind === 'cast' || mode.kind === 'staff') this.set({ mode: { ...mode, target: targetId, dest: null } });
+    else if (mode.kind === 'art' || mode.kind === 'dance' || mode.kind === 'attack' || mode.kind === 'heal') this.set({ mode: { ...mode, target: targetId } });
+  }
+
+  // 战技／法术／杖的选项；目标若仍有效就保留，否则自动挑唯一目标。
+  chooseArt(art: string, weapon: WeaponId): void {
+    const mode = this.snap.mode;
+    if (this.blocked || mode.kind !== 'art') return;
+    this.set({ mode: { ...mode, art, weapon } });
+    this.keepOrClearTarget();
+  }
+
+  chooseSpell(spell: string): void {
+    const mode = this.snap.mode;
+    if (this.blocked || mode.kind !== 'cast') return;
+    this.set({ mode: { ...mode, spell, dest: null } });
+    this.keepOrClearTarget();
+  }
+
+  chooseStaff(weapon: WeaponId): void {
+    const mode = this.snap.mode;
+    if (this.blocked || mode.kind !== 'staff') return;
+    this.set({ mode: { ...mode, weapon, dest: null } });
+    this.keepOrClearTarget();
+  }
+
+  chooseDest(at: Point | null): void {
+    const mode = this.snap.mode;
+    if (this.blocked || (mode.kind !== 'cast' && mode.kind !== 'staff')) return;
+    this.set({ mode: { ...mode, dest: at } });
+  }
+
+  private keepOrClearTarget(): void {
+    const mode = this.snap.mode;
+    if (!isCommand(mode)) return;
+    const targets = commandTargets(this.snap.state, mode);
+    if (mode.target && !targets.some(t => t.id === mode.target)) this.set({ mode: { ...mode, target: null } as typeof mode });
+    this.autoTarget();
+  }
+
+  private autoTarget(): void {
+    const mode = this.snap.mode;
+    if (!isCommand(mode) || mode.target) return;
+    const targets = commandTargets(this.snap.state, mode);
+    if (targets.length === 1) this.set({ mode: { ...mode, target: targets[0].id } as typeof mode });
   }
 
   useItem(index: number): void {
@@ -143,12 +211,20 @@ export class BattleController {
 
   canConfirm(): boolean {
     const mode = this.snap.mode;
-    return !this.blocked && (mode.kind === 'attack' || mode.kind === 'heal') && mode.target !== null;
+    if (this.blocked) return false;
+    if (isCommand(mode)) return commandAction(this.snap.state, mode) !== null;
+    return (mode.kind === 'attack' || mode.kind === 'heal') && mode.target !== null;
   }
 
   confirm(): void {
     const mode = this.snap.mode;
-    if (!this.canConfirm() || (mode.kind !== 'attack' && mode.kind !== 'heal') || !mode.target) return;
+    if (!this.canConfirm()) return;
+    if (isCommand(mode)) {
+      const action = commandAction(this.snap.state, mode);
+      if (action) void this.commit(action);
+      return;
+    }
+    if ((mode.kind !== 'attack' && mode.kind !== 'heal') || !mode.target) return;
     void this.commit({ type: 'act', unit: mode.unit, to: mode.to, act: mode.kind, target: mode.target, weapon: mode.weapon });
   }
 

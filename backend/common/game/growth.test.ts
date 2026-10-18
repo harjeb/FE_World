@@ -89,9 +89,9 @@ test('a late bloomer gets stronger growth as they age into the last band', () =>
 
 test('ageAt advances one year per calendar year and recruitment allows 12 and up', () => {
   const unit = createUnit('erin', 10, 'u5', 100, false, { age: 18 });
-  assert.equal(ageAt(unit, 100, 120), 18);
-  assert.equal(ageAt(unit, 219, 120), 18);
-  assert.equal(ageAt(unit, 220, 120), 19);
+  assert.equal(ageAt(unit, 100, 500), 18);
+  assert.equal(ageAt(unit, 599, 500), 18);
+  assert.equal(ageAt(unit, 600, 500), 19);
   assert.deepEqual(RECRUIT_AGE_RANGE, [12, 45]);
 });
 
@@ -119,7 +119,7 @@ test('natural lifespan follows the species and the protagonist never ages', () =
   assert.ok(dragon.lifespanYears >= 180 && dragon.lifespanYears <= 320);
   const hero = createUnit('erin', 30, 'hero', 0, false, { age: 20 });
   hero.isProtagonist = true;
-  assert.equal(ageAt(hero, 10_000, 120), 20, 'the protagonist does not age with the calendar');
+  assert.equal(ageAt(hero, 10_000, 500), 20, 'the protagonist does not age with the calendar');
 });
 
 test('protagonist base rolls above the class minimum, weighted by personal growth', () => {

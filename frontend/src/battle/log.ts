@@ -1,8 +1,10 @@
 // Turns engine events into the compact 战况记录 lines. Each command becomes one line.
 import { STAT_NAMES } from '@common/data/types.ts';
 import type { StatKey } from '@common/data/types.ts';
-import { WEAPONS } from '@common/data/weapons.ts';
+import { GAME_ITEMS } from '@common/game/items.ts';
+import type { ItemKey } from '@common/game/items.ts';
 import type { BattleEvent, BattleState, Side } from '@common/engine/index.ts';
+import { artInfo, spellInfo, weaponLabel } from './commands.ts';
 import { displayName } from './names.ts';
 
 export interface LogEntry {
@@ -46,7 +48,7 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
           const result = !s.hit ? '未命中' : s.crit ? `必杀 ${s.damage}` : `命中 ${s.damage}`;
           return `${name(s.by)} ${result}`;
         });
-        const weapon = WEAPONS[e.weapons[0]].name;
+        const weapon = weaponLabel(e.weapons[0]);
         const counter = e.weapons[1] ? '' : `（${name(e.defender)} 无法反击）`;
         push(`${name(e.attacker)} 用${weapon}攻击 ${name(e.defender)}${counter}：${parts.join('，') || '未出手'}。`, mark(e.attacker));
         break;
@@ -66,6 +68,48 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       case 'escape':
         push(`${name(e.unit)} 撤离了战场。`, mark(e.unit));
         break;
+      case 'object': {
+        const label = before.objects?.find(o => o.id === e.object)?.label ?? '物件';
+        push(`${name(e.by)} ${e.state === 'destroyed' ? '破坏' : e.state === 'open' || e.state === 'opened' ? '打开' : e.state === 'visited' ? '访问' : '启动'}了${label}。`, mark(e.by));
+        break;
+      }
+      case 'treasure': {
+        const label = before.objects?.find(o => o.id === e.object)?.label ?? '宝物';
+        push(`${name(e.unit)} 从${label}获得 ${GAME_ITEMS[e.item as ItemKey]?.name ?? e.item} ×${e.count}。`, mark(e.unit));
+        break;
+      }
+      case 'art': {
+        // The art event follows its exchange: tag that line instead of adding a new one.
+        const last = [...entries].reverse().find(entry => entry.t === 'combat');
+        const art = artInfo(e.art);
+        if (last) last.text = `【战技·${art?.name ?? e.art}】${last.text}`;
+        else push(`${name(e.unit)} 使用战技「${art?.name ?? e.art}」。`, mark(e.unit));
+        break;
+      }
+      case 'cast':
+        push(`${name(e.unit)} 对 ${name(e.target)} 施放「${spellInfo(e.spell)?.name ?? e.spell}」。`, mark(e.unit));
+        break;
+      case 'dance':
+        push(`${name(e.unit)} 为 ${name(e.target)} 起舞，${name(e.target)} 可以再行动一次。`, mark(e.unit));
+        break;
+      case 'shield':
+        push(`${name(e.unit)} 的不朽盾发动：保留 1 HP 并石化到下个己方阶段。`, mark(e.unit));
+        break;
+      case 'spawn':
+        push(`增援抵达：${name(e.unit)}。`, mark(e.unit));
+        break;
+      case 'scenario':
+        push(e.message, 'g');
+        break;
+      case 'hazard':
+        if (e.kind === 'damage') push(`${name(e.unit)} 被${e.source === 'ballista' ? '炮台' : '机关'}命中，损失 ${e.amount} HP（剩余 ${e.hpAfter}）。`, mark(e.unit));
+        else push(`${name(e.unit)} 被状态杖命中。`, mark(e.unit));
+        break;
+      case 'status': {
+        const label = { sleep: '睡眠', silence: '沉默', berserk: '混乱', petrified: '石化', regen: '再生' }[e.status];
+        push(`${name(e.unit)} ${e.active ? `陷入${label}${e.turns ? `（${e.turns} 回合）` : ''}` : `解除${label}`}。`, mark(e.unit));
+        break;
+      }
       case 'heal':
         if (e.source === 'terrain') push(`${name(e.target)} 在据点回复 ${e.amount} HP。`, 'g');
         else if (e.source === 'item') push(`${name(e.target)} 使用伤药，回复 ${e.amount} HP。`, mark(e.target));

@@ -8,11 +8,11 @@ import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { applyBattleOutcome, syncPlayer, stateView } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
+import { regionById } from '../common/game/calendar.ts';
 import { createFieldBattle, FIELD_BATTLE } from '../common/game/battles.ts';
 import { decide } from '../common/engine/index.ts';
 import { tick } from '../worker/worker.ts';
 import { TERRAINS } from '../common/maps/map.ts';
-import { officialOpponents, runDefenseTrials } from '../common/game/arena.ts';
 import type { Player } from './store.ts';
 
 function setup() {
@@ -94,7 +94,7 @@ test('a fresh account starts with a placeholder protagonist and completes a self
 test('catalog carries the static tables with a version', () => {
   const { store, accountId, player } = setup();
   const catalog = dispatch(ctxFor(store, accountId, player), OP.GET_CATALOG, {}) as { version: number; weapons: Record<string, unknown>; promotions: unknown[] };
-  assert.equal(catalog.version, 8);
+  assert.equal(catalog.version, 10);
   assert.ok(Object.keys(catalog.weapons).length > 20);
   assert.ok(catalog.promotions.length >= 48);
 });
@@ -141,7 +141,7 @@ test('a field sortie spends days and can be played to a result', () => {
   const ctx = ctxFor(store, accountId, player);
   const start = dispatch(ctx, OP.SORTIE, { region: 1, unitIds: ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'] }) as { battleId: string };
   assert.ok(start.battleId);
-  assert.equal(ctx.player.day, 209 + 8);
+  assert.equal(ctx.player.day, 999 + 8);
   playOut(ctx);
   const refreshed = store.getPlayer(ctx.player.id)!;
   const finished = store.battle(refreshed.id, start.battleId);
@@ -180,7 +180,7 @@ test('today lists every action cost and the sortie rules before committing', () 
   const busy = dispatch(ctx, OP.GET_TODAY, {}) as typeof today & { battle: { kind: string; name: string; turn: number } | null };
   assert.equal(busy.actions.find(a => a.key === 'sortie')!.available, false);
   assert.deepEqual([busy.battle?.kind, busy.battle?.turn], ['field', 1]);
-  assert.ok(busy.battle?.name.startsWith('晨原'));
+  assert.ok(busy.battle?.name.startsWith(regionById(1).name));
 });
 
 test('own arena-day snapshots can be read back with their date', () => {
@@ -230,9 +230,10 @@ test('arena pays gold only for matches actually fought', () => {
   const banned = new Set(bans);
   const chars = roster.map(u => u.character).filter(c => !banned.has(c)).slice(0, opponent.deploy);
   const picks = chars.map((character, i) => ({ character, pos: [i % 3, 2 + Math.floor(i / 3)] }));
+  const arenaDay = ctx.player.day;
   const attack = dispatch(ctx, OP.ARENA_ATTACK, { opponentId: opponent.id, picks, commander: chars[0] }) as { battleId: string };
   dispatch(ctx, OP.SURRENDER, { battleId: attack.battleId });
-  const day = store.arenaDay(ctx.player.id, ctx.player.day)!;
+  const day = store.arenaDay(ctx.player.id, arenaDay)!;
   assert.equal(day.attacks[opponent.id].surrender, true, '投降应被记录');
   const goldBefore = ctx.player.gold;
   // 跨过 24:00：投降的那场与未打完的两场都计落败，但不发参与金币，防守也不发可用金币。
@@ -277,7 +278,7 @@ test('the defense view follows the live roster after a promotion', () => {
   type View = { defense: { slots: { unit: { character: string; classId: string } }[] } };
   const before = (dispatch(ctx, OP.GET_DEFENSE, {}) as View).defense.slots.find(s => s.unit.character === 'noah')!;
   assert.equal(before.unit.classId, 'cleric');
-  player.day = 360;
+  player.day = 1500;
   player.gold = 100_000;
   dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_noah', classId: 'bishop' });
   dispatch(ctx, OP.PROMOTE, { unitId: 'u_noah', promotion: 'bishop' });
@@ -285,36 +286,26 @@ test('the defense view follows the live roster after a promotion', () => {
   assert.equal(after.unit.classId, 'bishop');
 });
 
-test('arena results carry the defense locked at registration', () => {
+test('arena days do not lock a player defense', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  const locked = store.arenaDay(ctx.player.id, ctx.player.day)!.defense!;
-  type Slots = { slots: { behavior: string }[] };
-  const edited = structuredClone((dispatch(ctx, OP.GET_DEFENSE, {}) as { defense: Slots }).defense);
-  const changed = locked.slots[0].behavior === 'aggressive' ? 'hold' : 'aggressive';
-  edited.slots[0].behavior = changed;
-  dispatch(ctx, OP.SET_DEFENSE, { defense: edited });
-  const results = dispatch(ctx, OP.GET_ARENA_RESULTS, {}) as { lockedDefense: Slots | null };
-  assert.equal(results.lockedDefense?.slots[0].behavior, locked.slots[0].behavior);
-  assert.notEqual(results.lockedDefense?.slots[0].behavior, changed);
+  const day = store.arenaDay(ctx.player.id, ctx.player.day)!;
+  assert.equal(day.defense, null);
+  const results = dispatch(ctx, OP.GET_ARENA_RESULTS, {}) as { lockedDefense: unknown };
+  assert.equal(results.lockedDefense, null);
 });
 
-test('arena settlement uses the defense locked at registration, not a later edit', () => {
+test('arena settlement does not run defense trials', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   dispatch(ctx, OP.GET_ARENA, {});
   const day = store.arenaDay(ctx.player.id, ctx.player.day)!;
-  assert.ok(day.defense, '报名时应锁定防守快照');
-  const expected = structuredClone(day);
-  runDefenseTrials(expected, day.defense!, officialOpponents().map(o => ({ legion: o.legion, roster: o.slots.map(s => s.unit) })));
-  // 改掉当前防守后结算：仍应用报名时锁定的那份。
-  ctx.player.defense = { ...day.defense!, slots: [] };
   ctx.player.day += 31;
   store.savePlayer(ctx.player);
   tick(store, Date.now());
   const settled = store.arenaDay(ctx.player.id, day.day)!;
   assert.equal(settled.settled, true);
-  assert.deepEqual(settled.defenseTrials, expected.defenseTrials);
+  assert.deepEqual(settled.defenseTrials, []);
 });
 
 test('the agent ASCII map legend matches the terrain table', () => {
@@ -404,6 +395,7 @@ test('shared experience is not spent on a unit at the level cap', () => {
   const unit = store.unit(player.id, 'u_erin')!;
   unit.level = 99;
   store.saveUnit(unit, player.id);
+  ctx.player.bexp = 500;
   const before = ctx.player.bexp;
   assert.throws(() => dispatch(ctx, OP.ASSIGN_BEXP, { unitId: 'u_erin', amount: 100 }), /已满级/);
   assert.equal(ctx.player.bexp, before);
@@ -459,7 +451,7 @@ test('the promotion compatibility endpoint requires a purchased qualification an
   unit.exp = 42;
   store.saveUnit(unit, player.id);
   assert.throws(() => dispatch(ctx, OP.PROMOTE, { unitId: unit.id, promotion: 'sword_hero' }), /尚未购买/);
-  player.day = 360;
+  player.day = 1500;
   player.gold = 100_000;
   dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: unit.id, classId: 'sword_hero' });
   const before = store.inventory(player.id);
@@ -471,15 +463,17 @@ test('the promotion compatibility endpoint requires a purchased qualification an
   assert.deepEqual(store.inventory(player.id), before);
 });
 
-test('recruit spends days and adds a unit with a growth type and age', () => {
+test('recruit spends days, saves a candidate, and accepts it without rerolling', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  let result = dispatch(ctx, OP.RECRUIT, { region: 1 }) as { success: boolean; unit?: { growthType: string; age: number } };
-  // 40% success with a guaranteed hit on the fifth try, so six attempts always land one.
+  let result = dispatch(ctx, OP.RECRUIT, { region: 1 }) as { success: boolean; pending?: { id: string; candidate: { name: string; classId: string } } };
   for (let i = 0; i < 5 && !result.success; i++) result = dispatch(ctx, OP.RECRUIT, { region: 1 }) as typeof result;
   assert.equal(result.success, true);
-  assert.ok(['early', 'normal', 'late', 'growth'].includes(result.unit!.growthType));
-  assert.ok(result.unit!.age >= 12 && result.unit!.age <= 45);
+  assert.ok(result.pending?.candidate.name);
+  const pendingId = result.pending!.id;
+  const accepted = dispatch(ctx, OP.ACCEPT_RECRUIT, { id: pendingId }) as { accepted: boolean; unit: { id: string; name: string; classId: string } };
+  assert.equal(accepted.accepted, true);
+  assert.equal(store.unit(player.id, accepted.unit.id)?.name, result.pending!.candidate.name);
 });
 
 test('the worker settles arena days that the player has moved past', () => {
@@ -490,7 +484,7 @@ test('the worker settles arena days that the player has moved past', () => {
   store.savePlayer(ctx.player);
   const handled = tick(store, Date.now());
   assert.ok(handled >= 1);
-  const day = store.arenaDay(ctx.player.id, 209);
+  const day = store.arenaDay(ctx.player.id, 999);
   assert.equal(day?.settled, true);
 });
 

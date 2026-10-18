@@ -8,6 +8,12 @@ import { DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL } from '@common/game/items.ts';
 import { LEGACY_MIN_LEVEL, REINCARNATION_GOLD, REINCARNATION_LEVEL, REINCARNATION_POINTS, REINCARNATION_STAT_MAX } from '@common/game/legacy.ts';
 import { ROSTER_LIMIT } from '@common/game/model.ts';
+import { DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS, DISPATCH_MIN_DAYS } from '@common/game/dispatch.ts';
+import { MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER } from '@common/game/minigames.ts';
+import { RECRUIT_UNLOCK_DAY } from '@common/game/random-recruit.ts';
+import { CHALLENGE_FLOORS } from '@common/game/challenges.ts';
+import { SKILL_SLOTS } from '@common/game/mastery.ts';
+import { plainDate } from '../ui/calendar.ts';
 import { useSession } from '../api/session.ts';
 import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
@@ -41,14 +47,14 @@ export function RulesPage() {
         </div>
       </div>
       <nav className="chips rules-toc" aria-label="目录">
-        {[['calendar', '日历'], ['battle', '战斗与阵亡'], ['arena', '竞技场'], ['annual', '大竞技场'], ['dungeon', '大副本'], ['craft', '生产'], ['growth', '养成'], ['legacy', '传承与轮回']]
+        {[['calendar', '日历'], ['battle', '战斗与阵亡'], ['gear', '耐久与法术'], ['arena', '竞技场'], ['annual', '大竞技场'], ['dungeon', '大副本'], ['quests', '任务与挑战塔'], ['dispatch', '派遣'], ['tavern', '酒馆'], ['craft', '生产'], ['growth', '养成'], ['legacy', '传承与轮回']]
           .map(([id, label]) => <a key={id} className="chip" href={`#/rules`} onClick={e => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); }}>{label}</a>)}
       </nav>
 
       <div className="rules-grid">
         <Section id="calendar" title="个人日历与行动" link={['军营', links.camp]}>
           <li>每个军团有自己的日历：一年 {SEASONS_PER_YEAR} 季、每季 {DAYS_PER_SEASON} 日。只有你的行动会推进日期，离线不会。</li>
-          <li>每季第 {ARENA_DAY_OF_MONTH} 日是竞技场日。推进日期离开竞技场日时当天随即结算，没打的进攻按落败计。</li>
+          <li>每季第 {ARENA_DAY_OF_MONTH} 日是竞技场日（已报名的军团当天生成对手）。离开那一天后当日竞技场结算，没打的进攻按落败计。</li>
           {actions.map(a => <li key={a.key}>{a.name}：{a.key === 'rest' ? '自选日数' : `${a.costDays} 日`}{a.costGold ? `、${a.costGold} 金币` : ''}。{a.note}。</li>)}
           <li>整理仓库、买卖、装备、分配公共经验都不推进日期。</li>
         </Section>
@@ -58,14 +64,24 @@ export function RulesPage() {
           <li>普通竞技场与练习是模拟战，没有真实伤亡。</li>
           <li>战死的角色带着的武器与道具回到仓库；达到传承等级的会留下遗产。</li>
           <li>撤退立即判负，已经获得的经验保留，通关奖励不发。</li>
+          <li>每名角色最多带 1 枚不朽盾：致命一击时消耗，保留 1 HP 并石化到下个己方阶段；石化期间不能接受任何回复。</li>
+        </Section>
+
+        <Section id="gear" title="耐久、法术与功能杖" link={['整备', links.prep()]}>
+          <li>普通攻击与反击不消耗耐久；物理武器的主动战技按战技标注的耐久消耗，耐久不足时只能普通攻击。</li>
+          <li>魔道书、职业法术书与杖每本有独立次数，每次施放／使用消耗 1 次；次数用完就不能再用这本。</li>
+          <li>维修（整备或铁匠铺）把武器修回它已有的上限，杖补满次数；旅馆休息 1 日补满一本书，以太口粮恢复 25%、完整料理恢复全部。战斗、远征与年度赛事中不能用旅馆和食物。</li>
+          <li>沉默时不能施法或用杖；睡眠时不能行动，受击即醒；复原杖与「休息」可以解除。</li>
+          <li>每人 {SKILL_SLOTS} 个技能格，装备职业精通学会的技能；个人技能与装备授予的技能不占格。</li>
         </Section>
 
         <Section id="arena" title="竞技场" link={['竞技场', links.arena]}>
           <li>每张地图决定出战人数、禁用人数与回合上限：{maps.map(m => `${m.name} ${m.deploy} 人、禁 ${m.bans}、${m.turnLimit} 回合`).join('；')}。</li>
-          <li>流程：看对手 → 禁用 → 揭晓阵容 → 部署 → 开战。对手的站位在禁用后揭晓，AI 行为始终不公开。</li>
+          <li>流程：看对手 → 禁用 → 揭晓阵容 → 部署 → 开战。对手的站位在禁用后揭晓，AI 行为始终不公开；每场入场推进 1 日。</li>
+          <li>首版只有进攻：不需要设置防守。对手是同一天到达的其他军团快照，不足时由官方队伍补足。</li>
           <li>积分：胜利 20，无人阵亡 +5，在回合上限一半以内获胜 +5。</li>
-          <li>金币：每胜 {ARENA_GOLD.win}，打完的落败 {ARENA_GOLD.loss}；投降和没打的不发参与金币。</li>
-          <li>防守在报名时锁定，之后改动只用于下一次竞技场。</li>
+          <li>金币：每胜 {ARENA_GOLD.win}，打完的落败 {ARENA_GOLD.loss}；投降和没打的不发参与金币。普通竞技场是模拟战，没有真实伤亡，也不发等级经验。</li>
+          <li>现实月榜按现实月份归档，月末冻结名次与奖励，旧月奖励可以之后再领。</li>
         </Section>
 
         <Section id="annual" title="年度大竞技场" link={['赛程', links.annual]}>
@@ -82,11 +98,30 @@ export function RulesPage() {
           <li>敌人等级在出发时锁定。</li>
         </Section>
 
+        <Section id="quests" title="地区任务与挑战塔" link={['任务', links.quests]}>
+          <li>每个地区一条本地任务链，胜利后任务标记完成，金币、物资与声望另行领取；声望永久保留，购买不扣。</li>
+          <li>每张图规定出战人数与敌军等级上限；名册上限 {ROSTER_LIMIT} 人，多出的人留作替补。</li>
+          <li>挑战塔：{CHALLENGE_FLOORS.map(f => `${f.name.replace('挑战塔 · ', '')} 敌 Lv ${f.level}、${f.costDays} 日`).join('；')}；先通关，再分别领一次首通与一次重复奖励。终层在主线第八章完成后开放。</li>
+        </Section>
+
+        <Section id="dispatch" title="后台派遣" link={['派遣', links.dispatch]}>
+          <li>一次最多派 {DISPATCH_MAX_UNITS} 人、{DISPATCH_MIN_DAYS}–{DISPATCH_MAX_DAYS} 日；派遣本身不推进日期，你的日历走到返程日时一次结算。</li>
+          <li>返程带回素材（低概率带回武器），每人获得经验、所选职业的精通与武器熟练度；派遣不会阵亡。</li>
+          <li>派出期间这些人不能出战、换职、整备或报名大竞技场。</li>
+        </Section>
+
+        <Section id="tavern" title="酒馆" link={['酒馆', links.tavern]}>
+          <li>第二年（{plainDate(RECRUIT_UNLOCK_DAY)}）开放：每个地区每季度 3 名付费候选，季度内不重掷；游历招募同时开放。</li>
+          <li>小游戏每个游戏季度共 {MINIGAME_PLAYS_PER_QUARTER} 局，下注 {MINIGAME_BETS.join('／')} 金币：猜大小押中返还 2 倍（三同点算输），青蛙赛跑押中冠军返还 3.8 倍。不推进日期，属性不影响结果。</li>
+          <li>严重损失后的紧急补员免费、不推进日期，每次新的真实伤亡只能领一次。</li>
+        </Section>
+
         <Section id="craft" title="生产" link={['生产', links.workshop]}>
           {(production?.recipes ?? []).map(r => (
             <li key={r.id}>{r.name}：{r.input.map(i => `${itemName(i.item)} ×${i.count}`).join(' + ')} → {itemName(r.output.item)} ×{r.output.count}，{r.days} 日成熟。</li>
           ))}
           <li>工位：{(production?.facilities ?? []).map(f => `${f.name} ${f.slots} 个`).join('、')}。播种花 1 日，炼药和锻造开工不耗日。</li>
+          <li>完美锻造另付 1,500 金币：产出的武器第一次交给角色时耐久上限 +10，之后维修回到新上限，不叠第二次。</li>
           <li>成熟靠推进日期；领取不推进日期，每单只领一次。</li>
         </Section>
 
@@ -94,7 +129,8 @@ export function RulesPage() {
           <li>升级时各项属性按成长率随机增加；成长率是每次升级的概率，不是保证。</li>
           <li>名册上限 {ROSTER_LIMIT} 人。能力药每人每项最多 {DRUG_LIMIT_PER_STAT} 次、合计 {DRUG_LIMIT_TOTAL} 次，不会超过属性上限。</li>
           <li>职业资格按年份开放、可以跨路线购买：{STAGES.map(s => `${STAGE_NAMES[s - 1]}第 ${CLASS_OPEN_YEAR[s]} 年 ${CLASS_PRICE[s].toLocaleString()} 金`).join('；')}。</li>
-          <li>转职保留等级、经验与已获得的属性。</li>
+          <li>转职保留等级、经验与已获得的属性；已购资格与本命职业可以免费切回。</li>
+          <li>游历招募只花行动日：遇到候选后可以接受或拒绝，拒绝不退日期；候选在决定前一直保留。</li>
         </Section>
 
         <Section id="legacy" title="传承与轮回" link={['传承', links.legacy]}>

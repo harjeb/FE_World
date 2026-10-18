@@ -42,18 +42,18 @@ export interface Defense {
   slots: DefenseSlot[];
   // Commander and up to two backups; a banned commander is replaced by the next one.
   commanders: CharacterId[];
-  // Preset bans: character names the attacker may not field.
-  bans: CharacterId[];
+  // Preset bans: unit instance ids (legacy character ids still accepted).
+  bans: string[];
 }
 
 export interface Reveal {
   fielded: DefenseSlot[];
   commander: CharacterId;
-  // The attacker's characters barred by the defender's preset bans.
-  barred: CharacterId[];
+  // The attacker's unit/character identifiers barred by the defender's preset bans.
+  barred: string[];
 }
 
-export interface AttackPlan { picks: { character: CharacterId; pos: Point }[]; commander: CharacterId }
+export interface AttackPlan { picks: { character: CharacterId; unitId?: string; pos: Point }[]; commander: CharacterId }
 
 const key = ([x, y]: Point) => `${x},${y}`;
 const fail = (code: string, message: string): never => { throw new EngineError(code, message); };
@@ -85,7 +85,8 @@ export function validateDefense(defense: Defense): string[] {
   }
   if (new Set(defense.commanders).size !== defense.commanders.length) errors.push('主将与备选不能是同一人');
   if (defense.bans.length > map.bans) errors.push(`预设禁用最多 ${map.bans} 个角色`);
-  if (new Set(defense.bans).size !== defense.bans.length || defense.bans.some(c => !(c in CHARACTERS))) errors.push('预设禁用的角色不能重复');
+  const slotIds = new Set(defense.slots.flatMap(s => [s.unit.id, s.unit.character]));
+  if (new Set(defense.bans).size !== defense.bans.length || defense.bans.some(c => !slotIds.has(c) && !(c in CHARACTERS))) errors.push('预设禁用的单位不能重复');
   return errors;
 }
 
@@ -98,24 +99,23 @@ export function opponentList(defense: Defense): SnapshotUnit[] {
 }
 
 // Bans take B units off the list; the first D of the rest, by priority, fight (docs/05).
-export function applyBans(defense: Defense, bans: CharacterId[], roster: SnapshotUnit[]): Reveal {
+export function applyBans(defense: Defense, bans: string[], roster: SnapshotUnit[]): Reveal {
   const map = arenaMap(defense);
-  const listed = defense.slots.map(s => s.unit.character);
-  if (bans.length !== map.bans || new Set(bans).size !== bans.length || bans.some(c => !listed.includes(c))) {
-    fail('ARENA_BAN_INVALID', `需要从防守名单中禁用 ${map.bans} 个不同角色`);
+  const listed = new Set(defense.slots.flatMap(s => [s.unit.id, s.unit.character]));
+  if (bans.length !== map.bans || new Set(bans).size !== bans.length || bans.some(c => !listed.has(c))) {
+    fail('ARENA_BAN_INVALID', `需要从防守名单中禁用 ${map.bans} 个不同单位`);
   }
-  const fielded = defense.slots.filter(s => !bans.includes(s.unit.character)).slice(0, map.deploy);
+  const fielded = defense.slots.filter(s => !bans.includes(s.unit.id ?? s.unit.character) && !bans.includes(s.unit.character)).slice(0, map.deploy);
   const onField = fielded.map(s => s.unit.character);
   const commander = defense.commanders.find(c => onField.includes(c)) ?? onField[0];
-  const mine = roster.map(u => u.character);
-  return { fielded, commander, barred: defense.bans.filter(c => mine.includes(c)) };
+  return { fielded, commander, barred: defense.bans.filter(c => roster.some(u => u.id === c || u.character === c)) };
 }
 
 export function validateAttack(defense: Defense, reveal: Reveal, roster: SnapshotUnit[], plan: AttackPlan): string[] {
   const map = arenaMap(defense);
   const errors: string[] = [];
   const zone = new Set(map.attackerZone.map(key));
-  const allowed = roster.filter(u => !reveal.barred.includes(u.character)).map(u => u.character);
+  const allowed = roster.filter(u => !reveal.barred.includes(u.id ?? u.character) && !reveal.barred.includes(u.character)).map(u => u.character);
   const need = Math.min(map.deploy, allowed.length);
   const chosen = plan.picks.map(p => p.character);
   if (chosen.length !== need) errors.push(`需要出战 ${need} 人`);
@@ -145,14 +145,17 @@ export const defenderId = (character: CharacterId) => `d-${character}`;
 
 // Builds the battle: attacker = player side and moves first, defender units run the rule AI with
 // the behaviors from the defense setup. Arena battles give no experience.
-export function createArenaBattle(defense: Defense, bans: CharacterId[], roster: SnapshotUnit[], plan: AttackPlan, seed: string): BattleState {
+export function createArenaBattle(defense: Defense, bans: string[], roster: SnapshotUnit[], plan: AttackPlan, seed: string): BattleState {
   const map = arenaMap(defense);
   const reveal = applyBans(defense, bans, roster);
   const errors = validateAttack(defense, reveal, roster, plan);
   if (errors.length > 0) fail('ARENA_PLAN_INVALID', errors.join('；'));
   const tiles = tilesFromGlyphs(map.rows);
-  const attackers = plan.picks.map(p => fromSnapshot(roster.find(u => u.character === p.character)!, 'player', p.character, p.pos,
-    { boss: p.character === plan.commander }));
+  const attackers = plan.picks.map(p => {
+    const snap = roster.find(u => (p.unitId !== undefined && u.id === p.unitId) || u.character === p.character)!;
+    return fromSnapshot(snap, 'player', p.unitId ?? p.character, p.pos,
+    { boss: p.character === plan.commander });
+  });
   const defenders = reveal.fielded.map(s => fromSnapshot(s.unit, 'enemy', defenderId(s.unit.character), s.pos,
     { boss: s.unit.character === reveal.commander, behavior: s.behavior }));
   return {

@@ -3,7 +3,10 @@ import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
 import { expPreview, forecast, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
-import type { BattleState, Point, SideForecast, UnitState } from '@common/engine/index.ts';
+import type { BattleState, Forecast, Point, SideForecast, UnitState } from '@common/engine/index.ts';
+import { artInfo, commandAction, commandForecast, isCommand, spellHeal, spellInfo, STAFF_EFFECT_TEXT, weaponLabel } from './commands.ts';
+import type { CommandMode } from './commands.ts';
+import type { Mode } from './selection.ts';
 import { TERRAINS } from '@common/maps/map.ts';
 import { weaponIcon } from '../assets.ts';
 import { AttackIcon, HealIcon } from '../ui/icons.tsx';
@@ -33,15 +36,15 @@ function HpBox({ unit, loss, color, note, right }: { unit: UnitState; loss: numb
   );
 }
 
-function Fighter({ unit, label, weapon, side, enemy }: { unit: UnitState; label: string; weapon: WeaponId | null; side: SideForecast; enemy?: boolean }) {
-  const w = weapon ? WEAPONS[weapon] : null;
+function Fighter({ unit, label, weapon, side, enemy, weaponName }: { unit: UnitState; label: string; weapon: WeaponId | null; side: SideForecast; enemy?: boolean; weaponName?: string }) {
+  const w = weapon ? WEAPONS[weapon] ?? null : null;
   return (
     <div className={`fc-side${enemy ? ' enemy' : ''}`}>
       <Portrait unit={unit} flip={enemy} />
       <div className="min-w-0">
         <div className="fc-name">{label}</div>
         <div className="fc-sub">
-          {w ? <><img className="px" src={weaponIcon(w.type)} width={16} height={16} alt="" />{w.name}</> : '无武器'}
+          {weaponName ? <>{w && <img className="px" src={weaponIcon(w.type)} width={16} height={16} alt="" />}{weaponName}</> : w ? <><img className="px" src={weaponIcon(w.type)} width={16} height={16} alt="" />{w.name}</> : weapon ? weaponLabel(weapon) : '无武器'}
         </div>
         <div className="fc-ter">{terrainNote(side)}</div>
       </div>
@@ -49,8 +52,12 @@ function Fighter({ unit, label, weapon, side, enemy }: { unit: UnitState; label:
   );
 }
 
-export function ForecastPanel({ state, unitId, to, weapon, targetId }: { state: BattleState; unitId: string; to: Point; weapon: WeaponId; targetId: string }) {
-  const f = forecast(state, unitId, to, weapon, targetId);
+export function ForecastPanel({ state, unitId, to, weapon, targetId, given, title = '交战预测', weaponName }: {
+  state: BattleState; unitId: string; to: Point; weapon: WeaponId; targetId: string;
+  // 战技、攻击法术的预测由调用方用同一个 forecast 算好传入（法术书只在施法时登记为武器）。
+  given?: Forecast; title?: string; weaponName?: string;
+}) {
+  const f = given ?? forecast(state, unitId, to, weapon, targetId);
   const attacker = { ...unitById(state, unitId), pos: to };
   const defender = unitById(state, targetId);
   const a = f.attacker, d = f.defender;
@@ -59,16 +66,16 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId }: { state: 
   const killNote = a.damage * a.strikes >= defender.hp ? '全部命中即可击败'
     : a.crit > 0 && a.damage * 3 >= defender.hp ? '需要必杀才能击败' : '本次无法击败';
   const exp = attacker.side === 'player' && state.kind === 'field' ? expPreview(attacker, defender) : null;
-  const tri = d.weapon ? `${WEAPON_TYPE_NAMES[WEAPONS[weapon].type]}${a.triangle > 0 ? '克' : '被'}${WEAPON_TYPE_NAMES[WEAPONS[d.weapon].type]}${a.triangle > 0 ? '' : '克'}` : '';
+  const tri = d.weapon && WEAPONS[weapon] ? `${WEAPON_TYPE_NAMES[WEAPONS[weapon].type]}${a.triangle > 0 ? '克' : '被'}${WEAPON_TYPE_NAMES[WEAPONS[d.weapon].type]}${a.triangle > 0 ? '' : '克'}` : '';
   const dash = '—';
   return (
     <section className="panel" aria-labelledby="fc-h">
       <div className="ph">
-        <h2 id="fc-h">交战预测</h2>
+        <h2 id="fc-h">{title}</h2>
         <span style={{ fontSize: 12, color: '#6A6256' }}>命中与必杀为概率，实际结果以判定为准</span>
       </div>
       <div className="fc-sides">
-        <Fighter unit={attacker} label={displayName(state, attacker.id)} weapon={weapon} side={a} />
+        <Fighter unit={attacker} label={displayName(state, attacker.id)} weapon={weapon} side={a} weaponName={weaponName} />
         <span className="fc-vs" aria-hidden="true">VS</span>
         <Fighter unit={defender} label={displayName(state, defender.id)} weapon={d.weapon} side={d} enemy />
       </div>
@@ -135,7 +142,9 @@ export function HealPreview({ state, unitId, targetId, weapon }: { state: Battle
   );
 }
 
-export function ConfirmPanel({ state, to, kind, onConfirm, onCancel }: { state: BattleState; to: Point; kind: 'attack' | 'heal'; onConfirm: () => void; onCancel: () => void }) {
+const VERB: Record<'attack' | 'heal' | 'art' | 'cast' | 'staff' | 'dance', string> = { attack: '攻击', heal: '治疗', art: '使用战技', cast: '施法', staff: '用杖', dance: '舞蹈' };
+
+export function ConfirmPanel({ state, to, kind, ready = true, onConfirm, onCancel }: { state: BattleState; to: Point; kind: 'attack' | 'heal' | 'art' | 'cast' | 'staff' | 'dance'; ready?: boolean; onConfirm: () => void; onCancel: () => void }) {
   const place = TERRAINS[terrainAt(state, to)].name;
   const ref = useRef<HTMLElement>(null);
   // Keep the confirm button on screen when the forecast pushes it below the side column's fold.
@@ -143,15 +152,53 @@ export function ConfirmPanel({ state, to, kind, onConfirm, onCancel }: { state: 
   return (
     <section ref={ref} className="panel confirm" aria-label="确认">
       <div className="flex gap-2.5">
-        <button type="button" className="btn btn-primary btn-lg flex-1" onClick={onConfirm}>
-          {kind === 'attack' ? <AttackIcon /> : <HealIcon />}
-          {kind === 'attack' ? '确认攻击' : '确认治疗'} <span className="kbd">ENTER</span>
+        <button type="button" className="btn btn-primary btn-lg flex-1" onClick={onConfirm} disabled={!ready}>
+          {kind === 'heal' ? <HealIcon /> : <AttackIcon />}
+          确认{VERB[kind]} <span className="kbd">ENTER</span>
         </button>
         <button type="button" className="btn btn-lg" style={{ fontWeight: 500 }} onClick={onCancel} data-own-enter>取消 <span className="kbd">ESC</span></button>
       </div>
       <p style={{ fontSize: 13, color: '#6A6256' }}>
-        确认后，移动到{place}与{kind === 'attack' ? '攻击' : '治疗'}将一并提交，提交后不可撤销；取消则回到选择目标。
+        确认后，移动到{place}与{VERB[kind]}将一并提交，提交后不可撤销；取消则回到上一步。
       </p>
     </section>
   );
+}
+
+// 战技／法术／杖／舞蹈的预览：能交战的用引擎 forecast（战技加修正、攻击法术按法术书数值），其余显示效果。
+export function CommandPreview({ state, mode }: { state: BattleState; mode: CommandMode }) {
+  if (!mode.target) return null;
+  const target = unitById(state, mode.target);
+  const f = commandForecast(state, mode);
+  if (f && mode.kind === 'art' && mode.art && mode.weapon) {
+    const art = artInfo(mode.art);
+    return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon} targetId={mode.target} given={f} title={`战技预测 · ${art?.name ?? mode.art}`} weaponName={`${WEAPONS[mode.weapon].name} · ${art?.name ?? ''}`} />;
+  }
+  if (f && mode.kind === 'cast' && mode.spell) {
+    return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.spell as WeaponId} targetId={mode.target} given={f} title={`法术预测 · ${spellInfo(mode.spell)?.name ?? mode.spell}`} weaponName={spellInfo(mode.spell)?.name} />;
+  }
+  const heal = spellHeal(state, mode);
+  const effect = mode.kind === 'cast' ? spellInfo(mode.spell ?? '')?.effect
+    : mode.kind === 'staff' && mode.weapon ? `${STAFF_EFFECT_TEXT[mode.weapon === 'sleep_staff' ? 'sleep' : mode.weapon === 'silence_staff' ? 'silence' : mode.weapon === 'warp_staff' ? 'warp' : 'rescue']}：${WEAPONS[mode.weapon].note ?? ''}`
+      : mode.kind === 'dance' ? '目标本回合可以再行动一次；舞者自己的行动结束。' : '';
+  return (
+    <section className="panel" aria-labelledby="cmd-h">
+      <div className="ph"><h2 id="cmd-h">效果预览</h2><span style={{ fontSize: 12, color: '#6A6256' }}>以服务端结算为准</span></div>
+      <div className="ucard">
+        <Portrait unit={target} flip={target.side === 'enemy'} />
+        <div className="flex-1">
+          <div className="uname">{target.name}</div>
+          {heal !== null
+            ? <div className="num" style={{ fontSize: 15 }}>HP {target.hp} → <b>{Math.min(target.stats.hp, target.hp + heal)}</b> / {target.stats.hp}（+{Math.min(heal, target.stats.hp - target.hp)}）</div>
+            : <div className="num" style={{ fontSize: 15 }}>HP {target.hp} / {target.stats.hp}</div>}
+          <div style={{ fontSize: 13, color: '#4E473D' }}>{effect}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CommandConfirm({ state, mode, onConfirm, onCancel }: { state: BattleState; mode: Mode; onConfirm: () => void; onCancel: () => void }) {
+  if (!isCommand(mode) || !mode.target) return null;
+  return <ConfirmPanel state={state} to={mode.to} kind={mode.kind} ready={commandAction(state, mode) !== null} onConfirm={onConfirm} onCancel={onCancel} />;
 }

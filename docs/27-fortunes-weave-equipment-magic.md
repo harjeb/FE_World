@@ -202,10 +202,4 @@ git diff --check
 
 预期打印`PASS`，确认原69项＋61件武器＋40种书＝170个唯一模板（短弓跨页只计1件）；其中现行35项、待实现135项。还要核对原156装备／45魔法的选入、复用与排除集合，短弓数值／1–2射程、每书资源、300战技授予ID、来源字段和相对链接。
 
-需要逐字段对照本轮来源快照时：
-
-```powershell
-python tools/audit/equipment-catalog.py --items-source .beads/fw-items-research.log --skills-source .beads/fw-equipment-skills.log
-```
-
 这些是设计与数据验证，不证明170项都已在游戏可用。装备、学习、商店／掉落、耐久／每书次数、白魔法攻击／功能、存档、预测、网页／Agent及失败重试继续在TODO与实现任务中追踪；当前35项运行时数据未由本轮改写。
