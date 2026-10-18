@@ -1,6 +1,6 @@
 # 需求与验收状态总表
 
-更新日期：2026-10-18。核对基线：`8c70086`十二地区声望、`dca536b`分支整合、`f0232c3`显式旧档迁移；当前`rules-v7`／目录20、协议文档4、存档schema 1。稳定ID共65项（初表60项，后增ITEM-07与QUEST-06～09），64项完成首版，BAL-04部分完成。完整证据与任务状态见[34](docs/34-task-closure.md)，独立实际验收见[35](docs/35-release-validation-record.md)。后续新增需求继续在此维护。
+更新日期：2026-10-19。核对基线：`8c70086`十二地区声望、`dca536b`分支整合、`f0232c3`显式旧档迁移；当前`rules-v7`／目录20、协议文档4、存档schema 1。稳定ID共65项（初表60项，后增ITEM-07与QUEST-06～09），64项完成首版，BAL-04部分完成。完整证据与任务状态见[34](docs/34-task-closure.md)，独立实际验收见[35](docs/35-release-validation-record.md)。后续新增需求继续在此维护。
 
 玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)含历史轮次和候选数据模型；[14](docs/14-integration-handoff.md)记录当前接入边界。历史“未实现”不直接复制为新任务，最新覆盖矩阵以34为准。
 
