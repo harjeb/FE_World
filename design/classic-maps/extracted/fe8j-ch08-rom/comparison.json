@@ -1,0 +1,66 @@
+{
+  "referenceSource": {
+    "repository": "https://github.com/FireEmblemUniverse/fireemblem8u",
+    "revision": "f2e1f060dbe5b0cc35285df5a0f6659860644a04",
+    "targetRomSha1": "c25b145e37456171ada4b0d440bf88a19f4d509f",
+    "inputKind": "public-decomp-data",
+    "localRomVerified": false
+  },
+  "romSha1": "56f3d3938ec0f61d3864c95c142b03c98225fe72",
+  "metatileGridEqual": true,
+  "terrainGridEqual": true,
+  "terrainRulesEqual": true,
+  "mapChangesEqual": true,
+  "unitDifferences": [
+    {
+      "role": "turn2PlayerReinforcements",
+      "index": 0,
+      "character": "CHARACTER_EPHRAIM",
+      "differences": {
+        "level": {
+          "rom": 7,
+          "reference": 4
+        }
+      }
+    },
+    {
+      "role": "turn2PlayerReinforcements",
+      "index": 1,
+      "character": "CHARACTER_FORDE",
+      "differences": {
+        "level": {
+          "rom": 9,
+          "reference": 6
+        }
+      }
+    },
+    {
+      "role": "turn2PlayerReinforcements",
+      "index": 2,
+      "character": "CHARACTER_KYLE",
+      "differences": {
+        "level": {
+          "rom": 8,
+          "reference": 5
+        }
+      }
+    },
+    {
+      "role": "turn5EnemyReinforcements",
+      "index": 1,
+      "character": "CHARACTER_80",
+      "differences": {
+        "itemIds": {
+          "rom": [
+            22
+          ],
+          "reference": [
+            22,
+            28
+          ]
+        }
+      }
+    }
+  ],
+  "note": "Reference is a separate cross-check; exported values remain those read from the local ROM."
+}

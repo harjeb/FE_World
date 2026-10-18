@@ -1,0 +1,4398 @@
+{
+  "schemaVersion": 1,
+  "id": "fe8u-ch08",
+  "title": "圣魔之光石·第8章",
+  "dataKind": "static-chapter-source",
+  "source": {
+    "repository": "https://github.com/FireEmblemUniverse/fireemblem8u",
+    "revision": "f2e1f060dbe5b0cc35285df5a0f6659860644a04",
+    "targetRomSha1": "c25b145e37456171ada4b0d440bf88a19f4d509f",
+    "inputKind": "public-decomp-data",
+    "localRomVerified": false
+  },
+  "coordinates": {
+    "origin": "top-left",
+    "indexBase": 0,
+    "order": [
+      "x",
+      "y"
+    ],
+    "tilePixels": 16
+  },
+  "chapterTableIndex": 9,
+  "width": 24,
+  "height": 24,
+  "chapterSettings": {
+    "internalName": "L08",
+    "map": {
+      "obj1Id": 24,
+      "obj2Id": 0,
+      "paletteId": 25,
+      "tileConfigId": 26,
+      "mainLayerId": 40,
+      "objAnimId": 28,
+      "paletteAnimId": 0,
+      "changeLayerId": 41
+    },
+    "initialFogLevel": 0,
+    "hasPrepScreen": false,
+    "chapTitleId": 9,
+    "chapTitleIdInHectorStory": 0,
+    "initialPosX": 17,
+    "initialPosY": 17,
+    "initialWeather": "fine",
+    "battleTileSet": 0,
+    "easyModeLevelMalus": 4,
+    "difficultModeLevelBonus": 3,
+    "normalModeLevelMalus": 2,
+    "bgm": {
+      "bluePhase": 9,
+      "redPhase": 19,
+      "greenPhase": 15,
+      "bluePhaseInHectorStory": 9,
+      "redPhaseInHectorStory": 19,
+      "greenPhaseInHectorStory": 15,
+      "blueGreenPhaseAlt": 65535,
+      "redPhaseAlt": 65535,
+      "prologueInLynStory": 11,
+      "prologue": 65535,
+      "prologueInHectorStory": 65535
+    },
+    "mapCrackedWallHeath": 50,
+    "rank": {
+      "tactics": {
+        "A": {
+          "EliwoodStory": {
+            "Normal": 5,
+            "Hard": 5
+          },
+          "HectorStory": {
+            "Normal": 5,
+            "Hard": 5
+          }
+        },
+        "B": {
+          "EliwoodStory": {
+            "Normal": 6,
+            "Hard": 6
+          },
+          "HectorStory": {
+            "Normal": 6,
+            "Hard": 6
+          }
+        },
+        "C": {
+          "EliwoodStory": {
+            "Normal": 7,
+            "Hard": 7
+          },
+          "HectorStory": {
+            "Normal": 7,
+            "Hard": 7
+          }
+        },
+        "D": {
+          "EliwoodStory": {
+            "Normal": 8,
+            "Hard": 8
+          },
+          "HectorStory": {
+            "Normal": 8,
+            "Hard": 8
+          }
+        }
+      },
+      "exp": {
+        "A": {
+          "EliwoodStory": {
+            "Normal": 100,
+            "Hard": 100
+          },
+          "HectorStory": {
+            "Normal": 100,
+            "Hard": 100
+          }
+        },
+        "B": {
+          "EliwoodStory": {
+            "Normal": 80,
+            "Hard": 80
+          },
+          "HectorStory": {
+            "Normal": 80,
+            "Hard": 80
+          }
+        },
+        "C": {
+          "EliwoodStory": {
+            "Normal": 60,
+            "Hard": 60
+          },
+          "HectorStory": {
+            "Normal": 60,
+            "Hard": 60
+          }
+        },
+        "D": {
+          "EliwoodStory": {
+            "Normal": 40,
+            "Hard": 40
+          },
+          "HectorStory": {
+            "Normal": 40,
+            "Hard": 40
+          }
+        }
+      },
+      "funds": {
+        "EliwoodStory": {
+          "Normal": 1060,
+          "Hard": 1060
+        },
+        "HectorStory": {
+          "Normal": 1060,
+          "Hard": 1060
+        }
+      }
+    },
+    "unk3D": 0,
+    "unk5E": 0,
+    "chapTitleTextId": 361,
+    "chapTitleTextIdInHectorStory": 361,
+    "mapEventDataId": 42,
+    "gmapEventId": 10,
+    "divination": {
+      "text": {
+        "beginning": 0,
+        "EliwoodStory": 0,
+        "HectorStory": 0,
+        "ending": 0
+      },
+      "portrait": 0,
+      "fee": 0
+    },
+    "prepScreenNumber": 16,
+    "prepScreenNumberInHectorStory": 0,
+    "merchantPosX": 255,
+    "merchantPosXInHectorStory": 255,
+    "merchantPosY": 0,
+    "merchantPosYInHectorStory": 0,
+    "victorySongEnemyThreshold": 1,
+    "fadeToBlack": 0,
+    "goal": {
+      "statusObjectiveTextId": 427,
+      "windowTextId": 417,
+      "windowDataType": "seize",
+      "windowEndTurnNumber": 0,
+      "protectCharacterIndex": 0,
+      "destPosX": 255,
+      "destPosY": 0
+    },
+    "unk91": 12,
+    "unk92": 0,
+    "unk93": 0
+  },
+  "assetSymbols": {
+    "obj1Id": "ObjectType3",
+    "obj2Id": "0",
+    "paletteId": "MapPalette3",
+    "tileConfigId": "TileConfiguration3",
+    "mainLayerId": "Ch8Map",
+    "objAnimId": "TileAnimations3",
+    "paletteAnimId": "0",
+    "changeLayerId": "Ch8MapChanges"
+  },
+  "metatileIndices": [
+    [
+      213,
+      213,
+      213,
+      277,
+      458,
+      820,
+      520,
+      747,
+      747,
+      747,
+      747,
+      747,
+      747,
+      747,
+      521,
+      820,
+      458,
+      184,
+      244,
+      213,
+      213,
+      213,
+      245,
+      276
+    ],
+    [
+      460,
+      460,
+      460,
+      460,
+      493,
+      820,
+      458,
+      867,
+      912,
+      912,
+      913,
+      911,
+      911,
+      867,
+      458,
+      820,
+      525,
+      426,
+      426,
+      426,
+      426,
+      426,
+      521,
+      183
+    ],
+    [
+      823,
+      825,
+      825,
+      825,
+      458,
+      820,
+      458,
+      819,
+      944,
+      944,
+      624,
+      946,
+      946,
+      819,
+      458,
+      820,
+      458,
+      823,
+      719,
+      823,
+      719,
+      823,
+      458,
+      183
+    ],
+    [
+      820,
+      33,
+      33,
+      820,
+      458,
+      820,
+      458,
+      880,
+      688,
+      688,
+      627,
+      689,
+      689,
+      849,
+      458,
+      820,
+      458,
+      820,
+      815,
+      858,
+      815,
+      858,
+      458,
+      183
+    ],
+    [
+      820,
+      825,
+      825,
+      821,
+      458,
+      820,
+      458,
+      880,
+      849,
+      688,
+      627,
+      689,
+      849,
+      849,
+      458,
+      820,
+      458,
+      820,
+      821,
+      33,
+      820,
+      821,
+      458,
+      183
+    ],
+    [
+      427,
+      448,
+      428,
+      460,
+      493,
+      820,
+      552,
+      426,
+      427,
+      850,
+      849,
+      849,
+      428,
+      426,
+      484,
+      820,
+      458,
+      820,
+      821,
+      825,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      866,
+      451,
+      866,
+      866,
+      458,
+      820,
+      866,
+      866,
+      866,
+      452,
+      454,
+      453,
+      866,
+      866,
+      679,
+      820,
+      458,
+      820,
+      821,
+      821,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      825,
+      825,
+      825,
+      825,
+      458,
+      820,
+      960,
+      961,
+      961,
+      452,
+      454,
+      453,
+      960,
+      960,
+      387,
+      820,
+      490,
+      820,
+      520,
+      462,
+      416,
+      492,
+      493,
+      183
+    ],
+    [
+      821,
+      821,
+      821,
+      821,
+      496,
+      820,
+      825,
+      825,
+      824,
+      824,
+      825,
+      825,
+      825,
+      825,
+      519,
+      821,
+      866,
+      451,
+      458,
+      867,
+      451,
+      866,
+      458,
+      183
+    ],
+    [
+      821,
+      484,
+      820,
+      821,
+      458,
+      820,
+      822,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      822,
+      519,
+      821,
+      825,
+      825,
+      458,
+      823,
+      825,
+      825,
+      458,
+      183
+    ],
+    [
+      822,
+      742,
+      452,
+      453,
+      552,
+      484,
+      820,
+      821,
+      484,
+      432,
+      820,
+      821,
+      821,
+      821,
+      519,
+      821,
+      821,
+      821,
+      458,
+      820,
+      719,
+      820,
+      458,
+      183
+    ],
+    [
+      821,
+      423,
+      151,
+      181,
+      866,
+      742,
+      486,
+      453,
+      742,
+      458,
+      820,
+      520,
+      426,
+      426,
+      426,
+      460,
+      461,
+      462,
+      553,
+      820,
+      815,
+      858,
+      458,
+      183
+    ],
+    [
+      821,
+      519,
+      184,
+      213,
+      182,
+      537,
+      181,
+      181,
+      537,
+      458,
+      820,
+      458,
+      867,
+      866,
+      866,
+      866,
+      484,
+      867,
+      866,
+      820,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      821,
+      484,
+      184,
+      276,
+      213,
+      277,
+      213,
+      213,
+      277,
+      458,
+      419,
+      458,
+      823,
+      825,
+      825,
+      825,
+      742,
+      823,
+      825,
+      821,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      822,
+      552,
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      460,
+      493,
+      820,
+      821,
+      719,
+      820,
+      515,
+      858,
+      822,
+      821,
+      719,
+      820,
+      458,
+      183
+    ],
+    [
+      821,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      458,
+      820,
+      821,
+      815,
+      858,
+      821,
+      822,
+      821,
+      822,
+      815,
+      858,
+      458,
+      183
+    ],
+    [
+      821,
+      825,
+      825,
+      824,
+      825,
+      825,
+      825,
+      824,
+      825,
+      825,
+      825,
+      458,
+      820,
+      821,
+      821,
+      821,
+      484,
+      820,
+      821,
+      821,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      521,
+      821,
+      821,
+      719,
+      820,
+      525,
+      427,
+      427,
+      820,
+      460,
+      461,
+      462,
+      583,
+      820,
+      821,
+      583,
+      465,
+      183
+    ],
+    [
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      458,
+      820,
+      821,
+      815,
+      858,
+      458,
+      867,
+      866,
+      820,
+      866,
+      458,
+      867,
+      615,
+      820,
+      821,
+      615,
+      867,
+      183
+    ],
+    [
+      960,
+      961,
+      960,
+      961,
+      960,
+      961,
+      484,
+      433,
+      426,
+      484,
+      820,
+      484,
+      823,
+      825,
+      821,
+      825,
+      458,
+      963,
+      647,
+      452,
+      453,
+      647,
+      963,
+      215
+    ],
+    [
+      824,
+      825,
+      825,
+      825,
+      824,
+      825,
+      679,
+      867,
+      866,
+      742,
+      820,
+      742,
+      820,
+      821,
+      719,
+      820,
+      458,
+      214,
+      185,
+      876,
+      842,
+      186,
+      181,
+      213
+    ],
+    [
+      821,
+      821,
+      822,
+      821,
+      821,
+      822,
+      386,
+      824,
+      825,
+      515,
+      858,
+      515,
+      858,
+      821,
+      815,
+      858,
+      458,
+      183,
+      217,
+      877,
+      841,
+      218,
+      213,
+      245
+    ],
+    [
+      821,
+      821,
+      821,
+      821,
+      822,
+      821,
+      422,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      458,
+      183,
+      217,
+      876,
+      842,
+      218,
+      213,
+      277
+    ],
+    [
+      821,
+      821,
+      821,
+      821,
+      822,
+      821,
+      484,
+      433,
+      426,
+      427,
+      426,
+      427,
+      426,
+      460,
+      427,
+      426,
+      553,
+      184,
+      249,
+      877,
+      841,
+      250,
+      276,
+      277
+    ]
+  ],
+  "terrainIds": [
+    [
+      60,
+      60,
+      60,
+      60,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      26,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      29,
+      29,
+      31,
+      29,
+      29,
+      23,
+      26,
+      23,
+      26,
+      23,
+      29,
+      23,
+      29,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      33,
+      33,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      33,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      26,
+      30,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      26,
+      26,
+      63,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      26,
+      45,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      45,
+      45,
+      45,
+      26,
+      26,
+      63,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      26,
+      26,
+      45,
+      45,
+      45,
+      26,
+      26,
+      63,
+      23,
+      26,
+      23,
+      26,
+      26,
+      30,
+      26,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      27,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      26,
+      45,
+      26,
+      26,
+      45,
+      26,
+      26,
+      60
+    ],
+    [
+      23,
+      63,
+      23,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      23,
+      23,
+      26,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      63,
+      45,
+      45,
+      26,
+      63,
+      23,
+      23,
+      63,
+      26,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      23,
+      23,
+      26,
+      23,
+      29,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      45,
+      60,
+      60,
+      26,
+      63,
+      45,
+      45,
+      63,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      45,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      63,
+      26,
+      26,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      63,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      26,
+      45,
+      26,
+      23,
+      23,
+      23,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      29,
+      23,
+      23,
+      23,
+      23,
+      23,
+      29,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      29,
+      23,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      63,
+      23,
+      23,
+      63,
+      26,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      23,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      63,
+      23,
+      23,
+      63,
+      26,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      63,
+      26,
+      26,
+      63,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      26,
+      26,
+      63,
+      45,
+      45,
+      63,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      63,
+      26,
+      26,
+      63,
+      23,
+      63,
+      23,
+      23,
+      29,
+      23,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      63,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ]
+  ],
+  "terrainCatalog": {
+    "23": {
+      "symbol": "TERRAIN_FLOOR_REGULAR",
+      "label": "地板",
+      "color": "#cec6af",
+      "glyph": "·",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "26": {
+      "symbol": "TERRAIN_WALL_REGULAR",
+      "label": "墙壁",
+      "color": "#535b63",
+      "glyph": "墙",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 20,
+        "defense": 1,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "27": {
+      "symbol": "TERRAIN_WALL_DAMAGED",
+      "label": "可破坏墙",
+      "color": "#926c55",
+      "glyph": "裂",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "29": {
+      "symbol": "TERRAIN_PILLAR",
+      "label": "柱子",
+      "color": "#9396ad",
+      "glyph": "柱",
+      "normalMovementCosts": {
+        "foot": 2,
+        "armored": 2,
+        "mounted": 3,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 20,
+        "defense": 1,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "30": {
+      "symbol": "TERRAIN_DOOR",
+      "label": "门",
+      "color": "#b98348",
+      "glyph": "门",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "31": {
+      "symbol": "TERRAIN_THRONE",
+      "label": "王座",
+      "color": "#dbb956",
+      "glyph": "座",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 30,
+        "defense": 3,
+        "resistance": 5
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 5
+      },
+      "healingAmountRaw": 10,
+      "healsStatus": true
+    },
+    "32": {
+      "symbol": "TERRAIN_CHEST_EMPTY",
+      "label": "已开宝箱",
+      "color": "#ae915d",
+      "glyph": "空",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "33": {
+      "symbol": "TERRAIN_CHEST_FULL",
+      "label": "未开宝箱",
+      "color": "#df9954",
+      "glyph": "箱",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "45": {
+      "symbol": "TERRAIN_STAIRS",
+      "label": "楼梯",
+      "color": "#a7c4b4",
+      "glyph": "梯",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "60": {
+      "symbol": "TERRAIN_WATER",
+      "label": "水域",
+      "color": "#5587b1",
+      "glyph": "水",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 10,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "63": {
+      "symbol": "TERRAIN_BRACE",
+      "label": "Brace（原始分类）",
+      "color": "#343d48",
+      "glyph": "构",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 20,
+        "defense": 1,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    }
+  },
+  "terrainCounts": {
+    "TERRAIN_FLOOR_REGULAR": 248,
+    "TERRAIN_WALL_REGULAR": 195,
+    "TERRAIN_WALL_DAMAGED": 1,
+    "TERRAIN_PILLAR": 11,
+    "TERRAIN_DOOR": 2,
+    "TERRAIN_THRONE": 1,
+    "TERRAIN_CHEST_FULL": 3,
+    "TERRAIN_STAIRS": 22,
+    "TERRAIN_WATER": 66,
+    "TERRAIN_BRACE": 27
+  },
+  "objects": [
+    {
+      "kind": "door",
+      "position": [
+        20,
+        7
+      ]
+    },
+    {
+      "kind": "door",
+      "position": [
+        1,
+        5
+      ]
+    },
+    {
+      "kind": "chest",
+      "position": [
+        1,
+        3
+      ],
+      "item": {
+        "symbol": "ITEM_SWORD_SILVER",
+        "id": 4
+      }
+    },
+    {
+      "kind": "chest",
+      "position": [
+        2,
+        3
+      ],
+      "item": {
+        "symbol": "ITEM_ELYSIANWHIP",
+        "id": 103
+      }
+    },
+    {
+      "kind": "seize",
+      "position": [
+        10,
+        2
+      ]
+    },
+    {
+      "kind": "chest",
+      "position": [
+        19,
+        4
+      ],
+      "item": {
+        "symbol": "ITEM_BOOSTER_HP",
+        "id": 91
+      }
+    }
+  ],
+  "mapChanges": [
+    {
+      "id": 0,
+      "x": 20,
+      "y": 7,
+      "w": 1,
+      "h": 1,
+      "tiles": "Ch8MapChanges_change_0",
+      "metatileIndices": [
+        [
+          820
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          23
+        ]
+      ]
+    },
+    {
+      "id": 1,
+      "x": 4,
+      "y": 6,
+      "w": 2,
+      "h": 3,
+      "tiles": "Ch8MapChanges_change_1",
+      "metatileIndices": [
+        [
+          466,
+          null
+        ],
+        [
+          498,
+          null
+        ],
+        [
+          825,
+          821
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          26,
+          null
+        ],
+        [
+          26,
+          null
+        ],
+        [
+          23,
+          23
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "x": 1,
+      "y": 5,
+      "w": 1,
+      "h": 1,
+      "tiles": "Ch8MapChanges_change_2",
+      "metatileIndices": [
+        [
+          820
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          23
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "x": 1,
+      "y": 3,
+      "w": 1,
+      "h": 1,
+      "tiles": "Ch8MapChanges_change_3",
+      "metatileIndices": [
+        [
+          1
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          32
+        ]
+      ]
+    },
+    {
+      "id": 4,
+      "x": 2,
+      "y": 3,
+      "w": 1,
+      "h": 1,
+      "tiles": "Ch8MapChanges_change_4",
+      "metatileIndices": [
+        [
+          1
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          32
+        ]
+      ]
+    },
+    {
+      "id": 5,
+      "x": 18,
+      "y": 21,
+      "w": 4,
+      "h": 3,
+      "tiles": "Ch8MapChanges_change_5",
+      "metatileIndices": [
+        [
+          219,
+          220,
+          221,
+          222
+        ],
+        [
+          251,
+          252,
+          252,
+          254
+        ],
+        [
+          283,
+          284,
+          285,
+          286
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          60,
+          60,
+          60,
+          60
+        ],
+        [
+          60,
+          60,
+          60,
+          60
+        ],
+        [
+          60,
+          60,
+          60,
+          60
+        ]
+      ]
+    },
+    {
+      "id": 6,
+      "x": 19,
+      "y": 4,
+      "w": 1,
+      "h": 1,
+      "tiles": "Ch8MapChanges_change_6",
+      "metatileIndices": [
+        [
+          1
+        ]
+      ],
+      "zeroMeansUnchanged": true,
+      "terrainIds": [
+        [
+          32
+        ]
+      ]
+    }
+  ],
+  "unitGroups": {
+    "playerDeploymentTemplates": {
+      "symbol": "UnitDef_Event_Ch8Ally",
+      "romAddress": "0x088B7300",
+      "units": [
+        {
+          "index": 0,
+          "character": "CHARACTER_EIRIKA",
+          "characterId": 1,
+          "class": "CLASS_EIRIKA_LORD",
+          "classId": 2,
+          "faction": "player",
+          "level": 8,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            20
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 19,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            19,
+            19
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_RAPIER",
+              "id": 9
+            },
+            {
+              "symbol": "ITEM_VULNERARY",
+              "id": 108
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_EIRIKA",
+            "classIndex": "CLASS_EIRIKA_LORD",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "8",
+            "xPosition": "19",
+            "yPosition": "20",
+            "redaCount": "1",
+            "redas": "REDA_088B7170",
+            "items": "{\n            ITEM_SWORD_RAPIER,\n            ITEM_VULNERARY,\n        }"
+          }
+        },
+        {
+          "index": 1,
+          "character": "CHARACTER_MOULDER",
+          "characterId": 5,
+          "class": "CLASS_PRIEST",
+          "classId": 69,
+          "faction": "player",
+          "level": 3,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 19,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            19
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_STAFF_HEAL",
+              "id": 75
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_MOULDER",
+            "classIndex": "CLASS_PRIEST",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "3",
+            "xPosition": "20",
+            "yPosition": "22",
+            "redaCount": "1",
+            "redas": "REDA_088B7178",
+            "items": "{\n            ITEM_STAFF_HEAL,\n        }"
+          }
+        },
+        {
+          "index": 2,
+          "character": "CHARACTER_COLM",
+          "characterId": 9,
+          "class": "CLASS_THIEF",
+          "classId": 13,
+          "faction": "player",
+          "level": 2,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 20,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            20
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_IRON",
+              "id": 1
+            },
+            {
+              "symbol": "ITEM_LOCKPICK",
+              "id": 107
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_COLM",
+            "classIndex": "CLASS_THIEF",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "2",
+            "xPosition": "19",
+            "yPosition": "22",
+            "redaCount": "1",
+            "redas": "REDA_088B7180",
+            "items": "{\n            ITEM_SWORD_IRON,\n            ITEM_LOCKPICK,\n        }"
+          }
+        },
+        {
+          "index": 3,
+          "character": "CHARACTER_VANESSA",
+          "characterId": 6,
+          "class": "CLASS_PEGASUS_KNIGHT",
+          "classId": 72,
+          "faction": "player",
+          "level": 2,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            18
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 17,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            19,
+            17
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_SLIM",
+              "id": 21
+            },
+            {
+              "symbol": "ITEM_VULNERARY",
+              "id": 108
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_VANESSA",
+            "classIndex": "CLASS_PEGASUS_KNIGHT",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "2",
+            "xPosition": "19",
+            "yPosition": "18",
+            "redaCount": "1",
+            "redas": "REDA_088B7188",
+            "items": "{\n            ITEM_LANCE_SLIM,\n            ITEM_VULNERARY,\n        }"
+          }
+        },
+        {
+          "index": 4,
+          "character": "CHARACTER_GILLIAM",
+          "characterId": 3,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "player",
+          "level": 5,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            20
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 18,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            18
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_IRON",
+              "id": 20
+            },
+            {
+              "symbol": "ITEM_VULNERARY",
+              "id": 108
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_GILLIAM",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "5",
+            "xPosition": "20",
+            "yPosition": "20",
+            "redaCount": "1",
+            "redas": "REDA_088B7190",
+            "items": "{\n            ITEM_LANCE_IRON,\n            ITEM_VULNERARY,\n        }"
+          }
+        },
+        {
+          "index": 5,
+          "character": "CHARACTER_FRANZ",
+          "characterId": 4,
+          "class": "CLASS_CAVALIER",
+          "classId": 5,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            18
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 16,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            16
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_IRON",
+              "id": 1
+            },
+            {
+              "symbol": "ITEM_LANCE_IRON",
+              "id": 20
+            },
+            {
+              "symbol": "ITEM_VULNERARY",
+              "id": 108
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_FRANZ",
+            "classIndex": "CLASS_CAVALIER",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "1",
+            "xPosition": "20",
+            "yPosition": "18",
+            "redaCount": "1",
+            "redas": "REDA_088B7198",
+            "items": "{\n            ITEM_SWORD_IRON,\n            ITEM_LANCE_IRON,\n            ITEM_VULNERARY,\n        }"
+          }
+        },
+        {
+          "index": 6,
+          "character": "CHARACTER_ROSS",
+          "characterId": 7,
+          "class": "CLASS_JOURNEYMAN",
+          "classId": 61,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            17
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            20,
+            17
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_AXE_HATCHET",
+              "id": 44
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_ROSS",
+            "classIndex": "CLASS_JOURNEYMAN",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "1",
+            "xPosition": "20",
+            "yPosition": "17",
+            "items": "{\n            ITEM_AXE_HATCHET,\n        }"
+          }
+        },
+        {
+          "index": 7,
+          "character": "CHARACTER_GARCIA",
+          "characterId": 10,
+          "class": "CLASS_FIGHTER",
+          "classId": 63,
+          "faction": "player",
+          "level": 4,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            18
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            19,
+            18
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_AXE_IRON",
+              "id": 31
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_GARCIA",
+            "classIndex": "CLASS_FIGHTER",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "4",
+            "xPosition": "19",
+            "yPosition": "18",
+            "items": "{\n            ITEM_AXE_IRON,\n        }"
+          }
+        },
+        {
+          "index": 8,
+          "character": "CHARACTER_ARTUR",
+          "characterId": 19,
+          "class": "CLASS_MONK",
+          "classId": 68,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            20
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            19,
+            20
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LIGHT_LIGHTNING",
+              "id": 63
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_ARTUR",
+            "classIndex": "CLASS_MONK",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "1",
+            "xPosition": "19",
+            "yPosition": "20",
+            "items": "{\n            ITEM_LIGHT_LIGHTNING,\n        }"
+          }
+        }
+      ]
+    },
+    "initialEnemyTemplates": {
+      "symbol": "UnitDef_088B73C8",
+      "romAddress": "0x088B73C8",
+      "units": [
+        {
+          "index": 0,
+          "character": "CHARACTER_TIRADO",
+          "characterId": 77,
+          "class": "CLASS_GENERAL",
+          "classId": 11,
+          "faction": "enemy",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            10,
+            2
+          ],
+          "redaPath": [
+            {
+              "x": 10,
+              "y": 2,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            10,
+            2
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_SILVER",
+              "id": 23
+            },
+            {
+              "symbol": "ITEM_LANCE_JAVELIN",
+              "id": 28
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "GuardTileAI",
+            "0x9",
+            "0x20"
+          ],
+          "sourceFields": {
+            "charIndex": "CHARACTER_TIRADO",
+            "classIndex": "CLASS_GENERAL",
+            "allegiance": "FACTION_ID_RED",
+            "level": "1",
+            "xPosition": "10",
+            "yPosition": "2",
+            "redaCount": "1",
+            "redas": "REDA_088B71A0",
+            "items": "{\n            ITEM_LANCE_SILVER,\n            ITEM_LANCE_JAVELIN,\n        }",
+            "ai": "{GuardTileAI, 0x9, 0x20}"
+          }
+        },
+        {
+          "index": 1,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            4
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 5,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            19,
+            5
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "19",
+            "yPosition": "4",
+            "redaCount": "1",
+            "redas": "REDA_088B71A8",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 2,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            3
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 3,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            3
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "20",
+            "yPosition": "3",
+            "redaCount": "1",
+            "redas": "REDA_088B71B0",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 3,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            18,
+            3
+          ],
+          "redaPath": [
+            {
+              "x": 18,
+              "y": 3,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            18,
+            3
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_IRON",
+              "id": 20
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "18",
+            "yPosition": "3",
+            "redaCount": "1",
+            "redas": "REDA_088B71B8",
+            "items": "{\n            ITEM_LANCE_IRON,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 4,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 21,
+              "y": 4,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            21,
+            4
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "20",
+            "yPosition": "5",
+            "redaCount": "1",
+            "redas": "REDA_088B71C0",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 5,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            18,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 17,
+              "y": 4,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            17,
+            4
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "18",
+            "yPosition": "5",
+            "redaCount": "1",
+            "redas": "REDA_088B71C8",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 6,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            1,
+            6
+          ],
+          "redaPath": [
+            {
+              "x": 1,
+              "y": 6,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            1,
+            6
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_IRON",
+              "id": 20
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "1",
+            "yPosition": "6",
+            "redaCount": "1",
+            "redas": "REDA_088B71D0",
+            "items": "{\n            ITEM_LANCE_IRON,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 7,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SOLDIER",
+          "classId": 78,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 9,
+              "y": 5,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            9,
+            5
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SOLDIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "9",
+            "yPosition": "5",
+            "redaCount": "1",
+            "redas": "REDA_088B71D8",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 8,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            10,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 10,
+              "y": 5,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            10,
+            5
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "10",
+            "yPosition": "5",
+            "redaCount": "1",
+            "redas": "REDA_088B71E0",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 9,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 10,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            10
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            },
+            {
+              "symbol": "ITEM_DOORKEY",
+              "id": 106
+            }
+          ],
+          "dropFlag": true,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "20",
+            "yPosition": "10",
+            "itemDrop": "1",
+            "redaCount": "1",
+            "redas": "REDA_088B71E8",
+            "items": "{\n            ITEM_LANCE_STEEL,\n            ITEM_DOORKEY,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 10,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_MYRMIDON",
+          "classId": 19,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 13,
+              "y": 14,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            13,
+            14
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_IRON",
+              "id": 1
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_MYRMIDON",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "19",
+            "yPosition": "10",
+            "redaCount": "1",
+            "redas": "REDA_088B71F0",
+            "items": "{\n            ITEM_SWORD_IRON,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 11,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SOLDIER",
+          "classId": 78,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 10,
+              "y": 21,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            10,
+            21
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SOLDIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "7",
+            "yPosition": "17",
+            "redaCount": "1",
+            "redas": "REDA_088B71F8",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 12,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_MERCENARY",
+          "classId": 15,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 0,
+              "y": 10,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            0,
+            10
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_STEEL",
+              "id": 3
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_MERCENARY",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "0",
+            "yPosition": "10",
+            "redaCount": "1",
+            "redas": "REDA_088B7200",
+            "items": "{\n            ITEM_SWORD_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 13,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_MERCENARY",
+          "classId": 15,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            16
+          ],
+          "redaPath": [
+            {
+              "x": 0,
+              "y": 16,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            0,
+            16
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_STEEL",
+              "id": 3
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_MERCENARY",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "0",
+            "yPosition": "16",
+            "redaCount": "1",
+            "redas": "REDA_088B7208",
+            "items": "{\n            ITEM_SWORD_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 14,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SOLDIER",
+          "classId": 78,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 9,
+              "y": 17,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            9,
+            17
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SOLDIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "7",
+            "yPosition": "17",
+            "redaCount": "1",
+            "redas": "REDA_088B7210",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 15,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SHAMAN",
+          "classId": 45,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            2,
+            9
+          ],
+          "redaPath": [
+            {
+              "x": 2,
+              "y": 9,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            2,
+            9
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_DARK_FLUX",
+              "id": 69
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SHAMAN",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "2",
+            "yPosition": "9",
+            "redaCount": "1",
+            "redas": "REDA_088B7218",
+            "items": "{\n            ITEM_DARK_FLUX,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 16,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "classId": 9,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 13,
+              "y": 20,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            13,
+            20
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARMOR_KNIGHT",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "7",
+            "yPosition": "17",
+            "redaCount": "1",
+            "redas": "REDA_088B7220",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 17,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARCHER",
+          "classId": 25,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 14,
+              "y": 15,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            14,
+            15
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_BOW_STEEL",
+              "id": 46
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARCHER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "19",
+            "yPosition": "10",
+            "redaCount": "1",
+            "redas": "REDA_088B7228",
+            "items": "{\n            ITEM_BOW_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 18,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARCHER",
+          "classId": 25,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            16
+          ],
+          "redaPath": [
+            {
+              "x": 8,
+              "y": 16,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            8,
+            16
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_BOW_IRON",
+              "id": 45
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARCHER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "8",
+            "yPosition": "16",
+            "redaCount": "1",
+            "redas": "REDA_088B7230",
+            "items": "{\n            ITEM_BOW_IRON,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 19,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARCHER",
+          "classId": 25,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            3,
+            7
+          ],
+          "redaPath": [
+            {
+              "x": 3,
+              "y": 7,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            3,
+            7
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_BOW_LONGBOW",
+              "id": 52
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARCHER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "3",
+            "yPosition": "7",
+            "redaCount": "1",
+            "redas": "REDA_088B7238",
+            "items": "{\n            ITEM_BOW_LONGBOW,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 20,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_MAGE",
+          "classId": 37,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            1,
+            8
+          ],
+          "redaPath": [
+            {
+              "x": 1,
+              "y": 8,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            1,
+            8
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_ANIMA_THUNDER",
+              "id": 57
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_MAGE",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "1",
+            "yPosition": "8",
+            "redaCount": "1",
+            "redas": "REDA_088B7240",
+            "items": "{\n            ITEM_ANIMA_THUNDER,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 21,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARCHER",
+          "classId": 25,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            5,
+            3
+          ],
+          "redaPath": [
+            {
+              "x": 5,
+              "y": 3,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            5,
+            3
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_BOW_LONGBOW",
+              "id": 52
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARCHER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "5",
+            "yPosition": "3",
+            "redaCount": "1",
+            "redas": "REDA_088B7248",
+            "items": "{\n            ITEM_BOW_LONGBOW,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 22,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_ARCHER",
+          "classId": 25,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            2
+          ],
+          "redaPath": [
+            {
+              "x": 15,
+              "y": 2,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            15,
+            2
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_BOW_LONGBOW",
+              "id": 52
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_ARCHER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "15",
+            "yPosition": "2",
+            "redaCount": "1",
+            "redas": "REDA_088B7250",
+            "items": "{\n            ITEM_BOW_LONGBOW,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 23,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SHAMAN",
+          "classId": 45,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            16,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 16,
+              "y": 10,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            16,
+            10
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_DARK_FLUX",
+              "id": 69
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SHAMAN",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "16",
+            "yPosition": "10",
+            "redaCount": "1",
+            "redas": "REDA_088B7258",
+            "items": "{\n            ITEM_DARK_FLUX,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 24,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SOLDIER",
+          "classId": 78,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            11,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 11,
+              "y": 5,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            11,
+            5
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SOLDIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "11",
+            "yPosition": "5",
+            "redaCount": "1",
+            "redas": "REDA_088B7260",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 25,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SOLDIER",
+          "classId": 78,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            11
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 13,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            20,
+            13
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_IRON",
+              "id": 20
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SOLDIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "6",
+            "xPosition": "20",
+            "yPosition": "11",
+            "redaCount": "1",
+            "redas": "REDA_088B7268",
+            "items": "{\n            ITEM_LANCE_IRON,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 26,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_SOLDIER",
+          "classId": 78,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            11
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 13,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            19,
+            13
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "AttackInRangeAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_SOLDIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "19",
+            "yPosition": "11",
+            "redaCount": "1",
+            "redas": "REDA_088B7270",
+            "items": "{\n            ITEM_LANCE_STEEL,\n        }",
+            "ai": "{AttackInRangeAI, 0x9, 0x0}"
+          }
+        }
+      ]
+    },
+    "turn2PlayerReinforcements": {
+      "symbol": "UnitDef_088B75F8",
+      "romAddress": "0x088B75F8",
+      "units": [
+        {
+          "index": 0,
+          "character": "CHARACTER_EPHRAIM",
+          "characterId": 15,
+          "class": "CLASS_EPHRAIM_LORD",
+          "classId": 1,
+          "faction": "player",
+          "level": 4,
+          "autolevel": false,
+          "entryPosition": [
+            0,
+            21
+          ],
+          "redaPath": [
+            {
+              "x": 3,
+              "y": 21,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            3,
+            21
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_REGINLEIF",
+              "id": 120
+            },
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            },
+            {
+              "symbol": "ITEM_ELIXIR",
+              "id": 109
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_EPHRAIM",
+            "classIndex": "CLASS_EPHRAIM_LORD",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "4",
+            "xPosition": "0",
+            "yPosition": "21",
+            "redaCount": "1",
+            "redas": "REDA_088B7278",
+            "items": "{\n            ITEM_LANCE_REGINLEIF,\n            ITEM_LANCE_STEEL,\n            ITEM_ELIXIR,\n        }"
+          }
+        },
+        {
+          "index": 1,
+          "character": "CHARACTER_FORDE",
+          "characterId": 16,
+          "class": "CLASS_CAVALIER",
+          "classId": 5,
+          "faction": "player",
+          "level": 6,
+          "autolevel": false,
+          "entryPosition": [
+            0,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 5,
+              "y": 22,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            5,
+            22
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_STEEL",
+              "id": 3
+            },
+            {
+              "symbol": "ITEM_LANCE_JAVELIN",
+              "id": 28
+            },
+            {
+              "symbol": "ITEM_VULNERARY",
+              "id": 108
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_FORDE",
+            "classIndex": "CLASS_CAVALIER",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "6",
+            "xPosition": "0",
+            "yPosition": "22",
+            "redaCount": "1",
+            "redas": "REDA_088B7280",
+            "items": "{\n            ITEM_SWORD_STEEL,\n            ITEM_LANCE_JAVELIN,\n            ITEM_VULNERARY,\n        }"
+          }
+        },
+        {
+          "index": 2,
+          "character": "CHARACTER_KYLE",
+          "characterId": 17,
+          "class": "CLASS_CAVALIER",
+          "classId": 5,
+          "faction": "player",
+          "level": 5,
+          "autolevel": false,
+          "entryPosition": [
+            0,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 2,
+              "y": 22,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            2,
+            22
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_STEEL",
+              "id": 3
+            },
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            },
+            {
+              "symbol": "ITEM_VULNERARY",
+              "id": 108
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [],
+          "sourceFields": {
+            "charIndex": "CHARACTER_KYLE",
+            "classIndex": "CLASS_CAVALIER",
+            "allegiance": "FACTION_ID_BLUE",
+            "level": "5",
+            "xPosition": "0",
+            "yPosition": "22",
+            "redaCount": "1",
+            "redas": "REDA_088B7288",
+            "items": "{\n            ITEM_SWORD_STEEL,\n            ITEM_LANCE_STEEL,\n            ITEM_VULNERARY,\n        }"
+          }
+        }
+      ]
+    },
+    "areaEnemyReinforcements": {
+      "symbol": "UnitDef_088B7648",
+      "romAddress": "0x088B7648",
+      "units": [
+        {
+          "index": 0,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_MAGE",
+          "classId": 37,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            5,
+            0
+          ],
+          "redaPath": [
+            {
+              "x": 5,
+              "y": 0,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            5,
+            0
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_ANIMA_THUNDER",
+              "id": 57
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_MAGE",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "5",
+            "yPosition": "0",
+            "redaCount": "1",
+            "redas": "REDA_088B7290",
+            "items": "{\n            ITEM_ANIMA_THUNDER,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 1,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_MAGE",
+          "classId": 37,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            0
+          ],
+          "redaPath": [
+            {
+              "x": 15,
+              "y": 0,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            15,
+            0
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_ANIMA_THUNDER",
+              "id": 57
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_MAGE",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "7",
+            "xPosition": "15",
+            "yPosition": "0",
+            "redaCount": "1",
+            "redas": "REDA_088B7298",
+            "items": "{\n            ITEM_ANIMA_THUNDER,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 2,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_THIEF",
+          "classId": 13,
+          "faction": "enemy",
+          "level": 10,
+          "autolevel": true,
+          "entryPosition": [
+            10,
+            13
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            10,
+            13
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_IRON",
+              "id": 1
+            },
+            {
+              "symbol": "ITEM_LOCKPICK",
+              "id": 107
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_THIEF",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "10",
+            "xPosition": "10",
+            "yPosition": "13",
+            "items": "{\n            ITEM_SWORD_IRON,\n            ITEM_LOCKPICK,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        }
+      ]
+    },
+    "turn5EnemyReinforcements": {
+      "symbol": "UnitDef_088B7698",
+      "romAddress": "0x088B7698",
+      "units": [
+        {
+          "index": 0,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_CAVALIER",
+          "classId": 5,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            21
+          ],
+          "redaPath": [
+            {
+              "x": 0,
+              "y": 21,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            0,
+            21
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_SWORD_STEEL",
+              "id": 3
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_CAVALIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "0",
+            "yPosition": "21",
+            "redaCount": "1",
+            "redas": "REDA_088B72A0",
+            "items": "{\n            ITEM_SWORD_STEEL,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 1,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_CAVALIER",
+          "classId": 5,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 1,
+              "y": 22,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            1,
+            22
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_STEEL",
+              "id": 22
+            },
+            {
+              "symbol": "ITEM_LANCE_JAVELIN",
+              "id": 28
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_CAVALIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "0",
+            "yPosition": "22",
+            "redaCount": "1",
+            "redas": "REDA_088B72A8",
+            "items": "{\n            ITEM_LANCE_STEEL,\n            ITEM_LANCE_JAVELIN,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        },
+        {
+          "index": 2,
+          "character": "0x80",
+          "characterId": 128,
+          "class": "CLASS_CAVALIER",
+          "classId": 5,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            23
+          ],
+          "redaPath": [
+            {
+              "x": 2,
+              "y": 23,
+              "b": 65535
+            }
+          ],
+          "finalPosition": [
+            2,
+            23
+          ],
+          "items": [
+            {
+              "symbol": "ITEM_LANCE_IRON",
+              "id": 20
+            }
+          ],
+          "dropFlag": false,
+          "aiExpressions": [
+            "DefaultAI",
+            "0x9",
+            "0x0"
+          ],
+          "sourceFields": {
+            "charIndex": "0x80",
+            "classIndex": "CLASS_CAVALIER",
+            "autolevel": "1",
+            "allegiance": "FACTION_ID_RED",
+            "level": "8",
+            "xPosition": "0",
+            "yPosition": "23",
+            "redaCount": "1",
+            "redas": "REDA_088B72B0",
+            "items": "{\n            ITEM_LANCE_IRON,\n        }",
+            "ai": "{DefaultAI, 0x9, 0x0}"
+          }
+        }
+      ]
+    }
+  },
+  "eventLists": {
+    "turn": [
+      {
+        "macro": "TURN",
+        "arguments": [
+          "0",
+          "EventScr_089F3124",
+          "2",
+          "2",
+          "FACTION_BLUE"
+        ]
+      },
+      {
+        "macro": "TURN",
+        "arguments": [
+          "EVFLAG_TMP(12)",
+          "EventScr_089F3250",
+          "1",
+          "255",
+          "FACTION_BLUE"
+        ]
+      },
+      {
+        "macro": "TURN",
+        "arguments": [
+          "0",
+          "EventScr_089F3268",
+          "5",
+          "0",
+          "FACTION_BLUE"
+        ]
+      }
+    ],
+    "character": [
+      {
+        "macro": "CharacterEventBothWays",
+        "arguments": [
+          "EVFLAG_TMP(7)",
+          "EventScr_089F31B8",
+          "CHARACTER_EIRIKA",
+          "CHARACTER_EPHRAIM"
+        ]
+      },
+      {
+        "macro": "CharacterEventBothWays",
+        "arguments": [
+          "EVFLAG_TMP(8)",
+          "EventScr_089F31D4",
+          "CHARACTER_EPHRAIM",
+          "CHARACTER_SETH"
+        ]
+      },
+      {
+        "macro": "CharacterEventBothWays",
+        "arguments": [
+          "EVFLAG_TMP(9)",
+          "EventScr_089F31F4",
+          "CHARACTER_SETH",
+          "CHARACTER_KYLE"
+        ]
+      },
+      {
+        "macro": "CharacterEventBothWays",
+        "arguments": [
+          "EVFLAG_TMP(10)",
+          "EventScr_089F3214",
+          "CHARACTER_FRANZ",
+          "CHARACTER_FORDE"
+        ]
+      }
+    ],
+    "location": [
+      {
+        "macro": "Door_",
+        "arguments": [
+          "20",
+          "7"
+        ]
+      },
+      {
+        "macro": "Door_",
+        "arguments": [
+          "1",
+          "5"
+        ]
+      },
+      {
+        "macro": "Chest",
+        "arguments": [
+          "ITEM_SWORD_SILVER",
+          "1",
+          "3"
+        ]
+      },
+      {
+        "macro": "Chest",
+        "arguments": [
+          "ITEM_ELYSIANWHIP",
+          "2",
+          "3"
+        ]
+      },
+      {
+        "macro": "Seize",
+        "arguments": [
+          "10",
+          "2"
+        ]
+      },
+      {
+        "macro": "Chest",
+        "arguments": [
+          "ITEM_BOOSTER_HP",
+          "19",
+          "4"
+        ]
+      }
+    ],
+    "misc": [
+      {
+        "macro": "AREA",
+        "arguments": [
+          "EVFLAG_TMP(11)",
+          "EventScr_Ch8_MiscThiefRainforce",
+          "5",
+          "0",
+          "15",
+          "10"
+        ]
+      }
+    ]
+  },
+  "rawEventListInitializers": {
+    "turn": "TURN(0, EventScr_089F3124, 2, 2, FACTION_BLUE)\n    TURN(EVFLAG_TMP(12), EventScr_089F3250, 1, 255, FACTION_BLUE)\n    TURN(0, EventScr_089F3268, 5, 0, FACTION_BLUE)\n    END_MAIN",
+    "character": "CharacterEventBothWays(EVFLAG_TMP(7),  EventScr_089F31B8, CHARACTER_EIRIKA, CHARACTER_EPHRAIM)\n    CharacterEventBothWays(EVFLAG_TMP(8),  EventScr_089F31D4, CHARACTER_EPHRAIM, CHARACTER_SETH)\n    CharacterEventBothWays(EVFLAG_TMP(9),  EventScr_089F31F4, CHARACTER_SETH, CHARACTER_KYLE)\n    CharacterEventBothWays(EVFLAG_TMP(10), EventScr_089F3214, CHARACTER_FRANZ, CHARACTER_FORDE)\n    END_MAIN",
+    "location": "Door_(20, 7)\n    Door_(1, 5)\n    Chest(ITEM_SWORD_SILVER, 1, 3)\n    Chest(ITEM_ELYSIANWHIP, 2, 3)\n    Seize(10, 2)\n    Chest(ITEM_BOOSTER_HP, 19, 4)\n    END_MAIN",
+    "misc": "AREA(EVFLAG_TMP(11), EventScr_Ch8_MiscThiefRainforce, 5, 0, 15, 10)\n    CauseGameOverIfLordDies\n    END_MAIN"
+  },
+  "selectedEventScripts": {
+    "EventScr_Ch8_BeginningScene": "MUSC(SONG_TENSION)\n    LOAD2(0x1, UnitDef_088B76FC)\n    ENUN\n    CUMO_CHAR(CHARACTER_ORSON_CH5X)\n    STAL(60)\n    CURE\n    SetBackground(BG_CASTLE_BRIGHT)\n    TEXTSHOW(0xa08)\n    TEXTEND\n    MUSCMID(SONG_SILENT)\n    TEXTCONT\n    TEXTEND\n    CALL(EventScr_TextShowWithFadeIn)\n    LOAD1(0x1, UnitDef_088B774C)\n    ENUN\n    CUMO_CHAR(CHARACTER_TIRADO)\n    STAL(60)\n    CURE\n    MUSC(SONG_RAID)\n    TEXTSTART\n    TEXTSHOW(0xa09)\n    TEXTEND\n    REMA\n    STAL(30)\n    CUSE(CHARACTER_ORSON_CH5X)\n    CUMO_CHAR(CHARACTER_ORSON_CH5X)\n    STAL(60)\n    CURE\n    MOVE(0x0, CHARACTER_ORSON_CH5X, 20, 19)\n    SVAL(EVT_SLOT_B, 0x100014)\n    MOVE_1STEP(0x0, CHAR_EVT_POSITION_AT_SLOTB, FACING_RIGHT)\n    ENUN\n    MOVE(0x0, CHARACTER_ORSON_CH5X, 20, 15)\n    ENUN\n    SVAL(EVT_SLOT_B, 0x100015)\n    MOVE_1STEP(0x0, CHAR_EVT_POSITION_AT_SLOTB, FACING_LEFT)\n    MOVE(0x0, CHARACTER_ORSON_CH5X, 19, 10)\n    ENUN\n    DISA(CHARACTER_ORSON_CH5X)\n    CUMO_CHAR(CHARACTER_TIRADO)\n    STAL(60)\n    CURE\n    Text_BG(BG_CASTLE_BRIGHT, 0xa0a)\n    SVAL(EVT_SLOT_B, 0x100013)\n    MOVE_1STEP(0x0, CHAR_EVT_POSITION_AT_SLOTB, FACING_LEFT)\n    ENUN\n    MOVE(0x0, CHARACTER_TIRADO, 19, 14)\n    ENUN\n    SVAL(EVT_SLOT_B, 0x100012)\n    MOVE_1STEP(0x0, CHAR_EVT_POSITION_AT_SLOTB, FACING_RIGHT)\n    ENUN\n    MOVE(0x0, CHARACTER_TIRADO, 19, 14)\n    ENUN\n    CUMO_CHAR(CHARACTER_TIRADO)\n    STAL(60)\n    CURE\n    TEXTSTART\n    TEXTSHOW(0xa0b)\n    TEXTEND\n    REMA\n    SVAL(EVT_SLOT_B, 0x150014)\n    SOUN(SONG_AB)\n    TILECHANGE(0xffff)\n    MOVE(0x0, CHARACTER_TIRADO, 19, 10)\n    SVAL(EVT_SLOT_B, 0x100013)\n    MOVE(0x10, CHAR_EVT_POSITION_AT_SLOTB, 19, 11)\n    SVAL(EVT_SLOT_B, 0x100014)\n    MOVE(0x10, CHAR_EVT_POSITION_AT_SLOTB, 20, 11)\n    ENUN\n    CLEE\n    LOAD1(0x1, UnitDef_088B73C8)\n    ENUN\n    SVAL(EVT_SLOT_2, UnitDef_088B77C4)\n    SVAL(EVT_SLOT_3, 0x1)\n    CALL(EventScr_LoadUnitForTutorial)\n    CUMO_CHAR(CHARACTER_EIRIKA)\n    STAL(60)\n    CURE\n    SetBackground(BG_CASTLE_BRIGHT)\n    TEXTSHOW(0xa0c)\n    TEXTEND\n    REMA\n    CALL(EventScr_08591FD8)\n    ENUT(12)\n    ENDA",
+    "EventScr_089F3124": "CAMERA(0, 23)\n    LOAD1(0x1, UnitDef_088B75F8)\n    ENUN\n    REVEAL(CHARACTER_EPHRAIM)\n    REVEAL(CHARACTER_FORDE)\n    REVEAL(CHARACTER_KYLE)\n    SVAL(EVT_SLOT_1, 0x1)\n    SET_STATE(CHARACTER_EPHRAIM)\n    SVAL(EVT_SLOT_1, 0x1)\n    SET_STATE(CHARACTER_FORDE)\n    SVAL(EVT_SLOT_1, 0x1)\n    SET_STATE(CHARACTER_KYLE)\n    CUMO_CHAR(CHARACTER_EPHRAIM)\n    STAL(60)\n    CURE\n    MUSC(SONG_TENSION)\n    TEXTSTART\n    TEXTSHOW(0xa0d)\n    TEXTEND\n    REMA\n    EVBIT_T(7)\n    ENDA",
+    "EventScr_Ch8_EndingScene": "MUSC(SONG_VICTORY)\n    SetBackground(BG_CASTLE_BRIGHT)\n    TEXTSHOW(0xa10)\n    TEXTEND\n    REMA\n    ENUT(223)\n    MNCH(0x6)\n    ENDA",
+    "EventScr_Ch8_MiscThiefRainforce": "SVAL(EVT_SLOT_2, 0x0)\n    CALL(EventScr_UnTriggerIfNotFaction)\n    ENUF(12)\n    EVBIT_T(7)\n    ENDA",
+    "EventScr_089F3250": "SVAL(EVT_SLOT_2, UnitDef_088B7648)\n    CALL(EventScr_LoadReinforce)\n    EVBIT_T(7)\n    ENDA",
+    "EventScr_089F3268": "SVAL(EVT_SLOT_2, UnitDef_088B7698)\n    CALL(EventScr_LoadReinforce)\n    EVBIT_T(7)\n    ENDA"
+  },
+  "eventInterpretation": {
+    "basis": "人工核对第8章事件脚本及公共辅助脚本；未模拟事件引擎",
+    "defeatIfLordDies": true,
+    "turn2": {
+      "phase": "player",
+      "group": "turn2PlayerReinforcements"
+    },
+    "turn5": {
+      "phase": "player",
+      "group": "turn5EnemyReinforcements"
+    },
+    "area": {
+      "boundsInclusive": {
+        "min": [
+          5,
+          0
+        ],
+        "max": [
+          15,
+          10
+        ]
+      },
+      "faction": "player",
+      "areaEventFlag": 11,
+      "gateFlag": 12,
+      "behavior": "开场置位12；我方进入区域触发11并清除12；回合事件12随后加载增援组",
+      "group": "areaEnemyReinforcements"
+    }
+  },
+  "limitations": [
+    "地形层是原始基础地图；mapChanges保留门、宝箱、墙等变化，未自动执行开场TILECHANGE。",
+    "单位是静态模板；我方名单、现有属性、出击人数及最终位置还受存档与准备画面影响。",
+    "entryPosition为入场坐标；finalPosition为REDA移动终点，二者不能混用。",
+    "未模拟普通/困难难度、公共脚本、属性成长、随机数和事件运行时；不宣称复原完整战斗存档。",
+    "FE8地形和本项目规则不同；此文件不是可直接传给BattleMap验证器的运行时关卡。"
+  ]
+}

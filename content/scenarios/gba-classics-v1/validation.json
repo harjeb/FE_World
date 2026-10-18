@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "format": "agent-tactics.scenario-pack-validation",
+  "schemaVersion": 1,
+  "manifestSha256": "416a37c787802f7524bf06a551b24e9737b6aebbee78fb6d4c97d99ec7b3dd88",
+  "scenarioCount": 30,
+  "uniqueChapterCount": 30,
+  "uniqueLayoutCount": 30,
+  "games": {
+    "fe6": {
+      "maps": 10,
+      "enemyTemplates": 500,
+      "cells": 9630,
+      "romSha1": "2c9aa8d6a5537b8276ad782eda5de98fcccf3a05"
+    },
+    "fe7": {
+      "maps": 10,
+      "enemyTemplates": 1474,
+      "cells": 5577,
+      "romSha1": "6555bc2623688111cb8e60b105dfb25bf45eff24"
+    },
+    "fe8": {
+      "maps": 10,
+      "enemyTemplates": 723,
+      "cells": 5889,
+      "romSha1": "56f3d3938ec0f61d3864c95c142b03c98225fe72"
+    }
+  },
+  "checks": [
+    "json-schema",
+    "matrix-dimensions",
+    "catalog-references",
+    "unit-coordinates",
+    "map-change-masks",
+    "unique-ids",
+    "enemy-counts",
+    "file-sha256",
+    "manifest-consistency",
+    "10-maps-per-game",
+    "distinct-map-layouts",
+    "edition-consistency"
+  ],
+  "runtimePlayable": false
+}

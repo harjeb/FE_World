@@ -1,0 +1,904 @@
+[
+  {
+    "file": "1990-FC-火炎之纹章-暗黑龙与光之剑-日.nes",
+    "sha1": "1173e4cb2e37908c64161acb1c54d7b35828348e",
+    "sha256": "ab7a2433a85eaba89e20612d3b9ed637fcb6412cbdcd69cd748c9cab8e7d980b",
+    "platform": "fc",
+    "bytes": 393232,
+    "headerBytes": 16,
+    "prgBanks": 16,
+    "chrBanks": 16,
+    "mapper": 10,
+    "bodyBytes": 393216,
+    "tested": {
+      "dimensions": [
+        [
+          16,
+          16
+        ],
+        [
+          24,
+          24
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          32,
+          24
+        ],
+        [
+          24,
+          32
+        ],
+        [
+          40,
+          32
+        ],
+        [
+          32,
+          40
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ]
+      ],
+      "elements": [
+        1,
+        2
+      ],
+      "alignmentStep": 2048,
+      "encodings": [
+        "u8",
+        "nibble-high-first",
+        "nibble-low-first",
+        "u16le-mask10",
+        "rle-value-count",
+        "rle-count-value"
+      ]
+    },
+    "plainCandidates": [
+      {
+        "offset": "0x01F800",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 14,
+        "maxValue": 15,
+        "zeroFraction": 0.001,
+        "meanRun": 21.22,
+        "coherence": 0.992,
+        "preview": [
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                "
+        ]
+      },
+      {
+        "offset": "0x01F800",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 14,
+        "maxValue": 15,
+        "zeroFraction": 0.001,
+        "meanRun": 21.22,
+        "coherence": 0.992,
+        "preview": [
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                "
+        ]
+      },
+      {
+        "offset": "0x00F800",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 14,
+        "maxValue": 15,
+        "zeroFraction": 0.001,
+        "meanRun": 20.08,
+        "coherence": 0.991,
+        "preview": [
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                "
+        ]
+      },
+      {
+        "offset": "0x00F800",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 14,
+        "maxValue": 15,
+        "zeroFraction": 0.001,
+        "meanRun": 20.08,
+        "coherence": 0.991
+      },
+      {
+        "offset": "0x00B800",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 11,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 18.45,
+        "coherence": 0.988
+      },
+      {
+        "offset": "0x00B800",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 11,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 18.45,
+        "coherence": 0.988
+      }
+    ],
+    "rleCandidates": [
+      {
+        "offset": "0x017400",
+        "encoding": "rle-value-count",
+        "width": 16,
+        "height": 16,
+        "uniqueValues": 6,
+        "maxValue": 12,
+        "zeroFraction": 0.0,
+        "meanRun": 4.49,
+        "coherence": 0.948
+      },
+      {
+        "offset": "0x002200",
+        "encoding": "rle-value-count",
+        "width": 16,
+        "height": 16,
+        "uniqueValues": 4,
+        "maxValue": 10,
+        "zeroFraction": 0.0,
+        "meanRun": 3.05,
+        "coherence": 0.892
+      }
+    ],
+    "conclusion": "candidates exist but need visual confirmation against a published map",
+    "game": "FE1"
+  },
+  {
+    "file": "1992-FC-火炎之纹章-外传-日.nes",
+    "sha1": "2153ae9a7b1c63e8d4d83a807f1c8c1f482f7293",
+    "sha256": "beafb14c1a45eb094e525d6d13b8dac1c43426fbbc51669fad14970808fa983d",
+    "platform": "fc",
+    "bytes": 393232,
+    "headerBytes": 16,
+    "prgBanks": 16,
+    "chrBanks": 16,
+    "mapper": 10,
+    "bodyBytes": 393216,
+    "tested": {
+      "dimensions": [
+        [
+          16,
+          16
+        ],
+        [
+          24,
+          24
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          32,
+          24
+        ],
+        [
+          24,
+          32
+        ],
+        [
+          40,
+          32
+        ],
+        [
+          32,
+          40
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ]
+      ],
+      "elements": [
+        1,
+        2
+      ],
+      "alignmentStep": 2048,
+      "encodings": [
+        "u8",
+        "nibble-high-first",
+        "nibble-low-first",
+        "u16le-mask10",
+        "rle-value-count",
+        "rle-count-value"
+      ]
+    },
+    "plainCandidates": [],
+    "rleCandidates": [
+      {
+        "offset": "0x029C00",
+        "encoding": "rle-count-value",
+        "width": 24,
+        "height": 24,
+        "uniqueValues": 5,
+        "maxValue": 51,
+        "zeroFraction": 0.0,
+        "meanRun": 5.01,
+        "coherence": 0.939
+      }
+    ],
+    "conclusion": "candidates exist but need visual confirmation against a published map",
+    "game": "FE2"
+  },
+  {
+    "file": "1994-SFC-火炎之纹章-纹章之谜-日.smc",
+    "sha1": "c0a9e7284a60418932af831683b87c4d2d9e20ea",
+    "sha256": "6d42ac5679537b638717d9a05806574469a826f39bc64c7e009d4013a73e27d9",
+    "platform": "sfc",
+    "bytes": 3146240,
+    "headerBytes": 512,
+    "headerTitle": "SHVC FIREEMBLEM",
+    "bodyBytes": 3145728,
+    "tested": {
+      "dimensions": [
+        [
+          16,
+          16
+        ],
+        [
+          24,
+          24
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          32,
+          24
+        ],
+        [
+          24,
+          32
+        ],
+        [
+          40,
+          32
+        ],
+        [
+          32,
+          40
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ]
+      ],
+      "elements": [
+        1,
+        2
+      ],
+      "alignmentStep": 2048,
+      "encodings": [
+        "u8",
+        "nibble-high-first",
+        "nibble-low-first",
+        "u16le-mask10",
+        "rle-value-count",
+        "rle-count-value"
+      ]
+    },
+    "plainCandidates": [
+      {
+        "offset": "0x254000",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 5,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 10.95,
+        "coherence": 0.969,
+        "preview": [
+          "                                                                ",
+          "      @@           @             @                              ",
+          "                                                                ",
+          "   @                    @        @                              ",
+          "                                                                ",
+          " @    @                         @  @                            ",
+          "                                                                ",
+          "     @          @  @ @             @    @                       ",
+          "                                                         @@     ",
+          "                                     @                          ",
+          "                                                                ",
+          "@                  @                                            "
+        ]
+      },
+      {
+        "offset": "0x254000",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 5,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 10.95,
+        "coherence": 0.969,
+        "preview": [
+          "                                                                ",
+          "      @@           @             @                              ",
+          "                                                                ",
+          "   @                    @        @                              ",
+          "                                                                ",
+          " @    @                         @  @                            ",
+          "                                                                ",
+          "     @          @  @ @             @    @                       ",
+          "                                                         @@     ",
+          "                                     @                          ",
+          "                                                                ",
+          "@                  @                                            "
+        ]
+      },
+      {
+        "offset": "0x254000",
+        "encoding": "nibble-high-first",
+        "width": 48,
+        "height": 48,
+        "uniqueValues": 5,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 10.29,
+        "coherence": 0.972,
+        "preview": [
+          "                                                ",
+          "                      ==           -            ",
+          " @                                              ",
+          "                                                ",
+          "   #                    %        %              ",
+          "                                                ",
+          "                                 %    +         ",
+          "                -  -                            ",
+          "                                                ",
+          "                     +          :  @ =          ",
+          "   @    *                                       ",
+          "                                         ::     "
+        ]
+      },
+      {
+        "offset": "0x254000",
+        "encoding": "nibble-low-first",
+        "width": 48,
+        "height": 48,
+        "uniqueValues": 5,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 10.29,
+        "coherence": 0.972
+      },
+      {
+        "offset": "0x256000",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 6,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 10.09,
+        "coherence": 0.966
+      },
+      {
+        "offset": "0x256000",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 6,
+        "maxValue": 15,
+        "zeroFraction": 0.0,
+        "meanRun": 10.09,
+        "coherence": 0.966
+      }
+    ],
+    "rleCandidates": [
+      {
+        "offset": "0x18FE00",
+        "encoding": "rle-value-count",
+        "width": 24,
+        "height": 24,
+        "uniqueValues": 5,
+        "maxValue": 8,
+        "zeroFraction": 0.74,
+        "meanRun": 6.86,
+        "coherence": 0.967
+      },
+      {
+        "offset": "0x257A00",
+        "encoding": "rle-value-count",
+        "width": 16,
+        "height": 16,
+        "uniqueValues": 4,
+        "maxValue": 32,
+        "zeroFraction": 0.492,
+        "meanRun": 4.92,
+        "coherence": 0.958
+      },
+      {
+        "offset": "0x254C00",
+        "encoding": "rle-value-count",
+        "width": 24,
+        "height": 24,
+        "uniqueValues": 6,
+        "maxValue": 32,
+        "zeroFraction": 0.767,
+        "meanRun": 4.92,
+        "coherence": 0.938
+      },
+      {
+        "offset": "0x256C00",
+        "encoding": "rle-count-value",
+        "width": 16,
+        "height": 16,
+        "uniqueValues": 4,
+        "maxValue": 16,
+        "zeroFraction": 0.484,
+        "meanRun": 4.27,
+        "coherence": 0.942
+      },
+      {
+        "offset": "0x252E00",
+        "encoding": "rle-count-value",
+        "width": 16,
+        "height": 16,
+        "uniqueValues": 6,
+        "maxValue": 16,
+        "zeroFraction": 0.738,
+        "meanRun": 3.94,
+        "coherence": 0.931
+      },
+      {
+        "offset": "0x253E00",
+        "encoding": "rle-count-value",
+        "width": 16,
+        "height": 16,
+        "uniqueValues": 4,
+        "maxValue": 4,
+        "zeroFraction": 0.461,
+        "meanRun": 3.82,
+        "coherence": 0.927
+      }
+    ],
+    "conclusion": "candidates exist but need visual confirmation against a published map",
+    "game": "FE3"
+  },
+  {
+    "file": "1996-SFC-火炎之纹章-圣战之系谱-日.smc",
+    "sha1": "90f0bdeaf0151899f96281258fcb30899fbd0d44",
+    "sha256": "9d8d0aab728b90ddeee6da8dbafadd89fceb7c00b0eb432255b427a679f41aab",
+    "platform": "sfc",
+    "bytes": 4194304,
+    "headerBytes": 0,
+    "headerTitle": "FIREEMBLEM4",
+    "bodyBytes": 4194304,
+    "tested": {
+      "dimensions": [
+        [
+          16,
+          16
+        ],
+        [
+          24,
+          24
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          32,
+          24
+        ],
+        [
+          24,
+          32
+        ],
+        [
+          40,
+          32
+        ],
+        [
+          32,
+          40
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ]
+      ],
+      "elements": [
+        1,
+        2
+      ],
+      "alignmentStep": 2048,
+      "encodings": [
+        "u8",
+        "nibble-high-first",
+        "nibble-low-first",
+        "u16le-mask10",
+        "rle-value-count",
+        "rle-count-value"
+      ]
+    },
+    "plainCandidates": [],
+    "rleCandidates": [
+      {
+        "offset": "0x007200",
+        "encoding": "rle-value-count",
+        "width": 48,
+        "height": 48,
+        "uniqueValues": 4,
+        "maxValue": 32,
+        "zeroFraction": 0.778,
+        "meanRun": 10.15,
+        "coherence": 0.971
+      },
+      {
+        "offset": "0x01F200",
+        "encoding": "rle-value-count",
+        "width": 48,
+        "height": 48,
+        "uniqueValues": 4,
+        "maxValue": 26,
+        "zeroFraction": 0.833,
+        "meanRun": 8.38,
+        "coherence": 0.96
+      },
+      {
+        "offset": "0x01B600",
+        "encoding": "rle-count-value",
+        "width": 48,
+        "height": 48,
+        "uniqueValues": 5,
+        "maxValue": 4,
+        "zeroFraction": 0.606,
+        "meanRun": 7.92,
+        "coherence": 0.957
+      },
+      {
+        "offset": "0x007A00",
+        "encoding": "rle-value-count",
+        "width": 32,
+        "height": 40,
+        "uniqueValues": 4,
+        "maxValue": 32,
+        "zeroFraction": 0.6,
+        "meanRun": 7.57,
+        "coherence": 0.961
+      },
+      {
+        "offset": "0x01BA00",
+        "encoding": "rle-count-value",
+        "width": 32,
+        "height": 40,
+        "uniqueValues": 4,
+        "maxValue": 3,
+        "zeroFraction": 0.691,
+        "meanRun": 7.53,
+        "coherence": 0.961
+      },
+      {
+        "offset": "0x1A7E00",
+        "encoding": "rle-count-value",
+        "width": 32,
+        "height": 40,
+        "uniqueValues": 4,
+        "maxValue": 34,
+        "zeroFraction": 0.329,
+        "meanRun": 7.49,
+        "coherence": 0.96
+      }
+    ],
+    "conclusion": "candidates exist but need visual confirmation against a published map",
+    "game": "FE4"
+  },
+  {
+    "file": "1999-SFC-火炎之纹章-多拉基亚776-日.smc",
+    "sha1": "9a3cdad30519ca93be2d4624818408680c70de09",
+    "sha256": "c20c23854d3b759ab168dd28577b2c487956b747d68f0adddb0bfaa35dd2df7f",
+    "platform": "sfc",
+    "bytes": 4194816,
+    "headerBytes": 512,
+    "headerTitle": "FIREEMBLEM5ROM",
+    "bodyBytes": 4194304,
+    "tested": {
+      "dimensions": [
+        [
+          16,
+          16
+        ],
+        [
+          24,
+          24
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          32,
+          24
+        ],
+        [
+          24,
+          32
+        ],
+        [
+          40,
+          32
+        ],
+        [
+          32,
+          40
+        ],
+        [
+          48,
+          48
+        ],
+        [
+          64,
+          64
+        ]
+      ],
+      "elements": [
+        1,
+        2
+      ],
+      "alignmentStep": 2048,
+      "encodings": [
+        "u8",
+        "nibble-high-first",
+        "nibble-low-first",
+        "u16le-mask10",
+        "rle-value-count",
+        "rle-count-value"
+      ]
+    },
+    "plainCandidates": [
+      {
+        "offset": "0x007800",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 15,
+        "maxValue": 15,
+        "zeroFraction": 0.019,
+        "meanRun": 10.81,
+        "coherence": 0.969,
+        "preview": [
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                "
+        ]
+      },
+      {
+        "offset": "0x007800",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 15,
+        "maxValue": 15,
+        "zeroFraction": 0.019,
+        "meanRun": 10.81,
+        "coherence": 0.969,
+        "preview": [
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                "
+        ]
+      },
+      {
+        "offset": "0x056800",
+        "encoding": "nibble-high-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 16,
+        "maxValue": 15,
+        "zeroFraction": 0.055,
+        "meanRun": 6.99,
+        "coherence": 0.943,
+        "preview": [
+          ".:@=#@@%.:@=#@@..:@@@@@..:#*@-@:.:@*@-@%.:=*@-@..:@@@@-..:#*+--:",
+          ".:@*+--%.:=*+-@..:@@@@@..:#@+@@:.:@@+@@%.:=@+@@@.:@@+@@..:@@@@@@",
+          ".:@@@@@:..@@=@@%..@@=@@@..@@=@@@........@.......................",
+          "..:..................@....@.......                              ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                ",
+          "                                                                "
+        ]
+      },
+      {
+        "offset": "0x056800",
+        "encoding": "nibble-low-first",
+        "width": 64,
+        "height": 64,
+        "uniqueValues": 16,
+        "maxValue": 15,
+        "zeroFraction": 0.055,
+        "meanRun": 6.99,
+        "coherence": 0.943
+      },
+      {
+        "offset": "0x0F9800",
+        "encoding": "u16le-mask10",
+        "width": 32,
+        "height": 40,
+        "uniqueValues": 4,
+        "maxValue": 63,
+        "zeroFraction": 0.023,
+        "meanRun": 5.93,
+        "coherence": 0.942
+      },
+      {
+        "offset": "0x0F9800",
+        "encoding": "u16le-mask10",
+        "width": 32,
+        "height": 32,
+        "uniqueValues": 4,
+        "maxValue": 63,
+        "zeroFraction": 0.029,
+        "meanRun": 5.33,
+        "coherence": 0.935
+      }
+    ],
+    "rleCandidates": [
+      {
+        "offset": "0x343800",
+        "encoding": "rle-value-count",
+        "width": 32,
+        "height": 40,
+        "uniqueValues": 5,
+        "maxValue": 57,
+        "zeroFraction": 0.002,
+        "meanRun": 7.36,
+        "coherence": 0.959
+      },
+      {
+        "offset": "0x343800",
+        "encoding": "rle-value-count",
+        "width": 40,
+        "height": 32,
+        "uniqueValues": 5,
+        "maxValue": 57,
+        "zeroFraction": 0.002,
+        "meanRun": 6.46,
+        "coherence": 0.949
+      },
+      {
+        "offset": "0x05BE00",
+        "encoding": "rle-value-count",
+        "width": 24,
+        "height": 32,
+        "uniqueValues": 9,
+        "maxValue": 61,
+        "zeroFraction": 0.236,
+        "meanRun": 6.3,
+        "coherence": 0.956
+      },
+      {
+        "offset": "0x343800",
+        "encoding": "rle-value-count",
+        "width": 24,
+        "height": 32,
+        "uniqueValues": 5,
+        "maxValue": 57,
+        "zeroFraction": 0.003,
+        "meanRun": 6.24,
+        "coherence": 0.955
+      },
+      {
+        "offset": "0x343800",
+        "encoding": "rle-value-count",
+        "width": 32,
+        "height": 32,
+        "uniqueValues": 5,
+        "maxValue": 57,
+        "zeroFraction": 0.002,
+        "meanRun": 6.17,
+        "coherence": 0.949
+      },
+      {
+        "offset": "0x343800",
+        "encoding": "rle-value-count",
+        "width": 24,
+        "height": 24,
+        "uniqueValues": 4,
+        "maxValue": 57,
+        "zeroFraction": 0.003,
+        "meanRun": 5.7,
+        "coherence": 0.952
+      }
+    ],
+    "conclusion": "candidates exist but need visual confirmation against a published map",
+    "game": "FE5"
+  }
+]

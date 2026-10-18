@@ -13,7 +13,7 @@ import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
-import { createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
+import { createClassicBattle, createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { recruitClass } from '../common/game/random-recruit.ts';
 import { addWeaponExp, ageDaysOf, createUnit, gainExperience, lifespanEndDayOf, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
@@ -38,10 +38,11 @@ import { createDispatch, dispatchSummary, DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS,
 import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
 import type { WeaponType } from '../common/data/types.ts';
 import { STAT_KEYS, withCharm } from '../common/data/types.ts';
-import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, survivingIds } from '../common/game/expedition.ts';
+import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, stageCount, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
+import { classicMap } from '../common/game/classic-catalog.ts';
 import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { reputationTier } from '../common/game/reputation.ts';
 
@@ -830,7 +831,10 @@ const handlers: Record<number, Handler> = {
     ctx.player.day += run.stageDays ?? DUNGEON_STAGE_DAYS;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
-    const record = createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry });
+    const record = run.scenarioIds?.length
+      ? createClassicBattle(units, { mapId: run.scenarioIds[run.stageIndex], seed, quest: run.questId ? questById(run.questId) : undefined,
+          stageIndex: run.stageIndex, runId: run.id, carry: run.carry })
+      : createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry });
     record.playerId = ctx.player.id;
     run.state = 'battle';
     run.battleId = record.id;
@@ -1438,9 +1442,10 @@ const handlers: Record<number, Handler> = {
           shop: regionShop(region, rep),
           quests: questsForRegion(region).map(q => ({
             id: q.id, name: q.name, objective: q.objective, kind: q.kind, tier: q.tier,
-            costDays: QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, reward: q.reward,
+            costDays: q.costDays ?? QUEST_DAY_COST[q.tier], turnLimit: q.turnLimit, reward: q.reward,
             enemyLevel: enemyLevel(ctx.player.day, regionById(region).offset),
-            toDay: ctx.player.day + QUEST_DAY_COST[q.tier], risk: 'permadeath',
+            toDay: ctx.player.day + (q.costDays ?? QUEST_DAY_COST[q.tier]), risk: 'permadeath',
+            classic: q.classic ?? null,
             optionalReward: q.kind === 'gather' ? { item: region === 3 ? 'ore' : region === 5 ? 'herb' : 'wood', perExtraBox: 1 } : null,
             requires: q.requires ?? null,
             done: done.has(q.id), claimed: claimed.has(q.id),
@@ -1469,6 +1474,35 @@ const handlers: Record<number, Handler> = {
     const ready = units.filter(u => u.status === 'active');
     if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
     const seed = randomUUID().slice(0, 8);
+    // 经典地图副本：按 scenarioIds 顺序逐图连战，跨图携带由 run.carry 维护（docs/24）。
+    if (quest.scenarioIds?.length) {
+      const costDays = quest.stageDays ?? 2;
+      const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, quest.region, ready.map(u => u.id),
+        enemyLevel(ctx.player.day, regionById(quest.region).offset), ctx.player.flags.clearedRegions.length,
+        { questId: quest.id, stageDays: costDays, scenarioIds: quest.scenarioIds, stageNames: quest.scenarioIds.map(id => classicMap(id).name) });
+      for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
+      ctx.player.day += costDays;
+      syncPlayer(ctx.store, ctx.player);
+      const record = createClassicBattle(ready, { mapId: quest.scenarioIds[0], seed, quest, stageIndex: 0, runId: run.id });
+      record.playerId = ctx.player.id;
+      run.battleId = record.id;
+      ctx.store.saveRun(run);
+      ctx.store.saveBattle(record);
+      ctx.store.addEvent(ctx.player.id, 'quest', `接取经典副本「${quest.name}」（${quest.scenarioIds.length} 图）。`, { runId: run.id, questId: quest.id });
+      ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+      return { battleId: record.id, questId: quest.id, run: runSummary(run), goalText: record.goalText, battle: battleView(record, false) };
+    }
+    // 单张经典地图任务。
+    if (quest.scenarioId) {
+      const record = createClassicBattle(ready, { mapId: quest.scenarioId, seed, quest });
+      record.playerId = ctx.player.id;
+      ctx.player.day += quest.costDays ?? QUEST_DAY_COST[quest.tier];
+      syncPlayer(ctx.store, ctx.player);
+      ctx.store.saveBattle(record);
+      ctx.store.addEvent(ctx.player.id, 'quest', `接取经典地图「${quest.name}」（${regionById(quest.region).name}）。`, { battleId: record.id, questId: quest.id });
+      ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+      return { battleId: record.id, questId: quest.id, goalText: record.goalText, battle: battleView(record, false), state: publicState(record.state) };
+    }
     // 地区远征（tier region）：三图连战，完成整本才标记任务（docs/20 §2）。
     if (quest.tier === 'region') {
       const level = enemyLevel(ctx.player.day, regionById(quest.region).offset);

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "purpose": "人工看图核对的识别样本；不是完整关卡，也不代表自动识别准确率",
+  "coordinates": { "origin": "top-left", "indexBase": 0, "order": ["x", "y"], "tilePixels": 16 },
+  "terrainField": "只填写已确认且能直接映射到项目现有类型的地形。null也可能表示需要物件层或尚未决定映射，不等同于视觉不可识别。",
+  "followUpVerification": {
+    "chapterData": "../extracted/fe8j-ch08-rom/chapter.json",
+    "scope": "本文件保留人工看图阶段记录；现已直接解析用户提供的FE8J第8章ROM，塔第1层尚未核对",
+    "corrections": [
+      { "position": [3, 21], "rejectedCandidate": "Kyle", "verifiedCharacter": "CHARACTER_EPHRAIM", "basis": "第2回合增援REDA终点；Kyle终点为(2,22)" },
+      { "position": [10, 2], "verifiedTerrain": "TERRAIN_THRONE" },
+      { "position": [20, 17], "verifiedTerrain": "TERRAIN_FLOOR_REGULAR", "remainingUnknown": "攻略蓝色高亮的精确含义" }
+    ]
+  },
+  "maps": [
+    {
+      "id": "fe8-ch08",
+      "image": "../samples/wod-fe8-ch08.png",
+      "width": 24,
+      "height": 24,
+      "gridEvidence": "原始图片384×384；攻略HTML的格线开关类名为griddiezseisP，与16像素格一致；Wiki章节文字另行确认24列24行",
+      "referenceImages": ["../samples/wiki-fe8-ch08.png", "../samples/wiki-fe8-ch08-hard.png"],
+      "referencePage": "../samples/pages/wiki-fe8-ch08.html",
+      "coverage": "抽样核对15个格子，未逐格转写全图",
+      "observations": [
+        { "id": 1, "position": [4, 12], "visualElement": "water", "terrain": "water", "note": "池水纹理；与右下角蓝色区域标注区分" },
+        { "id": 2, "position": [10, 8], "visualElement": "stone_floor", "terrain": "floor", "note": "绿色纹理是石砖地板，不是草地或森林" },
+        { "id": 3, "position": [7, 11], "visualElement": "stairs", "terrain": null, "note": "可见横向阶梯；运行时如何映射需另行决定" },
+        { "id": 4, "position": [11, 13], "visualElement": "wall", "terrain": "wall", "note": "竖向连续墙体的一格" },
+        { "id": 5, "position": [19, 4], "visualElement": "chest", "terrain": null, "mapLabel": "1", "pageItem": "Angelic Robe", "note": "宝箱本体位于此格，编号绘制在宝箱上方并覆盖部分图像" },
+        { "id": 6, "position": [1, 3], "visualElement": "chest", "terrain": null, "mapLabel": "2", "pageItem": "Silver Sword", "note": "宝箱属于物件；不从遮挡后的图片断定底层地形" },
+        { "id": 7, "position": [2, 3], "visualElement": "chest", "terrain": null, "mapLabel": "3", "pageItem": "Elysian Whip", "note": "与左侧宝箱相邻，两个宝箱分别占一格" },
+        { "id": 8, "position": [10, 2], "visualElement": "boss_in_throne_area", "terrain": null, "terrainCandidate": "throne", "pageBoss": { "name": "Tirado / Tatoh", "class": "General", "level": 1 }, "note": "可见首领与王座区域；章节目标是占领王座，但单位遮挡下的地形格仍需空白底图或原始数据核对" },
+        { "id": 9, "position": [10, 5], "visualElement": "red_unit", "terrain": null, "note": "可见红色单位；不凭小图猜测等级、装备和被遮挡地形" },
+        { "id": 10, "position": [3, 21], "visualElement": "blue_unit", "terrain": null, "pageCharacterCandidate": "Kyle", "candidateStatus": "rejected_by_source_data", "verifiedCharacter": "CHARACTER_EPHRAIM", "note": "看图时因附近文字猜为Kyle；原始数据已确认(3,21)为第2回合Ephraim的REDA终点，Kyle终点为(2,22)，不能把这组单位当作开局配置" },
+        { "id": 11, "position": [20, 7], "visualElement": "closed_door", "terrain": null, "note": "门框内有栅格；确认门的外观，开锁条件和实际通行规则未由图片确定" },
+        { "id": 12, "position": [10, 10], "visualElement": "floor_with_green_boundary", "terrain": "floor", "overlay": "green_boundary", "note": "底部纯绿色细线是区域标注，不是森林或水域；Wiki给出了触发区域的列行范围。线有宽度，绿色像素会跨入相邻格，不能直接按颜色像素外框推断触发格" },
+        { "id": 13, "position": [20, 17], "visualElement": "blue_highlight", "terrain": null, "overlayCandidate": "deployment_highlight", "note": "蓝色斜面图案与池水纹理不同，疑似部署标注，暂不归为水域；两图源均有高亮，底层地形仍未由干净底图核对" },
+        { "id": 14, "position": [20, 10], "visualElement": "red_unit", "terrain": null, "pageDropCandidate": "Door Key", "note": "红色单位下方绘有A标记；攻略将A对应Door Key（Knight），此对应关系仍需敌军配置核对" },
+        { "id": 15, "position": [20, 11], "visualElement": "letter_annotation", "terrain": null, "mapLabel": "A", "note": "字母跨格覆盖；此格不是额外单位或地形，不把标注格当作单位坐标" }
+      ],
+      "crossSourceChecks": [
+        "WoD和Wiki地图的宝箱位置、墙体、水池和楼梯布局一致，已人工对照；并非对全部格子的地形验证",
+        "Wiki普通和困难难度图的敌军配置不同，不能混为同一份敌人配置",
+        "WoD图包含第2回合加入角色，图中单位不全是开局单位"
+      ],
+      "pageEvent": {
+        "trigger": "enter_throne_hall",
+        "sourceRangeText": "columns 6–16, rows 1–11",
+        "rangeConvention": "攻略的一基列行，转换为本文件的零基坐标",
+        "boundsInclusive": { "min": [5, 0], "max": [15, 10] },
+        "effect": "2 Mages from the north border and 1 Thief from the stairs",
+        "evidence": "Wiki章节的Reinforcements段落；WoD绿色边界位置与此相符，但描边像素会跨入邻格"
+      },
+      "notDetermined": [
+        "全部576格的底层地形",
+        "所有单位的精确职业、等级、装备和行为",
+        "被单位、编号及蓝色标注遮挡的底层地形",
+        "实际增援出生格、事件是否仅触发一次等完整执行条件",
+        "门的事件条件、柱子类地形的实际通行和战斗效果"
+      ]
+    },
+    {
+      "id": "fe8-valni-01",
+      "image": "../samples/wod-fe8-valni-01.png",
+      "width": 15,
+      "height": 18,
+      "gridEvidence": "原始图片240×288；攻略HTML的格线开关类名为griddiezseisP，与16像素格一致",
+      "referenceImages": ["../samples/wiki-fe8-valni-01.png"],
+      "referencePage": "../samples/pages/wiki-fe8-valni.html",
+      "coverage": "抽样核对9个格子，未逐格转写全图",
+      "observations": [
+        { "id": "T1", "position": [7, 0], "visualElement": "stairs", "terrain": null, "note": "北侧楼梯" },
+        { "id": "T2", "position": [7, 2], "visualElement": "stone_floor", "terrain": "floor", "note": "中央紫色石砖地板" },
+        { "id": "T3", "position": [7, 8], "visualElement": "stone_floor", "terrain": "floor", "note": "中央通道地板" },
+        { "id": "T4", "position": [3, 7], "visualElement": "stone_floor", "terrain": "floor", "note": "侧面绿色石砖地板，与中央地板颜色不同" },
+        { "id": "T5", "position": [7, 13], "visualElement": "stairs", "terrain": null, "note": "南侧三格宽楼梯的一格" },
+        { "id": "T6", "position": [3, 3], "visualElement": "column_base", "terrain": null, "note": "立柱底座；不能仅凭外观判定是不可通行墙壁还是可站立柱子地形" },
+        { "id": "T7", "position": [5, 3], "visualElement": "stone_statue_or_pedestal", "terrain": null, "note": "石像或装饰台，跨格显示；地形语义待核对" },
+        { "id": "T8", "position": [7, 15], "visualElement": "blue_highlight", "terrain": null, "overlayCandidate": "deployment_highlight", "note": "蓝色高亮疑似部署区域标注；两图源均保留此区域，底层地形尚未由干净底图核对" },
+        { "id": "T9", "position": [7, 14], "visualElement": "stairs", "terrain": null, "note": "与上一行楼梯连续" }
+      ],
+      "pageFacts": { "reinforcements": "none", "chests": "none", "enemies": "random_monsters" },
+      "notDetermined": [
+        "全部270格的底层地形",
+        "立柱、雕像与建筑装饰各格的实际通行语义",
+        "蓝色标注的精确含义和被覆盖地形",
+        "随机怪物的生成规则与出生位置"
+      ]
+    }
+  ]
+}

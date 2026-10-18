@@ -12,4 +12,12 @@ backend/data/
 *.key
 __pycache__/
 *.pyc
+*.gba
+*.nds
+*.smc
+*.nes
+*.sfc
+*.srm
+*.ss*
+fe_fc sfc gb nds/
 .DS_Store

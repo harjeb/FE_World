@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { QUEST_DAY_COST, QUEST_REGIONS, QUESTS, questAvailable, questById, questsForRegion } from './quests.ts';
+import { BASE_QUESTS, QUEST_DAY_COST, QUEST_REGIONS, QUESTS, questAvailable, questById, questsForRegion } from './quests.ts';
 import { REPUTATION_TIERS, REPEAT_REPUTATION_CAP, reputationTier } from './reputation.ts';
 
 test('quest ids are unique and every prerequisite exists in the same region and comes first', () => {
@@ -18,9 +18,9 @@ test('quest ids are unique and every prerequisite exists in the same region and 
   }
 });
 
-test('the three launch regions each have six quests summing to 260 reputation', () => {
+test('the three launch regions each have six base quests summing to 260 reputation', () => {
   for (const region of QUEST_REGIONS) {
-    const quests = questsForRegion(region);
+    const quests = BASE_QUESTS.filter(q => q.region === region);
     assert.equal(quests.length, 6, `region ${region} has ${quests.length} quests`);
     const total = quests.reduce((sum, q) => sum + q.reward.reputation, 0);
     assert.equal(total, 260, `region ${region} reputation sums to ${total}`);

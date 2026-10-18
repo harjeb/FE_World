@@ -147,6 +147,9 @@ export interface ServerRun {
   // What each survivor brings into the next map: HP and supplies do not recover in between.
   carry: Record<string, { hp: number; items: { id: string; uses: number }[]; weapons: string[] }>;
   pendingLoot: { item: string; count: number }[]; canContinue: boolean;
+  // 经典地图副本按场景数结算；随机三图副本也返回 3。
+  stageCount?: number; stageDays?: number;
+  stageNames?: string[] | null; stageName?: string | null; nextStageName?: string | null;
 }
 
 // GET_ANNUAL: this year's 大竞技场 and the player's entry (docs/00 §9.4).
@@ -173,6 +176,7 @@ export interface QuestView {
   reward: { gold: number; reputation: number; items?: [string, number][] };
   requires: { quest?: string; reputation?: number } | null;
   done: boolean; claimed: boolean; available: boolean;
+  classic?: { game: string; mapName: string; stageCount: number; adapted?: boolean } | null;
 }
 export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean }[]; quests: QuestView[] }
 export interface ServerQuests { regions: QuestRegion[] }

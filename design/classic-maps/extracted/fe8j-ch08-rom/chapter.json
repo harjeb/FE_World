@@ -1,0 +1,7902 @@
+{
+  "schemaVersion": 1,
+  "id": "fe8j-ch08-rom",
+  "title": "圣魔之光石·第8章·ROM解析",
+  "dataKind": "rom-chapter-extraction",
+  "source": {
+    "inputKind": "local-rom",
+    "fileName": "3火焰纹章_圣魔之光石.gba",
+    "bytes": 16777216,
+    "gameCode": "BE8J",
+    "headerTitle": "FIREEMBLEM8",
+    "sha1": "56f3d3938ec0f61d3864c95c142b03c98225fe72",
+    "sha256": "167ed57921c24f841108f46eabc33cb10e10f141b09d0fa6e75b5c5add3e4df0",
+    "localRomVerified": true,
+    "meaningOfVerified": "Chapter values were read from this ROM and passed structural checks; not an emulator run.",
+    "formatMetadata": {
+      "repository": "https://github.com/FireEmblemUniverse/fireemblem8u",
+      "revision": "f2e1f060dbe5b0cc35285df5a0f6659860644a04",
+      "note": "Numeric data is read from ROM; these headers supply symbolic names only."
+    },
+    "profileMetadata": {
+      "repository": "https://github.com/FEBuilderGBA/FEBuilderGBA",
+      "revision": "8e3557912ddab708d11bf85ad311b41bb6630fd1",
+      "sha256": {
+        "FEBuilderGBA/ROMFE8JP.cs": "be5256a6d4651ee6b26f0f9424dabf4a2bbbd342b154b3fd5fb3681d8173fcaa",
+        "FEBuilderGBA/ROMFE8U.cs": "832f7f2f997101f3b14ed04087f57cdafebd8cda27f647d3a2ca468e9f8f1ddd"
+      }
+    }
+  },
+  "coordinates": {
+    "origin": "top-left",
+    "indexBase": 0,
+    "order": [
+      "x",
+      "y"
+    ],
+    "tilePixels": 16
+  },
+  "chapterTableIndex": 9,
+  "internalName": "L08",
+  "width": 24,
+  "height": 24,
+  "chapterSettings": {
+    "map": {
+      "obj1Id": 24,
+      "obj2Id": 0,
+      "paletteId": 25,
+      "tileConfigId": 26,
+      "mainLayerId": 40,
+      "objAnimId": 28,
+      "paletteAnimId": 0,
+      "changeLayerId": 41
+    },
+    "mapEventDataId": 42,
+    "initialFogLevel": 0,
+    "initialWeather": 0,
+    "initialCamera": [
+      17,
+      17
+    ],
+    "crackedWallHealth": 50
+  },
+  "metatileIndices": [
+    [
+      213,
+      213,
+      213,
+      277,
+      458,
+      820,
+      520,
+      747,
+      747,
+      747,
+      747,
+      747,
+      747,
+      747,
+      521,
+      820,
+      458,
+      184,
+      244,
+      213,
+      213,
+      213,
+      245,
+      276
+    ],
+    [
+      460,
+      460,
+      460,
+      460,
+      493,
+      820,
+      458,
+      867,
+      912,
+      912,
+      913,
+      911,
+      911,
+      867,
+      458,
+      820,
+      525,
+      426,
+      426,
+      426,
+      426,
+      426,
+      521,
+      183
+    ],
+    [
+      823,
+      825,
+      825,
+      825,
+      458,
+      820,
+      458,
+      819,
+      944,
+      944,
+      624,
+      946,
+      946,
+      819,
+      458,
+      820,
+      458,
+      823,
+      719,
+      823,
+      719,
+      823,
+      458,
+      183
+    ],
+    [
+      820,
+      33,
+      33,
+      820,
+      458,
+      820,
+      458,
+      880,
+      688,
+      688,
+      627,
+      689,
+      689,
+      849,
+      458,
+      820,
+      458,
+      820,
+      815,
+      858,
+      815,
+      858,
+      458,
+      183
+    ],
+    [
+      820,
+      825,
+      825,
+      821,
+      458,
+      820,
+      458,
+      880,
+      849,
+      688,
+      627,
+      689,
+      849,
+      849,
+      458,
+      820,
+      458,
+      820,
+      821,
+      33,
+      820,
+      821,
+      458,
+      183
+    ],
+    [
+      427,
+      448,
+      428,
+      460,
+      493,
+      820,
+      552,
+      426,
+      427,
+      850,
+      849,
+      849,
+      428,
+      426,
+      484,
+      820,
+      458,
+      820,
+      821,
+      825,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      866,
+      451,
+      866,
+      866,
+      458,
+      820,
+      866,
+      866,
+      866,
+      452,
+      454,
+      453,
+      866,
+      866,
+      679,
+      820,
+      458,
+      820,
+      821,
+      821,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      825,
+      825,
+      825,
+      825,
+      458,
+      820,
+      960,
+      961,
+      961,
+      452,
+      454,
+      453,
+      960,
+      960,
+      387,
+      820,
+      490,
+      820,
+      520,
+      462,
+      416,
+      492,
+      493,
+      183
+    ],
+    [
+      821,
+      821,
+      821,
+      821,
+      496,
+      820,
+      825,
+      825,
+      824,
+      824,
+      825,
+      825,
+      825,
+      825,
+      519,
+      821,
+      866,
+      451,
+      458,
+      867,
+      451,
+      866,
+      458,
+      183
+    ],
+    [
+      821,
+      484,
+      820,
+      821,
+      458,
+      820,
+      822,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      822,
+      519,
+      821,
+      825,
+      825,
+      458,
+      823,
+      825,
+      825,
+      458,
+      183
+    ],
+    [
+      822,
+      742,
+      452,
+      453,
+      552,
+      484,
+      820,
+      821,
+      484,
+      432,
+      820,
+      821,
+      821,
+      821,
+      519,
+      821,
+      821,
+      821,
+      458,
+      820,
+      719,
+      820,
+      458,
+      183
+    ],
+    [
+      821,
+      423,
+      151,
+      181,
+      866,
+      742,
+      486,
+      453,
+      742,
+      458,
+      820,
+      520,
+      426,
+      426,
+      426,
+      460,
+      461,
+      462,
+      553,
+      820,
+      815,
+      858,
+      458,
+      183
+    ],
+    [
+      821,
+      519,
+      184,
+      213,
+      182,
+      537,
+      181,
+      181,
+      537,
+      458,
+      820,
+      458,
+      867,
+      866,
+      866,
+      866,
+      484,
+      867,
+      866,
+      820,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      821,
+      484,
+      184,
+      276,
+      213,
+      277,
+      213,
+      213,
+      277,
+      458,
+      419,
+      458,
+      823,
+      825,
+      825,
+      825,
+      742,
+      823,
+      825,
+      821,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      822,
+      552,
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      460,
+      493,
+      820,
+      821,
+      719,
+      820,
+      515,
+      858,
+      822,
+      821,
+      719,
+      820,
+      458,
+      183
+    ],
+    [
+      821,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      458,
+      820,
+      821,
+      815,
+      858,
+      821,
+      822,
+      821,
+      822,
+      815,
+      858,
+      458,
+      183
+    ],
+    [
+      821,
+      825,
+      825,
+      824,
+      825,
+      825,
+      825,
+      824,
+      825,
+      825,
+      825,
+      458,
+      820,
+      821,
+      821,
+      821,
+      484,
+      820,
+      821,
+      821,
+      821,
+      821,
+      458,
+      183
+    ],
+    [
+      426,
+      426,
+      426,
+      426,
+      426,
+      426,
+      521,
+      821,
+      821,
+      719,
+      820,
+      525,
+      427,
+      427,
+      820,
+      460,
+      461,
+      462,
+      583,
+      820,
+      821,
+      583,
+      465,
+      183
+    ],
+    [
+      866,
+      866,
+      866,
+      866,
+      866,
+      866,
+      458,
+      820,
+      821,
+      815,
+      858,
+      458,
+      867,
+      866,
+      820,
+      866,
+      458,
+      867,
+      615,
+      820,
+      821,
+      615,
+      867,
+      183
+    ],
+    [
+      960,
+      961,
+      960,
+      961,
+      960,
+      961,
+      484,
+      433,
+      426,
+      484,
+      820,
+      484,
+      823,
+      825,
+      821,
+      825,
+      458,
+      963,
+      647,
+      452,
+      453,
+      647,
+      963,
+      215
+    ],
+    [
+      824,
+      825,
+      825,
+      825,
+      824,
+      825,
+      679,
+      867,
+      866,
+      742,
+      820,
+      742,
+      820,
+      821,
+      719,
+      820,
+      458,
+      214,
+      185,
+      876,
+      842,
+      186,
+      181,
+      213
+    ],
+    [
+      821,
+      821,
+      822,
+      821,
+      821,
+      822,
+      386,
+      824,
+      825,
+      515,
+      858,
+      515,
+      858,
+      821,
+      815,
+      858,
+      458,
+      183,
+      217,
+      877,
+      841,
+      218,
+      213,
+      245
+    ],
+    [
+      821,
+      821,
+      821,
+      821,
+      822,
+      821,
+      422,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      821,
+      458,
+      183,
+      217,
+      876,
+      842,
+      218,
+      213,
+      277
+    ],
+    [
+      821,
+      821,
+      821,
+      821,
+      822,
+      821,
+      484,
+      433,
+      426,
+      427,
+      426,
+      427,
+      426,
+      460,
+      427,
+      426,
+      553,
+      184,
+      249,
+      877,
+      841,
+      250,
+      276,
+      277
+    ]
+  ],
+  "terrainIds": [
+    [
+      60,
+      60,
+      60,
+      60,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      26,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      29,
+      29,
+      31,
+      29,
+      29,
+      23,
+      26,
+      23,
+      26,
+      23,
+      29,
+      23,
+      29,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      33,
+      33,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      23,
+      23,
+      33,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      26,
+      30,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      26,
+      26,
+      63,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      26,
+      45,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      45,
+      45,
+      45,
+      26,
+      26,
+      63,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      26,
+      26,
+      26,
+      45,
+      45,
+      45,
+      26,
+      26,
+      63,
+      23,
+      26,
+      23,
+      26,
+      26,
+      30,
+      26,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      27,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      26,
+      45,
+      26,
+      26,
+      45,
+      26,
+      26,
+      60
+    ],
+    [
+      23,
+      63,
+      23,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      23,
+      23,
+      26,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      63,
+      45,
+      45,
+      26,
+      63,
+      23,
+      23,
+      63,
+      26,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      23,
+      23,
+      26,
+      23,
+      29,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      45,
+      60,
+      60,
+      26,
+      63,
+      45,
+      45,
+      63,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      45,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      26,
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      63,
+      26,
+      26,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      63,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      60,
+      26,
+      45,
+      26,
+      23,
+      23,
+      23,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      29,
+      23,
+      23,
+      23,
+      23,
+      23,
+      29,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      23,
+      23,
+      23,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      29,
+      23,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      63,
+      23,
+      23,
+      63,
+      26,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      23,
+      23,
+      23,
+      23,
+      26,
+      26,
+      26,
+      23,
+      26,
+      26,
+      26,
+      63,
+      23,
+      23,
+      63,
+      26,
+      60
+    ],
+    [
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      63,
+      26,
+      26,
+      63,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      26,
+      26,
+      63,
+      45,
+      45,
+      63,
+      26,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      63,
+      26,
+      26,
+      63,
+      23,
+      63,
+      23,
+      23,
+      29,
+      23,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      63,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      45,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ],
+    [
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      63,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      26,
+      60,
+      60,
+      23,
+      23,
+      60,
+      60,
+      60
+    ]
+  ],
+  "terrainCatalog": {
+    "23": {
+      "symbol": "TERRAIN_FLOOR_REGULAR",
+      "label": "地板",
+      "color": "#cec6af",
+      "glyph": "·",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "26": {
+      "symbol": "TERRAIN_WALL_REGULAR",
+      "label": "墙壁",
+      "color": "#535b63",
+      "glyph": "墙",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 20,
+        "defense": 1,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "27": {
+      "symbol": "TERRAIN_WALL_DAMAGED",
+      "label": "可破坏墙",
+      "color": "#926c55",
+      "glyph": "裂",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "29": {
+      "symbol": "TERRAIN_PILLAR",
+      "label": "柱子",
+      "color": "#9396ad",
+      "glyph": "柱",
+      "normalMovementCosts": {
+        "foot": 2,
+        "armored": 2,
+        "mounted": 3,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 20,
+        "defense": 1,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "30": {
+      "symbol": "TERRAIN_DOOR",
+      "label": "门",
+      "color": "#b98348",
+      "glyph": "门",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "31": {
+      "symbol": "TERRAIN_THRONE",
+      "label": "王座",
+      "color": "#dbb956",
+      "glyph": "座",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 30,
+        "defense": 3,
+        "resistance": 5
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 5
+      },
+      "healingAmountRaw": 10,
+      "healsStatus": true
+    },
+    "32": {
+      "symbol": "TERRAIN_CHEST_EMPTY",
+      "label": "已开宝箱",
+      "color": "#ae915d",
+      "glyph": "空",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "33": {
+      "symbol": "TERRAIN_CHEST_FULL",
+      "label": "未开宝箱",
+      "color": "#df9954",
+      "glyph": "箱",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "45": {
+      "symbol": "TERRAIN_STAIRS",
+      "label": "楼梯",
+      "color": "#a7c4b4",
+      "glyph": "梯",
+      "normalMovementCosts": {
+        "foot": 1,
+        "armored": 1,
+        "mounted": 1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "60": {
+      "symbol": "TERRAIN_WATER",
+      "label": "水域",
+      "color": "#5587b1",
+      "glyph": "水",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": 1
+      },
+      "commonBattleBonuses": {
+        "avoid": 10,
+        "defense": 0,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    },
+    "63": {
+      "symbol": "TERRAIN_BRACE",
+      "label": "Brace（原始分类）",
+      "color": "#343d48",
+      "glyph": "构",
+      "normalMovementCosts": {
+        "foot": -1,
+        "armored": -1,
+        "mounted": -1,
+        "flying": -1
+      },
+      "commonBattleBonuses": {
+        "avoid": 20,
+        "defense": 1,
+        "resistance": 0
+      },
+      "flyingBattleBonuses": {
+        "avoid": 0,
+        "defense": 0,
+        "resistance": 0
+      },
+      "healingAmountRaw": 0,
+      "healsStatus": false
+    }
+  },
+  "terrainCounts": {
+    "TERRAIN_FLOOR_REGULAR": 248,
+    "TERRAIN_WALL_REGULAR": 195,
+    "TERRAIN_WALL_DAMAGED": 1,
+    "TERRAIN_PILLAR": 11,
+    "TERRAIN_DOOR": 2,
+    "TERRAIN_THRONE": 1,
+    "TERRAIN_CHEST_FULL": 3,
+    "TERRAIN_STAIRS": 22,
+    "TERRAIN_WATER": 66,
+    "TERRAIN_BRACE": 27
+  },
+  "objects": [
+    {
+      "kind": "door",
+      "position": [
+        20,
+        7
+      ],
+      "romEventAddress": "0x08A5B090"
+    },
+    {
+      "kind": "door",
+      "position": [
+        1,
+        5
+      ],
+      "romEventAddress": "0x08A5B09C"
+    },
+    {
+      "kind": "chest",
+      "position": [
+        1,
+        3
+      ],
+      "romEventAddress": "0x08A5B0A8",
+      "item": {
+        "id": 4,
+        "symbol": "ITEM_SWORD_SILVER"
+      }
+    },
+    {
+      "kind": "chest",
+      "position": [
+        2,
+        3
+      ],
+      "romEventAddress": "0x08A5B0B4",
+      "item": {
+        "id": 103,
+        "symbol": "ITEM_ELYSIANWHIP"
+      }
+    },
+    {
+      "kind": "seize",
+      "position": [
+        10,
+        2
+      ],
+      "romEventAddress": "0x08A5B0C0"
+    },
+    {
+      "kind": "chest",
+      "position": [
+        19,
+        4
+      ],
+      "romEventAddress": "0x08A5B0CC",
+      "item": {
+        "id": 91,
+        "symbol": "ITEM_BOOSTER_HP"
+      }
+    }
+  ],
+  "mapChanges": [
+    {
+      "id": 0,
+      "x": 20,
+      "y": 7,
+      "w": 1,
+      "h": 1,
+      "romAddress": "0x08A9B37C",
+      "dataPointer": "0x08A9B34C",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          820
+        ]
+      ],
+      "terrainIds": [
+        [
+          23
+        ]
+      ]
+    },
+    {
+      "id": 1,
+      "x": 4,
+      "y": 6,
+      "w": 2,
+      "h": 3,
+      "romAddress": "0x08A9B388",
+      "dataPointer": "0x08A9B34E",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          466,
+          null
+        ],
+        [
+          498,
+          null
+        ],
+        [
+          825,
+          821
+        ]
+      ],
+      "terrainIds": [
+        [
+          26,
+          null
+        ],
+        [
+          26,
+          null
+        ],
+        [
+          23,
+          23
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "x": 1,
+      "y": 5,
+      "w": 1,
+      "h": 1,
+      "romAddress": "0x08A9B394",
+      "dataPointer": "0x08A9B35A",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          820
+        ]
+      ],
+      "terrainIds": [
+        [
+          23
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "x": 1,
+      "y": 3,
+      "w": 1,
+      "h": 1,
+      "romAddress": "0x08A9B3A0",
+      "dataPointer": "0x08A9B35C",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          1
+        ]
+      ],
+      "terrainIds": [
+        [
+          32
+        ]
+      ]
+    },
+    {
+      "id": 4,
+      "x": 2,
+      "y": 3,
+      "w": 1,
+      "h": 1,
+      "romAddress": "0x08A9B3AC",
+      "dataPointer": "0x08A9B35E",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          1
+        ]
+      ],
+      "terrainIds": [
+        [
+          32
+        ]
+      ]
+    },
+    {
+      "id": 5,
+      "x": 18,
+      "y": 21,
+      "w": 4,
+      "h": 3,
+      "romAddress": "0x08A9B3B8",
+      "dataPointer": "0x08A9B360",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          219,
+          220,
+          221,
+          222
+        ],
+        [
+          251,
+          252,
+          252,
+          254
+        ],
+        [
+          283,
+          284,
+          285,
+          286
+        ]
+      ],
+      "terrainIds": [
+        [
+          60,
+          60,
+          60,
+          60
+        ],
+        [
+          60,
+          60,
+          60,
+          60
+        ],
+        [
+          60,
+          60,
+          60,
+          60
+        ]
+      ]
+    },
+    {
+      "id": 6,
+      "x": 19,
+      "y": 4,
+      "w": 1,
+      "h": 1,
+      "romAddress": "0x08A9B3C4",
+      "dataPointer": "0x08A9B378",
+      "zeroMeansUnchanged": true,
+      "metatileIndices": [
+        [
+          1
+        ]
+      ],
+      "terrainIds": [
+        [
+          32
+        ]
+      ]
+    }
+  ],
+  "unitGroups": {
+    "playerDeploymentTemplates": {
+      "symbol": "ROM_0x0890B888",
+      "romAddress": "0x0890B888",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890B888",
+          "characterId": 1,
+          "character": "CHARACTER_EIRIKA",
+          "classId": 2,
+          "class": "CLASS_EIRIKA_LORD",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 8,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            20
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 19,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            19,
+            19
+          ],
+          "items": [
+            {
+              "id": 9,
+              "symbol": "ITEM_SWORD_RAPIER"
+            },
+            {
+              "id": 108,
+              "symbol": "ITEM_VULNERARY"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890B89C",
+          "characterId": 5,
+          "character": "CHARACTER_MOULDER",
+          "classId": 69,
+          "class": "CLASS_PRIEST",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 3,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 19,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            19
+          ],
+          "items": [
+            {
+              "id": 75,
+              "symbol": "ITEM_STAFF_HEAL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890B8B0",
+          "characterId": 9,
+          "character": "CHARACTER_COLM",
+          "classId": 13,
+          "class": "CLASS_THIEF",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 2,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 20,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            20
+          ],
+          "items": [
+            {
+              "id": 1,
+              "symbol": "ITEM_SWORD_IRON"
+            },
+            {
+              "id": 107,
+              "symbol": "ITEM_LOCKPICK"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 3,
+          "romAddress": "0x0890B8C4",
+          "characterId": 6,
+          "character": "CHARACTER_VANESSA",
+          "classId": 72,
+          "class": "CLASS_PEGASUS_KNIGHT",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 2,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            18
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 17,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            19,
+            17
+          ],
+          "items": [
+            {
+              "id": 21,
+              "symbol": "ITEM_LANCE_SLIM"
+            },
+            {
+              "id": 108,
+              "symbol": "ITEM_VULNERARY"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 4,
+          "romAddress": "0x0890B8D8",
+          "characterId": 3,
+          "character": "CHARACTER_GILLIAM",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 5,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            20
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 18,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            18
+          ],
+          "items": [
+            {
+              "id": 20,
+              "symbol": "ITEM_LANCE_IRON"
+            },
+            {
+              "id": 108,
+              "symbol": "ITEM_VULNERARY"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 5,
+          "romAddress": "0x0890B8EC",
+          "characterId": 4,
+          "character": "CHARACTER_FRANZ",
+          "classId": 5,
+          "class": "CLASS_CAVALIER",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            18
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 16,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            16
+          ],
+          "items": [
+            {
+              "id": 1,
+              "symbol": "ITEM_SWORD_IRON"
+            },
+            {
+              "id": 20,
+              "symbol": "ITEM_LANCE_IRON"
+            },
+            {
+              "id": 108,
+              "symbol": "ITEM_VULNERARY"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 6,
+          "romAddress": "0x0890B900",
+          "characterId": 7,
+          "character": "CHARACTER_ROSS",
+          "classId": 61,
+          "class": "CLASS_JOURNEYMAN",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            17
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            20,
+            17
+          ],
+          "items": [
+            {
+              "id": 44,
+              "symbol": "ITEM_AXE_HATCHET"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 7,
+          "romAddress": "0x0890B914",
+          "characterId": 10,
+          "character": "CHARACTER_GARCIA",
+          "classId": 63,
+          "class": "CLASS_FIGHTER",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 4,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            18
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            19,
+            18
+          ],
+          "items": [
+            {
+              "id": 31,
+              "symbol": "ITEM_AXE_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 8,
+          "romAddress": "0x0890B928",
+          "characterId": 19,
+          "character": "CHARACTER_ARTUR",
+          "classId": 68,
+          "class": "CLASS_MONK",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            20
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            19,
+            20
+          ],
+          "items": [
+            {
+              "id": 63,
+              "symbol": "ITEM_LIGHT_LIGHTNING"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "initialEnemyTemplates": {
+      "symbol": "ROM_0x0890B950",
+      "romAddress": "0x0890B950",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890B950",
+          "characterId": 77,
+          "character": "CHARACTER_TIRADO",
+          "classId": 11,
+          "class": "CLASS_GENERAL",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            10,
+            2
+          ],
+          "redaPath": [
+            {
+              "x": 10,
+              "y": 2,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            10,
+            2
+          ],
+          "items": [
+            {
+              "id": 23,
+              "symbol": "ITEM_LANCE_SILVER"
+            },
+            {
+              "id": 28,
+              "symbol": "ITEM_LANCE_JAVELIN"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            3,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890B964",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            4
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 5,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            19,
+            5
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890B978",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            3
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 3,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            3
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 3,
+          "romAddress": "0x0890B98C",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            18,
+            3
+          ],
+          "redaPath": [
+            {
+              "x": 18,
+              "y": 3,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            18,
+            3
+          ],
+          "items": [
+            {
+              "id": 20,
+              "symbol": "ITEM_LANCE_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 4,
+          "romAddress": "0x0890B9A0",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 21,
+              "y": 4,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            21,
+            4
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 5,
+          "romAddress": "0x0890B9B4",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            18,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 17,
+              "y": 4,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            17,
+            4
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 6,
+          "romAddress": "0x0890B9C8",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            1,
+            6
+          ],
+          "redaPath": [
+            {
+              "x": 1,
+              "y": 6,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            1,
+            6
+          ],
+          "items": [
+            {
+              "id": 20,
+              "symbol": "ITEM_LANCE_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 7,
+          "romAddress": "0x0890B9DC",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 9,
+              "y": 5,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            9,
+            5
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 8,
+          "romAddress": "0x0890B9F0",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            10,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 10,
+              "y": 5,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            10,
+            5
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 9,
+          "romAddress": "0x0890BA04",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 10,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            10
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            },
+            {
+              "id": 106,
+              "symbol": "ITEM_DOORKEY"
+            }
+          ],
+          "dropFlag": true,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 10,
+          "romAddress": "0x0890BA18",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 19,
+          "class": "CLASS_MYRMIDON",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 13,
+              "y": 14,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            13,
+            14
+          ],
+          "items": [
+            {
+              "id": 1,
+              "symbol": "ITEM_SWORD_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 11,
+          "romAddress": "0x0890BA2C",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 10,
+              "y": 21,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            10,
+            21
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 12,
+          "romAddress": "0x0890BA40",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 15,
+          "class": "CLASS_MERCENARY",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 0,
+              "y": 10,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            0,
+            10
+          ],
+          "items": [
+            {
+              "id": 3,
+              "symbol": "ITEM_SWORD_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 13,
+          "romAddress": "0x0890BA54",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 15,
+          "class": "CLASS_MERCENARY",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            16
+          ],
+          "redaPath": [
+            {
+              "x": 0,
+              "y": 16,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            0,
+            16
+          ],
+          "items": [
+            {
+              "id": 3,
+              "symbol": "ITEM_SWORD_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 14,
+          "romAddress": "0x0890BA68",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 9,
+              "y": 17,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            9,
+            17
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 15,
+          "romAddress": "0x0890BA7C",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 45,
+          "class": "CLASS_SHAMAN",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            2,
+            9
+          ],
+          "redaPath": [
+            {
+              "x": 2,
+              "y": 9,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            2,
+            9
+          ],
+          "items": [
+            {
+              "id": 69,
+              "symbol": "ITEM_DARK_FLUX"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 16,
+          "romAddress": "0x0890BA90",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 9,
+          "class": "CLASS_ARMOR_KNIGHT",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 13,
+              "y": 20,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            13,
+            20
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 17,
+          "romAddress": "0x0890BAA4",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 25,
+          "class": "CLASS_ARCHER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 14,
+              "y": 15,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            14,
+            15
+          ],
+          "items": [
+            {
+              "id": 46,
+              "symbol": "ITEM_BOW_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 18,
+          "romAddress": "0x0890BAB8",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 25,
+          "class": "CLASS_ARCHER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            16
+          ],
+          "redaPath": [
+            {
+              "x": 8,
+              "y": 16,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            8,
+            16
+          ],
+          "items": [
+            {
+              "id": 45,
+              "symbol": "ITEM_BOW_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 19,
+          "romAddress": "0x0890BACC",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 25,
+          "class": "CLASS_ARCHER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            3,
+            7
+          ],
+          "redaPath": [
+            {
+              "x": 3,
+              "y": 7,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            3,
+            7
+          ],
+          "items": [
+            {
+              "id": 52,
+              "symbol": "ITEM_BOW_LONGBOW"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 20,
+          "romAddress": "0x0890BAE0",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 37,
+          "class": "CLASS_MAGE",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            1,
+            8
+          ],
+          "redaPath": [
+            {
+              "x": 1,
+              "y": 8,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            1,
+            8
+          ],
+          "items": [
+            {
+              "id": 57,
+              "symbol": "ITEM_ANIMA_THUNDER"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 21,
+          "romAddress": "0x0890BAF4",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 25,
+          "class": "CLASS_ARCHER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            5,
+            3
+          ],
+          "redaPath": [
+            {
+              "x": 5,
+              "y": 3,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            5,
+            3
+          ],
+          "items": [
+            {
+              "id": 52,
+              "symbol": "ITEM_BOW_LONGBOW"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 22,
+          "romAddress": "0x0890BB08",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 25,
+          "class": "CLASS_ARCHER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            2
+          ],
+          "redaPath": [
+            {
+              "x": 15,
+              "y": 2,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            15,
+            2
+          ],
+          "items": [
+            {
+              "id": 52,
+              "symbol": "ITEM_BOW_LONGBOW"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 23,
+          "romAddress": "0x0890BB1C",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 45,
+          "class": "CLASS_SHAMAN",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            16,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 16,
+              "y": 10,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            16,
+            10
+          ],
+          "items": [
+            {
+              "id": 69,
+              "symbol": "ITEM_DARK_FLUX"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 24,
+          "romAddress": "0x0890BB30",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            11,
+            5
+          ],
+          "redaPath": [
+            {
+              "x": 11,
+              "y": 5,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            11,
+            5
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 25,
+          "romAddress": "0x0890BB44",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            20,
+            11
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 13,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            13
+          ],
+          "items": [
+            {
+              "id": 20,
+              "symbol": "ITEM_LANCE_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 26,
+          "romAddress": "0x0890BB58",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            11
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 13,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            19,
+            13
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        }
+      ]
+    },
+    "turn2PlayerReinforcements": {
+      "symbol": "ROM_0x0890BB80",
+      "romAddress": "0x0890BB80",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890BB80",
+          "characterId": 15,
+          "character": "CHARACTER_EPHRAIM",
+          "classId": 1,
+          "class": "CLASS_EPHRAIM_LORD",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 7,
+          "autolevel": false,
+          "entryPosition": [
+            0,
+            21
+          ],
+          "redaPath": [
+            {
+              "x": 3,
+              "y": 21,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            3,
+            21
+          ],
+          "items": [
+            {
+              "id": 120,
+              "symbol": "ITEM_LANCE_REGINLEIF"
+            },
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            },
+            {
+              "id": 109,
+              "symbol": "ITEM_ELIXIR"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890BB94",
+          "characterId": 16,
+          "character": "CHARACTER_FORDE",
+          "classId": 5,
+          "class": "CLASS_CAVALIER",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 9,
+          "autolevel": false,
+          "entryPosition": [
+            0,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 5,
+              "y": 22,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            5,
+            22
+          ],
+          "items": [
+            {
+              "id": 3,
+              "symbol": "ITEM_SWORD_STEEL"
+            },
+            {
+              "id": 28,
+              "symbol": "ITEM_LANCE_JAVELIN"
+            },
+            {
+              "id": 108,
+              "symbol": "ITEM_VULNERARY"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890BBA8",
+          "characterId": 17,
+          "character": "CHARACTER_KYLE",
+          "classId": 5,
+          "class": "CLASS_CAVALIER",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 8,
+          "autolevel": false,
+          "entryPosition": [
+            0,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 2,
+              "y": 22,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            2,
+            22
+          ],
+          "items": [
+            {
+              "id": 3,
+              "symbol": "ITEM_SWORD_STEEL"
+            },
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            },
+            {
+              "id": 108,
+              "symbol": "ITEM_VULNERARY"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "turn5EnemyReinforcements": {
+      "symbol": "ROM_0x0890BC20",
+      "romAddress": "0x0890BC20",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890BC20",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 5,
+          "class": "CLASS_CAVALIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            21
+          ],
+          "redaPath": [
+            {
+              "x": 0,
+              "y": 21,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            0,
+            21
+          ],
+          "items": [
+            {
+              "id": 3,
+              "symbol": "ITEM_SWORD_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890BC34",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 5,
+          "class": "CLASS_CAVALIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 1,
+              "y": 22,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            1,
+            22
+          ],
+          "items": [
+            {
+              "id": 22,
+              "symbol": "ITEM_LANCE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890BC48",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 5,
+          "class": "CLASS_CAVALIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            23
+          ],
+          "redaPath": [
+            {
+              "x": 2,
+              "y": 23,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            2,
+            23
+          ],
+          "items": [
+            {
+              "id": 20,
+              "symbol": "ITEM_LANCE_IRON"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        }
+      ]
+    },
+    "areaEnemyReinforcements": {
+      "symbol": "ROM_0x0890BBD0",
+      "romAddress": "0x0890BBD0",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890BBD0",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 37,
+          "class": "CLASS_MAGE",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            5,
+            0
+          ],
+          "redaPath": [
+            {
+              "x": 5,
+              "y": 0,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            5,
+            0
+          ],
+          "items": [
+            {
+              "id": 57,
+              "symbol": "ITEM_ANIMA_THUNDER"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890BBE4",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 37,
+          "class": "CLASS_MAGE",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            0
+          ],
+          "redaPath": [
+            {
+              "x": 15,
+              "y": 0,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            15,
+            0
+          ],
+          "items": [
+            {
+              "id": 57,
+              "symbol": "ITEM_ANIMA_THUNDER"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890BBF8",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 13,
+          "class": "CLASS_THIEF",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 10,
+          "autolevel": true,
+          "entryPosition": [
+            10,
+            13
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            10,
+            13
+          ],
+          "items": [
+            {
+              "id": 1,
+              "symbol": "ITEM_SWORD_IRON"
+            },
+            {
+              "id": 107,
+              "symbol": "ITEM_LOCKPICK"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "unitRoleEvidence": {
+    "playerDeploymentTemplates": {
+      "eventTableOffset": "0x28"
+    },
+    "initialEnemyTemplates": {
+      "script": "0x08A6506C",
+      "selection": "last direct enemy LOAD"
+    },
+    "turn2PlayerReinforcements": {
+      "script": "0x08A65258",
+      "turnEventAddress": "0x08A5AFE4"
+    },
+    "turn5EnemyReinforcements": {
+      "script": "0x08A6539C",
+      "turnEventAddress": "0x08A5AFFC"
+    },
+    "areaEnemyReinforcements": {
+      "script": "0x08A65384",
+      "turnEventAddress": "0x08A5AFF0"
+    }
+  },
+  "otherUnitGroups": [
+    {
+      "symbol": "ROM_0x0890BC84",
+      "romAddress": "0x0890BC84",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890BC84",
+          "characterId": 66,
+          "character": "CHARACTER_ORSON_CH5X",
+          "classId": 7,
+          "class": "CLASS_PALADIN",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            22
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 19,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            19,
+            19
+          ],
+          "items": [],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890BC98",
+          "characterId": 1,
+          "character": "CHARACTER_EIRIKA",
+          "classId": 2,
+          "class": "CLASS_EIRIKA_LORD",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 8,
+          "autolevel": false,
+          "entryPosition": [
+            19,
+            23
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 20,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            19,
+            20
+          ],
+          "items": [],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890BCAC",
+          "characterId": 2,
+          "character": "CHARACTER_SETH",
+          "classId": 7,
+          "class": "CLASS_PALADIN",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            20,
+            23
+          ],
+          "redaPath": [
+            {
+              "x": 20,
+              "y": 20,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            20,
+            20
+          ],
+          "items": [],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "symbol": "ROM_0x0890BCD4",
+      "romAddress": "0x0890BCD4",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890BCD4",
+          "characterId": 77,
+          "character": "CHARACTER_TIRADO",
+          "classId": 11,
+          "class": "CLASS_GENERAL",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 10,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            11
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 17,
+              "flags": 16,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": null,
+          "items": [],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890BCE8",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 16,
+              "flags": 16,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            },
+            {
+              "x": 20,
+              "y": 16,
+              "flags": 16,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": null,
+          "items": [],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890BCFC",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 78,
+          "class": "CLASS_SOLDIER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            9
+          ],
+          "redaPath": [
+            {
+              "x": 19,
+              "y": 16,
+              "flags": 16,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": null,
+          "items": [],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "symbol": "ROM_0x0890BD4C",
+      "romAddress": "0x0890BD4C",
+      "units": [
+        {
+          "index": 0,
+          "romAddress": "0x0890BD4C",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 63,
+          "class": "CLASS_FIGHTER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "redaPath": [
+            {
+              "x": 14,
+              "y": 21,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            14,
+            21
+          ],
+          "items": [
+            {
+              "id": 32,
+              "symbol": "ITEM_AXE_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 1,
+          "romAddress": "0x0890BD60",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 37,
+          "class": "CLASS_MAGE",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            3
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            7,
+            3
+          ],
+          "items": [
+            {
+              "id": 57,
+              "symbol": "ITEM_ANIMA_THUNDER"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 2,
+          "romAddress": "0x0890BD74",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 37,
+          "class": "CLASS_MAGE",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            13,
+            3
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            13,
+            3
+          ],
+          "items": [
+            {
+              "id": 57,
+              "symbol": "ITEM_ANIMA_THUNDER"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 3,
+          "romAddress": "0x0890BD88",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 45,
+          "class": "CLASS_SHAMAN",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 8,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            2
+          ],
+          "redaPath": [],
+          "finalPosition": [
+            0,
+            2
+          ],
+          "items": [
+            {
+              "id": 69,
+              "symbol": "ITEM_DARK_FLUX"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            3,
+            9,
+            0
+          ]
+        },
+        {
+          "index": 4,
+          "romAddress": "0x0890BD9C",
+          "characterId": 128,
+          "character": "CHARACTER_80",
+          "classId": 15,
+          "class": "CLASS_MERCENARY",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 7,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            10
+          ],
+          "redaPath": [
+            {
+              "x": 14,
+              "y": 13,
+              "flags": 0,
+              "a": 0,
+              "b": 65535,
+              "delayFrames": 0
+            }
+          ],
+          "finalPosition": [
+            14,
+            13
+          ],
+          "items": [
+            {
+              "id": 3,
+              "symbol": "ITEM_SWORD_STEEL"
+            }
+          ],
+          "dropFlag": false,
+          "genMonster": false,
+          "sumFlag": false,
+          "extraData": 0,
+          "aiBytes": [
+            0,
+            0,
+            9,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "eventLists": {
+    "turn": [
+      {
+        "romAddress": "0x08A5AFE4",
+        "type": "TURN",
+        "typeId": 2,
+        "flag": 0,
+        "words": [
+          "0x00000002",
+          "0x08A65258",
+          "0x00000202"
+        ],
+        "scriptPointer": 145117784,
+        "startTurn": 2,
+        "endTurn": 2,
+        "factionId": 0
+      },
+      {
+        "romAddress": "0x08A5AFF0",
+        "type": "TURN",
+        "typeId": 2,
+        "flag": 12,
+        "words": [
+          "0x000C0002",
+          "0x08A65384",
+          "0x0000FF01"
+        ],
+        "scriptPointer": 145118084,
+        "startTurn": 1,
+        "endTurn": 255,
+        "factionId": 0
+      },
+      {
+        "romAddress": "0x08A5AFFC",
+        "type": "TURN",
+        "typeId": 2,
+        "flag": 0,
+        "words": [
+          "0x00000002",
+          "0x08A6539C",
+          "0x00000005"
+        ],
+        "scriptPointer": 145118108,
+        "startTurn": 5,
+        "endTurn": 0,
+        "factionId": 0
+      }
+    ],
+    "character": [
+      {
+        "romAddress": "0x08A5B00C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 7,
+        "words": [
+          "0x00070003",
+          "0x08A652EC",
+          "0x00000F01",
+          "0x00000000"
+        ],
+        "scriptPointer": 145117932,
+        "characterA": 1,
+        "characterB": 15,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B01C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 7,
+        "words": [
+          "0x00070003",
+          "0x08A652EC",
+          "0x0000010F",
+          "0x00000000"
+        ],
+        "scriptPointer": 145117932,
+        "characterA": 15,
+        "characterB": 1,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B02C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 8,
+        "words": [
+          "0x00080003",
+          "0x08A65308",
+          "0x0000020F",
+          "0x00000000"
+        ],
+        "scriptPointer": 145117960,
+        "characterA": 15,
+        "characterB": 2,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B03C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 8,
+        "words": [
+          "0x00080003",
+          "0x08A65308",
+          "0x00000F02",
+          "0x00000000"
+        ],
+        "scriptPointer": 145117960,
+        "characterA": 2,
+        "characterB": 15,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B04C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 9,
+        "words": [
+          "0x00090003",
+          "0x08A65328",
+          "0x00001102",
+          "0x00000000"
+        ],
+        "scriptPointer": 145117992,
+        "characterA": 2,
+        "characterB": 17,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B05C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 9,
+        "words": [
+          "0x00090003",
+          "0x08A65328",
+          "0x00000211",
+          "0x00000000"
+        ],
+        "scriptPointer": 145117992,
+        "characterA": 17,
+        "characterB": 2,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B06C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 10,
+        "words": [
+          "0x000A0003",
+          "0x08A65348",
+          "0x00001004",
+          "0x00000000"
+        ],
+        "scriptPointer": 145118024,
+        "characterA": 4,
+        "characterB": 16,
+        "conditionWord": 0
+      },
+      {
+        "romAddress": "0x08A5B07C",
+        "type": "TALK",
+        "typeId": 3,
+        "flag": 10,
+        "words": [
+          "0x000A0003",
+          "0x08A65348",
+          "0x00000410",
+          "0x00000000"
+        ],
+        "scriptPointer": 145118024,
+        "characterA": 16,
+        "characterB": 4,
+        "conditionWord": 0
+      }
+    ],
+    "location": [
+      {
+        "romAddress": "0x08A5B090",
+        "type": "DOOR",
+        "typeId": 8,
+        "flag": 0,
+        "words": [
+          "0x00000008",
+          "0x00000001",
+          "0x00120714"
+        ],
+        "position": [
+          20,
+          7
+        ],
+        "tileCommand": 18
+      },
+      {
+        "romAddress": "0x08A5B09C",
+        "type": "DOOR",
+        "typeId": 8,
+        "flag": 0,
+        "words": [
+          "0x00000008",
+          "0x00000001",
+          "0x00120501"
+        ],
+        "position": [
+          1,
+          5
+        ],
+        "tileCommand": 18
+      },
+      {
+        "romAddress": "0x08A5B0A8",
+        "type": "CHEST",
+        "typeId": 7,
+        "flag": 0,
+        "words": [
+          "0x00000007",
+          "0x00000004",
+          "0x00140301"
+        ],
+        "position": [
+          1,
+          3
+        ],
+        "tileCommand": 20,
+        "item": {
+          "id": 4,
+          "symbol": "ITEM_SWORD_SILVER"
+        }
+      },
+      {
+        "romAddress": "0x08A5B0B4",
+        "type": "CHEST",
+        "typeId": 7,
+        "flag": 0,
+        "words": [
+          "0x00000007",
+          "0x00000067",
+          "0x00140302"
+        ],
+        "position": [
+          2,
+          3
+        ],
+        "tileCommand": 20,
+        "item": {
+          "id": 103,
+          "symbol": "ITEM_ELYSIANWHIP"
+        }
+      },
+      {
+        "romAddress": "0x08A5B0C0",
+        "type": "LOCATION",
+        "typeId": 5,
+        "flag": 3,
+        "words": [
+          "0x00030005",
+          "0x00000001",
+          "0x0011020A"
+        ],
+        "scriptPointer": 1,
+        "position": [
+          10,
+          2
+        ],
+        "tileCommand": 17
+      },
+      {
+        "romAddress": "0x08A5B0CC",
+        "type": "CHEST",
+        "typeId": 7,
+        "flag": 0,
+        "words": [
+          "0x00000007",
+          "0x0000005B",
+          "0x00140413"
+        ],
+        "position": [
+          19,
+          4
+        ],
+        "tileCommand": 20,
+        "item": {
+          "id": 91,
+          "symbol": "ITEM_BOOSTER_HP"
+        }
+      }
+    ],
+    "misc": [
+      {
+        "romAddress": "0x08A5B0DC",
+        "type": "AREA",
+        "typeId": 11,
+        "flag": 11,
+        "words": [
+          "0x000B000B",
+          "0x08A65368",
+          "0x0A0F0005"
+        ],
+        "scriptPointer": 145118056,
+        "boundsInclusive": {
+          "min": [
+            5,
+            0
+          ],
+          "max": [
+            15,
+            10
+          ]
+        }
+      },
+      {
+        "romAddress": "0x08A5B0E8",
+        "type": "FLAG",
+        "typeId": 1,
+        "flag": 0,
+        "words": [
+          "0x00000001",
+          "0x085B9EE8",
+          "0x00000065"
+        ],
+        "scriptPointer": 140222184,
+        "triggerFlag": 101
+      }
+    ]
+  },
+  "eventScripts": {
+    "0x085B9D24": {
+      "romAddress": "0x085B9D24",
+      "commands": [
+        {
+          "romAddress": "0x085B9D24",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            4128,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x085B9D28",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            544,
+            2
+          ]
+        },
+        {
+          "romAddress": "0x085B9D2C",
+          "opcode": 3,
+          "name": "EV_CMD_EVCHECK",
+          "subcode": 0,
+          "arg0": 8,
+          "halfwords": [
+            800,
+            8
+          ]
+        },
+        {
+          "romAddress": "0x085B9D30",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            3136,
+            0,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9D38",
+          "opcode": 23,
+          "name": "EV_CMD_FADE",
+          "subcode": 0,
+          "arg0": 16,
+          "halfwords": [
+            5920,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x085B9D3C",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2080,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9D40",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            4128,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9D44",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x085B9D48": {
+      "romAddress": "0x085B9D48",
+      "commands": [
+        {
+          "romAddress": "0x085B9D48",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            4128,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x085B9D4C",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            544,
+            2
+          ]
+        },
+        {
+          "romAddress": "0x085B9D50",
+          "opcode": 3,
+          "name": "EV_CMD_EVCHECK",
+          "subcode": 0,
+          "arg0": 8,
+          "halfwords": [
+            800,
+            8
+          ]
+        },
+        {
+          "romAddress": "0x085B9D54",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            3137,
+            0,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9D5C",
+          "opcode": 23,
+          "name": "EV_CMD_FADE",
+          "subcode": 1,
+          "arg0": 16,
+          "halfwords": [
+            5921,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x085B9D60",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2080,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9D64",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            4128,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9D68",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x085B9DBC": {
+      "romAddress": "0x085B9DBC",
+      "commands": [
+        {
+          "romAddress": "0x085B9DBC",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            40264,
+            2139
+          ],
+          "pointer": 140221768
+        },
+        {
+          "romAddress": "0x085B9DC4",
+          "opcode": 34,
+          "name": "EV_CMD_CLEARSCREEN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            8736,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9DC8",
+          "opcode": 62,
+          "name": "EV_CMD_PREPSCREEN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            15904,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9DCC",
+          "opcode": 34,
+          "name": "EV_CMD_CLEARSCREEN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            8736,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x085B9DD0",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x085B9EE8": {
+      "romAddress": "0x085B9EE8",
+      "commands": [
+        {
+          "romAddress": "0x085B9EE8",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 4,
+          "halfwords": [
+            4128,
+            4
+          ]
+        },
+        {
+          "romAddress": "0x085B9EEC",
+          "opcode": 13,
+          "name": "EV_CMD_ASMC",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            3392,
+            0,
+            30273,
+            2056
+          ],
+          "pointer": 134772289
+        },
+        {
+          "romAddress": "0x085B9EF4",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A602F0": {
+      "romAddress": "0x08A602F0",
+      "commands": [
+        {
+          "romAddress": "0x08A602F0",
+          "opcode": 51,
+          "name": "EV_CMD_CHECKSTATE",
+          "subcode": 5,
+          "arg0": 65535,
+          "halfwords": [
+            13093,
+            65535
+          ]
+        },
+        {
+          "romAddress": "0x08A602F4",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            3136,
+            0,
+            12,
+            2
+          ]
+        },
+        {
+          "romAddress": "0x08A602FC",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            780,
+            2214
+          ],
+          "pointer": 145097484
+        },
+        {
+          "romAddress": "0x08A60304",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2080,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60308",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A6030C": {
+      "romAddress": "0x08A6030C",
+      "commands": [
+        {
+          "romAddress": "0x08A6030C",
+          "opcode": 25,
+          "name": "EV_CMD_CHECKVARIOUS",
+          "subcode": 9,
+          "arg0": 0,
+          "halfwords": [
+            6441,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60310",
+          "opcode": 6,
+          "name": "EV_CMD_SLOT_OPS",
+          "subcode": 0,
+          "arg0": 194,
+          "halfwords": [
+            1568,
+            194
+          ]
+        },
+        {
+          "romAddress": "0x08A60314",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 1,
+          "arg0": 65535,
+          "halfwords": [
+            545,
+            65535
+          ]
+        },
+        {
+          "romAddress": "0x08A60318",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A6031C",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            289,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A60320": {
+      "romAddress": "0x08A60320",
+      "commands": [
+        {
+          "romAddress": "0x08A60320",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            3136,
+            0,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60328",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            11328,
+            1,
+            65535,
+            65535
+          ],
+          "pointer": 4294967295
+        },
+        {
+          "romAddress": "0x08A60330",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60334",
+          "opcode": 9,
+          "name": "EV_CMD_GOTO",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            2336,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x08A60338",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2080,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6033C",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            11328,
+            0,
+            65535,
+            65535
+          ],
+          "pointer": 4294967295
+        },
+        {
+          "romAddress": "0x08A60344",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60348",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            2080,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x08A6034C",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A60380": {
+      "romAddress": "0x08A60380",
+      "commands": [
+        {
+          "romAddress": "0x08A60380",
+          "opcode": 25,
+          "name": "EV_CMD_CHECKVARIOUS",
+          "subcode": 7,
+          "arg0": 0,
+          "halfwords": [
+            6439,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60384",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            3137,
+            0,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6038C",
+          "opcode": 25,
+          "name": "EV_CMD_CHECKVARIOUS",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6434,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60390",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            3136,
+            0,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60398",
+          "opcode": 6,
+          "name": "EV_CMD_SLOT_OPS",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            1568,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A6039C",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            800,
+            2214
+          ],
+          "pointer": 145097504
+        },
+        {
+          "romAddress": "0x08A603A4",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2080,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A603A8",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A603AC": {
+      "romAddress": "0x08A603AC",
+      "commands": [
+        {
+          "romAddress": "0x08A603AC",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 4,
+          "halfwords": [
+            4128,
+            4
+          ]
+        },
+        {
+          "romAddress": "0x08A603B0",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            40228,
+            2139
+          ],
+          "pointer": 140221732
+        },
+        {
+          "romAddress": "0x08A603B8",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 9,
+          "halfwords": [
+            552,
+            9
+          ]
+        },
+        {
+          "romAddress": "0x08A603BC",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            11328,
+            1,
+            65535,
+            65535
+          ],
+          "pointer": 4294967295
+        },
+        {
+          "romAddress": "0x08A603C4",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A603C8",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 0,
+          "arg0": 9,
+          "halfwords": [
+            544,
+            9
+          ]
+        },
+        {
+          "romAddress": "0x08A603CC",
+          "opcode": 16,
+          "name": "EV_CMD_EVBITMODIFY",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            4128,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A603D0",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A603FC": {
+      "romAddress": "0x08A603FC",
+      "commands": [
+        {
+          "romAddress": "0x08A603FC",
+          "opcode": 3,
+          "name": "EV_CMD_EVCHECK",
+          "subcode": 0,
+          "arg0": 8,
+          "halfwords": [
+            800,
+            8
+          ]
+        },
+        {
+          "romAddress": "0x08A60400",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 1,
+          "arg0": 32957,
+          "halfwords": [
+            3137,
+            32957,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60408",
+          "opcode": 23,
+          "name": "EV_CMD_FADE",
+          "subcode": 1,
+          "arg0": 16,
+          "halfwords": [
+            5921,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x08A6040C",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 32957,
+          "halfwords": [
+            2080,
+            32957
+          ]
+        },
+        {
+          "romAddress": "0x08A60410",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60414",
+          "opcode": 34,
+          "name": "EV_CMD_CLEARSCREEN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            8736,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60418",
+          "opcode": 23,
+          "name": "EV_CMD_FADE",
+          "subcode": 0,
+          "arg0": 16,
+          "halfwords": [
+            5920,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x08A6041C",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A60420": {
+      "romAddress": "0x08A60420",
+      "commands": [
+        {
+          "romAddress": "0x08A60420",
+          "opcode": 3,
+          "name": "EV_CMD_EVCHECK",
+          "subcode": 0,
+          "arg0": 8,
+          "halfwords": [
+            800,
+            8
+          ]
+        },
+        {
+          "romAddress": "0x08A60424",
+          "opcode": 12,
+          "name": "EV_CMD_BRANCH",
+          "subcode": 1,
+          "arg0": 32978,
+          "halfwords": [
+            3137,
+            32978,
+            12,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6042C",
+          "opcode": 23,
+          "name": "EV_CMD_FADE",
+          "subcode": 1,
+          "arg0": 16,
+          "halfwords": [
+            5921,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x08A60430",
+          "opcode": 8,
+          "name": "EV_CMD_LABEL",
+          "subcode": 0,
+          "arg0": 32978,
+          "halfwords": [
+            2080,
+            32978
+          ]
+        },
+        {
+          "romAddress": "0x08A60434",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            6689,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60438",
+          "opcode": 33,
+          "name": "EV_CMD_SHOWBG",
+          "subcode": 0,
+          "arg0": 65535,
+          "halfwords": [
+            8512,
+            65535,
+            0,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A60440",
+          "opcode": 23,
+          "name": "EV_CMD_FADE",
+          "subcode": 0,
+          "arg0": 16,
+          "halfwords": [
+            5920,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x08A60444",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A60448": {
+      "romAddress": "0x08A60448",
+      "commands": [
+        {
+          "romAddress": "0x08A60448",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1056,
+            2214
+          ],
+          "pointer": 145097760
+        },
+        {
+          "romAddress": "0x08A60450",
+          "opcode": 6,
+          "name": "EV_CMD_SLOT_OPS",
+          "subcode": 0,
+          "arg0": 50,
+          "halfwords": [
+            1568,
+            50
+          ]
+        },
+        {
+          "romAddress": "0x08A60454",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 65535,
+          "halfwords": [
+            6944,
+            65535
+          ]
+        },
+        {
+          "romAddress": "0x08A60458",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6045C",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1020,
+            2214
+          ],
+          "pointer": 145097724
+        },
+        {
+          "romAddress": "0x08A60464",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A6506C": {
+      "romAddress": "0x08A6506C",
+      "commands": [
+        {
+          "romAddress": "0x08A6506C",
+          "opcode": 18,
+          "name": "EV_CMD_BGMCHANGE_12",
+          "subcode": 0,
+          "arg0": 37,
+          "halfwords": [
+            4640,
+            37
+          ]
+        },
+        {
+          "romAddress": "0x08A65070",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 1,
+          "arg0": 1,
+          "halfwords": [
+            11329,
+            1,
+            48260,
+            2192
+          ],
+          "pointer": 143703172
+        },
+        {
+          "romAddress": "0x08A65078",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6507C",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 66,
+          "halfwords": [
+            15137,
+            66
+          ]
+        },
+        {
+          "romAddress": "0x08A65080",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A65084",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65088",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            21,
+            0
+          ],
+          "slot": 2,
+          "value": 21
+        },
+        {
+          "romAddress": "0x08A65090",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1056,
+            2214
+          ],
+          "pointer": 145097760
+        },
+        {
+          "romAddress": "0x08A65098",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2505,
+          "halfwords": [
+            6944,
+            2505
+          ]
+        },
+        {
+          "romAddress": "0x08A6509C",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650A0",
+          "opcode": 19,
+          "name": "EV_CMD_BGMCHANGE_13",
+          "subcode": 4,
+          "arg0": 32767,
+          "halfwords": [
+            4900,
+            32767
+          ]
+        },
+        {
+          "romAddress": "0x08A650A4",
+          "opcode": 28,
+          "name": "EV_CMD_CONTINUETEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7200,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650A8",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650AC",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1020,
+            2214
+          ],
+          "pointer": 145097724
+        },
+        {
+          "romAddress": "0x08A650B4",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            11328,
+            1,
+            48340,
+            2192
+          ],
+          "pointer": 143703252
+        },
+        {
+          "romAddress": "0x08A650BC",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650C0",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 77,
+          "halfwords": [
+            15137,
+            77
+          ]
+        },
+        {
+          "romAddress": "0x08A650C4",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A650C8",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650CC",
+          "opcode": 18,
+          "name": "EV_CMD_BGMCHANGE_12",
+          "subcode": 0,
+          "arg0": 38,
+          "halfwords": [
+            4640,
+            38
+          ]
+        },
+        {
+          "romAddress": "0x08A650D0",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650D4",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2506,
+          "halfwords": [
+            6944,
+            2506
+          ]
+        },
+        {
+          "romAddress": "0x08A650D8",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650DC",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650E0",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 30,
+          "halfwords": [
+            3616,
+            30
+          ]
+        },
+        {
+          "romAddress": "0x08A650E4",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 4,
+          "arg0": 66,
+          "halfwords": [
+            13348,
+            66
+          ]
+        },
+        {
+          "romAddress": "0x08A650E8",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 66,
+          "halfwords": [
+            15137,
+            66
+          ]
+        },
+        {
+          "romAddress": "0x08A650EC",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A650F0",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A650F4",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12096,
+            0,
+            66,
+            4884
+          ]
+        },
+        {
+          "romAddress": "0x08A650FC",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            20,
+            16
+          ],
+          "slot": 11,
+          "value": 1048596
+        },
+        {
+          "romAddress": "0x08A65104",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            12098,
+            0,
+            65534,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x08A6510C",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65110",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12096,
+            0,
+            66,
+            3860
+          ]
+        },
+        {
+          "romAddress": "0x08A65118",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6511C",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            21,
+            16
+          ],
+          "slot": 11,
+          "value": 1048597
+        },
+        {
+          "romAddress": "0x08A65124",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            12098,
+            0,
+            65534,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6512C",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12096,
+            0,
+            66,
+            2579
+          ]
+        },
+        {
+          "romAddress": "0x08A65134",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65138",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 15,
+          "arg0": 66,
+          "halfwords": [
+            13359,
+            66
+          ]
+        },
+        {
+          "romAddress": "0x08A6513C",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 77,
+          "halfwords": [
+            15137,
+            77
+          ]
+        },
+        {
+          "romAddress": "0x08A65140",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A65144",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65148",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            21,
+            0
+          ],
+          "slot": 2,
+          "value": 21
+        },
+        {
+          "romAddress": "0x08A65150",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 3,
+          "halfwords": [
+            1344,
+            3,
+            2507,
+            0
+          ],
+          "slot": 3,
+          "value": 2507
+        },
+        {
+          "romAddress": "0x08A65158",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1096,
+            2214
+          ],
+          "pointer": 145097800
+        },
+        {
+          "romAddress": "0x08A65160",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            19,
+            16
+          ],
+          "slot": 11,
+          "value": 1048595
+        },
+        {
+          "romAddress": "0x08A65168",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            12098,
+            0,
+            65534,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65170",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65174",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12096,
+            0,
+            77,
+            3603
+          ]
+        },
+        {
+          "romAddress": "0x08A6517C",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65180",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            18,
+            16
+          ],
+          "slot": 11,
+          "value": 1048594
+        },
+        {
+          "romAddress": "0x08A65188",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            12098,
+            0,
+            65534,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x08A65190",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65194",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12096,
+            0,
+            77,
+            3603
+          ]
+        },
+        {
+          "romAddress": "0x08A6519C",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651A0",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 77,
+          "halfwords": [
+            15137,
+            77
+          ]
+        },
+        {
+          "romAddress": "0x08A651A4",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A651A8",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651AC",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651B0",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2508,
+          "halfwords": [
+            6944,
+            2508
+          ]
+        },
+        {
+          "romAddress": "0x08A651B4",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651B8",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651BC",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            20,
+            21
+          ],
+          "slot": 11,
+          "value": 1376276
+        },
+        {
+          "romAddress": "0x08A651C4",
+          "opcode": 22,
+          "name": "EV_CMD_PLAYSE",
+          "subcode": 0,
+          "arg0": 171,
+          "halfwords": [
+            5664,
+            171
+          ]
+        },
+        {
+          "romAddress": "0x08A651C8",
+          "opcode": 39,
+          "name": "EV_CMD_TILE_CHANGE",
+          "subcode": 0,
+          "arg0": 65535,
+          "halfwords": [
+            10016,
+            65535
+          ]
+        },
+        {
+          "romAddress": "0x08A651CC",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12096,
+            0,
+            77,
+            2579
+          ]
+        },
+        {
+          "romAddress": "0x08A651D4",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            19,
+            16
+          ],
+          "slot": 11,
+          "value": 1048595
+        },
+        {
+          "romAddress": "0x08A651DC",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 16,
+          "halfwords": [
+            12096,
+            16,
+            65534,
+            2835
+          ]
+        },
+        {
+          "romAddress": "0x08A651E4",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 11,
+          "halfwords": [
+            1344,
+            11,
+            20,
+            16
+          ],
+          "slot": 11,
+          "value": 1048596
+        },
+        {
+          "romAddress": "0x08A651EC",
+          "opcode": 47,
+          "name": "EV_CMD_MOVEUNIT",
+          "subcode": 0,
+          "arg0": 16,
+          "halfwords": [
+            12096,
+            16,
+            65534,
+            2836
+          ]
+        },
+        {
+          "romAddress": "0x08A651F4",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651F8",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 12,
+          "arg0": 0,
+          "halfwords": [
+            13356,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A651FC",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            11328,
+            1,
+            47440,
+            2192
+          ],
+          "pointer": 143702352
+        },
+        {
+          "romAddress": "0x08A65204",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65208",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            48460,
+            2192
+          ],
+          "slot": 2,
+          "value": 143703372
+        },
+        {
+          "romAddress": "0x08A65210",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 3,
+          "halfwords": [
+            1344,
+            3,
+            1,
+            0
+          ],
+          "slot": 3,
+          "value": 1
+        },
+        {
+          "romAddress": "0x08A65218",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            896,
+            2214
+          ],
+          "pointer": 145097600
+        },
+        {
+          "romAddress": "0x08A65220",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 1,
+          "halfwords": [
+            15137,
+            1
+          ]
+        },
+        {
+          "romAddress": "0x08A65224",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A65228",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6522C",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            21,
+            0
+          ],
+          "slot": 2,
+          "value": 21
+        },
+        {
+          "romAddress": "0x08A65234",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1056,
+            2214
+          ],
+          "pointer": 145097760
+        },
+        {
+          "romAddress": "0x08A6523C",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2509,
+          "halfwords": [
+            6944,
+            2509
+          ]
+        },
+        {
+          "romAddress": "0x08A65240",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65244",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65248",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            40380,
+            2139
+          ],
+          "pointer": 140221884
+        },
+        {
+          "romAddress": "0x08A65250",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 9,
+          "arg0": 12,
+          "halfwords": [
+            553,
+            12
+          ]
+        },
+        {
+          "romAddress": "0x08A65254",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A65258": {
+      "romAddress": "0x08A65258",
+      "commands": [
+        {
+          "romAddress": "0x08A65258",
+          "opcode": 38,
+          "name": "EV_CMD_CAMERACONTROL",
+          "subcode": 0,
+          "arg0": 5888,
+          "halfwords": [
+            9760,
+            5888
+          ]
+        },
+        {
+          "romAddress": "0x08A6525C",
+          "opcode": 44,
+          "name": "EV_CMD_LOADUNIT",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            11328,
+            1,
+            48000,
+            2192
+          ],
+          "pointer": 143702912
+        },
+        {
+          "romAddress": "0x08A65264",
+          "opcode": 48,
+          "name": "EV_CMD_ENUN",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            12320,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65268",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 1,
+          "arg0": 15,
+          "halfwords": [
+            13345,
+            15
+          ]
+        },
+        {
+          "romAddress": "0x08A6526C",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 1,
+          "arg0": 16,
+          "halfwords": [
+            13345,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x08A65270",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 1,
+          "arg0": 17,
+          "halfwords": [
+            13345,
+            17
+          ]
+        },
+        {
+          "romAddress": "0x08A65274",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            1344,
+            1,
+            1,
+            0
+          ],
+          "slot": 1,
+          "value": 1
+        },
+        {
+          "romAddress": "0x08A6527C",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 8,
+          "arg0": 15,
+          "halfwords": [
+            13352,
+            15
+          ]
+        },
+        {
+          "romAddress": "0x08A65280",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            1344,
+            1,
+            1,
+            0
+          ],
+          "slot": 1,
+          "value": 1
+        },
+        {
+          "romAddress": "0x08A65288",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 8,
+          "arg0": 16,
+          "halfwords": [
+            13352,
+            16
+          ]
+        },
+        {
+          "romAddress": "0x08A6528C",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 1,
+          "halfwords": [
+            1344,
+            1,
+            1,
+            0
+          ],
+          "slot": 1,
+          "value": 1
+        },
+        {
+          "romAddress": "0x08A65294",
+          "opcode": 52,
+          "name": "EV_CMD_CHANGESTATE",
+          "subcode": 8,
+          "arg0": 17,
+          "halfwords": [
+            13352,
+            17
+          ]
+        },
+        {
+          "romAddress": "0x08A65298",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 1,
+          "arg0": 15,
+          "halfwords": [
+            15137,
+            15
+          ]
+        },
+        {
+          "romAddress": "0x08A6529C",
+          "opcode": 14,
+          "name": "EV_CMD_STALL",
+          "subcode": 0,
+          "arg0": 60,
+          "halfwords": [
+            3616,
+            60
+          ]
+        },
+        {
+          "romAddress": "0x08A652A0",
+          "opcode": 59,
+          "name": "EV_CMD_DISPLAYCURSOR",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            15138,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652A4",
+          "opcode": 18,
+          "name": "EV_CMD_BGMCHANGE_12",
+          "subcode": 0,
+          "arg0": 37,
+          "halfwords": [
+            4640,
+            37
+          ]
+        },
+        {
+          "romAddress": "0x08A652A8",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652AC",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2510,
+          "halfwords": [
+            6944,
+            2510
+          ]
+        },
+        {
+          "romAddress": "0x08A652B0",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652B4",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652B8",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A652BC",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A652C0": {
+      "romAddress": "0x08A652C0",
+      "commands": [
+        {
+          "romAddress": "0x08A652C0",
+          "opcode": 18,
+          "name": "EV_CMD_BGMCHANGE_12",
+          "subcode": 0,
+          "arg0": 49,
+          "halfwords": [
+            4640,
+            49
+          ]
+        },
+        {
+          "romAddress": "0x08A652C4",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            21,
+            0
+          ],
+          "slot": 2,
+          "value": 21
+        },
+        {
+          "romAddress": "0x08A652CC",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            1056,
+            2214
+          ],
+          "pointer": 145097760
+        },
+        {
+          "romAddress": "0x08A652D4",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2513,
+          "halfwords": [
+            6944,
+            2513
+          ]
+        },
+        {
+          "romAddress": "0x08A652D8",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652DC",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652E0",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 9,
+          "arg0": 223,
+          "halfwords": [
+            553,
+            223
+          ]
+        },
+        {
+          "romAddress": "0x08A652E4",
+          "opcode": 42,
+          "name": "EV_CMD_CHANGECHAPTER",
+          "subcode": 1,
+          "arg0": 6,
+          "halfwords": [
+            10785,
+            6
+          ]
+        },
+        {
+          "romAddress": "0x08A652E8",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A652EC": {
+      "romAddress": "0x08A652EC",
+      "commands": [
+        {
+          "romAddress": "0x08A652EC",
+          "opcode": 18,
+          "name": "EV_CMD_BGMCHANGE_12",
+          "subcode": 0,
+          "arg0": 39,
+          "halfwords": [
+            4640,
+            39
+          ]
+        },
+        {
+          "romAddress": "0x08A652F0",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652F4",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2514,
+          "halfwords": [
+            6944,
+            2514
+          ]
+        },
+        {
+          "romAddress": "0x08A652F8",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A652FC",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65300",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A65304",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A65308": {
+      "romAddress": "0x08A65308",
+      "commands": [
+        {
+          "romAddress": "0x08A65308",
+          "opcode": 21,
+          "name": "EV_CMD_BGMVOLUMECHANGE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            5408,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6530C",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65310",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2515,
+          "halfwords": [
+            6944,
+            2515
+          ]
+        },
+        {
+          "romAddress": "0x08A65314",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65318",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6531C",
+          "opcode": 21,
+          "name": "EV_CMD_BGMVOLUMECHANGE",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            5409,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65320",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A65324",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A65328": {
+      "romAddress": "0x08A65328",
+      "commands": [
+        {
+          "romAddress": "0x08A65328",
+          "opcode": 21,
+          "name": "EV_CMD_BGMVOLUMECHANGE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            5408,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6532C",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65330",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2516,
+          "halfwords": [
+            6944,
+            2516
+          ]
+        },
+        {
+          "romAddress": "0x08A65334",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65338",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6533C",
+          "opcode": 21,
+          "name": "EV_CMD_BGMVOLUMECHANGE",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            5409,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65340",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A65344",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A65348": {
+      "romAddress": "0x08A65348",
+      "commands": [
+        {
+          "romAddress": "0x08A65348",
+          "opcode": 21,
+          "name": "EV_CMD_BGMVOLUMECHANGE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            5408,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6534C",
+          "opcode": 26,
+          "name": "EV_CMD_SETTEXTTYPE",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            6688,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65350",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 0,
+          "arg0": 2517,
+          "halfwords": [
+            6944,
+            2517
+          ]
+        },
+        {
+          "romAddress": "0x08A65354",
+          "opcode": 29,
+          "name": "EV_CMD_ENDTEXT",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            7456,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65358",
+          "opcode": 27,
+          "name": "EV_CMD_DISPLAYTEXT",
+          "subcode": 2,
+          "arg0": 0,
+          "halfwords": [
+            6946,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A6535C",
+          "opcode": 21,
+          "name": "EV_CMD_BGMVOLUMECHANGE",
+          "subcode": 1,
+          "arg0": 0,
+          "halfwords": [
+            5409,
+            0
+          ]
+        },
+        {
+          "romAddress": "0x08A65360",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A65364",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A65368": {
+      "romAddress": "0x08A65368",
+      "commands": [
+        {
+          "romAddress": "0x08A65368",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            0,
+            0
+          ],
+          "slot": 2,
+          "value": 0
+        },
+        {
+          "romAddress": "0x08A65370",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            752,
+            2214
+          ],
+          "pointer": 145097456
+        },
+        {
+          "romAddress": "0x08A65378",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 1,
+          "arg0": 12,
+          "halfwords": [
+            545,
+            12
+          ]
+        },
+        {
+          "romAddress": "0x08A6537C",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A65380",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A65384": {
+      "romAddress": "0x08A65384",
+      "commands": [
+        {
+          "romAddress": "0x08A65384",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            48080,
+            2192
+          ],
+          "slot": 2,
+          "value": 143702992
+        },
+        {
+          "romAddress": "0x08A6538C",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            940,
+            2214
+          ],
+          "pointer": 145097644
+        },
+        {
+          "romAddress": "0x08A65394",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A65398",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    },
+    "0x08A6539C": {
+      "romAddress": "0x08A6539C",
+      "commands": [
+        {
+          "romAddress": "0x08A6539C",
+          "opcode": 5,
+          "name": "EV_CMD_SVAL",
+          "subcode": 0,
+          "arg0": 2,
+          "halfwords": [
+            1344,
+            2,
+            48160,
+            2192
+          ],
+          "slot": 2,
+          "value": 143703072
+        },
+        {
+          "romAddress": "0x08A653A4",
+          "opcode": 10,
+          "name": "EV_CMD_CALL",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            2624,
+            0,
+            940,
+            2214
+          ],
+          "pointer": 145097644
+        },
+        {
+          "romAddress": "0x08A653AC",
+          "opcode": 2,
+          "name": "EV_CMD_EVSET",
+          "subcode": 8,
+          "arg0": 7,
+          "halfwords": [
+            552,
+            7
+          ]
+        },
+        {
+          "romAddress": "0x08A653B0",
+          "opcode": 1,
+          "name": "EV_CMD_END",
+          "subcode": 0,
+          "arg0": 0,
+          "halfwords": [
+            288,
+            0
+          ]
+        }
+      ],
+      "terminated": true
+    }
+  },
+  "dynamicCalls": [],
+  "eventInterpretation": {
+    "basis": "ROM事件表与字节码静态解码；未模拟分支、存档或随机数",
+    "area": {
+      "boundsInclusive": {
+        "min": [
+          5,
+          0
+        ],
+        "max": [
+          15,
+          10
+        ]
+      }
+    },
+    "turn2": {
+      "phase": "player",
+      "group": "turn2PlayerReinforcements"
+    },
+    "turn5": {
+      "phase": "player",
+      "group": "turn5EnemyReinforcements"
+    }
+  },
+  "provenance": {
+    "chapterTable": "0x08904E1C",
+    "chapterRecord": "0x08905350",
+    "assetTable": "0x08907BC8",
+    "layout": "0x081A5E38",
+    "tilesetConfig": "0x081987C8",
+    "chapterEventGroup": "0x08A5B108",
+    "mapChanges": "0x08A9B37C",
+    "chapterRecordHex": "a42c1b081800191a281c002900000900111100005200090013000f00090013000f00ffffffff0b00ffffffff320505050506060606070707070808080800640064006400640050005000500050003c003c003c003c002800280028002800000024040000240400002404000024040000f100f1002a0a000000000000000000001000ffff0000010035012a01000000ff00110000",
+    "chapterEventPointerWords": [
+      "0x08A5AFE4",
+      "0x08A5B00C",
+      "0x08A5B090",
+      "0x08A5B0DC",
+      "0x08A5B0F8",
+      "0x08A5B0FC",
+      "0x08A5B100",
+      "0x08A5B104",
+      "0x08A5FAFD",
+      "0x08A5FFE2",
+      "0x0890B888",
+      "0x0890B888",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x08A6506C",
+      "0x08A652C0"
+    ],
+    "terrainRules": {
+      "foot": {
+        "normalMovement": "0x0885FD60",
+        "avoid": "0x088609D1",
+        "defense": "0x08860A12",
+        "resistance": "0x08860A53"
+      },
+      "armored": {
+        "normalMovement": "0x0885FDE2",
+        "avoid": "0x088609D1",
+        "defense": "0x08860A12",
+        "resistance": "0x08860A53"
+      },
+      "mounted": {
+        "normalMovement": "0x0885FFEA",
+        "avoid": "0x088609D1",
+        "defense": "0x08860A12",
+        "resistance": "0x08860A53"
+      },
+      "flying": {
+        "normalMovement": "0x088600EE",
+        "avoid": "0x08860A94",
+        "defense": "0x08860AD5",
+        "resistance": "0x08860B16"
+      },
+      "healingAmount": "0x08860C9C",
+      "statusHealing": "0x08860CDD"
+    },
+    "decompressedLayoutSha256": "1065161c2925016e47721ae3bff599bce91229b870465f5bdae63dec81a9ab1a",
+    "decompressedConfigSha256": "72f4fd9d3873560781a1af7be69316e4544170dc9c433da189e0112fa26a9a76"
+  },
+  "limitations": [
+    "单位是静态模板，最终阵容、属性和出击状态仍受存档、难度及准备画面影响。",
+    "事件已按指令边界解码并跟随直接CALL；动态CALL和ASM效果没有执行。",
+    "单位角色按第8章特征选取，其他LOAD引用单列，包含过场及条件加载。",
+    "基础地图尚未执行开场地图变化；不是模拟器中某一回合的完整状态。"
+  ]
+}

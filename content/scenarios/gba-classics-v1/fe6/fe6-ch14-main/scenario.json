@@ -1,0 +1,8795 @@
+{
+  "format": "agent-tactics.scenario",
+  "schemaVersion": 1,
+  "id": "fe6-ch14-main",
+  "name": "封印之剑 · 阿卡迪亚",
+  "chapter": {
+    "number": "14",
+    "route": "main",
+    "tableIndex": 14,
+    "internalName": "bmap14"
+  },
+  "source": {
+    "kind": "gba-rom",
+    "game": "fe6",
+    "gameCode": "AFEJ",
+    "fileName": "1火焰纹章_封印之剑.gba",
+    "bytes": 10415546,
+    "sha1": "2c9aa8d6a5537b8276ad782eda5de98fcccf3a05",
+    "sha256": "b71a15ebfd0bbaff94dd975777241fe6db2fb96ac1dada3324ccd41044758145",
+    "profileRevision": "8e3557912ddab708d11bf85ad311b41bb6630fd1"
+  },
+  "coordinates": {
+    "origin": "top-left",
+    "indexBase": 0,
+    "pointOrder": [
+      "x",
+      "y"
+    ],
+    "matrixOrder": "rows-y-columns-x"
+  },
+  "map": {
+    "width": 32,
+    "height": 22,
+    "tilePixels": 16,
+    "terrainIds": [
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        1,
+        26,
+        1,
+        38,
+        38,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        38,
+        21,
+        21
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        14,
+        1,
+        26,
+        1,
+        38,
+        21,
+        38,
+        1,
+        1,
+        44,
+        44,
+        44,
+        1,
+        38,
+        21
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        12,
+        1,
+        26,
+        1,
+        38,
+        38,
+        38,
+        1,
+        1,
+        44,
+        44,
+        44,
+        1,
+        38,
+        38
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        1,
+        26,
+        14,
+        1,
+        1,
+        1,
+        1,
+        2,
+        44,
+        11,
+        44,
+        2,
+        1,
+        1
+      ],
+      [
+        15,
+        15,
+        44,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        1,
+        26,
+        26,
+        26,
+        26,
+        26,
+        1,
+        2,
+        6,
+        2,
+        2,
+        7,
+        2,
+        26
+      ],
+      [
+        15,
+        15,
+        44,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        14,
+        12,
+        1,
+        1,
+        1,
+        1,
+        26,
+        26,
+        1,
+        2,
+        2,
+        2,
+        1,
+        26,
+        26
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        14,
+        14,
+        1,
+        1,
+        1,
+        12,
+        1,
+        26,
+        5,
+        5,
+        14,
+        14,
+        1,
+        26,
+        14
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        14,
+        14,
+        14,
+        12,
+        14,
+        14,
+        26,
+        26,
+        14,
+        14,
+        1,
+        26,
+        26,
+        12
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        44,
+        44,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        14,
+        14,
+        14,
+        1,
+        1,
+        14,
+        14,
+        1,
+        1,
+        1,
+        14
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        14,
+        14,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        15,
+        38,
+        15,
+        15,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        44,
+        15,
+        15,
+        38,
+        38,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        44,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        38,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        38,
+        38,
+        38,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        44,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        44,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ]
+    ],
+    "metatileIndices": [
+      [
+        909,
+        814,
+        815,
+        813,
+        847,
+        815,
+        813,
+        814,
+        815,
+        909,
+        814,
+        815,
+        813,
+        814,
+        815,
+        879,
+        849,
+        433,
+        209,
+        853,
+        231,
+        53,
+        56,
+        238,
+        230,
+        231,
+        268,
+        274,
+        199,
+        23,
+        276,
+        213
+      ],
+      [
+        845,
+        846,
+        847,
+        845,
+        846,
+        847,
+        845,
+        846,
+        847,
+        845,
+        846,
+        847,
+        845,
+        846,
+        847,
+        945,
+        401,
+        433,
+        205,
+        885,
+        209,
+        91,
+        245,
+        52,
+        98,
+        204,
+        717,
+        718,
+        719,
+        209,
+        123,
+        245
+      ],
+      [
+        877,
+        878,
+        879,
+        877,
+        878,
+        879,
+        814,
+        815,
+        424,
+        423,
+        878,
+        879,
+        845,
+        878,
+        879,
+        945,
+        433,
+        192,
+        176,
+        853,
+        199,
+        27,
+        87,
+        24,
+        66,
+        236,
+        749,
+        750,
+        751,
+        67,
+        21,
+        26
+      ],
+      [
+        909,
+        910,
+        911,
+        975,
+        973,
+        815,
+        846,
+        847,
+        452,
+        457,
+        845,
+        845,
+        814,
+        815,
+        815,
+        879,
+        817,
+        401,
+        231,
+        885,
+        752,
+        209,
+        130,
+        99,
+        67,
+        759,
+        781,
+        782,
+        783,
+        760,
+        206,
+        67
+      ],
+      [
+        941,
+        942,
+        722,
+        941,
+        975,
+        879,
+        941,
+        942,
+        943,
+        941,
+        975,
+        879,
+        877,
+        814,
+        815,
+        847,
+        945,
+        752,
+        199,
+        882,
+        818,
+        819,
+        819,
+        851,
+        227,
+        791,
+        872,
+        724,
+        726,
+        871,
+        792,
+        850
+      ],
+      [
+        973,
+        974,
+        754,
+        847,
+        845,
+        846,
+        847,
+        974,
+        975,
+        973,
+        974,
+        975,
+        456,
+        877,
+        878,
+        879,
+        945,
+        433,
+        192,
+        209,
+        238,
+        204,
+        199,
+        882,
+        851,
+        195,
+        758,
+        726,
+        724,
+        231,
+        850,
+        883
+      ],
+      [
+        877,
+        877,
+        813,
+        879,
+        814,
+        815,
+        846,
+        847,
+        813,
+        814,
+        974,
+        941,
+        878,
+        452,
+        486,
+        879,
+        945,
+        401,
+        720,
+        199,
+        268,
+        177,
+        192,
+        199,
+        853,
+        904,
+        904,
+        752,
+        752,
+        209,
+        853,
+        752
+      ],
+      [
+        813,
+        813,
+        845,
+        846,
+        847,
+        877,
+        878,
+        879,
+        814,
+        877,
+        878,
+        845,
+        974,
+        879,
+        420,
+        845,
+        845,
+        817,
+        401,
+        401,
+        401,
+        192,
+        401,
+        752,
+        882,
+        821,
+        720,
+        401,
+        231,
+        820,
+        883,
+        192
+      ],
+      [
+        909,
+        814,
+        815,
+        909,
+        910,
+        911,
+        787,
+        723,
+        877,
+        454,
+        426,
+        877,
+        941,
+        878,
+        456,
+        975,
+        877,
+        878,
+        881,
+        817,
+        401,
+        401,
+        401,
+        401,
+        199,
+        264,
+        401,
+        401,
+        199,
+        206,
+        264,
+        720
+      ],
+      [
+        845,
+        846,
+        847,
+        941,
+        942,
+        943,
+        845,
+        846,
+        847,
+        420,
+        877,
+        878,
+        909,
+        910,
+        878,
+        456,
+        975,
+        846,
+        911,
+        974,
+        881,
+        817,
+        401,
+        433,
+        401,
+        401,
+        401,
+        401,
+        433,
+        433,
+        401,
+        816
+      ],
+      [
+        877,
+        878,
+        879,
+        973,
+        974,
+        975,
+        424,
+        423,
+        877,
+        452,
+        426,
+        814,
+        941,
+        942,
+        943,
+        878,
+        452,
+        486,
+        975,
+        845,
+        878,
+        845,
+        881,
+        881,
+        817,
+        401,
+        401,
+        816,
+        881,
+        881,
+        881,
+        879
+      ],
+      [
+        909,
+        910,
+        878,
+        878,
+        847,
+        420,
+        816,
+        817,
+        423,
+        422,
+        975,
+        878,
+        973,
+        974,
+        975,
+        878,
+        877,
+        878,
+        456,
+        975,
+        845,
+        974,
+        909,
+        878,
+        846,
+        881,
+        881,
+        814,
+        879,
+        877,
+        878,
+        815
+      ],
+      [
+        845,
+        846,
+        847,
+        813,
+        814,
+        877,
+        845,
+        877,
+        877,
+        877,
+        877,
+        427,
+        455,
+        452,
+        426,
+        878,
+        813,
+        877,
+        878,
+        456,
+        975,
+        975,
+        909,
+        910,
+        879,
+        879,
+        814,
+        878,
+        973,
+        879,
+        815,
+        813
+      ],
+      [
+        877,
+        878,
+        879,
+        845,
+        846,
+        847,
+        877,
+        813,
+        814,
+        846,
+        427,
+        453,
+        877,
+        846,
+        847,
+        846,
+        845,
+        846,
+        847,
+        878,
+        452,
+        975,
+        846,
+        427,
+        457,
+        845,
+        846,
+        847,
+        813,
+        846,
+        847,
+        813
+      ],
+      [
+        846,
+        909,
+        910,
+        877,
+        878,
+        879,
+        911,
+        813,
+        813,
+        815,
+        975,
+        421,
+        877,
+        878,
+        420,
+        423,
+        877,
+        878,
+        879,
+        847,
+        845,
+        456,
+        486,
+        453,
+        814,
+        815,
+        813,
+        814,
+        815,
+        814,
+        879,
+        813
+      ],
+      [
+        813,
+        941,
+        942,
+        943,
+        877,
+        878,
+        879,
+        813,
+        814,
+        813,
+        427,
+        453,
+        909,
+        422,
+        976,
+        977,
+        423,
+        877,
+        878,
+        879,
+        813,
+        814,
+        815,
+        814,
+        814,
+        909,
+        975,
+        879,
+        813,
+        814,
+        815,
+        813
+      ],
+      [
+        877,
+        973,
+        974,
+        975,
+        909,
+        910,
+        911,
+        813,
+        813,
+        877,
+        786,
+        877,
+        941,
+        452,
+        488,
+        486,
+        455,
+        909,
+        910,
+        911,
+        845,
+        846,
+        813,
+        814,
+        815,
+        975,
+        846,
+        909,
+        879,
+        815,
+        845,
+        909
+      ],
+      [
+        813,
+        813,
+        845,
+        846,
+        975,
+        427,
+        457,
+        456,
+        426,
+        814,
+        847,
+        723,
+        877,
+        974,
+        941,
+        846,
+        878,
+        941,
+        942,
+        943,
+        877,
+        878,
+        845,
+        846,
+        847,
+        456,
+        486,
+        426,
+        877,
+        425,
+        877,
+        975
+      ],
+      [
+        909,
+        814,
+        815,
+        813,
+        456,
+        457,
+        813,
+        814,
+        847,
+        878,
+        813,
+        845,
+        813,
+        815,
+        877,
+        878,
+        879,
+        845,
+        974,
+        975,
+        909,
+        910,
+        877,
+        878,
+        879,
+        909,
+        878,
+        454,
+        488,
+        457,
+        815,
+        909
+      ],
+      [
+        909,
+        910,
+        911,
+        845,
+        846,
+        847,
+        845,
+        846,
+        847,
+        845,
+        877,
+        877,
+        846,
+        814,
+        723,
+        910,
+        845,
+        878,
+        878,
+        878,
+        941,
+        942,
+        943,
+        878,
+        879,
+        877,
+        878,
+        846,
+        941,
+        942,
+        943,
+        909
+      ],
+      [
+        941,
+        942,
+        943,
+        846,
+        878,
+        879,
+        877,
+        878,
+        879,
+        813,
+        814,
+        879,
+        814,
+        846,
+        755,
+        942,
+        943,
+        813,
+        814,
+        813,
+        909,
+        909,
+        909,
+        910,
+        845,
+        813,
+        814,
+        878,
+        973,
+        974,
+        975,
+        877
+      ],
+      [
+        973,
+        974,
+        975,
+        813,
+        814,
+        815,
+        909,
+        910,
+        911,
+        813,
+        813,
+        815,
+        813,
+        878,
+        973,
+        974,
+        975,
+        814,
+        846,
+        814,
+        975,
+        909,
+        975,
+        942,
+        943,
+        845,
+        846,
+        847,
+        813,
+        814,
+        815,
+        813
+      ]
+    ]
+  },
+  "terrainCatalog": {
+    "1": {
+      "id": 1,
+      "label": "平地",
+      "color": "#7ea058",
+      "glyph": ".",
+      "symbol": "TERRAIN_PLAINS",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "2": {
+      "id": 2,
+      "label": "道路",
+      "color": "#c6a97a",
+      "glyph": "路",
+      "symbol": "TERRAIN_ROAD",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "5": {
+      "id": 5,
+      "label": "房屋",
+      "color": "#a26b52",
+      "glyph": "屋",
+      "symbol": "TERRAIN_HOUSE",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "6": {
+      "id": 6,
+      "label": "武器店",
+      "color": "#b47c58",
+      "glyph": "武",
+      "symbol": "TERRAIN_ARMORY",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "7": {
+      "id": 7,
+      "label": "道具店",
+      "color": "#aa8565",
+      "glyph": "店",
+      "symbol": "TERRAIN_VENDOR",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "11": {
+      "id": 11,
+      "label": "城门",
+      "color": "#b1a18a",
+      "glyph": "门",
+      "symbol": "TERRAIN_GATE_CASTLE",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "12": {
+      "id": 12,
+      "label": "森林",
+      "color": "#3f7042",
+      "glyph": "林",
+      "symbol": "TERRAIN_FOREST",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "14": {
+      "id": 14,
+      "label": "沙地",
+      "color": "#d6c08b",
+      "glyph": "沙",
+      "symbol": "TERRAIN_SAND",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "15": {
+      "id": 15,
+      "label": "沙漠",
+      "color": "#c9ab69",
+      "glyph": "漠",
+      "symbol": "TERRAIN_DESERT",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "21": {
+      "id": 21,
+      "label": "海",
+      "color": "#3976a4",
+      "glyph": "海",
+      "symbol": "TERRAIN_SEA",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "26": {
+      "id": 26,
+      "label": "墙壁",
+      "color": "#535b63",
+      "glyph": "墙",
+      "symbol": "TERRAIN_WALL_REGULAR",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "38": {
+      "id": 38,
+      "label": "悬崖",
+      "color": "#756e61",
+      "glyph": "崖",
+      "symbol": "TERRAIN_CLIFF",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    },
+    "44": {
+      "id": 44,
+      "label": "TERRAIN_TILE_2C",
+      "color": "#777777",
+      "glyph": "?",
+      "symbol": "TERRAIN_TILE_2C",
+      "annotationBasis": "shared GBA terrain IDs; class-specific rules are read separately"
+    }
+  },
+  "classCatalog": {
+    "1": {
+      "id": 1,
+      "symbol": "JID_ROY",
+      "nameTextId": 1961,
+      "baseStats": {
+        "hp": 18,
+        "power": 3,
+        "skill": 3,
+        "speed": 4,
+        "defense": 5,
+        "resistance": 0,
+        "constitution": 6,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 90,
+        "power": 45,
+        "skill": 40,
+        "speed": 45,
+        "defense": 15,
+        "resistance": 12,
+        "luck": 40
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A130",
+      "sourceRecordHex": "a907690501430000b2000112030304050006053c141414141414035a2d282d0f0c2800000020010033000000000000002828660848c6600878c96008abc96008dec9600800000000"
+    },
+    "2": {
+      "id": 2,
+      "symbol": "JID_MERCENARY",
+      "nameTextId": 1962,
+      "baseStats": {
+        "hp": 18,
+        "power": 4,
+        "skill": 8,
+        "speed": 8,
+        "defense": 4,
+        "resistance": 0,
+        "constitution": 9,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 40,
+        "skill": 40,
+        "speed": 32,
+        "defense": 18,
+        "resistance": 15,
+        "luck": 30
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A178",
+      "sourceRecordHex": "aa07710502040100b7000812040808040009053c1414141414140350282820120f1e0000000000003300000000000000382866087bc6600878c96008abc96008dec9600800000000"
+    },
+    "4": {
+      "id": 4,
+      "symbol": "JID_HERO",
+      "nameTextId": 1964,
+      "baseStats": {
+        "hp": 22,
+        "power": 6,
+        "skill": 9,
+        "speed": 10,
+        "defense": 8,
+        "resistance": 2,
+        "constitution": 10,
+        "movement": 6
+      },
+      "growthRates": {
+        "hp": 75,
+        "power": 30,
+        "skill": 30,
+        "speed": 20,
+        "defense": 20,
+        "resistance": 10,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A208",
+      "sourceRecordHex": "ac077e0504020300b800091606090a08020a063c191e1a191614034b1e1e14140a1900000001000065000100000000004428660848c6600878c96008abc96008dec9600800000000"
+    },
+    "5": {
+      "id": 5,
+      "symbol": "JID_HERO_F",
+      "nameTextId": 1965,
+      "baseStats": {
+        "hp": 22,
+        "power": 6,
+        "skill": 10,
+        "speed": 11,
+        "defense": 6,
+        "resistance": 3,
+        "constitution": 9,
+        "movement": 6
+      },
+      "growthRates": {
+        "hp": 75,
+        "power": 30,
+        "skill": 30,
+        "speed": 20,
+        "defense": 20,
+        "resistance": 10,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A250",
+      "sourceRecordHex": "ad077e0505030400b8000a16060a0b060309063c181e1a181814034b1e1e14140a1900000001000065000100000000005c28660848c6600878c96008abc96008dec9600800000000"
+    },
+    "12": {
+      "id": 12,
+      "symbol": "JID_ARMOR",
+      "nameTextId": 1972,
+      "baseStats": {
+        "hp": 17,
+        "power": 5,
+        "skill": 2,
+        "speed": 0,
+        "defense": 9,
+        "resistance": 0,
+        "constitution": 13,
+        "movement": 4
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 40,
+        "skill": 35,
+        "speed": 15,
+        "defense": 28,
+        "resistance": 5,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 3,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A448",
+      "sourceRecordHex": "b4076e050c0e0b019d00141105020009000d043c141414141414035028230f1c05190000000000000033000000000000d0286608aec6600878c96008abc96008dec9600800000000"
+    },
+    "16": {
+      "id": 16,
+      "symbol": "JID_ARCHER",
+      "nameTextId": 1976,
+      "baseStats": {
+        "hp": 18,
+        "power": 4,
+        "skill": 3,
+        "speed": 3,
+        "defense": 3,
+        "resistance": 0,
+        "constitution": 7,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 70,
+        "power": 35,
+        "skill": 40,
+        "speed": 32,
+        "defense": 15,
+        "resistance": 10,
+        "luck": 35
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A568",
+      "sourceRecordHex": "b8076d0510120d009f002812040303030007053c14141414141403462328200f0a230000800000000000003300000000182966087bc6600878c96008abc96008dec9600800000000"
+    },
+    "17": {
+      "id": 17,
+      "symbol": "JID_ARCHER_F",
+      "nameTextId": 1977,
+      "baseStats": {
+        "hp": 17,
+        "power": 3,
+        "skill": 3,
+        "speed": 4,
+        "defense": 3,
+        "resistance": 0,
+        "constitution": 6,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 70,
+        "power": 35,
+        "skill": 40,
+        "speed": 32,
+        "defense": 15,
+        "resistance": 10,
+        "luck": 35
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A5B0",
+      "sourceRecordHex": "b9076d0511130e009f002911030304030006053c14141414141403462328200f0a230000800000000000003300000000302966087bc6600878c96008abc96008dec9600800000000"
+    },
+    "20": {
+      "id": 20,
+      "symbol": "JID_PRIEST",
+      "nameTextId": 1980,
+      "baseStats": {
+        "hp": 18,
+        "power": 1,
+        "skill": 1,
+        "speed": 2,
+        "defense": 1,
+        "resistance": 5,
+        "constitution": 5,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 50,
+        "power": 30,
+        "skill": 35,
+        "speed": 32,
+        "defense": 8,
+        "resistance": 50,
+        "luck": 45
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A688",
+      "sourceRecordHex": "bc076f0514161100a1001a12010102010505053c14141414141402321e232008322d000000000000000000003300000078296608e0c7600878c96008abc96008dec9600843cb6008"
+    },
+    "22": {
+      "id": 22,
+      "symbol": "JID_BISHOP",
+      "nameTextId": 1982,
+      "baseStats": {
+        "hp": 21,
+        "power": 4,
+        "skill": 4,
+        "speed": 4,
+        "defense": 3,
+        "resistance": 8,
+        "constitution": 6,
+        "movement": 6
+      },
+      "growthRates": {
+        "hp": 45,
+        "power": 35,
+        "skill": 25,
+        "speed": 22,
+        "defense": 8,
+        "resistance": 40,
+        "luck": 40
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A718",
+      "sourceRecordHex": "be07860516141300a2001c15040404030806063c191a19161e14032d231916082828000000010000000000006500330090296608e0c7600878c96008abc96008dec9600843cb6008"
+    },
+    "24": {
+      "id": 24,
+      "symbol": "JID_MAGE",
+      "nameTextId": 1984,
+      "baseStats": {
+        "hp": 16,
+        "power": 1,
+        "skill": 2,
+        "speed": 3,
+        "defense": 3,
+        "resistance": 3,
+        "constitution": 6,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 55,
+        "power": 55,
+        "skill": 40,
+        "speed": 35,
+        "defense": 5,
+        "resistance": 35,
+        "luck": 20
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A7A8",
+      "sourceRecordHex": "c0077505181a1500a3001e10010203030306053c14141414141403373728230523140000000000000000000000330000c0296608e0c7600878c96008abc96008dec9600800000000"
+    },
+    "29": {
+      "id": 29,
+      "symbol": "JID_SHAMAN_F",
+      "nameTextId": 1989,
+      "baseStats": {
+        "hp": 15,
+        "power": 3,
+        "skill": 1,
+        "speed": 1,
+        "defense": 1,
+        "resistance": 5,
+        "constitution": 3,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 50,
+        "power": 45,
+        "skill": 32,
+        "speed": 30,
+        "defense": 10,
+        "resistance": 37,
+        "luck": 20
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A910",
+      "sourceRecordHex": "c50779051d1f1a01a500220f030101010503053c14141414141403322d201e0a251400000000000000000000000000332c2a6608e0c7600878c96008abc96008dec9600800000000"
+    },
+    "32": {
+      "id": 32,
+      "symbol": "JID_CAVALIER",
+      "nameTextId": 1992,
+      "baseStats": {
+        "hp": 20,
+        "power": 5,
+        "skill": 2,
+        "speed": 5,
+        "defense": 6,
+        "resistance": 0,
+        "constitution": 9,
+        "movement": 7
+      },
+      "growthRates": {
+        "hp": 75,
+        "power": 35,
+        "skill": 40,
+        "speed": 28,
+        "defense": 15,
+        "resistance": 12,
+        "luck": 30
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 3,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 4,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860A9E8",
+      "sourceRecordHex": "c8076b0520221d00a7001814050205060009073c141414141414034b23281c0f0c1e0000030400000133000000000000702a660846c8600878c96008abc96008dec9600800000000"
+    },
+    "34": {
+      "id": 34,
+      "symbol": "JID_PALADIN",
+      "nameTextId": 1994,
+      "baseStats": {
+        "hp": 23,
+        "power": 7,
+        "skill": 4,
+        "speed": 7,
+        "defense": 8,
+        "resistance": 3,
+        "constitution": 11,
+        "movement": 8
+      },
+      "growthRates": {
+        "hp": 70,
+        "power": 25,
+        "skill": 30,
+        "speed": 18,
+        "defense": 12,
+        "resistance": 17,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 3,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 4,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AA78",
+      "sourceRecordHex": "ca076c0522201f00a800191707040708030b083c191c191919140346191e120c11190000030500003365010000000000802a660879c8600878c96008abc96008dec9600800000000"
+    },
+    "36": {
+      "id": 36,
+      "symbol": "JID_TROUBADOUR",
+      "nameTextId": 1996,
+      "baseStats": {
+        "hp": 15,
+        "power": 1,
+        "skill": 1,
+        "speed": 3,
+        "defense": 2,
+        "resistance": 5,
+        "constitution": 5,
+        "movement": 7
+      },
+      "growthRates": {
+        "hp": 50,
+        "power": 25,
+        "skill": 35,
+        "speed": 55,
+        "defense": 12,
+        "resistance": 30,
+        "luck": 45
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 3,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 4,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AB08",
+      "sourceRecordHex": "cc07730524252100a900260f010103020505073c14141414141402321923370c1e2d0000030400000000000033000000942a660846c8600878c96008abc96008dec9600800000000"
+    },
+    "37": {
+      "id": 37,
+      "symbol": "JID_VALKYRIE",
+      "nameTextId": 1997,
+      "baseStats": {
+        "hp": 19,
+        "power": 4,
+        "skill": 3,
+        "speed": 5,
+        "defense": 4,
+        "resistance": 8,
+        "constitution": 6,
+        "movement": 8
+      },
+      "growthRates": {
+        "hp": 45,
+        "power": 35,
+        "skill": 25,
+        "speed": 45,
+        "defense": 10,
+        "resistance": 20,
+        "luck": 40
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 3,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 4,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AB50",
+      "sourceRecordHex": "cd07810525242200aa002713040305040806083c1b1819181c14032d23192d0a14280000030500000000000065010000a02a660879c8600878c96008abc96008dec9600800000000"
+    },
+    "42": {
+      "id": 42,
+      "symbol": "JID_PEGASUSKNIGHT",
+      "nameTextId": 2002,
+      "baseStats": {
+        "hp": 14,
+        "power": 4,
+        "skill": 5,
+        "speed": 5,
+        "defense": 3,
+        "resistance": 2,
+        "constitution": 5,
+        "movement": 7
+      },
+      "growthRates": {
+        "hp": 65,
+        "power": 35,
+        "skill": 40,
+        "speed": 40,
+        "defense": 12,
+        "resistance": 25,
+        "luck": 35
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860ACB8",
+      "sourceRecordHex": "d2077c052a2b2700ad00300e040505030205073c14141414141403412328280c19230000031000000033000000000000f02a660812c9600811ca600844ca600877ca600800000000"
+    },
+    "44": {
+      "id": 44,
+      "symbol": "JID_WYVERNRIDER",
+      "nameTextId": 2004,
+      "baseStats": {
+        "hp": 20,
+        "power": 7,
+        "skill": 3,
+        "speed": 5,
+        "defense": 8,
+        "resistance": 0,
+        "constitution": 10,
+        "movement": 7
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 45,
+        "skill": 35,
+        "speed": 30,
+        "defense": 25,
+        "resistance": 10,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AD48",
+      "sourceRecordHex": "d4077d052c2e2900af00321407030508000a073c14141414141403502d231e190a1900000308000000330000000000000c2b660812c9600811ca600844ca600877ca600800000000"
+    },
+    "45": {
+      "id": 45,
+      "symbol": "JID_WYVERNRIDER_F",
+      "nameTextId": 2005,
+      "baseStats": {
+        "hp": 19,
+        "power": 6,
+        "skill": 5,
+        "speed": 5,
+        "defense": 7,
+        "resistance": 0,
+        "constitution": 9,
+        "movement": 7
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 45,
+        "skill": 35,
+        "speed": 30,
+        "defense": 25,
+        "resistance": 10,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AD90",
+      "sourceRecordHex": "d5077d052d2f2900af003313060505070009073c14141414141403502d231e190a190000030800000033000000000000182b660812c9600811ca600844ca600877ca600800000000"
+    },
+    "46": {
+      "id": 46,
+      "symbol": "JID_WYVERNLORD",
+      "nameTextId": 2006,
+      "baseStats": {
+        "hp": 25,
+        "power": 9,
+        "skill": 5,
+        "speed": 7,
+        "defense": 10,
+        "resistance": 1,
+        "constitution": 11,
+        "movement": 8
+      },
+      "growthRates": {
+        "hp": 75,
+        "power": 40,
+        "skill": 30,
+        "speed": 20,
+        "defense": 20,
+        "resistance": 7,
+        "luck": 20
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860ADD8",
+      "sourceRecordHex": "d6078a052e2c2a00b00034190905070a010b083c1a1a171e1615034b281e141407140000030900000165000000000000242b660812c9600811ca600844ca600877ca600800000000"
+    },
+    "49": {
+      "id": 49,
+      "symbol": "JID_BRIGAND",
+      "nameTextId": 2009,
+      "baseStats": {
+        "hp": 20,
+        "power": 5,
+        "skill": 1,
+        "speed": 5,
+        "defense": 3,
+        "resistance": 0,
+        "constitution": 12,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 82,
+        "power": 50,
+        "skill": 30,
+        "speed": 20,
+        "defense": 10,
+        "resistance": 10,
+        "luck": 15
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AEB0",
+      "sourceRecordHex": "d907770531332c00b200111405010503000c053c1414141414140352321e140a0a0f0000000000000000330000000000502b660847c7600878c96008abc96008dec96008aaca6008"
+    },
+    "51": {
+      "id": 51,
+      "symbol": "JID_BERSERKER",
+      "nameTextId": 2011,
+      "baseStats": {
+        "hp": 24,
+        "power": 7,
+        "skill": 6,
+        "speed": 7,
+        "defense": 6,
+        "resistance": 0,
+        "constitution": 13,
+        "movement": 6
+      },
+      "growthRates": {
+        "hp": 58,
+        "power": 35,
+        "skill": 25,
+        "speed": 12,
+        "defense": 10,
+        "resistance": 10,
+        "luck": 15
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": 2,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860AF40",
+      "sourceRecordHex": "db07840533312e00b400131807060706000d063c1e181c161814033a23190c0a0a0f0000400100000000650000000000782b660814c7600878c96008abc96008dec9600810cb6008"
+    },
+    "56": {
+      "id": 56,
+      "symbol": "JID_MANAKETE",
+      "nameTextId": 2016,
+      "baseStats": {
+        "hp": 20,
+        "power": 0,
+        "skill": 0,
+        "speed": 2,
+        "defense": 1,
+        "resistance": 1,
+        "constitution": 5,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 95,
+        "power": 40,
+        "skill": 30,
+        "speed": 20,
+        "defense": 0,
+        "resistance": 10,
+        "luck": 25
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860B0A8",
+      "sourceRecordHex": "e0078c0538443301b6000014000002010105053c141414141414035f281e14000a190000000104000000000000000000b42b660845c9600878c96008abc96008dec9600800000000"
+    },
+    "66": {
+      "id": 66,
+      "symbol": "JID_SUPPLY",
+      "nameTextId": 2026,
+      "baseStats": {
+        "hp": 15,
+        "power": 0,
+        "skill": 3,
+        "speed": 3,
+        "defense": 3,
+        "resistance": 0,
+        "constitution": 25,
+        "movement": 5
+      },
+      "growthRates": {
+        "hp": 10,
+        "power": 0,
+        "skill": 0,
+        "speed": 0,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 0
+      },
+      "normalTerrainRules": {
+        "1": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "2": {
+          "movementCost": 1,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "5": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "6": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "7": {
+          "movementCost": 1,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "11": {
+          "movementCost": 1,
+          "avoid": 20,
+          "defense": 3,
+          "resistance": 0
+        },
+        "12": {
+          "movementCost": 2,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "14": {
+          "movementCost": 1,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "15": {
+          "movementCost": 2,
+          "avoid": 5,
+          "defense": 0,
+          "resistance": 0
+        },
+        "21": {
+          "movementCost": null,
+          "avoid": 10,
+          "defense": 0,
+          "resistance": 0
+        },
+        "26": {
+          "movementCost": null,
+          "avoid": 20,
+          "defense": 1,
+          "resistance": 0
+        },
+        "38": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        },
+        "44": {
+          "movementCost": null,
+          "avoid": 0,
+          "defense": 0,
+          "resistance": 0
+        }
+      },
+      "missingRuleTables": [],
+      "sourceAddress": "0x0860B378",
+      "sourceRecordHex": "ea078f0542003d015400360f000303030019053c141414141419010a00000000000000000306000000000000000000000000000013c8600878c96008abc96008dec9600800000000"
+    }
+  },
+  "characterCatalog": {
+    "1": {
+      "id": 1,
+      "symbol": "PID_ROY",
+      "nameTextId": 2028,
+      "baseStats": {
+        "hp": 0,
+        "power": 2,
+        "skill": 2,
+        "speed": 3,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 7
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 40,
+        "skill": 50,
+        "speed": 40,
+        "defense": 25,
+        "resistance": 30,
+        "luck": 60
+      },
+      "sourceAddress": "0x086076D0",
+      "sourceRecordHex": "ec07b90401010200000101010002020300000700000000000000000050283228191e3c01010000000000000098206608"
+    },
+    "2": {
+      "id": 2,
+      "symbol": "PID_CLARINE",
+      "nameTextId": 2029,
+      "baseStats": {
+        "hp": 0,
+        "power": 1,
+        "skill": 4,
+        "speed": 6,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 8
+      },
+      "growthRates": {
+        "hp": 40,
+        "power": 30,
+        "skill": 40,
+        "speed": 50,
+        "defense": 10,
+        "resistance": 40,
+        "luck": 65
+      },
+      "sourceAddress": "0x08607700",
+      "sourceRecordHex": "ed07ba040224030000020f0100010406000008000000000000000000281e28320a2841484900000000400000b8206608"
+    },
+    "9": {
+      "id": 9,
+      "symbol": "PID_BORS",
+      "nameTextId": 2036,
+      "baseStats": {
+        "hp": 3,
+        "power": 2,
+        "skill": 2,
+        "speed": 3,
+        "defense": 2,
+        "resistance": 0,
+        "luck": 4
+      },
+      "growthRates": {
+        "hp": 90,
+        "power": 30,
+        "skill": 30,
+        "speed": 40,
+        "defense": 35,
+        "resistance": 10,
+        "luck": 50
+      },
+      "sourceAddress": "0x08607850",
+      "sourceRecordHex": "f407c004090c090000030601030202030200040100650000000000005a1e1e28230a3206510000000000400078216608"
+    },
+    "13": {
+      "id": 13,
+      "symbol": "PID_WOLT",
+      "nameTextId": 2040,
+      "baseStats": {
+        "hp": 0,
+        "power": 0,
+        "skill": 1,
+        "speed": 2,
+        "defense": 1,
+        "resistance": 0,
+        "luck": 2
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 40,
+        "skill": 50,
+        "speed": 40,
+        "defense": 20,
+        "resistance": 10,
+        "luck": 40
+      },
+      "sourceAddress": "0x08607910",
+      "sourceRecordHex": "f807c3040d100b00000405010000010201000200000000000000000050283228140a28024000000000000000d8216608"
+    },
+    "14": {
+      "id": 14,
+      "symbol": "PID_DOROTHY",
+      "nameTextId": 2041,
+      "baseStats": {
+        "hp": 2,
+        "power": 2,
+        "skill": 3,
+        "speed": 2,
+        "defense": 1,
+        "resistance": 2,
+        "luck": 3
+      },
+      "growthRates": {
+        "hp": 85,
+        "power": 50,
+        "skill": 45,
+        "speed": 45,
+        "defense": 15,
+        "resistance": 15,
+        "luck": 35
+      },
+      "sourceAddress": "0x08607940",
+      "sourceRecordHex": "f907c4040e110c00000112030202030201020301000000000000000055322d2d0f0f23033d00000000400000f8216608"
+    },
+    "28": {
+      "id": 28,
+      "symbol": "PID_LANCE",
+      "nameTextId": 2055,
+      "baseStats": {
+        "hp": 0,
+        "power": 0,
+        "skill": 4,
+        "speed": 3,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 2
+      },
+      "growthRates": {
+        "hp": 80,
+        "power": 40,
+        "skill": 45,
+        "speed": 50,
+        "defense": 20,
+        "resistance": 15,
+        "luck": 35
+      },
+      "sourceAddress": "0x08607BE0",
+      "sourceRecordHex": "0708d1041c201900000704010000040300000200000000000000000050282d32140f23372a0000000000000098236608"
+    },
+    "31": {
+      "id": 31,
+      "symbol": "PID_MARCUS",
+      "nameTextId": 2058,
+      "baseStats": {
+        "hp": 9,
+        "power": 2,
+        "skill": 10,
+        "speed": 4,
+        "defense": 1,
+        "resistance": 5,
+        "luck": 10
+      },
+      "growthRates": {
+        "hp": 60,
+        "power": 25,
+        "skill": 20,
+        "speed": 25,
+        "defense": 15,
+        "resistance": 20,
+        "luck": 20
+      },
+      "sourceAddress": "0x08607C70",
+      "sourceRecordHex": "0a08d4041f221c000004020109020a0401050a0000c90000000000003c1914190f1414002b00000000000000f8236608"
+    },
+    "49": {
+      "id": 49,
+      "symbol": "PID_SHANNA",
+      "nameTextId": 2076,
+      "baseStats": {
+        "hp": 3,
+        "power": 0,
+        "skill": 1,
+        "speed": 7,
+        "defense": 3,
+        "resistance": 3,
+        "luck": 5
+      },
+      "growthRates": {
+        "hp": 45,
+        "power": 30,
+        "skill": 55,
+        "speed": 60,
+        "defense": 10,
+        "resistance": 25,
+        "luck": 60
+      },
+      "sourceAddress": "0x08607FD0",
+      "sourceRecordHex": "1c08e104312a290000030c0103000107030305ff00000000000000002d1e373c0a193c31170000000040200098256608"
+    },
+    "54": {
+      "id": 54,
+      "symbol": "PID_SOPHIA",
+      "nameTextId": 2081,
+      "baseStats": {
+        "hp": 0,
+        "power": 3,
+        "skill": 1,
+        "speed": 3,
+        "defense": 0,
+        "resistance": 3,
+        "luck": 3
+      },
+      "growthRates": {
+        "hp": 60,
+        "power": 55,
+        "skill": 40,
+        "speed": 30,
+        "defense": 20,
+        "resistance": 55,
+        "luck": 20
+      },
+      "sourceAddress": "0x086080C0",
+      "sourceRecordHex": "2108e604361d2d0000052b01000301030003030000000000000000653c37281e143714415f0000000040000018266608"
+    },
+    "55": {
+      "id": 55,
+      "symbol": "PID_MELADY",
+      "nameTextId": 2082,
+      "baseStats": {
+        "hp": 11,
+        "power": 6,
+        "skill": 6,
+        "speed": 5,
+        "defense": 6,
+        "resistance": 3,
+        "luck": 5
+      },
+      "growthRates": {
+        "hp": 75,
+        "power": 50,
+        "skill": 50,
+        "speed": 45,
+        "defense": 20,
+        "resistance": 5,
+        "luck": 25
+      },
+      "sourceAddress": "0x086080F0",
+      "sourceRecordHex": "2208e704372d2e000005280a0b0606050603050000650000000000004b32322d140519135c0000000040000038266608"
+    },
+    "61": {
+      "id": 61,
+      "symbol": "PID_ECHIDNA",
+      "nameTextId": 2088,
+      "baseStats": {
+        "hp": 13,
+        "power": 7,
+        "skill": 9,
+        "speed": 7,
+        "defense": 2,
+        "resistance": 4,
+        "luck": 6
+      },
+      "growthRates": {
+        "hp": 75,
+        "power": 30,
+        "skill": 25,
+        "speed": 30,
+        "defense": 15,
+        "resistance": 15,
+        "luck": 20
+      },
+      "sourceAddress": "0x08608210",
+      "sourceRecordHex": "2808ec043d053300000424010d0709070204060000009700000000004b1e191e0f0f14000d00000000400000d8266608"
+    },
+    "63": {
+      "id": 63,
+      "symbol": "PID_CECILIA",
+      "nameTextId": 2090,
+      "baseStats": {
+        "hp": 11,
+        "power": 7,
+        "skill": 4,
+        "speed": 5,
+        "defense": 3,
+        "resistance": 5,
+        "luck": 10
+      },
+      "growthRates": {
+        "hp": 60,
+        "power": 35,
+        "skill": 45,
+        "speed": 25,
+        "defense": 20,
+        "resistance": 25,
+        "luck": 25
+      },
+      "sourceAddress": "0x08608270",
+      "sourceRecordHex": "2a08ed043f25340000072a010b07040503050a000000000000c900003c232d19141919004a00000000400000f8266608"
+    },
+    "66": {
+      "id": 66,
+      "symbol": "PID_MERLINUS",
+      "nameTextId": 2093,
+      "baseStats": {
+        "hp": 0,
+        "power": 0,
+        "skill": 0,
+        "speed": 0,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 10
+      },
+      "growthRates": {
+        "hp": 100,
+        "power": 0,
+        "skill": 50,
+        "speed": 50,
+        "defense": 20,
+        "resistance": 5,
+        "luck": 100
+      },
+      "sourceAddress": "0x08608300",
+      "sourceRecordHex": "2d08ef0442425400000507010000000000000a0000000000000000006400323214056400000000000000000000000000"
+    },
+    "90": {
+      "id": 90,
+      "symbol": "PID_UNKNOWN_5A",
+      "nameTextId": 2113,
+      "baseStats": {
+        "hp": 18,
+        "power": 9,
+        "skill": 11,
+        "speed": 6,
+        "defense": 3,
+        "resistance": 3,
+        "luck": 8
+      },
+      "growthRates": {
+        "hp": 85,
+        "power": 50,
+        "skill": 10,
+        "speed": 10,
+        "defense": 10,
+        "resistance": 5,
+        "luck": 30
+      },
+      "sourceAddress": "0x08608780",
+      "sourceRecordHex": "410802055a04c9000000000a12090b0603030802c90000000000000055320a0a0a051e00000000000080000000000000"
+    },
+    "91": {
+      "id": 91,
+      "symbol": "PID_UNKNOWN_5B",
+      "nameTextId": 2114,
+      "baseStats": {
+        "hp": 15,
+        "power": 6,
+        "skill": 4,
+        "speed": 2,
+        "defense": 3,
+        "resistance": 0,
+        "luck": 7
+      },
+      "growthRates": {
+        "hp": 85,
+        "power": 50,
+        "skill": 10,
+        "speed": 10,
+        "defense": 10,
+        "resistance": 5,
+        "luck": 30
+      },
+      "sourceAddress": "0x086087B0",
+      "sourceRecordHex": "420803055b33d100000000060f06040203000701000000000000000055320a0a0a051e00000000000080000000000000"
+    },
+    "92": {
+      "id": 92,
+      "symbol": "PID_UNKNOWN_5C",
+      "nameTextId": 2115,
+      "baseStats": {
+        "hp": 14,
+        "power": 7,
+        "skill": 5,
+        "speed": 3,
+        "defense": 2,
+        "resistance": 1,
+        "luck": 4
+      },
+      "growthRates": {
+        "hp": 85,
+        "power": 50,
+        "skill": 10,
+        "speed": 10,
+        "defense": 10,
+        "resistance": 5,
+        "luck": 30
+      },
+      "sourceAddress": "0x086087E0",
+      "sourceRecordHex": "430804055c33d200000000050e07050302010401000000000000000055320a0a0a051e00000000000080000000000000"
+    },
+    "136": {
+      "id": 136,
+      "symbol": "PID_UNKNOWN_88",
+      "nameTextId": 2159,
+      "baseStats": {
+        "hp": 0,
+        "power": 0,
+        "skill": 0,
+        "speed": 0,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 0
+      },
+      "growthRates": {
+        "hp": 60,
+        "power": 20,
+        "skill": 30,
+        "speed": 35,
+        "defense": 15,
+        "resistance": 5,
+        "luck": 25
+      },
+      "sourceAddress": "0x08609020",
+      "sourceRecordHex": "6f083d058834000003000003000000000000000000000000000000003c141e230f051900000000000000000000000000"
+    },
+    "137": {
+      "id": 137,
+      "symbol": "PID_UNKNOWN_89",
+      "nameTextId": 2160,
+      "baseStats": {
+        "hp": 0,
+        "power": 0,
+        "skill": 0,
+        "speed": 0,
+        "defense": 0,
+        "resistance": 0,
+        "luck": 0
+      },
+      "growthRates": {
+        "hp": 60,
+        "power": 20,
+        "skill": 30,
+        "speed": 35,
+        "defense": 15,
+        "resistance": 5,
+        "luck": 25
+      },
+      "sourceAddress": "0x08609050",
+      "sourceRecordHex": "70083e058934000006000003000000000000000000000000000000003c141e230f051900000000000000000000000000"
+    },
+    "176": {
+      "id": 176,
+      "symbol": "PID_COMMON_MANAKETE",
+      "nameTextId": 2198,
+      "baseStats": {
+        "hp": 5,
+        "power": 0,
+        "skill": 0,
+        "speed": 0,
+        "defense": 2,
+        "resistance": 2,
+        "luck": 0
+      },
+      "growthRates": {
+        "hp": 60,
+        "power": 20,
+        "skill": 30,
+        "speed": 35,
+        "defense": 15,
+        "resistance": 5,
+        "luck": 25
+      },
+      "sourceAddress": "0x086097A0",
+      "sourceRecordHex": "96086405b034000003000003050000000202000000000000000000003c141e230f051900000000000000000000000000"
+    }
+  },
+  "itemCatalog": {
+    "1": {
+      "id": 1,
+      "symbol": "IID_IRONSWORD",
+      "nameTextId": 1832,
+      "sourceAddress": "0x0860B668",
+      "sourceRecordHex": "2807ad05000001000100000000000000000000002e05550500110a0001000000"
+    },
+    "3": {
+      "id": 3,
+      "symbol": "IID_STEELSWORD",
+      "nameTextId": 1834,
+      "sourceAddress": "0x0860B6A8",
+      "sourceRecordHex": "2a07af05000003000100000000000000000000001e08460a0011140033020000"
+    },
+    "4": {
+      "id": 4,
+      "symbol": "IID_SILVERSWORD",
+      "nameTextId": 1836,
+      "sourceAddress": "0x0860B6C8",
+      "sourceRecordHex": "2c07b10500000400010000000000000000000000140d4b0800114b00c9030000"
+    },
+    "8": {
+      "id": 8,
+      "symbol": "IID_LIGHTBRAND",
+      "nameTextId": 1841,
+      "sourceAddress": "0x0860B748",
+      "sourceRecordHex": "3107b60500000800410000000000000000000000190946090012320065070000"
+    },
+    "10": {
+      "id": 10,
+      "symbol": "IID_ARMORSLAYER",
+      "nameTextId": 1843,
+      "sourceAddress": "0x0860B788",
+      "sourceRecordHex": "3307b80500000a000100000000000000c11566081208550b0011460033090000"
+    },
+    "11": {
+      "id": 11,
+      "symbol": "IID_RAPIER",
+      "nameTextId": 1844,
+      "sourceAddress": "0x0860B7A8",
+      "sourceRecordHex": "3407b90500000b000108000000000000c615660819055f050a115000010a0000"
+    },
+    "12": {
+      "id": 12,
+      "symbol": "IID_KILLINGEDGE",
+      "nameTextId": 1845,
+      "sourceAddress": "0x0860B7C8",
+      "sourceRecordHex": "3507ba0500000c00010000000000000000000000140950071e114100650b0000"
+    },
+    "16": {
+      "id": 16,
+      "symbol": "IID_IRONLANCE",
+      "nameTextId": 1849,
+      "sourceAddress": "0x0860B848",
+      "sourceRecordHex": "3907be05000010010100000000000000000000002d07460800110800010f0000"
+    },
+    "17": {
+      "id": 17,
+      "symbol": "IID_STEELLANCE",
+      "nameTextId": 1850,
+      "sourceAddress": "0x0860B868",
+      "sourceRecordHex": "3a07bf05000011010100000000000000000000001e0a370d0011100033100000"
+    },
+    "18": {
+      "id": 18,
+      "symbol": "IID_SILVERLANCE",
+      "nameTextId": 1851,
+      "sourceAddress": "0x0860B888",
+      "sourceRecordHex": "3b07c00500001201010000000000000000000000140e410a00113c00c9110000"
+    },
+    "19": {
+      "id": 19,
+      "symbol": "IID_SLIMLANCE",
+      "nameTextId": 1852,
+      "sourceAddress": "0x0860B8A8",
+      "sourceRecordHex": "3c07c105000013010100000000000000000000001e04500405110f0001120000"
+    },
+    "22": {
+      "id": 22,
+      "symbol": "IID_JAVELIN",
+      "nameTextId": 1855,
+      "sourceAddress": "0x0860B908",
+      "sourceRecordHex": "3f07c405000016010100000000000000000000001406370b0012140001150000"
+    },
+    "24": {
+      "id": 24,
+      "symbol": "IID_HORSESLAYER",
+      "nameTextId": 1857,
+      "sourceAddress": "0x0860B948",
+      "sourceRecordHex": "4107c605000018010100000000000000bc156608100b4b0d0011410033170000"
+    },
+    "28": {
+      "id": 28,
+      "symbol": "IID_STEELAXE",
+      "nameTextId": 1861,
+      "sourceAddress": "0x0860B9C8",
+      "sourceRecordHex": "4507ca0500001c020100000000000000000000001e0b320f00110c00011b0000"
+    },
+    "30": {
+      "id": 30,
+      "symbol": "IID_POISONAXE",
+      "nameTextId": 1863,
+      "sourceAddress": "0x0860BA08",
+      "sourceRecordHex": "4707cc0500001e020100000000000000000000002804320a00110000331d0001"
+    },
+    "31": {
+      "id": 31,
+      "symbol": "IID_BRAVEAXE",
+      "nameTextId": 1864,
+      "sourceAddress": "0x0860BA28",
+      "sourceRecordHex": "4807cd0500001f022100000000000000000000001e0a371000114b00971e0000"
+    },
+    "32": {
+      "id": 32,
+      "symbol": "IID_HANDAXE",
+      "nameTextId": 1865,
+      "sourceAddress": "0x0860BA48",
+      "sourceRecordHex": "4907ce05000020020100000000000000000000001407320c00120f00011f0000"
+    },
+    "35": {
+      "id": 35,
+      "symbol": "IID_KILLERAXE",
+      "nameTextId": 1868,
+      "sourceAddress": "0x0860BAA8",
+      "sourceRecordHex": "4c07d10500002302010000000000000000000000140b410b1e11320065220000"
+    },
+    "37": {
+      "id": 37,
+      "symbol": "IID_DEVILAXE",
+      "nameTextId": 1870,
+      "sourceAddress": "0x0860BAE8",
+      "sourceRecordHex": "4e07d305000025020100000000000000000000001412371200112d0001240004"
+    },
+    "38": {
+      "id": 38,
+      "symbol": "IID_HALBERD",
+      "nameTextId": 1871,
+      "sourceAddress": "0x0860BB08",
+      "sourceRecordHex": "4f07d405000026020100000000000000bc156608120a370f00112d0033250000"
+    },
+    "39": {
+      "id": 39,
+      "symbol": "IID_IRONBOW",
+      "nameTextId": 1872,
+      "sourceAddress": "0x0860BB28",
+      "sourceRecordHex": "5007d505000027030100000000000000db1566082d06500500220c0001260000"
+    },
+    "40": {
+      "id": 40,
+      "symbol": "IID_STEELBOW",
+      "nameTextId": 1873,
+      "sourceAddress": "0x0860BB48",
+      "sourceRecordHex": "5107d605000028030100000000000000db1566081e0941090022180033270000"
+    },
+    "41": {
+      "id": 41,
+      "symbol": "IID_SILVERBOW",
+      "nameTextId": 1874,
+      "sourceAddress": "0x0860BB68",
+      "sourceRecordHex": "5207d705000029030100000000000000db156608140d460600225000c9280000"
+    },
+    "43": {
+      "id": 43,
+      "symbol": "IID_KILLERBOW",
+      "nameTextId": 1876,
+      "sourceAddress": "0x0860BBA8",
+      "sourceRecordHex": "5407d90500002b030100000000000000db156608140950071e224600652a0000"
+    },
+    "52": {
+      "id": 52,
+      "symbol": "IID_THUNDER",
+      "nameTextId": 1885,
+      "sourceAddress": "0x0860BCC8",
+      "sourceRecordHex": "5d07e20500003405030000000000000000000000190650020512140033320000"
+    },
+    "54": {
+      "id": 54,
+      "symbol": "IID_ELFIRE",
+      "nameTextId": 1887,
+      "sourceAddress": "0x0860BD08",
+      "sourceRecordHex": "5f07e4050000360503000000000000000000000014084b040012280065340000"
+    },
+    "55": {
+      "id": 55,
+      "symbol": "IID_AIRCALIBUR",
+      "nameTextId": 1888,
+      "sourceAddress": "0x0860BD28",
+      "sourceRecordHex": "6007e505000037050300000000000000db156608140855020012370097350000"
+    },
+    "59": {
+      "id": 59,
+      "symbol": "IID_LIGHTNING",
+      "nameTextId": 1892,
+      "sourceAddress": "0x0860BDA8",
+      "sourceRecordHex": "6407e90500003b060300000000000000000000001e054b010012120001390000"
+    },
+    "63": {
+      "id": 63,
+      "symbol": "IID_FLUX",
+      "nameTextId": 1896,
+      "sourceAddress": "0x0860BE28",
+      "sourceRecordHex": "6807ed0500003f070300000000000000000000001e08460500121a00333d0000"
+    },
+    "67": {
+      "id": 67,
+      "symbol": "IID_HEALSTAFF",
+      "nameTextId": 1901,
+      "sourceAddress": "0x0860BEA8",
+      "sourceRecordHex": "6d07f2056e0643040400000000000000000000001e0064020011140001410200"
+    },
+    "68": {
+      "id": 68,
+      "symbol": "IID_MENDSTAFF",
+      "nameTextId": 1902,
+      "sourceAddress": "0x0860BEC8",
+      "sourceRecordHex": "6e07f3056f064404040000000000000000000000140064040011320033420300"
+    },
+    "69": {
+      "id": 69,
+      "symbol": "IID_RECOVERSTAFF",
+      "nameTextId": 1903,
+      "sourceAddress": "0x0860BEE8",
+      "sourceRecordHex": "6f07f405700645040400000000000000000000000f0064060011960065430400"
+    },
+    "74": {
+      "id": 74,
+      "symbol": "IID_RESTORESTAFF",
+      "nameTextId": 1908,
+      "sourceAddress": "0x0860BF88",
+      "sourceRecordHex": "7407f90575064a040400000000000000000000000a0064040011c80065480900"
+    },
+    "75": {
+      "id": 75,
+      "symbol": "IID_SILENCESTAFF",
+      "nameTextId": 1909,
+      "sourceAddress": "0x0860BFA8",
+      "sourceRecordHex": "7507fa0576064b04040000000000000000000000030046070010900197490a00"
+    },
+    "76": {
+      "id": 76,
+      "symbol": "IID_SLEEPSTAFF",
+      "nameTextId": 1910,
+      "sourceAddress": "0x0860BFC8",
+      "sourceRecordHex": "7607fb0577064c04040000000000000000000000030041080010f401974a0b00"
+    },
+    "77": {
+      "id": 77,
+      "symbol": "IID_TORCHSTAFF",
+      "nameTextId": 1911,
+      "sourceAddress": "0x0860BFE8",
+      "sourceRecordHex": "7707fc0578064d040400000000000000000000000a00640500116400334b0c00"
+    },
+    "80": {
+      "id": 80,
+      "symbol": "IID_BERSERKSTAFF",
+      "nameTextId": 1914,
+      "sourceAddress": "0x0860C048",
+      "sourceRecordHex": "7a07ff057b06500404000000000000000000000003003c0800105802974e0f00"
+    },
+    "83": {
+      "id": 83,
+      "symbol": "IID_FIRESTONE",
+      "nameTextId": 1917,
+      "sourceAddress": "0x0860C0A8",
+      "sourceRecordHex": "7d0702067f06530b090400009827660800000000000f64000511000000510000"
+    },
+    "100": {
+      "id": 100,
+      "symbol": "IID_CHESTKEY",
+      "nameTextId": 1934,
+      "sourceAddress": "0x0860C2C8",
+      "sourceRecordHex": "8e071306900664090000000000000000000000000500000000112c0100622000"
+    },
+    "101": {
+      "id": 101,
+      "symbol": "IID_DOORKEY",
+      "nameTextId": 1935,
+      "sourceAddress": "0x0860C2E8",
+      "sourceRecordHex": "8f07140691066509000000000000000000000000010000000011320000632100"
+    },
+    "104": {
+      "id": 104,
+      "symbol": "IID_VULNERARY",
+      "nameTextId": 1938,
+      "sourceAddress": "0x0860C348",
+      "sourceRecordHex": "9207170694066809000000000000000000000000030000000011640000662400"
+    }
+  },
+  "unitGroups": [
+    {
+      "id": "group-67e13c",
+      "sourceAddress": "0x0867E13C",
+      "references": [
+        {
+          "kind": "turn:0",
+          "instruction": "0x0866FC94"
+        },
+        {
+          "kind": "deployment-table",
+          "slot": 5,
+          "variant": "default"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 1,
+          "characterSymbol": "PID_ROY",
+          "classId": 1,
+          "effectiveClassId": 1,
+          "classSymbol": "JID_ROY",
+          "leaderId": 0,
+          "faction": "player",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            14
+          ],
+          "position": [
+            8,
+            14
+          ],
+          "route": [],
+          "itemIds": [
+            11,
+            1,
+            101,
+            4
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E13C",
+          "sourceRecordHex": "01010079080e080e0b01650400000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 31,
+          "characterSymbol": "PID_MARCUS",
+          "classId": 34,
+          "effectiveClassId": 34,
+          "classSymbol": "JID_PALADIN",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 9,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            13
+          ],
+          "position": [
+            9,
+            13
+          ],
+          "route": [],
+          "itemIds": [
+            18,
+            1,
+            16,
+            24
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E14C",
+          "sourceRecordHex": "1f220149090d090d1201101800000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 28,
+          "characterSymbol": "PID_LANCE",
+          "classId": 32,
+          "effectiveClassId": 32,
+          "classSymbol": "JID_CAVALIER",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            15
+          ],
+          "position": [
+            9,
+            15
+          ],
+          "route": [],
+          "itemIds": [
+            3,
+            16,
+            22,
+            18
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E15C",
+          "sourceRecordHex": "1c200189090f090f0310161200000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 3,
+          "characterId": 9,
+          "characterSymbol": "PID_BORS",
+          "classId": 12,
+          "effectiveClassId": 12,
+          "classSymbol": "JID_ARMOR",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 13,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            15
+          ],
+          "position": [
+            7,
+            15
+          ],
+          "route": [],
+          "itemIds": [
+            16,
+            22,
+            18,
+            100
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E16C",
+          "sourceRecordHex": "090c0169070f070f1016126400000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 4,
+          "characterId": 13,
+          "characterSymbol": "PID_WOLT",
+          "classId": 16,
+          "effectiveClassId": 16,
+          "classSymbol": "JID_ARCHER",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 20,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            13
+          ],
+          "position": [
+            7,
+            13
+          ],
+          "route": [],
+          "itemIds": [
+            39,
+            41,
+            40,
+            43
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E17C",
+          "sourceRecordHex": "0d1001a1070d070d2729282b00000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 5,
+          "characterId": 61,
+          "characterSymbol": "PID_ECHIDNA",
+          "classId": 5,
+          "effectiveClassId": 5,
+          "classSymbol": "JID_HERO_F",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 4,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            12
+          ],
+          "position": [
+            8,
+            12
+          ],
+          "route": [],
+          "itemIds": [
+            31,
+            1,
+            10,
+            3
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E18C",
+          "sourceRecordHex": "3d050121080c080c1f010a0300000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 6,
+          "characterId": 49,
+          "characterSymbol": "PID_SHANNA",
+          "classId": 42,
+          "effectiveClassId": 42,
+          "classSymbol": "JID_PEGASUSKNIGHT",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            10,
+            14
+          ],
+          "position": [
+            10,
+            14
+          ],
+          "route": [],
+          "itemIds": [
+            19,
+            22,
+            18,
+            104
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E19C",
+          "sourceRecordHex": "312a01890a0e0a0e1316126800000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 7,
+          "characterId": 2,
+          "characterSymbol": "PID_CLARINE",
+          "classId": 36,
+          "effectiveClassId": 36,
+          "classSymbol": "JID_TROUBADOUR",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 18,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            16
+          ],
+          "position": [
+            8,
+            16
+          ],
+          "route": [],
+          "itemIds": [
+            67,
+            80,
+            74,
+            77
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E1AC",
+          "sourceRecordHex": "022401910810081043504a4d00000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 8,
+          "characterId": 55,
+          "characterSymbol": "PID_MELADY",
+          "classId": 45,
+          "effectiveClassId": 45,
+          "classSymbol": "JID_WYVERNRIDER_F",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 10,
+          "autolevel": true,
+          "entryPosition": [
+            6,
+            14
+          ],
+          "position": [
+            6,
+            14
+          ],
+          "route": [],
+          "itemIds": [
+            17,
+            22,
+            16,
+            104
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E1BC",
+          "sourceRecordHex": "372d0151060e060e1116106800000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 9,
+          "characterId": 14,
+          "characterSymbol": "PID_DOROTHY",
+          "classId": 17,
+          "effectiveClassId": 17,
+          "classSymbol": "JID_ARCHER_F",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 18,
+          "autolevel": true,
+          "entryPosition": [
+            6,
+            12
+          ],
+          "position": [
+            6,
+            12
+          ],
+          "route": [],
+          "itemIds": [
+            39,
+            41,
+            40,
+            77
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E1CC",
+          "sourceRecordHex": "0e110191060c060c2729284d00000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 10,
+          "characterId": 66,
+          "characterSymbol": "PID_MERLINUS",
+          "classId": 66,
+          "effectiveClassId": 66,
+          "classSymbol": "JID_SUPPLY",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            6,
+            16
+          ],
+          "position": [
+            6,
+            16
+          ],
+          "route": [],
+          "itemIds": [
+            1,
+            16,
+            22,
+            74
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E1DC",
+          "sourceRecordHex": "42420108061006100110164a00000000",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e1fc",
+      "sourceAddress": "0x0867E1FC",
+      "references": [
+        {
+          "kind": "turn:0",
+          "instruction": "0x0866FCB4"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 63,
+          "characterSymbol": "PID_CECILIA",
+          "classId": 37,
+          "effectiveClassId": 37,
+          "classSymbol": "JID_VALKYRIE",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            10,
+            13
+          ],
+          "position": [
+            10,
+            12
+          ],
+          "route": [],
+          "itemIds": [
+            55,
+            68
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E1FC",
+          "sourceRecordHex": "3f2501080a0d0a0c3744000000000000",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 54,
+          "characterSymbol": "PID_SOPHIA",
+          "classId": 29,
+          "effectiveClassId": 29,
+          "classSymbol": "JID_SHAMAN_F",
+          "leaderId": 1,
+          "faction": "player",
+          "level": 1,
+          "autolevel": false,
+          "entryPosition": [
+            9,
+            16
+          ],
+          "position": [
+            9,
+            17
+          ],
+          "route": [],
+          "itemIds": [
+            63
+          ],
+          "aiBytes": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E20C",
+          "sourceRecordHex": "361d0108091009113f00000000000000",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e22c",
+      "sourceAddress": "0x0867E22C",
+      "references": [
+        {
+          "kind": "enemy-table",
+          "slot": 4,
+          "variant": "default"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 90,
+          "characterSymbol": "PID_UNKNOWN_5A",
+          "classId": 4,
+          "effectiveClassId": 4,
+          "classSymbol": "JID_HERO",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 10,
+          "autolevel": false,
+          "entryPosition": [
+            27,
+            3
+          ],
+          "position": [
+            27,
+            3
+          ],
+          "route": [],
+          "itemIds": [
+            8
+          ],
+          "aiBytes": [
+            3,
+            3,
+            0,
+            32
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E22C",
+          "sourceRecordHex": "5a0400541b031b030800000003030020",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 4,
+          "effectiveClassId": 4,
+          "classSymbol": "JID_HERO",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 3,
+          "autolevel": true,
+          "entryPosition": [
+            19,
+            9
+          ],
+          "position": [
+            19,
+            9
+          ],
+          "route": [],
+          "itemIds": [
+            12
+          ],
+          "aiBytes": [
+            0,
+            6,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E23C",
+          "sourceRecordHex": "88045a1d130913090c00000000060a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            16,
+            7
+          ],
+          "position": [
+            16,
+            7
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E24C",
+          "sourceRecordHex": "88025a8d100710070300000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 3,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            6
+          ],
+          "position": [
+            15,
+            6
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E25C",
+          "sourceRecordHex": "88025a850f060f060300000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 4,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            8
+          ],
+          "position": [
+            15,
+            8
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E26C",
+          "sourceRecordHex": "88025a7d0f080f080300000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 5,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            17,
+            9
+          ],
+          "position": [
+            17,
+            9
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            0,
+            50,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E27C",
+          "sourceRecordHex": "88025a85110911090300000000003200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 6,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 4,
+          "effectiveClassId": 4,
+          "classSymbol": "JID_HERO",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 5,
+          "autolevel": true,
+          "entryPosition": [
+            27,
+            10
+          ],
+          "position": [
+            27,
+            10
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            6,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E28C",
+          "sourceRecordHex": "88045a2d1b0a1b0a0300000000060a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 7,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            25,
+            9
+          ],
+          "position": [
+            25,
+            9
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E29C",
+          "sourceRecordHex": "88025a7d190919090300000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 8,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            23,
+            9
+          ],
+          "position": [
+            23,
+            9
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            6,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E2AC",
+          "sourceRecordHex": "88025a85170917090300000000060a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 9,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            25,
+            11
+          ],
+          "position": [
+            25,
+            11
+          ],
+          "route": [],
+          "itemIds": [
+            3
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E2BC",
+          "sourceRecordHex": "88025a85190b190b0300000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 10,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 2,
+          "effectiveClassId": 2,
+          "classSymbol": "JID_MERCENARY",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            23,
+            11
+          ],
+          "position": [
+            23,
+            11
+          ],
+          "route": [],
+          "itemIds": [
+            10
+          ],
+          "aiBytes": [
+            0,
+            6,
+            50,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E2CC",
+          "sourceRecordHex": "88025a75170b170b0a00000000063200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 11,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 24,
+          "effectiveClassId": 24,
+          "classSymbol": "JID_MAGE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            28,
+            14
+          ],
+          "position": [
+            28,
+            14
+          ],
+          "route": [],
+          "itemIds": [
+            54
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E2DC",
+          "sourceRecordHex": "88185a7d1c0e1c0e3600000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 12,
+          "characterId": 176,
+          "characterSymbol": "PID_COMMON_MANAKETE",
+          "classId": 56,
+          "effectiveClassId": 56,
+          "classSymbol": "JID_MANAKETE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 2,
+          "autolevel": true,
+          "entryPosition": [
+            29,
+            14
+          ],
+          "position": [
+            29,
+            14
+          ],
+          "route": [],
+          "itemIds": [
+            83
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E2EC",
+          "sourceRecordHex": "b0385a151d0e1d0e5300000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 13,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 24,
+          "effectiveClassId": 24,
+          "classSymbol": "JID_MAGE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            29,
+            15
+          ],
+          "position": [
+            29,
+            15
+          ],
+          "route": [],
+          "itemIds": [
+            52
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E2FC",
+          "sourceRecordHex": "88185a751d0f1d0f3400000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 14,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 24,
+          "effectiveClassId": 24,
+          "classSymbol": "JID_MAGE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            15,
+            1
+          ],
+          "position": [
+            15,
+            1
+          ],
+          "route": [],
+          "itemIds": [
+            55
+          ],
+          "aiBytes": [
+            0,
+            6,
+            42,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E30C",
+          "sourceRecordHex": "88185a750f010f013700000000062a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 15,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 24,
+          "effectiveClassId": 24,
+          "classSymbol": "JID_MAGE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            11,
+            3
+          ],
+          "position": [
+            11,
+            3
+          ],
+          "route": [],
+          "itemIds": [
+            52
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E31C",
+          "sourceRecordHex": "88185a7d0b030b033400000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 16,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 24,
+          "effectiveClassId": 24,
+          "classSymbol": "JID_MAGE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            23,
+            20
+          ],
+          "position": [
+            23,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            54
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E32C",
+          "sourceRecordHex": "88185a7d171417143600000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 17,
+          "characterId": 176,
+          "characterSymbol": "PID_COMMON_MANAKETE",
+          "classId": 56,
+          "effectiveClassId": 56,
+          "classSymbol": "JID_MANAKETE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 3,
+          "autolevel": true,
+          "entryPosition": [
+            24,
+            20
+          ],
+          "position": [
+            24,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            83
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E33C",
+          "sourceRecordHex": "b0385a1d181418145300000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 18,
+          "characterId": 176,
+          "characterSymbol": "PID_COMMON_MANAKETE",
+          "classId": 56,
+          "effectiveClassId": 56,
+          "classSymbol": "JID_MANAKETE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 1,
+          "autolevel": true,
+          "entryPosition": [
+            5,
+            7
+          ],
+          "position": [
+            5,
+            7
+          ],
+          "route": [],
+          "itemIds": [
+            83
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E34C",
+          "sourceRecordHex": "b0385a0d050705075300000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 19,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 24,
+          "effectiveClassId": 24,
+          "classSymbol": "JID_MAGE",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            18,
+            16
+          ],
+          "position": [
+            18,
+            16
+          ],
+          "route": [],
+          "itemIds": [
+            52
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E35C",
+          "sourceRecordHex": "88185a7d121012103400000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 20,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 20,
+          "effectiveClassId": 20,
+          "classSymbol": "JID_PRIEST",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            24,
+            10
+          ],
+          "position": [
+            24,
+            10
+          ],
+          "route": [],
+          "itemIds": [
+            68,
+            75
+          ],
+          "aiBytes": [
+            14,
+            0,
+            17,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E36C",
+          "sourceRecordHex": "88145a8d180a180a444b00000e001100",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 21,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 20,
+          "effectiveClassId": 20,
+          "classSymbol": "JID_PRIEST",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            16,
+            8
+          ],
+          "position": [
+            16,
+            8
+          ],
+          "route": [],
+          "itemIds": [
+            69
+          ],
+          "aiBytes": [
+            14,
+            0,
+            17,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E37C",
+          "sourceRecordHex": "88145a8d10081008450000000e001100",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 22,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 22,
+          "effectiveClassId": 22,
+          "classSymbol": "JID_BISHOP",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 4,
+          "autolevel": true,
+          "entryPosition": [
+            28,
+            5
+          ],
+          "position": [
+            28,
+            5
+          ],
+          "route": [],
+          "itemIds": [
+            59,
+            68,
+            76
+          ],
+          "aiBytes": [
+            0,
+            0,
+            18,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E38C",
+          "sourceRecordHex": "88165a251c051c053b444c0000001200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 23,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 46,
+          "effectiveClassId": 46,
+          "classSymbol": "JID_WYVERNLORD",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 3,
+          "autolevel": true,
+          "entryPosition": [
+            4,
+            2
+          ],
+          "position": [
+            4,
+            2
+          ],
+          "route": [],
+          "itemIds": [
+            17
+          ],
+          "aiBytes": [
+            0,
+            3,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E39C",
+          "sourceRecordHex": "882e5a1d040204021100000000030200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 24,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 44,
+          "effectiveClassId": 44,
+          "classSymbol": "JID_WYVERNRIDER",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            3,
+            3
+          ],
+          "position": [
+            3,
+            3
+          ],
+          "route": [],
+          "itemIds": [
+            17
+          ],
+          "aiBytes": [
+            0,
+            3,
+            17,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E3AC",
+          "sourceRecordHex": "882c5a75030303031100000000031100",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 25,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 44,
+          "effectiveClassId": 44,
+          "classSymbol": "JID_WYVERNRIDER",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            5,
+            3
+          ],
+          "position": [
+            5,
+            3
+          ],
+          "route": [],
+          "itemIds": [
+            17
+          ],
+          "aiBytes": [
+            0,
+            3,
+            17,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E3BC",
+          "sourceRecordHex": "882c5a75050305031100000000031100",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 26,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 44,
+          "effectiveClassId": 44,
+          "classSymbol": "JID_WYVERNRIDER",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            4,
+            1
+          ],
+          "position": [
+            4,
+            1
+          ],
+          "route": [],
+          "itemIds": [
+            17,
+            22
+          ],
+          "aiBytes": [
+            0,
+            3,
+            18,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E3CC",
+          "sourceRecordHex": "882c5a75040104011116000000031200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 27,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 46,
+          "effectiveClassId": 46,
+          "classSymbol": "JID_WYVERNLORD",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 3,
+          "autolevel": true,
+          "entryPosition": [
+            29,
+            18
+          ],
+          "position": [
+            29,
+            18
+          ],
+          "route": [],
+          "itemIds": [
+            18
+          ],
+          "aiBytes": [
+            0,
+            6,
+            2,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E3DC",
+          "sourceRecordHex": "882e5a1d1d121d121200000000060200",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 28,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 44,
+          "effectiveClassId": 44,
+          "classSymbol": "JID_WYVERNRIDER",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            28,
+            19
+          ],
+          "position": [
+            28,
+            19
+          ],
+          "route": [],
+          "itemIds": [
+            17
+          ],
+          "aiBytes": [
+            0,
+            6,
+            17,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E3EC",
+          "sourceRecordHex": "882c5a751c131c131100000000061100",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 29,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 44,
+          "effectiveClassId": 44,
+          "classSymbol": "JID_WYVERNRIDER",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            28,
+            17
+          ],
+          "position": [
+            28,
+            17
+          ],
+          "route": [],
+          "itemIds": [
+            17
+          ],
+          "aiBytes": [
+            0,
+            6,
+            17,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E3FC",
+          "sourceRecordHex": "882c5a751c111c111100000000061100",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 30,
+          "characterId": 136,
+          "characterSymbol": "PID_UNKNOWN_88",
+          "classId": 44,
+          "effectiveClassId": 44,
+          "classSymbol": "JID_WYVERNRIDER",
+          "leaderId": 90,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            30,
+            18
+          ],
+          "position": [
+            30,
+            18
+          ],
+          "route": [],
+          "itemIds": [
+            17,
+            22
+          ],
+          "aiBytes": [
+            0,
+            6,
+            18,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E40C",
+          "sourceRecordHex": "882c5a751e121e121116000000061200",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e42c",
+      "sourceAddress": "0x0867E42C",
+      "references": [
+        {
+          "kind": "turn:1",
+          "instruction": "0x0866FCD8"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 91,
+          "characterSymbol": "PID_UNKNOWN_5B",
+          "classId": 51,
+          "effectiveClassId": 51,
+          "classSymbol": "JID_BERSERKER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 6,
+          "autolevel": true,
+          "entryPosition": [
+            1,
+            16
+          ],
+          "position": [
+            1,
+            18
+          ],
+          "route": [],
+          "itemIds": [
+            37
+          ],
+          "aiBytes": [
+            0,
+            0,
+            58,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E42C",
+          "sourceRecordHex": "5b330035011001122500000000003a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            2,
+            14
+          ],
+          "position": [
+            2,
+            16
+          ],
+          "route": [],
+          "itemIds": [
+            35
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E43C",
+          "sourceRecordHex": "89315b85020e02102300000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            2,
+            15
+          ],
+          "position": [
+            2,
+            17
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E44C",
+          "sourceRecordHex": "89315b8d020f02111c20000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e46c",
+      "sourceAddress": "0x0867E46C",
+      "references": [
+        {
+          "kind": "turn:1",
+          "instruction": "0x0866FCE4"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            2,
+            16
+          ],
+          "position": [
+            2,
+            18
+          ],
+          "route": [],
+          "itemIds": [
+            28
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E46C",
+          "sourceRecordHex": "89315b85021002121c00000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 15,
+          "autolevel": true,
+          "entryPosition": [
+            2,
+            17
+          ],
+          "position": [
+            2,
+            19
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E47C",
+          "sourceRecordHex": "89315b7d021102131c20000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e49c",
+      "sourceAddress": "0x0867E49C",
+      "references": [
+        {
+          "kind": "turn:1",
+          "instruction": "0x0866FCF0"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 92,
+          "characterSymbol": "PID_UNKNOWN_5C",
+          "classId": 51,
+          "effectiveClassId": 51,
+          "classSymbol": "JID_BERSERKER",
+          "leaderId": 0,
+          "faction": "enemy",
+          "level": 5,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            17
+          ],
+          "position": [
+            7,
+            21
+          ],
+          "route": [],
+          "itemIds": [
+            38
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E49C",
+          "sourceRecordHex": "5c33002d071107152600000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            6,
+            18
+          ],
+          "position": [
+            6,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            35
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E4AC",
+          "sourceRecordHex": "89315c85061206142300000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            18
+          ],
+          "position": [
+            7,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E4BC",
+          "sourceRecordHex": "89315c85071207141c20000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e4dc",
+      "sourceAddress": "0x0867E4DC",
+      "references": [
+        {
+          "kind": "turn:1",
+          "instruction": "0x0866FCFC"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            18
+          ],
+          "position": [
+            8,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            28
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E4DC",
+          "sourceRecordHex": "89315c8d081208141c00000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 14,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            18
+          ],
+          "position": [
+            9,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E4EC",
+          "sourceRecordHex": "89315c75091209141c20000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e50c",
+      "sourceAddress": "0x0867E50C",
+      "references": [
+        {
+          "kind": "turn:2",
+          "instruction": "0x0867E6C0"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            15
+          ],
+          "position": [
+            0,
+            16
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E50C",
+          "sourceRecordHex": "89315b85000f00101c20000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            0,
+            17
+          ],
+          "position": [
+            0,
+            18
+          ],
+          "route": [],
+          "itemIds": [
+            28
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E51C",
+          "sourceRecordHex": "89315b8d001100121c00000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            20
+          ],
+          "position": [
+            9,
+            21
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E52C",
+          "sourceRecordHex": "89315c8d091409151c20000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 3,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 18,
+          "autolevel": true,
+          "entryPosition": [
+            11,
+            19
+          ],
+          "position": [
+            11,
+            21
+          ],
+          "route": [],
+          "itemIds": [
+            28
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E53C",
+          "sourceRecordHex": "89315c950b130b151c00000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e55c",
+      "sourceAddress": "0x0867E55C",
+      "references": [
+        {
+          "kind": "turn:4",
+          "instruction": "0x0867E6D4"
+        },
+        {
+          "kind": "turn:5",
+          "instruction": "0x0867E6D4"
+        },
+        {
+          "kind": "turn:6",
+          "instruction": "0x0867E6D4"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            31,
+            19
+          ],
+          "position": [
+            30,
+            19
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E55C",
+          "sourceRecordHex": "89315b851f131e131c20000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            31,
+            20
+          ],
+          "position": [
+            30,
+            20
+          ],
+          "route": [],
+          "itemIds": [
+            30
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E56C",
+          "sourceRecordHex": "89315b8d1f141e141e00000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            31,
+            21
+          ],
+          "position": [
+            30,
+            21
+          ],
+          "route": [],
+          "itemIds": [
+            30,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E57C",
+          "sourceRecordHex": "89315c8d1f151e151e20000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 3,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 18,
+          "autolevel": true,
+          "entryPosition": [
+            31,
+            17
+          ],
+          "position": [
+            30,
+            17
+          ],
+          "route": [],
+          "itemIds": [
+            30
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E58C",
+          "sourceRecordHex": "89315c951f111e111e00000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    },
+    {
+      "id": "group-67e5ac",
+      "sourceAddress": "0x0867E5AC",
+      "references": [
+        {
+          "kind": "turn:7",
+          "instruction": "0x0867E6E8"
+        },
+        {
+          "kind": "turn:8",
+          "instruction": "0x0867E6E8"
+        },
+        {
+          "kind": "turn:9",
+          "instruction": "0x0867E6E8"
+        }
+      ],
+      "units": [
+        {
+          "index": 0,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 16,
+          "autolevel": true,
+          "entryPosition": [
+            7,
+            0
+          ],
+          "position": [
+            7,
+            1
+          ],
+          "route": [],
+          "itemIds": [
+            28,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E5AC",
+          "sourceRecordHex": "89315b85070007011c20000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 1,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 91,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            8,
+            0
+          ],
+          "position": [
+            8,
+            1
+          ],
+          "route": [],
+          "itemIds": [
+            30
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E5BC",
+          "sourceRecordHex": "89315b8d080008011e00000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 2,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 17,
+          "autolevel": true,
+          "entryPosition": [
+            9,
+            0
+          ],
+          "position": [
+            9,
+            1
+          ],
+          "route": [],
+          "itemIds": [
+            30,
+            32
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E5CC",
+          "sourceRecordHex": "89315c8d090009011e20000000000a00",
+          "positionStatus": "on-map"
+        },
+        {
+          "index": 3,
+          "characterId": 137,
+          "characterSymbol": "PID_UNKNOWN_89",
+          "classId": 49,
+          "effectiveClassId": 49,
+          "classSymbol": "JID_BRIGAND",
+          "leaderId": 92,
+          "faction": "enemy",
+          "level": 18,
+          "autolevel": true,
+          "entryPosition": [
+            10,
+            0
+          ],
+          "position": [
+            10,
+            1
+          ],
+          "route": [],
+          "itemIds": [
+            30
+          ],
+          "aiBytes": [
+            0,
+            0,
+            10,
+            0
+          ],
+          "dropItem": null,
+          "sourceAddress": "0x0867E5DC",
+          "sourceRecordHex": "89315c950a000a011e00000000000a00",
+          "positionStatus": "on-map"
+        }
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "object-0",
+      "kind": "source-location",
+      "position": [
+        26,
+        4
+      ],
+      "positionStatus": "on-map",
+      "sourceCommand": 19,
+      "sourceAddress": "0x0866894C",
+      "itemId": null
+    },
+    {
+      "id": "object-1",
+      "kind": "source-location",
+      "position": [
+        29,
+        4
+      ],
+      "positionStatus": "on-map",
+      "sourceCommand": 20,
+      "sourceAddress": "0x08668958",
+      "itemId": null
+    },
+    {
+      "id": "object-2",
+      "kind": "source-location",
+      "position": [
+        26,
+        6
+      ],
+      "positionStatus": "on-map",
+      "sourceCommand": 14,
+      "sourceAddress": "0x08668964",
+      "itemId": null
+    },
+    {
+      "id": "object-3",
+      "kind": "source-location",
+      "position": [
+        25,
+        6
+      ],
+      "positionStatus": "on-map",
+      "sourceCommand": 14,
+      "sourceAddress": "0x08668970",
+      "itemId": null
+    },
+    {
+      "id": "object-4",
+      "kind": "seize",
+      "position": [
+        27,
+        3
+      ],
+      "positionStatus": "on-map",
+      "sourceCommand": 15,
+      "sourceAddress": "0x0866897C",
+      "itemId": null
+    }
+  ],
+  "mapChanges": [],
+  "events": {
+    "turn": [
+      {
+        "sourceAddress": "0x086688CC",
+        "typeId": 2,
+        "flag": 0,
+        "words": [
+          2,
+          140966924,
+          1
+        ],
+        "scriptPointer": 140966924,
+        "turnBytes": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x086688D8",
+        "typeId": 2,
+        "flag": 0,
+        "words": [
+          2,
+          140967120,
+          8388615
+        ],
+        "scriptPointer": 140967120,
+        "turnBytes": [
+          7,
+          0,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x086688E4",
+        "typeId": 2,
+        "flag": 0,
+        "words": [
+          2,
+          141027008,
+          8391176
+        ],
+        "scriptPointer": 141027008,
+        "turnBytes": [
+          8,
+          10,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x086688F0",
+        "typeId": 2,
+        "flag": 0,
+        "words": [
+          2,
+          140967208,
+          26
+        ],
+        "scriptPointer": 140967208,
+        "turnBytes": [
+          26,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x086688FC",
+        "typeId": 3,
+        "flag": 0,
+        "words": [
+          3,
+          141027028,
+          8388621
+        ],
+        "scriptPointer": 141027028,
+        "turnBytes": [
+          13,
+          0,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x08668908",
+        "typeId": 3,
+        "flag": 0,
+        "words": [
+          3,
+          141027028,
+          8388623
+        ],
+        "scriptPointer": 141027028,
+        "turnBytes": [
+          15,
+          0,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x08668914",
+        "typeId": 3,
+        "flag": 0,
+        "words": [
+          3,
+          141027028,
+          8388625
+        ],
+        "scriptPointer": 141027028,
+        "turnBytes": [
+          17,
+          0,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x08668920",
+        "typeId": 3,
+        "flag": 0,
+        "words": [
+          3,
+          141027048,
+          8388622
+        ],
+        "scriptPointer": 141027048,
+        "turnBytes": [
+          14,
+          0,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x0866892C",
+        "typeId": 3,
+        "flag": 0,
+        "words": [
+          3,
+          141027048,
+          8388624
+        ],
+        "scriptPointer": 141027048,
+        "turnBytes": [
+          16,
+          0,
+          128,
+          0
+        ]
+      },
+      {
+        "sourceAddress": "0x08668938",
+        "typeId": 3,
+        "flag": 0,
+        "words": [
+          3,
+          141027048,
+          8388626
+        ],
+        "scriptPointer": 141027048,
+        "turnBytes": [
+          18,
+          0,
+          128,
+          0
+        ]
+      }
+    ],
+    "talk": [],
+    "location": [
+      {
+        "sourceAddress": "0x0866894C",
+        "typeId": 10,
+        "flag": 0,
+        "words": [
+          10,
+          140945656,
+          1246234
+        ],
+        "scriptPointer": 140945656,
+        "position": [
+          26,
+          4
+        ],
+        "command": 19
+      },
+      {
+        "sourceAddress": "0x08668958",
+        "typeId": 10,
+        "flag": 0,
+        "words": [
+          10,
+          140945668,
+          1311773
+        ],
+        "scriptPointer": 140945668,
+        "position": [
+          29,
+          4
+        ],
+        "command": 20
+      },
+      {
+        "sourceAddress": "0x08668964",
+        "typeId": 5,
+        "flag": 0,
+        "words": [
+          5,
+          140967332,
+          919066
+        ],
+        "scriptPointer": 140967332,
+        "position": [
+          26,
+          6
+        ],
+        "command": 14
+      },
+      {
+        "sourceAddress": "0x08668970",
+        "typeId": 5,
+        "flag": 0,
+        "words": [
+          5,
+          140967392,
+          919065
+        ],
+        "scriptPointer": 140967392,
+        "position": [
+          25,
+          6
+        ],
+        "command": 14
+      },
+      {
+        "sourceAddress": "0x0866897C",
+        "typeId": 5,
+        "flag": 3,
+        "words": [
+          196613,
+          1,
+          983835
+        ],
+        "scriptPointer": 1,
+        "position": [
+          27,
+          3
+        ],
+        "command": 15
+      }
+    ],
+    "misc": [
+      {
+        "sourceAddress": "0x0866898C",
+        "typeId": 1,
+        "flag": 0,
+        "words": [
+          1,
+          140946540,
+          101
+        ],
+        "scriptPointer": 140946540
+      },
+      {
+        "sourceAddress": "0x08668998",
+        "typeId": 11,
+        "flag": 9,
+        "words": [
+          589835,
+          140967452,
+          303172876
+        ],
+        "scriptPointer": 140967452,
+        "bounds": {
+          "min": [
+            12,
+            13
+          ],
+          "max": [
+            18,
+            18
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689A4",
+        "typeId": 11,
+        "flag": 10,
+        "words": [
+          655371,
+          140967516,
+          251922944
+        ],
+        "scriptPointer": 140967516,
+        "bounds": {
+          "min": [
+            0,
+            10
+          ],
+          "max": [
+            4,
+            15
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689B0",
+        "typeId": 11,
+        "flag": 11,
+        "words": [
+          720907,
+          140967580,
+          168691722
+        ],
+        "scriptPointer": 140967580,
+        "bounds": {
+          "min": [
+            10,
+            8
+          ],
+          "max": [
+            14,
+            10
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689BC",
+        "typeId": 11,
+        "flag": 12,
+        "words": [
+          786443,
+          140967644,
+          270470425
+        ],
+        "scriptPointer": 140967644,
+        "bounds": {
+          "min": [
+            25,
+            13
+          ],
+          "max": [
+            31,
+            16
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689C8",
+        "typeId": 11,
+        "flag": 13,
+        "words": [
+          851979,
+          140967708,
+          352523009
+        ],
+        "scriptPointer": 140967708,
+        "bounds": {
+          "min": [
+            1,
+            19
+          ],
+          "max": [
+            3,
+            21
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689D4",
+        "typeId": 11,
+        "flag": 14,
+        "words": [
+          917515,
+          140967772,
+          84214017
+        ],
+        "scriptPointer": 140967772,
+        "bounds": {
+          "min": [
+            1,
+            1
+          ],
+          "max": [
+            5,
+            5
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689E0",
+        "typeId": 11,
+        "flag": 15,
+        "words": [
+          983051,
+          140967836,
+          354358039
+        ],
+        "scriptPointer": 140967836,
+        "bounds": {
+          "min": [
+            23,
+            19
+          ],
+          "max": [
+            31,
+            21
+          ]
+        }
+      },
+      {
+        "sourceAddress": "0x086689EC",
+        "typeId": 11,
+        "flag": 16,
+        "words": [
+          1048587,
+          140967900,
+          169608986
+        ],
+        "scriptPointer": 140967900,
+        "bounds": {
+          "min": [
+            26,
+            7
+          ],
+          "max": [
+            28,
+            10
+          ]
+        }
+      }
+    ]
+  },
+  "eventScripts": {
+    "0x0866AC6C": [
+      {
+        "sourceAddress": "0x0866AC6C",
+        "rawHex": "41000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866AC70",
+        "rawHex": "020000001e000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866AC78",
+        "rawHex": "1700000009c60608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866AC80",
+        "rawHex": "020000000a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866AC88",
+        "rawHex": "17000000bd460108",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866AC90",
+        "rawHex": "0200000050000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866AC98",
+        "rawHex": "17000000d5080608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866ACA0",
+        "rawHex": "1f000000010000002dc60608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866ACAC",
+        "rawHex": "170000001dea0108",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866ACB4",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866ACBC",
+        "rawHex": "17000000b9870908",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866ACC4",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FC0C": [
+      {
+        "sourceAddress": "0x0866FC0C",
+        "rawHex": "2c0000001b000100",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC14",
+        "rawHex": "4300000010000000470000000300000003000000440000001000000048000000070000003501000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC40",
+        "rawHex": "3600000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC48",
+        "rawHex": "0c0000005a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC50",
+        "rawHex": "2c0000001b000300",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC58",
+        "rawHex": "4300000010000000470000000300000008000000440000001000000048000000070000003601000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC84",
+        "rawHex": "3900000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC8C",
+        "rawHex": "1700000001d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC94",
+        "rawHex": "130000003ce16708",
+        "unitPointers": [
+          141025596
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FC9C",
+        "rawHex": "14000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCA0",
+        "rawHex": "0c00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCA8",
+        "rawHex": "070000003701000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCB4",
+        "rawHex": "12000000fce1670814000000",
+        "unitPointers": [
+          141025788
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCC0",
+        "rawHex": "170000001dd00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCC8",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FCD0": [
+      {
+        "sourceAddress": "0x0866FCD0",
+        "rawHex": "370000003b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCD8",
+        "rawHex": "120000002ce4670814000000",
+        "unitPointers": [
+          141026348
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCE4",
+        "rawHex": "120000006ce4670814000000",
+        "unitPointers": [
+          141026412
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCF0",
+        "rawHex": "120000009ce4670814000000",
+        "unitPointers": [
+          141026460
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FCFC",
+        "rawHex": "12000000dce4670814000000",
+        "unitPointers": [
+          141026524
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD08",
+        "rawHex": "2d0000005c000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD10",
+        "rawHex": "070000003801000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD1C",
+        "rawHex": "38000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD20",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FD28": [
+      {
+        "sourceAddress": "0x0866FD28",
+        "rawHex": "17000000c1bf0608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD30",
+        "rawHex": "17000000d5dd0608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD38",
+        "rawHex": "0200000080000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD40",
+        "rawHex": "0c000000010000002d00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD50",
+        "rawHex": "3a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD54",
+        "rawHex": "070000003901000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD60",
+        "rawHex": "3b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD64",
+        "rawHex": "220000000900000002000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD70",
+        "rawHex": "0b0000001b000300",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD78",
+        "rawHex": "2d00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD80",
+        "rawHex": "3a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD84",
+        "rawHex": "070000003a01000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD90",
+        "rawHex": "3b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD94",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FD9C",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FDA4": [
+      {
+        "sourceAddress": "0x0866FDA4",
+        "rawHex": "3a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FDA8",
+        "rawHex": "4300000010000000470000000300000000000000440000001000000048000000070000003c01000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FDD4",
+        "rawHex": "3b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FDD8",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FDE0": [
+      {
+        "sourceAddress": "0x0866FDE0",
+        "rawHex": "3a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FDE4",
+        "rawHex": "4300000010000000470000000300000000000000440000001000000048000000070000003d01000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE10",
+        "rawHex": "3b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE14",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FE1C": [
+      {
+        "sourceAddress": "0x0866FE1C",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE28",
+        "rawHex": "3500000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE30",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE38",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE40",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE44",
+        "rawHex": "260000004b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE4C",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE54",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FE5C": [
+      {
+        "sourceAddress": "0x0866FE5C",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE68",
+        "rawHex": "350000000a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE70",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE78",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE80",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE84",
+        "rawHex": "260000005c000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE8C",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FE94",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FE9C": [
+      {
+        "sourceAddress": "0x0866FE9C",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEA8",
+        "rawHex": "350000000b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEB0",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEB8",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEC0",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEC4",
+        "rawHex": "260000005d000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FECC",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FED4",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FEDC": [
+      {
+        "sourceAddress": "0x0866FEDC",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEE8",
+        "rawHex": "350000000c000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEF0",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FEF8",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF00",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF04",
+        "rawHex": "2600000073000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF0C",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF14",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FF1C": [
+      {
+        "sourceAddress": "0x0866FF1C",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF28",
+        "rawHex": "350000000d000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF30",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF38",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF40",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF44",
+        "rawHex": "260000005b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF4C",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF54",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FF5C": [
+      {
+        "sourceAddress": "0x0866FF5C",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF68",
+        "rawHex": "350000000e000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF70",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF78",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF80",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF84",
+        "rawHex": "260000006e000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF8C",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FF94",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FF9C": [
+      {
+        "sourceAddress": "0x0866FF9C",
+        "rawHex": "1f0000000100000029d00608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFA8",
+        "rawHex": "350000000f000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFB0",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFB8",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFC0",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFC4",
+        "rawHex": "2600000048000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFCC",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFD4",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0866FFDC": [
+      {
+        "sourceAddress": "0x0866FFDC",
+        "rawHex": "240000000100000036000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFE8",
+        "rawHex": "3500000010000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFF0",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0866FFF8",
+        "rawHex": "1b00000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670000",
+        "rawHex": "3a000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670004",
+        "rawHex": "070000003b01000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670010",
+        "rawHex": "3b000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670014",
+        "rawHex": "40000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670018",
+        "rawHex": "2600000063000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670020",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670028",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x08670030": [
+      {
+        "sourceAddress": "0x08670030",
+        "rawHex": "1f00000007000000b1c40608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0867003C",
+        "rawHex": "200000000700000025c20608",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670048",
+        "rawHex": "3600000026000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670050",
+        "rawHex": "4300000010000000470000000300000008000000440000001000000048000000070000004201000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0867007C",
+        "rawHex": "0200000040000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670084",
+        "rawHex": "3d00000022000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0867008C",
+        "rawHex": "020000000100000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670098",
+        "rawHex": "1c00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700A0",
+        "rawHex": "1b00000007000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700A8",
+        "rawHex": "3600000026000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700B0",
+        "rawHex": "4300000010000000470000000300000008000000440000001000000048000000070000004301000005000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700DC",
+        "rawHex": "0200000040000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700E4",
+        "rawHex": "3d0000000f000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700EC",
+        "rawHex": "020000000100000001000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x086700F8",
+        "rawHex": "1b00000009000000",
+        "unitPointers": [],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x08670100",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0867E6C0": [
+      {
+        "sourceAddress": "0x0867E6C0",
+        "rawHex": "120000000ce5670814000000",
+        "unitPointers": [
+          141026572
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0867E6CC",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0867E6D4": [
+      {
+        "sourceAddress": "0x0867E6D4",
+        "rawHex": "120000005ce5670814000000",
+        "unitPointers": [
+          141026652
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0867E6E0",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ],
+    "0x0867E6E8": [
+      {
+        "sourceAddress": "0x0867E6E8",
+        "rawHex": "12000000ace5670814000000",
+        "unitPointers": [
+          141026732
+        ],
+        "eventPointers": []
+      },
+      {
+        "sourceAddress": "0x0867E6F4",
+        "rawHex": "0600000000000000",
+        "unitPointers": [],
+        "eventPointers": []
+      }
+    ]
+  },
+  "coverage": {
+    "enemyTemplateCount": 53,
+    "unitGroupCount": 10,
+    "primaryEnemyTemplateCount": 31,
+    "initialEnemySelection": "chapter-table",
+    "scriptScanWarnings": [],
+    "scriptScanMode": "static-patterns-to-first-terminator",
+    "runtimeExecuted": false,
+    "asmSpawnEffectsExecuted": false
+  },
+  "adaptation": {
+    "status": "source-template",
+    "requires": [
+      "project-class-and-item-mapping",
+      "source-event-conditions",
+      "interactive-map-objects"
+    ],
+    "notes": [
+      "单位组是静态引用，不能把所有组同时放到初始地图。",
+      "等级、成长和职业基础值已保存；未计算难度、自动升级或存档影响后的最终战斗属性。",
+      "未识别的名称保留编号与原始记录；汉化字体编码没有当作标准日文强行解码。",
+      "Reviewed selection goal: seize"
+    ]
+  },
+  "provenance": {
+    "chapterAddress": "0x08663B5C",
+    "chapterRecordHex": "10b127085300545556000000040e111c0306090a1109111f236403191e283200f500dc00c800af00e001b101810151012109b209b50903007b0b5758510c1c0308070604",
+    "layoutAddress": "0x0824458C",
+    "configAddress": "0x08230F0C",
+    "eventGroupAddress": "0x086689FC",
+    "eventPointerWords": [
+      "0x086688CC",
+      "0x08668948",
+      "0x0866894C",
+      "0x0866898C",
+      "0x0867E22C",
+      "0x0867E13C",
+      "0x08670030"
+    ],
+    "layoutSha256": "d2dec57c5c837eddd532fb2dbbd3c45b3b4f405877bf0ac4842acb3d54542898",
+    "configSha256": "763bbe3a7abcc24bbb9ee866f9d26da180a4ccfdc0d08c03e046de9d6605ae3d"
+  }
+}

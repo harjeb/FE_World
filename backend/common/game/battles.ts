@@ -7,6 +7,7 @@ import { seedRng } from '../engine/rng.ts';
 import { generateMap } from '../maps/generate.ts';
 import type { Theme } from '../maps/themes.ts';
 import { tilesFromGlyphs } from '../maps/map.ts';
+import { classicMap } from './classic-catalog.ts';
 import { ARENA_MAPS, throneOf } from '../arena/maps.ts';
 import type { ArenaMapId } from '../arena/maps.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
@@ -138,6 +139,108 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
     costDays: quest ? QUEST_DAY_COST[quest.tier] : ACTION_DAYS.sortie,
     goalText: dungeon ? (stage === 0 ? '压制指定地点' : stage === 1 ? '消灭全部敌军' : '击败敌方主将') : quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
+    createdAt: Date.now(), updatedAt: Date.now(),
+  };
+}
+
+
+// ---- 经典地图战斗（docs/24） -------------------------------------------------
+// 地图与初始敌军来自 catalog；玩家名单仍来自名册，王座/首领与跨图携带沿用现有引擎。
+export interface ClassicBattleOptions {
+  mapId: string;
+  seed: string;
+  quest?: Quest;
+  stageIndex?: number;
+  runId?: string;
+  carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }>;
+}
+
+function classicPassable(map: ReturnType<typeof classicMap>, x: number, y: number): boolean {
+  if (x < 0 || y < 0 || x >= map.width || y >= map.height) return false;
+  const tile = map.terrain[y][x];
+  return tile !== 'wall' && tile !== 'water';
+}
+
+// 出击格：优先使用原作的出击位置；不足时从这些位置向外寻找可站立格。
+function classicSpawns(map: ReturnType<typeof classicMap>, need: number): Point[] {
+  const key = (p: Point) => p[1] * map.width + p[0];
+  const blocked = new Set(map.enemies.map(enemy => key(enemy.pos)));
+  const used = new Set<number>();
+  const chosen: Point[] = [];
+  const tryAdd = (p: Point) => {
+    const k = key(p);
+    if (chosen.length >= need || used.has(k) || blocked.has(k) || !classicPassable(map, p[0], p[1])) return false;
+    used.add(k); chosen.push([p[0], p[1]]);
+    return true;
+  };
+  for (const p of map.playerSpawns) tryAdd(p);
+  const queue = [...chosen];
+  for (let i = 0; i < queue.length && chosen.length < need; i++) {
+    const [x, y] = queue[i];
+    for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]] as Point[]) {
+      const p: Point = [nx, ny];
+      if (tryAdd(p)) queue.push(p);
+      if (chosen.length >= need) break;
+    }
+  }
+  if (chosen.length === 0) {
+    // 没有原作出击记录（部分 FC 地图）时取最远离敌军的一批可站立格。
+    const cells: Point[] = [];
+    for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
+      if (classicPassable(map, x, y) && !blocked.has(y * map.width + x)) cells.push([x, y]);
+    }
+    const cx = map.enemies.reduce((sum, e) => sum + e.pos[0], 0) / Math.max(1, map.enemies.length);
+    const cy = map.enemies.reduce((sum, e) => sum + e.pos[1], 0) / Math.max(1, map.enemies.length);
+    cells.sort((a, b) => (Math.abs(b[0] - cx) + Math.abs(b[1] - cy)) - (Math.abs(a[0] - cx) + Math.abs(a[1] - cy)));
+    for (const p of cells) tryAdd(p);
+  }
+  return chosen;
+}
+
+export function createClassicBattle(units: UnitRecord[], options: ClassicBattleOptions): BattleRecord {
+  const map = classicMap(options.mapId);
+  const stage = options.stageIndex ?? 0;
+  const spawns = classicSpawns(map, Math.min(8, units.length));
+  if (spawns.length === 0) throw new Error(`经典地图 ${map.id} 没有可用的出击位置`);
+  const count = Math.min(units.length, spawns.length);
+  const playerUnits = units.slice(0, count).map((unit, index) => {
+    const carry = options.carry?.[unit.id];
+    const extra: Partial<UnitState> = { boss: index === 0 };
+    if (carry) {
+      extra.hp = Math.max(1, carry.hp);
+      extra.items = carry.items.map(item => ({ ...item }));
+      extra.weapons = [...carry.weapons];
+    }
+    return toBattleUnit(unit, 'player', unit.id, spawns[index], extra);
+  });
+  const enemies = map.enemies.map((enemy, index) => {
+    const boss = !!enemy.boss;
+    return createEnemy(`e${index}`, {
+      classId: enemy.classId as Parameters<typeof createEnemy>[1]['classId'], level: Math.max(1, enemy.level),
+      pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
+    });
+  });
+  if (enemies.length === 0) throw new Error(`经典地图 ${map.id} 没有初始敌军`);
+  if (!enemies.some(enemy => enemy.boss)) enemies[0].boss = true;
+  const boss = enemies.find(enemy => enemy.boss)!;
+  const goal = map.goal.kind === 'seize'
+    ? { kind: 'seize', throne: [map.goal.position[0], map.goal.position[1]] } as BattleState['goal']
+    : map.goal.kind === 'boss' ? { kind: 'boss', target: boss.id } as BattleState['goal'] : { kind: 'rout' } as BattleState['goal'];
+  const name = options.quest?.name ?? map.name;
+  const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
+  const state: BattleState = {
+    engineVersion: 1, id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
+    map: { width: map.width, height: map.height, tiles: map.terrain.map(row => [...row]) },
+    units: [...playerUnits, ...enemies], turn: 1, turnLimit: options.quest?.turnLimit ?? map.turnLimit,
+    phase: 'player', goal,
+    rng: seedRng(`${options.seed}:classic:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
+  };
+  return {
+    id: state.id, playerId: '', kind: 'field', mode: 'field', name, region: options.quest?.region,
+    dungeon: options.stageIndex !== undefined || undefined, runId: options.runId,
+    stageIndex: options.stageIndex, questId: options.quest?.id,
+    costDays: options.quest?.costDays ?? (options.quest ? QUEST_DAY_COST[options.quest.tier] : ACTION_DAYS.sortie),
+    goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
     createdAt: Date.now(), updatedAt: Date.now(),
   };
 }

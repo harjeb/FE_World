@@ -21,12 +21,13 @@ const lootLine = (loot: ServerRun['pendingLoot']) => (loot.length > 0 ? loot.map
 
 function dungeonSession(state: BattleState, run: ServerRun, back: () => void): BattleSession {
   const n = run.stageIndex + 1;
-  const last = n >= DUNGEON_STAGES;
+  const count = run.stageCount ?? DUNGEON_STAGES;
+  const last = n >= count;
   return {
     key: state.id,
     initial: state,
     meta: {
-      region: `${regionById(run.region).name} · 大副本第 ${n} / ${DUNGEON_STAGES} 图`,
+      region: `${run.stageName ?? regionById(run.region).name} · ${n} / ${count} 图`,
       goal: state.goal.kind === 'boss' ? '击败敌方主将或全灭' : state.goal.kind === 'seize' ? '主将压制目标点' : '全灭敌军',
       extraLabel: '跨图', extraValue: 'HP 与道具不恢复',
     },
@@ -77,13 +78,15 @@ export function DungeonPage() {
 }
 
 function RunMap({ run }: { run: ServerRun }) {
-  const done = run.state === 'completed' ? DUNGEON_STAGES : run.stageIndex;
+  const count = run.stageCount ?? DUNGEON_STAGES;
+  const done = run.state === 'completed' ? count : run.stageIndex;
   return (
-    <ol className="run-map" aria-label="三张图">
-      {Array.from({ length: DUNGEON_STAGES }, (_, i) => {
+    <ol className="run-map" aria-label="远征进度">
+      {Array.from({ length: count }, (_, i) => {
         const cls = i < done ? 'won' : i === run.stageIndex && run.state === 'failed' ? 'lost' : i === run.stageIndex && run.state !== 'withdrawn' ? 'next' : 'todo';
         const mark = cls === 'won' ? '已拿下' : cls === 'lost' ? '失败' : cls === 'next' ? (run.state === 'battle' ? '战斗中' : '下一张') : '';
-        return <li key={i} className={cls}><b>第 {i + 1} 图</b><span>{i === DUNGEON_STAGES - 1 ? '首领' : '前哨'}{mark && ` · ${mark}`}</span></li>;
+        const name = run.stageNames?.[i] ?? (i === count - 1 ? '首领' : `第 ${i + 1} 图`);
+        return <li key={i} className={cls}><b>{name}</b><span>{mark || `第 ${i + 1} 图`}</span></li>;
       })}
     </ol>
   );
@@ -96,7 +99,8 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
   if (!state) return null;
   const region = regionById(run.region);
   const next = run.stageIndex + 1;
-  const to = advance(state.day, DUNGEON_STAGE_DAYS);
+  const stageDays = run.stageDays ?? DUNGEON_STAGE_DAYS;
+  const to = advance(state.day, stageDays);
   const warning = arenaTodayWarning();
   const members = run.unitIds.map(id => state.units.find(u => u.id === id)).filter((u): u is NonNullable<typeof u> => !!u);
   const alive = run.survivingIds.length;
@@ -109,7 +113,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
           <div>
             <div className="eyebrow">出击 · 大副本 · {dateLabel(state.day)}</div>
             <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>{region.name}大副本</h1>
-            <p style={{ fontSize: 14, color: '#4E473D' }}>已拿下 {run.stageIndex} / {DUNGEON_STAGES} 图。继续前确认队伍状态：HP 和道具都不会恢复，只有原名单里活着的人能进下一张图。</p>
+            <p style={{ fontSize: 14, color: '#4E473D' }}>已拿下 {run.stageIndex} / {run.stageCount ?? DUNGEON_STAGES} 图。继续前确认队伍状态：HP 和道具都不会恢复，只有原名单里活着的人能进下一张图。</p>
           </div>
           <span className={`tag ${RUN_STATE[run.state][1]}`}>{RUN_STATE[run.state][0]}</span>
         </div>
@@ -121,7 +125,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
               <RunMap run={run} />
               <dl className="facts">
                 <dt>待带回</dt><dd>{lootLine(run.pendingLoot)}<span className="muted">（完整通关才带回，撤离或失败作废）</span></dd>
-                <dt>下一图</dt><dd>推进 {DUNGEON_STAGE_DAYS} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
+                <dt>下一图</dt><dd>{run.nextStageName ?? `第 ${next} 图`} · 推进 {stageDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
                 <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡；全员倒下即远征失败。</dd>
               </dl>
               {warning && <p className="a-warn" role="note">{warning}</p>}

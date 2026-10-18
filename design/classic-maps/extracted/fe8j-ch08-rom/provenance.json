@@ -1,0 +1,88 @@
+{
+  "source": {
+    "inputKind": "local-rom",
+    "fileName": "3火焰纹章_圣魔之光石.gba",
+    "bytes": 16777216,
+    "gameCode": "BE8J",
+    "headerTitle": "FIREEMBLEM8",
+    "sha1": "56f3d3938ec0f61d3864c95c142b03c98225fe72",
+    "sha256": "167ed57921c24f841108f46eabc33cb10e10f141b09d0fa6e75b5c5add3e4df0",
+    "localRomVerified": true,
+    "meaningOfVerified": "Chapter values were read from this ROM and passed structural checks; not an emulator run.",
+    "formatMetadata": {
+      "repository": "https://github.com/FireEmblemUniverse/fireemblem8u",
+      "revision": "f2e1f060dbe5b0cc35285df5a0f6659860644a04",
+      "note": "Numeric data is read from ROM; these headers supply symbolic names only."
+    },
+    "profileMetadata": {
+      "repository": "https://github.com/FEBuilderGBA/FEBuilderGBA",
+      "revision": "8e3557912ddab708d11bf85ad311b41bb6630fd1",
+      "sha256": {
+        "FEBuilderGBA/ROMFE8JP.cs": "be5256a6d4651ee6b26f0f9424dabf4a2bbbd342b154b3fd5fb3681d8173fcaa",
+        "FEBuilderGBA/ROMFE8U.cs": "832f7f2f997101f3b14ed04087f57cdafebd8cda27f647d3a2ca468e9f8f1ddd"
+      }
+    }
+  },
+  "addresses": {
+    "chapterTable": "0x08904E1C",
+    "chapterRecord": "0x08905350",
+    "assetTable": "0x08907BC8",
+    "layout": "0x081A5E38",
+    "tilesetConfig": "0x081987C8",
+    "chapterEventGroup": "0x08A5B108",
+    "mapChanges": "0x08A9B37C",
+    "chapterRecordHex": "a42c1b081800191a281c002900000900111100005200090013000f00090013000f00ffffffff0b00ffffffff320505050506060606070707070808080800640064006400640050005000500050003c003c003c003c002800280028002800000024040000240400002404000024040000f100f1002a0a000000000000000000001000ffff0000010035012a01000000ff00110000",
+    "chapterEventPointerWords": [
+      "0x08A5AFE4",
+      "0x08A5B00C",
+      "0x08A5B090",
+      "0x08A5B0DC",
+      "0x08A5B0F8",
+      "0x08A5B0FC",
+      "0x08A5B100",
+      "0x08A5B104",
+      "0x08A5FAFD",
+      "0x08A5FFE2",
+      "0x0890B888",
+      "0x0890B888",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x00000000",
+      "0x08A6506C",
+      "0x08A652C0"
+    ],
+    "terrainRules": {
+      "foot": {
+        "normalMovement": "0x0885FD60",
+        "avoid": "0x088609D1",
+        "defense": "0x08860A12",
+        "resistance": "0x08860A53"
+      },
+      "armored": {
+        "normalMovement": "0x0885FDE2",
+        "avoid": "0x088609D1",
+        "defense": "0x08860A12",
+        "resistance": "0x08860A53"
+      },
+      "mounted": {
+        "normalMovement": "0x0885FFEA",
+        "avoid": "0x088609D1",
+        "defense": "0x08860A12",
+        "resistance": "0x08860A53"
+      },
+      "flying": {
+        "normalMovement": "0x088600EE",
+        "avoid": "0x08860A94",
+        "defense": "0x08860AD5",
+        "resistance": "0x08860B16"
+      },
+      "healingAmount": "0x08860C9C",
+      "statusHealing": "0x08860CDD"
+    },
+    "decompressedLayoutSha256": "1065161c2925016e47721ae3bff599bce91229b870465f5bdae63dec81a9ab1a",
+    "decompressedConfigSha256": "72f4fd9d3873560781a1af7be69316e4544170dc9c433da189e0112fa26a9a76"
+  }
+}

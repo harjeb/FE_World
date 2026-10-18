@@ -36,7 +36,8 @@ export function QuestsPage() {
   const start = (q: QuestView) => act(`s${q.id}`, async () => {
     await session.run(OP.START_QUEST, { questId: q.id, unitIds: team }, false);
     await session.refresh();
-    go(links.field);
+    // 远征/副本任务直接进入副本页；单图任务进入普通出击页。
+    go(q.tier === 'region' ? links.dungeon : links.field);
     return q.name;
   }, name => `开始任务「${name}」，进入战斗。`);
 
@@ -52,7 +53,7 @@ export function QuestsPage() {
         <div>
           <div className="eyebrow">地区任务 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>地区任务与声望</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>短任务 1 日、标准任务 2 日、地区远征每图 2 日（共 6 日）。胜利后任务标记完成，金币、物资与声望分开领取；声望永久保留，不因购买扣除。</p>
+          <p style={{ fontSize: 14, color: '#4E473D' }}>短任务 1 日、标准任务 2 日、地区远征/副本每图 2 日（按 3–4 图支付）。胜利后任务标记完成，金币、物资与声望分开领取；声望永久保留，不因购买扣除。</p>
         </div>
       </div>
 
@@ -75,7 +76,7 @@ export function QuestsPage() {
       </div>
       {selected && state && <section className="panel" aria-label="任务出征确认">
         <div className="ph"><h2>{selected.name} · 出征准备</h2></div>
-        <p className="sys-note">{selected.objective} · 敌军 Lv {selected.enemyLevel} · 推进 {selected.costDays} 日 → {dateLabel(selected.toDay)} · 普通角色可能永久死亡。地区远征按每图 2 日支付，整本共 6 日。</p>
+        <p className="sys-note">{selected.objective} · 敌军 Lv {selected.enemyLevel} · 推进 {selected.costDays} 日 → {dateLabel(selected.toDay)} · 普通角色可能永久死亡。{selected.costDays > 2 ? ` 连战按每图 2 日支付，整本共 ${selected.costDays} 日。` : ''}</p>
         <p className="sys-note">基础奖励：{rewardText(selected)}。{selected.optionalReward ? `带回1箱即可完成；之后可用撤退结束，或继续带回物资，每多1箱增加${itemName(selected.optionalReward.item)} ×${selected.optionalReward.perExtraBox}。` : '失败或撤退不发通关奖励，已发生伤亡和消耗保留。'}</p>
         <TeamPicker units={state.units.filter(unit => unit.status === 'active')} team={team} max={8} protagonist={state.player.protagonist} onChange={setTeam}
           why={unit => unit.lockedRunId || unit.lockedDispatchId ? '正在远征或派遣' : null} />
@@ -125,6 +126,7 @@ function RegionPanel({ region, busy, onStart, onClaim, onBuy }: {
                   <span className={`tag ${tag}`}>{label}</span>
                 </div>
                 <div className="ch-sub">
+                  {q.classic ? `经典 · ${q.classic.mapName}${q.classic.stageCount > 1 ? ` · ${q.classic.stageCount} 图副本` : ''}${q.classic.adapted ? ' · 经适配' : ''} · ` : ''}
                   {KIND_TEXT[q.kind]} · {q.objective} · {q.costDays} 日 · 回合上限 {q.turnLimit}
                 </div>
                 <p className="ch-learned"><span className="tag tag-grey">奖励</span>{rewardText(q)}</p>

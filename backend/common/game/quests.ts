@@ -23,9 +23,16 @@ export interface Quest {
   reward: QuestReward;
   // 固定人物加入（docs/20 §5）：领取奖励时加入名册；已拥有则跳过（唯一性）。
   recruit?: CharacterId;
+  // 经典地图任务：单图 scenarioId，或连续副本 scenarioIds（按顺序逐图创建战斗）。
+  scenarioId?: string;
+  scenarioIds?: string[];
+  // 覆盖默认耗日；连续副本按 stageDays × 图数计算。
+  costDays?: number;
+  stageDays?: number;
+  classic?: { game: string; mapName: string; stageCount: number; adapted?: boolean };
 }
 
-// 耗日：短 1 / 标准 2 / 地区远征每图 2（共 6）（用户定案：任务只带 1–2 天耗时，每年不止 8 张图）。
+// 耗日：短 1 / 标准 2 / 地区远征每图 2（普通 3 图共 6；经典副本按 3–4 图覆盖 costDays）。
 export const QUEST_DAY_COST: Record<QuestTier, number> = { short: 1, standard: 2, region: 6 };
 
 const short = (id: string, region: number, name: string, objective: string, kind: QuestKind, requires?: Quest['requires'], need?: number): Quest =>
@@ -59,19 +66,25 @@ export const QUESTS: Quest[] = [
   region6('wl6', 5, '渡口远征', '清剿渡口守军', [['recover', 1], ['herb', 8]], { quest: 'wl5', reputation: 100 }, 'mira'),
 ];
 
+import { CLASSIC_QUESTS } from './classic-quests.ts';
+
+// 经典地图任务与地区任务共用同一任务/副本流程（docs/24）。
+export const BASE_QUESTS: readonly Quest[] = QUESTS;
+export const ALL_QUESTS: Quest[] = [...QUESTS, ...CLASSIC_QUESTS];
+
 export function questById(id: string): Quest | undefined {
-  return QUESTS.find(q => q.id === id);
+  return ALL_QUESTS.find(q => q.id === id);
 }
 
 export function questsForRegion(region: number): Quest[] {
-  return QUESTS.filter(q => q.region === region);
+  return ALL_QUESTS.filter(q => q.region === region);
 }
 
 // 首版任务覆盖的地区（docs/20 §1）。
 export const QUEST_REGIONS = [2, 3, 5];
 
 // 剧情奖励人物（地区远征）：开局自选同伴时排除，避免与奖励重复。
-export const QUEST_RECRUITS: CharacterId[] = QUESTS.flatMap(q => (q.recruit ? [q.recruit] : []));
+export const QUEST_RECRUITS: CharacterId[] = ALL_QUESTS.flatMap(q => (q.recruit ? [q.recruit] : []));
 
 // 固定人物加入时的台词（docs/20 §5）。
 export const RECRUIT_LINES: Partial<Record<CharacterId, string>> = {

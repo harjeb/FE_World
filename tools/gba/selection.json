@@ -1,0 +1,59 @@
+{
+  "format": "agent-tactics.gba-selection",
+  "schemaVersion": 1,
+  "description": "三作各10张中后期常规战斗、撤退或占领地图；不选少量单位试炼、终局单挑、坚守/护送/收集/孵化任务。",
+  "policy": {
+    "allowedGoals": ["rout", "boss", "escape", "seize"],
+    "minimumDeploymentTemplates": 6,
+    "minimumEnemyTemplates": 6,
+    "review": "目标类型逐图审查；出击模板数量作为额外守门检查，不等同玩家最终可选阵容。"
+  },
+  "games": [
+    {
+      "game": "fe6", "gameCode": "AFEJ", "name": "封印之剑",
+      "chapters": [
+        {"index": 13, "chapter": "13", "route": "main", "name": "救出作战", "goal": "seize", "expectedInternalName": "bmap13"},
+        {"index": 14, "chapter": "14", "route": "main", "name": "阿卡迪亚", "goal": "seize", "expectedInternalName": "bmap14"},
+        {"index": 16, "chapter": "16", "route": "main", "name": "夺回王都", "goal": "seize", "expectedInternalName": "bmap16"},
+        {"index": 18, "chapter": "18", "route": "ilia", "name": "冰冻之河", "goal": "seize", "expectedInternalName": "bmap18c"},
+        {"index": 19, "chapter": "19", "route": "ilia", "name": "冬将军", "goal": "seize", "expectedInternalName": "bmap19c"},
+        {"index": 20, "chapter": "20", "route": "ilia", "name": "解放伊利亚", "goal": "seize", "expectedInternalName": "bmap20c"},
+        {"index": 21, "chapter": "21", "route": "main", "name": "封印之剑", "goal": "seize", "expectedInternalName": "bmap21"},
+        {"index": 22, "chapter": "22", "route": "main", "name": "不尽的梦", "goal": "seize", "expectedInternalName": "bmap22"},
+        {"index": 23, "chapter": "23", "route": "main", "name": "伯尔尼的亡灵", "goal": "seize", "expectedInternalName": "bmap23"},
+        {"index": 24, "chapter": "24", "route": "main", "name": "传说的真实", "goal": "seize", "expectedInternalName": "bmap24"}
+      ]
+    },
+    {
+      "game": "fe7", "gameCode": "AE7J", "name": "烈火之剑",
+      "chapters": [
+        {"index": 26, "chapter": "19", "route": "eliwood", "name": "龙之门", "goal": "seize", "expectedInternalName": "09)19"},
+        {"index": 27, "chapter": "20", "route": "eliwood", "name": "新的决心", "goal": "boss", "expectedInternalName": "10)20"},
+        {"index": 29, "chapter": "22", "route": "eliwood", "name": "活着的传说", "goal": "rout", "expectedInternalName": "12)22"},
+        {"index": 31, "chapter": "23", "route": "eliwood-lloyd", "name": "四牙袭来·洛伊德", "goal": "boss", "expectedInternalName": "13)23"},
+        {"index": 32, "chapter": "23", "route": "eliwood-linus", "name": "四牙袭来·莱纳斯", "goal": "boss", "expectedInternalName": "13)23b"},
+        {"index": 35, "chapter": "25", "route": "eliwood-kenneth", "name": "黑暗中的白花·肯尼斯", "goal": "seize", "expectedInternalName": "15)25"},
+        {"index": 36, "chapter": "25", "route": "eliwood-jerme", "name": "黑暗中的白花·杰尔梅", "goal": "rout", "expectedInternalName": "15)25b"},
+        {"index": 39, "chapter": "27", "route": "eliwood", "name": "命运的齿轮", "goal": "rout", "expectedInternalName": "17)27"},
+        {"index": 44, "chapter": "30", "route": "eliwood", "name": "背水一战", "goal": "seize", "expectedInternalName": "20)30"},
+        {"index": 46, "chapter": "final-1", "route": "eliwood", "name": "光·前半", "goal": "boss", "expectedInternalName": "21)31"}
+      ]
+    },
+    {
+      "game": "fe8", "gameCode": "BE8J", "name": "圣魔之光石",
+      "chapterIndexNotes": "第11章在表尾E10x/I10x（61/62）；内部E11起实际显示章号多1，不能用内部名称推导显示章号。已对照固定版本chapter_settings.json与data_8B363C.s中的ChXX地图符号。",
+      "chapters": [
+        {"index": 62, "chapter": "11", "route": "ephraim", "name": "幽灵船", "goal": "rout", "expectedInternalName": "I10x"},
+        {"index": 12, "chapter": "12", "route": "eirika", "name": "静寂之村", "goal": "rout", "expectedInternalName": "E11"},
+        {"index": 26, "chapter": "13", "route": "ephraim", "name": "萤石的誓言", "goal": "rout", "expectedInternalName": "I12"},
+        {"index": 14, "chapter": "14", "route": "eirika", "name": "白沙的女王", "goal": "seize", "expectedInternalName": "E13"},
+        {"index": 27, "chapter": "14", "route": "ephraim", "name": "父与子·古拉德王城", "goal": "seize", "expectedInternalName": "I13"},
+        {"index": 15, "chapter": "15", "route": "eirika", "name": "灼热的黄沙", "goal": "rout", "expectedInternalName": "E14"},
+        {"index": 16, "chapter": "16", "route": "eirika", "name": "荒废的王都", "goal": "seize", "expectedInternalName": "E15"},
+        {"index": 17, "chapter": "17", "route": "eirika", "name": "诀别的大河", "goal": "boss", "expectedInternalName": "E16"},
+        {"index": 20, "chapter": "20", "route": "eirika", "name": "暗之树海", "goal": "seize", "expectedInternalName": "E19"},
+        {"index": 21, "chapter": "final-1", "route": "eirika", "name": "圣魔之光石·决战前半", "goal": "boss", "expectedInternalName": "E20"}
+      ]
+    }
+  ]
+}

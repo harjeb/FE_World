@@ -14,7 +14,7 @@ import type { RatingPeriod, RatingRow } from '../common/game/ratings.ts';
 import { seedRng } from '../common/engine/rng.ts';
 import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
-import { carryFromBattle, DUNGEON_STAGES, stageLoot } from '../common/game/expedition.ts';
+import { carryFromBattle, DUNGEON_STAGES, stageCount, stageLoot } from '../common/game/expedition.ts';
 import type { RunCarry, RunRecord } from '../common/game/expedition.ts';
 import { knockoutResult, qualifierResult } from '../common/game/annual.ts';
 import type { AnnualEntry } from '../common/game/annual.ts';
@@ -299,7 +299,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
   let completed = false;
   if (won) {
     run.pendingLoot.push(...stageLoot(run.region, run.stageIndex));
-    if (run.stageIndex >= DUNGEON_STAGES - 1) {
+    if (run.stageIndex >= stageCount(run) - 1) {
       run.state = 'completed';
       completed = true;
       releaseLocks();

@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "inputKind": "local-rom",
+  "romSha1": "56f3d3938ec0f61d3864c95c142b03c98225fe72",
+  "mapCells": 576,
+  "locationEvents": 6,
+  "mapChanges": 7,
+  "selectedUnitTemplates": 45,
+  "additionalUnitGroups": 3,
+  "decodedScripts": 22,
+  "decodedInstructions": 245,
+  "dynamicCallsNotExecuted": 0,
+  "asmInstructionsNotExecuted": 1,
+  "emulatorValidated": false
+}

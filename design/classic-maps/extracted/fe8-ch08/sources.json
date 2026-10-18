@@ -1,0 +1,180 @@
+{
+  "repository": "https://github.com/FireEmblemUniverse/fireemblem8u",
+  "revision": "f2e1f060dbe5b0cc35285df5a0f6659860644a04",
+  "files": [
+    {
+      "path": "src/data/chapter_settings.json",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/data/chapter_settings.json",
+      "sha256": "50d9177ce087038e7471c423fa525336b6e2798ea2caa77a5284e4721749c6ef",
+      "bytes": 317019
+    },
+    {
+      "path": "data/data_8B363C.s",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/data/data_8B363C.s",
+      "sha256": "3910fdda4ad78889f936f7c0471ba000cb42303da406f1124c4a8bb3e2b41b8f",
+      "bytes": 9622
+    },
+    {
+      "path": "graphics/map/layout/Ch8Map.json",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/layout/Ch8Map.json",
+      "sha256": "41c33aa01c7b9d9d686a78c69df5979bfe46dffa0e737c8fe8d36b3ee882b6fc",
+      "bytes": 43
+    },
+    {
+      "path": "graphics/map/layout/Ch8Map.mar",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/layout/Ch8Map.mar",
+      "sha256": "1b5406d492c0f2e47c600d3acbd8fa82787ff152f82407e445f87e3d30a36bd2",
+      "bytes": 1152
+    },
+    {
+      "path": "graphics/map/TileConfiguration3.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/TileConfiguration3.bin",
+      "sha256": "72f4fd9d3873560781a1af7be69316e4544170dc9c433da189e0112fa26a9a76",
+      "bytes": 9216
+    },
+    {
+      "path": "include/constants/terrains.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/constants/terrains.h",
+      "sha256": "a6b123f55767458d366191456b762c2550741ce5d352290e0cfde817873c9dbd",
+      "bytes": 2458
+    },
+    {
+      "path": "include/constants/characters.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/constants/characters.h",
+      "sha256": "87a9c405c83dc7c5201b6a0e55bc3929b12f12075135728faf8113c0ecdb86cd",
+      "bytes": 3856
+    },
+    {
+      "path": "include/constants/classes.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/constants/classes.h",
+      "sha256": "ca27a1d43723e54d73dd635cb317cc0b13bf681a74cb4bf38aff21937eb8e0b4",
+      "bytes": 5115
+    },
+    {
+      "path": "include/constants/items.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/constants/items.h",
+      "sha256": "216f5be0ec941093aad6bcfb007dadd7b4bb27640967f138ae281ca49b09074b",
+      "bytes": 7654
+    },
+    {
+      "path": "src/data_terrains.c",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/data_terrains.c",
+      "sha256": "96672458543deac9f8dc380805b94354a3f21a406cf86f1d9ea34d88c14e4432",
+      "bytes": 205702
+    },
+    {
+      "path": "src/events_udefs.c",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/events_udefs.c",
+      "sha256": "e71f4ff018d353c6f04fc518dfab537ba6cf481adaa404f37ab72733ed96dbe2",
+      "bytes": 1782814
+    },
+    {
+      "path": "src/events/ch8-eventinfo.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/events/ch8-eventinfo.h",
+      "sha256": "fe0f1331e49e5e9224349c57b14a7c850d931ea20512b8c4693de91df8b092d9",
+      "bytes": 2550
+    },
+    {
+      "path": "src/events/ch8-eventscript.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/events/ch8-eventscript.h",
+      "sha256": "38c1374a3d3fe3cc42d326d932c505589bad4c80ddf4e0fbbdc50d44d752d99d",
+      "bytes": 14500
+    },
+    {
+      "path": "src/events_script_utils.c",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/events_script_utils.c",
+      "sha256": "c0381518bc590e20a50562ab9ba28163da6ddd2ac0e98ae665e71b60abe21179",
+      "bytes": 23423
+    },
+    {
+      "path": "src/data/map/change/Ch8MapChanges.json",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/data/map/change/Ch8MapChanges.json",
+      "sha256": "489779c5d2e8d5a24bd29a3c16d7d3e31ceb61764e1fe8cbde90a0d8f81a97d5",
+      "bytes": 920
+    },
+    {
+      "path": "scripts/mar_to_map.py",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/scripts/mar_to_map.py",
+      "sha256": "de97d3be8504e01d21a6d30e2168c4a2a49159f5ec490b184e3f6de2e89456d5",
+      "bytes": 1138
+    },
+    {
+      "path": "src/bmmap.c",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/bmmap.c",
+      "sha256": "fdbcf251c3da9f72fc93b7be9c829fcbb1bec613a2c5c2a93428aed2959ac488",
+      "bytes": 20347
+    },
+    {
+      "path": "include/bmunit.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/bmunit.h",
+      "sha256": "b3353c8e8f5a62213eeee22119d8059c6cbab43d5f99b9c0df6e5222d258e3c3",
+      "bytes": 14862
+    },
+    {
+      "path": "include/chapterdata.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/chapterdata.h",
+      "sha256": "57bd6b60ec5c509cce9d89ad6fd703564aa50ecdd21b40b8691e2800b8681d53",
+      "bytes": 6039
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_0.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_0.bin",
+      "sha256": "400b3dd7ac77e9b88588a624e74fefe809a02c172ba70f62e29744211eafd8a4",
+      "bytes": 2
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_1.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_1.bin",
+      "sha256": "f40c59c732cd6cb5103e861995fc3428f6de681e5baa8809969d2ff087ceacb4",
+      "bytes": 12
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_2.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_2.bin",
+      "sha256": "400b3dd7ac77e9b88588a624e74fefe809a02c172ba70f62e29744211eafd8a4",
+      "bytes": 2
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_3.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_3.bin",
+      "sha256": "c0ba8a33ac67f44abff5984dfbb6f56c46b880ac2b86e1f23e7fa9c402c53ae7",
+      "bytes": 2
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_4.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_4.bin",
+      "sha256": "c0ba8a33ac67f44abff5984dfbb6f56c46b880ac2b86e1f23e7fa9c402c53ae7",
+      "bytes": 2
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_5.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_5.bin",
+      "sha256": "e92aade3c189e18e49b9a69467899ce5cb2c2742e5441920913abb442364ce1c",
+      "bytes": 24
+    },
+    {
+      "path": "graphics/map/Ch8MapChanges_change_6.bin",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/graphics/map/Ch8MapChanges_change_6.bin",
+      "sha256": "c0ba8a33ac67f44abff5984dfbb6f56c46b880ac2b86e1f23e7fa9c402c53ae7",
+      "bytes": 2
+    },
+    {
+      "path": "src/bmtrick.c",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/bmtrick.c",
+      "sha256": "321de608a2b15bd80fd5ef06c8679c595ba0478ed76cbddfc74ac3d19e390c02",
+      "bytes": 16393
+    },
+    {
+      "path": "include/muctrl.h",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/include/muctrl.h",
+      "sha256": "9133819c8bfbdd8e3e6a896c8fa8c6e76a97e51b626119aedb96fcc96944d1d5",
+      "bytes": 1797
+    },
+    {
+      "path": "src/eventscr.c",
+      "url": "https://github.com/FireEmblemUniverse/fireemblem8u/blob/f2e1f060dbe5b0cc35285df5a0f6659860644a04/src/eventscr.c",
+      "sha256": "20ee9f12a99558f84066fc4fc86ed9ba0bee7e88f43f1d9858b3f26af4b4b4c6",
+      "bytes": 94489
+    }
+  ]
+}

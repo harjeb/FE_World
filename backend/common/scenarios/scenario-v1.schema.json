@@ -1,0 +1,1109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:agent-tactics:scenario:v1",
+  "title": "AgentTactics source scenario v1",
+  "description": "Source templates with explicit editions, group references and raw evidence; source IDs require project catalog bindings.",
+  "definitions": {
+    "point": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "unit": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "characterId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "characterSymbol": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "classId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "effectiveClassId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "classSymbol": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "leaderId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "faction": {
+          "enum": [
+            "player",
+            "ally",
+            "enemy"
+          ]
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31
+        },
+        "autolevel": {
+          "type": "boolean"
+        },
+        "entryPosition": {
+          "$ref": "#/definitions/point"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/point"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "positionStatus": {
+          "enum": [
+            "on-map",
+            "off-map",
+            "unresolved"
+          ]
+        },
+        "route": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "$ref": "#/definitions/point"
+              },
+              "flags": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "a": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "b": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "delayFrames": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              }
+            },
+            "required": [
+              "position",
+              "flags",
+              "a",
+              "b",
+              "delayFrames"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "itemIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "maxItems": 4
+        },
+        "aiBytes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "dropItem": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "sourceAddress": {
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{8}$"
+        },
+        "sourceRecordHex": {
+          "type": "string",
+          "pattern": "^(?:[0-9A-Fa-f]{2})+$"
+        }
+      },
+      "required": [
+        "index",
+        "characterId",
+        "characterSymbol",
+        "classId",
+        "effectiveClassId",
+        "classSymbol",
+        "leaderId",
+        "faction",
+        "level",
+        "autolevel",
+        "entryPosition",
+        "position",
+        "positionStatus",
+        "route",
+        "itemIds",
+        "aiBytes",
+        "dropItem",
+        "sourceAddress",
+        "sourceRecordHex"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "agent-tactics.scenario"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "chapter": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tableIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "internalName": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "number",
+        "route",
+        "tableIndex",
+        "internalName"
+      ],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "gba-rom"
+        },
+        "game": {
+          "enum": [
+            "fe6",
+            "fe7",
+            "fe8"
+          ]
+        },
+        "gameCode": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{4}$"
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 192
+        },
+        "sha1": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "profileRevision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      },
+      "required": [
+        "kind",
+        "game",
+        "gameCode",
+        "fileName",
+        "bytes",
+        "sha1",
+        "sha256",
+        "profileRevision"
+      ],
+      "additionalProperties": false
+    },
+    "coordinates": {
+      "const": {
+        "origin": "top-left",
+        "indexBase": 0,
+        "pointOrder": [
+          "x",
+          "y"
+        ],
+        "matrixOrder": "rows-y-columns-x"
+      }
+    },
+    "map": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "tilePixels": {
+          "const": 16
+        },
+        "terrainIds": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "minItems": 1,
+            "maxItems": 64
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "metatileIndices": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1023
+            },
+            "minItems": 1,
+            "maxItems": 64
+          },
+          "minItems": 1,
+          "maxItems": 64
+        }
+      },
+      "required": [
+        "width",
+        "height",
+        "tilePixels",
+        "terrainIds",
+        "metatileIndices"
+      ],
+      "additionalProperties": false
+    },
+    "terrainCatalog": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^(?:0|[1-9][0-9]*)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[a-fA-F0-9]{6}$"
+          },
+          "glyph": {
+            "type": "string",
+            "minLength": 1
+          },
+          "symbol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "annotationBasis": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "color",
+          "glyph",
+          "symbol",
+          "annotationBasis"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "classCatalog": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^(?:0|[1-9][0-9]*)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "symbol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          },
+          "sourceRecordHex": {
+            "type": "string",
+            "pattern": "^(?:[0-9A-Fa-f]{2})+$"
+          }
+        },
+        "required": [
+          "id",
+          "symbol",
+          "sourceAddress",
+          "sourceRecordHex"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "characterCatalog": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^(?:0|[1-9][0-9]*)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "symbol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          },
+          "sourceRecordHex": {
+            "type": "string",
+            "pattern": "^(?:[0-9A-Fa-f]{2})+$"
+          }
+        },
+        "required": [
+          "id",
+          "symbol",
+          "sourceAddress",
+          "sourceRecordHex"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "itemCatalog": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^(?:0|[1-9][0-9]*)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "symbol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          },
+          "sourceRecordHex": {
+            "type": "string",
+            "pattern": "^(?:[0-9A-Fa-f]{2})+$"
+          }
+        },
+        "required": [
+          "id",
+          "symbol",
+          "sourceAddress",
+          "sourceRecordHex"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "unitGroups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "slot": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 255
+                },
+                "variant": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "instruction": {
+                  "type": "string",
+                  "pattern": "^0x[0-9A-Fa-f]{8}$"
+                },
+                "loadMode": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 255
+                },
+                "restriction": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/unit"
+            },
+            "minItems": 1,
+            "maxItems": 256
+          }
+        },
+        "required": [
+          "id",
+          "sourceAddress",
+          "references",
+          "units"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "seize",
+              "door",
+              "chest",
+              "source-location"
+            ]
+          },
+          "position": {
+            "$ref": "#/definitions/point"
+          },
+          "sourceCommand": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "sourceAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          },
+          "itemId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "positionStatus": {
+            "enum": [
+              "on-map",
+              "off-map"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "position",
+          "sourceCommand",
+          "sourceAddress",
+          "itemId",
+          "positionStatus"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "mapChanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceId": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "position": {
+            "$ref": "#/definitions/point"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "terrainIds": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "metatileIndices": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1023
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "sourceAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          }
+        },
+        "required": [
+          "id",
+          "sourceId",
+          "position",
+          "width",
+          "height",
+          "terrainIds",
+          "metatileIndices",
+          "sourceAddress"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "events": {
+      "type": "object",
+      "properties": {
+        "turn": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceAddress": {
+                "type": "string",
+                "pattern": "^0x[0-9A-Fa-f]{8}$"
+              },
+              "typeId": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "flag": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "words": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "minItems": 3,
+                "maxItems": 4
+              },
+              "scriptPointer": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            },
+            "required": [
+              "sourceAddress",
+              "typeId",
+              "flag",
+              "words",
+              "scriptPointer"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "talk": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceAddress": {
+                "type": "string",
+                "pattern": "^0x[0-9A-Fa-f]{8}$"
+              },
+              "typeId": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "flag": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "words": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "minItems": 3,
+                "maxItems": 4
+              },
+              "scriptPointer": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            },
+            "required": [
+              "sourceAddress",
+              "typeId",
+              "flag",
+              "words",
+              "scriptPointer"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "location": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceAddress": {
+                "type": "string",
+                "pattern": "^0x[0-9A-Fa-f]{8}$"
+              },
+              "typeId": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "flag": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "words": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "minItems": 3,
+                "maxItems": 4
+              },
+              "scriptPointer": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            },
+            "required": [
+              "sourceAddress",
+              "typeId",
+              "flag",
+              "words",
+              "scriptPointer"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "misc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceAddress": {
+                "type": "string",
+                "pattern": "^0x[0-9A-Fa-f]{8}$"
+              },
+              "typeId": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "flag": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "words": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "minItems": 3,
+                "maxItems": 4
+              },
+              "scriptPointer": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            },
+            "required": [
+              "sourceAddress",
+              "typeId",
+              "flag",
+              "words",
+              "scriptPointer"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "turn",
+        "talk",
+        "location",
+        "misc"
+      ],
+      "additionalProperties": false
+    },
+    "eventScripts": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]{8}$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "minItems": 1
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "enemyTemplateCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unitGroupCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "primaryEnemyTemplateCount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "initialEnemySelection": {
+          "enum": [
+            "chapter-table",
+            "opening-script-references"
+          ]
+        },
+        "scriptScanWarnings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "script": {
+                "type": "string",
+                "pattern": "^0x[0-9A-Fa-f]{8}$"
+              },
+              "issue": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "script",
+              "issue"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "scriptScanMode": {
+          "enum": [
+            "static-packets-and-calls",
+            "static-patterns-to-first-terminator"
+          ]
+        },
+        "runtimeExecuted": {
+          "const": false
+        },
+        "asmSpawnEffectsExecuted": {
+          "const": false
+        }
+      },
+      "required": [
+        "enemyTemplateCount",
+        "unitGroupCount",
+        "primaryEnemyTemplateCount",
+        "initialEnemySelection",
+        "scriptScanWarnings",
+        "scriptScanMode",
+        "runtimeExecuted",
+        "asmSpawnEffectsExecuted"
+      ],
+      "additionalProperties": false
+    },
+    "adaptation": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "source-template"
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "status",
+        "requires",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "chapterAddress": {
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{8}$"
+        },
+        "chapterRecordHex": {
+          "type": "string",
+          "pattern": "^(?:[0-9A-Fa-f]{2})+$"
+        },
+        "layoutAddress": {
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{8}$"
+        },
+        "configAddress": {
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{8}$"
+        },
+        "eventGroupAddress": {
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{8}$"
+        },
+        "eventPointerWords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^0x[0-9A-Fa-f]{8}$"
+          },
+          "minItems": 7,
+          "maxItems": 20
+        },
+        "layoutSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "configSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "chapterAddress",
+        "chapterRecordHex",
+        "layoutAddress",
+        "configAddress",
+        "eventGroupAddress",
+        "eventPointerWords",
+        "layoutSha256",
+        "configSha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "format",
+    "schemaVersion",
+    "id",
+    "name",
+    "chapter",
+    "source",
+    "coordinates",
+    "map",
+    "terrainCatalog",
+    "classCatalog",
+    "characterCatalog",
+    "itemCatalog",
+    "unitGroups",
+    "objects",
+    "mapChanges",
+    "events",
+    "eventScripts",
+    "coverage",
+    "adaptation",
+    "provenance"
+  ],
+  "additionalProperties": false
+}

@@ -26,16 +26,27 @@ export interface RunRecord {
   // 地区远征任务（docs/20）：完成后标记该任务；每图日数可覆盖（任务远征 2 日/图）。
   questId?: string;
   stageDays?: number;
+  // 经典地图副本：按顺序使用的场景 id 与显示名（不填则沿用随机地图三图副本）。
+  scenarioIds?: string[];
+  stageNames?: string[];
   createdAt: number;
   updatedAt: number;
 }
 
-export function createRun(id: string, playerId: string, region: number, unitIds: string[], level: number, clearedAtStart: number, opts: { questId?: string; stageDays?: number } = {}): RunRecord {
+export function createRun(id: string, playerId: string, region: number, unitIds: string[], level: number, clearedAtStart: number,
+  opts: { questId?: string; stageDays?: number; scenarioIds?: string[]; stageNames?: string[] } = {}): RunRecord {
   return {
     id, playerId, region, state: 'battle', unitIds: [...unitIds], stageIndex: 0,
     level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
+    scenarioIds: opts.scenarioIds ? [...opts.scenarioIds] : undefined,
+    stageNames: opts.stageNames ? [...opts.stageNames] : undefined,
     createdAt: Date.now(), updatedAt: Date.now(),
   };
+}
+
+// 经典副本按场景数结算；随机地图副本固定三图。
+export function stageCount(run: Pick<RunRecord, 'scenarioIds'>): number {
+  return run.scenarioIds?.length ?? DUNGEON_STAGES;
 }
 
 export function isActiveRun(run: RunRecord | null): boolean {
@@ -64,11 +75,15 @@ export function stageLoot(region: number, stageIndex: number): { item: string; c
 }
 
 export function runSummary(run: RunRecord): Record<string, unknown> {
+  const count = stageCount(run);
   return {
     id: run.id, region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level,
     unitIds: run.unitIds, survivingIds: survivingIds(run.carry), battleId: run.battleId,
     // What each survivor brings into the next map: HP and supplies do not recover between maps.
     carry: run.carry,
     pendingLoot: run.pendingLoot, canContinue: run.state === 'between_maps',
+    stageCount: count, stageDays: run.stageDays ?? DUNGEON_STAGE_DAYS, stageNames: run.stageNames ?? null,
+    stageName: run.stageNames?.[run.stageIndex] ?? null,
+    nextStageName: run.stageNames?.[run.stageIndex + 1] ?? null,
   };
 }

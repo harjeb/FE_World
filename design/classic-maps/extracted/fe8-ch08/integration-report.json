@@ -1,0 +1,78 @@
+{
+  "runtimeReady": false,
+  "terrainMappings": [
+    {
+      "fe8Id": 23,
+      "symbol": "TERRAIN_FLOOR_REGULAR",
+      "projectTerrainCandidate": "floor",
+      "note": "仅名称映射候选；战斗加成和移动规则仍需按项目设计确认"
+    },
+    {
+      "fe8Id": 26,
+      "symbol": "TERRAIN_WALL_REGULAR",
+      "projectTerrainCandidate": "wall",
+      "note": "仅名称映射候选；战斗加成和移动规则仍需按项目设计确认"
+    },
+    {
+      "fe8Id": 27,
+      "symbol": "TERRAIN_WALL_DAMAGED",
+      "projectTerrainCandidate": null,
+      "note": "需要可破坏墙及状态变化"
+    },
+    {
+      "fe8Id": 29,
+      "symbol": "TERRAIN_PILLAR",
+      "projectTerrainCandidate": null,
+      "note": "需要柱子规则或明确降级映射"
+    },
+    {
+      "fe8Id": 30,
+      "symbol": "TERRAIN_DOOR",
+      "projectTerrainCandidate": null,
+      "note": "需要门与开锁事件"
+    },
+    {
+      "fe8Id": 31,
+      "symbol": "TERRAIN_THRONE",
+      "projectTerrainCandidate": "throne",
+      "note": "仅名称映射候选；战斗加成和移动规则仍需按项目设计确认"
+    },
+    {
+      "fe8Id": 32,
+      "symbol": "TERRAIN_CHEST_EMPTY",
+      "projectTerrainCandidate": null,
+      "note": "需要宝箱已开启状态"
+    },
+    {
+      "fe8Id": 33,
+      "symbol": "TERRAIN_CHEST_FULL",
+      "projectTerrainCandidate": null,
+      "note": "需要宝箱和已开启状态"
+    },
+    {
+      "fe8Id": 45,
+      "symbol": "TERRAIN_STAIRS",
+      "projectTerrainCandidate": null,
+      "note": "需要楼梯标签及明确地板映射"
+    },
+    {
+      "fe8Id": 60,
+      "symbol": "TERRAIN_WATER",
+      "projectTerrainCandidate": "water",
+      "note": "仅名称映射候选；战斗加成和移动规则仍需按项目设计确认"
+    },
+    {
+      "fe8Id": 63,
+      "symbol": "TERRAIN_BRACE",
+      "projectTerrainCandidate": null,
+      "note": "需要核对Brace分类后决定映射"
+    }
+  ],
+  "requiredWork": [
+    "保留地图事件层，支持门/宝箱/可破坏墙；决定柱子、楼梯、Brace的地形映射。",
+    "挑选符合项目规模的我方出生点和敌军配置；原始初始敌军模板超过现有8人限制。",
+    "处理首领占据制压点的原作布局与当前“目标不能和出生点重叠”规则。",
+    "评估门和隔间导致的分阶段连通性；当前验证器要求所有可走格从开场全连通。",
+    "将物品、职业和人物替换或映射到项目数据，再接入任务/增援执行。"
+  ]
+}
