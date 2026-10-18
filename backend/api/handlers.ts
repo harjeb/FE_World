@@ -8,7 +8,8 @@ import { actionOptions, artForecast, destinationCells, expPreview, forecast, for
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
+import { ART_TRAINING, WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
+import type { ArtTraining } from '../common/data/weapon-arts.ts';
 import type { WeaponId } from '../common/data/weapons.ts';
 import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
@@ -309,6 +310,24 @@ function lifespanBlockers(ctx: Context, toDay: number): string[] {
       const end = nextLifespanEventDay(unit, ctx.player.day, toDay);
       return end === null ? [] : [`${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`];
     });
+}
+
+function requireArtTraining(id: string): ArtTraining {
+  const training = ART_TRAINING.find(row => row.art === id);
+  if (!training) throw new OpError('BAD_REQUEST', '该战技不是可研修的强化版');
+  return training;
+}
+
+function artTrainingProblem(ctx: Context, unit: UnitRecord, training: ArtTraining): OpError | null {
+  if (unit.status !== 'active') return new OpError('FORBIDDEN', '该单位不在现役名册');
+  if (ctx.store.activeAnnualEntry(ctx.player.id)) return new OpError('FORBIDDEN', '大竞技场进行中，不能研修');
+  if (ctx.store.activeBattle(ctx.player.id)) return new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能研修');
+  if (unit.lockedRunId || unit.lockedDispatchId) return new OpError('FORBIDDEN', '远征／派遣中的角色不能研修');
+  if (unit.learnedArts?.includes(training.art)) return new OpError('FORBIDDEN', '已经学会该强化战技');
+  if (!unit.learnedArts?.includes(training.requires)) return new OpError('FORBIDDEN', '尚未学会对应基础战技');
+  if (ctx.player.gold < training.gold) return new OpError('NOT_ENOUGH_GOLD', `研修需要 ${training.gold} 金币`);
+  const lifespan = lifespanBlockers(ctx, ctx.player.day + training.days);
+  return lifespan.length ? new OpError('FORBIDDEN', lifespan.join('；')) : null;
 }
 
 const handlers: Record<number, Handler> = {
@@ -928,6 +947,35 @@ const handlers: Record<number, Handler> = {
       learnedSkills: unit.learnedSkills ?? [], learnedArts: unit.learnedArts ?? [], equippedSkills: unit.equippedSkills ?? [],
       qualifications: unit.classQualifications ?? [],
     };
+  },
+
+  [OP.GET_ART_TRAINING]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    return {
+      unit: unit.id, day: ctx.player.day, gold: ctx.player.gold,
+      choices: ART_TRAINING.map(training => {
+        const art = WEAPON_ART_BY_ID.get(training.art)!;
+        const blocker = artTrainingProblem(ctx, unit, training)?.message ?? null;
+        return { ...training, name: art.name, effect: art.effect, requiresName: WEAPON_ART_BY_ID.get(training.requires)!.name,
+          learned: unit.learnedArts?.includes(training.art) ?? false, available: blocker === null, blocker };
+      }),
+    };
+  },
+
+  [OP.TRAIN_ART]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const training = requireArtTraining(asString(data.art, 'art'));
+    const problem = artTrainingProblem(ctx, unit, training);
+    if (problem) throw problem;
+    ctx.player.gold -= training.gold;
+    ctx.player.day += training.days;
+    unit.learnedArts = [...(unit.learnedArts ?? []), training.art];
+    ctx.store.saveUnit(unit, ctx.player.id);
+    syncPlayer(ctx.store, ctx.player);
+    const name = WEAPON_ART_BY_ID.get(training.art)!.name;
+    ctx.store.addEvent(ctx.player.id, 'art-training', `${unitName(unit)} 研修学会 ${name}（${training.days}日／${training.gold}金币）。`, { unit: unit.id, art: training.art });
+    ctx.push(OP.STATE_CHANGED, { reason: 'art-training' });
+    return { unit: unit.id, art: training.art, name, days: training.days, costGold: training.gold, day: ctx.player.day, gold: ctx.player.gold, learnedArts: unit.learnedArts };
   },
 
   [OP.SWITCH_CLASS]: (ctx, data) => {
@@ -2187,6 +2235,17 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       if (player.gold < TRAIN_GOLD) blockers.push(`训练需要 ${TRAIN_GOLD} 金币`);
       break;
     }
+    case 'art_training': {
+      op = OP.TRAIN_ART;
+      const unit = requireUnit(ctx.store, player, asString(data.unitId, 'unitId'));
+      const training = requireArtTraining(asString(data.art, 'art'));
+      payload = { unitId: unit.id, art: training.art };
+      costDays = training.days;
+      costGold = training.gold;
+      const problem = artTrainingProblem(ctx, unit, training);
+      if (problem) blockers.push(problem.message);
+      break;
+    }
     case 'rest': {
       op = OP.REST;
       costDays = Math.max(1, Math.min(500, typeof data.days === 'number' ? data.days : 1));
@@ -2219,12 +2278,13 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       break;
     }
     default:
-      throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / rest / recruit / dungeon / annual');
+      throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / art_training / rest / recruit / dungeon / annual');
   }
   const toDay = player.day + costDays;
   for (const unit of ctx.store.units(player.id).filter(unit => unit.status === 'active')) {
     const end = nextLifespanEventDay(unit, player.day, toDay);
-    if (end !== null) blockers.push(`${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`);
+    const message = `${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`;
+    if (end !== null && !blockers.includes(message)) blockers.push(message);
   }
   return { op, action, payload, costDays, costGold, fromDay: player.day, toDay, date: dateOf(toDay), risk, events: dateEventsBetween(player.day, toDay), blockers };
 }
@@ -2403,7 +2463,7 @@ function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unk
 
 // 会改变玩家状态的 op：成功后 version +1。
 const WRITE_OPS = new Set<number>([
-  OP.SORTIE, OP.SWEEP, OP.TRAIN, OP.REST, OP.RECRUIT, OP.START_MAIN_STAGE, OP.SKIP_MAIN_STAGE,
+  OP.SORTIE, OP.SWEEP, OP.TRAIN, OP.TRAIN_ART, OP.REST, OP.RECRUIT, OP.START_MAIN_STAGE, OP.SKIP_MAIN_STAGE,
   OP.BUY, OP.SELL, OP.TRANSFER_ITEM, OP.USE_ITEM, OP.PROMOTE, OP.ASSIGN_BEXP, OP.DISMISS,
   OP.SET_DEFENSE, OP.ARENA_REGISTER, OP.ARENA_BAN, OP.ARENA_ATTACK, OP.SURRENDER, OP.START_SPARRING,
   OP.CLAIM_LEGACY, OP.RETIRE_UNIT, OP.REINCARNATE_UNIT, OP.EMERGENCY_RECRUIT, OP.BUY_CLASS_QUALIFICATION,

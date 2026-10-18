@@ -30,7 +30,7 @@
     "exceptionSource": "equipment_grant",
     "weaponRankRole": "usage_requirement_only",
     "masteryThresholds": "stage_order_v1",
-    "trainingCosts": "pending",
+    "trainingCosts": "durability_v1",
     "learnedSlotLimit": 5,
     "sharedLearning": true,
     "minimumTeacherClasses": 2,
@@ -566,7 +566,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_20",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -574,8 +574,8 @@
             "mercenary"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -6883,7 +6883,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_34",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_multi",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -6893,8 +6893,8 @@
             "blade"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 5,
+            "gold": 1000
           }
         },
         "overrides": []
@@ -7051,7 +7051,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_203",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_large_target",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -7061,8 +7061,8 @@
             "blade"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -8665,7 +8665,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_18",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -8673,8 +8673,8 @@
             "assassin"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -9178,7 +9178,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_99",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9186,8 +9186,8 @@
             "assassin"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -9234,7 +9234,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_28",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_multi",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9242,8 +9242,8 @@
             "shido"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 5,
+            "gold": 1000
           }
         },
         "overrides": []
@@ -9290,7 +9290,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_29",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_multi",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -9300,8 +9300,8 @@
             "blade"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -9348,7 +9348,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_36",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9357,8 +9357,8 @@
             "armored_ornius"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -9405,7 +9405,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_151",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_close",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9413,8 +9413,8 @@
             "bow_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -9461,7 +9461,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_169",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_magic",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9471,8 +9471,8 @@
             "storm_lancer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -9519,7 +9519,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_48",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9527,8 +9527,8 @@
             "great_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -9575,7 +9575,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_46",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_sustain",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9585,8 +9585,8 @@
             "storm_lancer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -9633,7 +9633,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_52",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9642,8 +9642,8 @@
             "cleric"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -9690,7 +9690,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_190",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9698,8 +9698,8 @@
             "fortress"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -9746,7 +9746,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_207",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9754,8 +9754,8 @@
             "fortress"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -9802,7 +9802,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_343",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9810,8 +9810,8 @@
             "wiseman"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -9858,7 +9858,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_71",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9866,8 +9866,8 @@
             "archer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -9914,7 +9914,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_125",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9922,8 +9922,8 @@
             "forest_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -9970,7 +9970,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_77",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -9978,8 +9978,8 @@
             "brawler"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10026,7 +10026,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_209",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10034,8 +10034,8 @@
             "bishop"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -10082,7 +10082,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_170",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10090,8 +10090,8 @@
             "falcon"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -10138,7 +10138,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_42",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10147,8 +10147,8 @@
             "storm_lancer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10195,7 +10195,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_137",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_sustain",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10205,8 +10205,8 @@
             "storm_lancer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -10253,7 +10253,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_199",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_magic",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10261,8 +10261,8 @@
             "blacksmith"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10309,7 +10309,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_189",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10317,8 +10317,8 @@
             "bow_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10365,7 +10365,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_31",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10373,8 +10373,8 @@
             "apsara"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -10421,7 +10421,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_57",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10429,8 +10429,8 @@
             "wiseman"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10477,7 +10477,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_67",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10485,8 +10485,8 @@
             "forest_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10533,7 +10533,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_104",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_mobile",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10541,8 +10541,8 @@
             "dancer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -10589,7 +10589,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_79",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10597,8 +10597,8 @@
             "brawler"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10645,7 +10645,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_163",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -10655,8 +10655,8 @@
             "blade"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10703,7 +10703,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_164",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_large_target",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10711,8 +10711,8 @@
             "dragon_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -10759,7 +10759,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_162",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10767,8 +10767,8 @@
             "dragon_commander"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -10815,7 +10815,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_165",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10823,8 +10823,8 @@
             "paladin"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -10871,7 +10871,7 @@
           "kind": "art_training",
           "weaponRank": "S",
           "requiresArtId": "fw_art_168",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_extreme",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -10880,8 +10880,8 @@
             "marksman"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 15,
+            "gold": 3000
           }
         },
         "overrides": []
@@ -10928,7 +10928,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_204",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10936,8 +10936,8 @@
             "bishop"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -10984,7 +10984,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_171",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -10992,8 +10992,8 @@
             "high_epitaph"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11040,7 +11040,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_59",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11048,8 +11048,8 @@
             "dragon_commander"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11096,7 +11096,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_173",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_magic",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11105,8 +11105,8 @@
             "saint"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -11153,7 +11153,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_160",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_support",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11161,8 +11161,8 @@
             "sage"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11209,7 +11209,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_82",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11217,8 +11217,8 @@
             "brawler"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11265,7 +11265,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_98",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11273,8 +11273,8 @@
             "pegasus"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11321,7 +11321,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_26",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11333,8 +11333,8 @@
             "dark_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11381,7 +11381,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_101",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11389,8 +11389,8 @@
             "mercenary"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11437,7 +11437,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_24",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11446,8 +11446,8 @@
             "thief"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -11494,7 +11494,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_174",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11502,8 +11502,8 @@
             "apsara"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -11550,7 +11550,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_197",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_agility",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -11560,8 +11560,8 @@
             "divine_cavalier"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -11608,7 +11608,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_54",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11617,8 +11617,8 @@
             "cleric"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11665,7 +11665,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_192",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_throw",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11673,8 +11673,8 @@
             "cavalier"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11721,7 +11721,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_193",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_matchup",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11729,8 +11729,8 @@
             "fortress"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11777,7 +11777,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_65",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11785,8 +11785,8 @@
             "marksman"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11833,7 +11833,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_213",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11841,8 +11841,8 @@
             "saint"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -11889,7 +11889,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_214",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11897,8 +11897,8 @@
             "everlord"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -11945,7 +11945,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_177",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -11953,8 +11953,8 @@
             "apsara"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -12001,7 +12001,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_215",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_shadow",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12009,8 +12009,8 @@
             "calamity"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -12057,7 +12057,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_72",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_control",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12065,8 +12065,8 @@
             "shadow_seeker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12113,7 +12113,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_84",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12121,8 +12121,8 @@
             "druid"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12169,7 +12169,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_45",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12177,8 +12177,8 @@
             "great_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -12225,7 +12225,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_179",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12233,8 +12233,8 @@
             "great_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -12281,7 +12281,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_73",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_mobile",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12289,8 +12289,8 @@
             "apsara"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12337,7 +12337,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_96",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12345,8 +12345,8 @@
             "sniper"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12393,7 +12393,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_149",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_agility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12401,8 +12401,8 @@
             "shadow_seeker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12449,7 +12449,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_102",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_finisher",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12457,8 +12457,8 @@
             "hero"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12505,7 +12505,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_25",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12520,8 +12520,8 @@
             "dark_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12568,7 +12568,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_180",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12576,8 +12576,8 @@
             "hero"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12624,7 +12624,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_216",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_combo",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -12634,8 +12634,8 @@
             "everlord"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -12682,7 +12682,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_198",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12690,8 +12690,8 @@
             "charioteer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -12738,7 +12738,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_128",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12746,8 +12746,8 @@
             "mage"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12794,7 +12794,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_111",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12802,8 +12802,8 @@
             "berserker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12850,7 +12850,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_43",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12859,8 +12859,8 @@
             "storm_lancer"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -12907,7 +12907,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_100",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12915,8 +12915,8 @@
             "cavalier"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -12963,7 +12963,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_147",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_heavy",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -12971,8 +12971,8 @@
             "hero"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13019,7 +13019,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_195",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_break",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13027,8 +13027,8 @@
             "druid"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13075,7 +13075,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_188",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_foundation",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13083,8 +13083,8 @@
             "sniper"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13131,7 +13131,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_107",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_shadow",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13139,8 +13139,8 @@
             "thief"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13187,7 +13187,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_126",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_magic",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13195,8 +13195,8 @@
             "saint"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13243,7 +13243,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_201",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_agility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13251,8 +13251,8 @@
             "divine_cavalier"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13299,7 +13299,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_109",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_matchup",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13307,8 +13307,8 @@
             "hero"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13355,7 +13355,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_217",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_combo",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13363,8 +13363,8 @@
             "berserker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13411,7 +13411,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_97",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13419,8 +13419,8 @@
             "great_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13467,7 +13467,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_181",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13475,8 +13475,8 @@
             "divine_cavalier"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13523,7 +13523,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_115",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13531,8 +13531,8 @@
             "general"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13579,7 +13579,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_114",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_matchup",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13587,8 +13587,8 @@
             "fortress"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13635,7 +13635,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_182",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_control",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13643,8 +13643,8 @@
             "shadow_seeker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13691,7 +13691,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_184",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_power",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -13701,8 +13701,8 @@
             "berserker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -13749,7 +13749,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_159",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13757,8 +13757,8 @@
             "everlord"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13805,7 +13805,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_205",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_magic",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13816,8 +13816,8 @@
             "dark_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13864,7 +13864,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_138",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_power",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13872,8 +13872,8 @@
             "great_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -13920,7 +13920,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_44",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -13928,8 +13928,8 @@
             "orichaldia"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -13976,7 +13976,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_218",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -13986,8 +13986,8 @@
             "blade"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -14034,7 +14034,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_185",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_sustain",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14042,8 +14042,8 @@
             "berserker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -14090,7 +14090,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_194",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_break",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14098,8 +14098,8 @@
             "fist_deity"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -14146,7 +14146,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_202",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_precision",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14154,8 +14154,8 @@
             "ranger"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -14202,7 +14202,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_196",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "axe_throw",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14210,8 +14210,8 @@
             "divine_cavalier"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -14258,7 +14258,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_200",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "fist_combo",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14266,8 +14266,8 @@
             "battlemaster"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -14314,7 +14314,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_35",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_shadow",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -14323,8 +14323,8 @@
             "shadow_seeker"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -14371,7 +14371,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_152",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_throw",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -14381,8 +14381,8 @@
             "dragon_commander"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []
@@ -14429,7 +14429,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_130",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_precision",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -14439,8 +14439,8 @@
             "bow_knight"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 3,
+            "gold": 600
           }
         },
         "overrides": []
@@ -14487,7 +14487,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_70",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_magic",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14495,8 +14495,8 @@
             "saint"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -14543,7 +14543,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_47",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14551,8 +14551,8 @@
             "sentinel"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 5,
+            "gold": 1000
           }
         },
         "overrides": []
@@ -14599,7 +14599,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_206",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "sword_utility",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14607,8 +14607,8 @@
             "assassin"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -14655,7 +14655,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_150",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "lance_guard",
           "learningBand": "upgrade",
           "originClassIds": [
@@ -14663,8 +14663,8 @@
             "sentinel"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 2,
+            "gold": 400
           }
         },
         "overrides": []
@@ -14967,7 +14967,7 @@
           "kind": "art_training",
           "weaponRank": "A",
           "requiresArtId": "fw_art_338",
-          "assignmentStatus": "training_cost_pending",
+          "assignmentStatus": "implemented",
           "teachingGroup": "bow_extreme",
           "learningBand": "upgrade",
           "learningScope": "restricted",
@@ -14977,8 +14977,8 @@
             "calamity"
           ],
           "trainingCost": {
-            "days": null,
-            "gold": null
+            "days": 4,
+            "gold": 800
           }
         },
         "overrides": []

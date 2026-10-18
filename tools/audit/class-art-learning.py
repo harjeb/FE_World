@@ -159,7 +159,7 @@ def audit(catalog_path=CATALOG, document_path=DOCUMENT):
     check(policy['ordinarySource'] == 'class_mastery' and policy['upgradeSource'] == 'art_training', 'Mastery and training learning channels differ')
     check(policy['perClassArtRange'] == [4, 6] and policy['counting'] == 'individual_art_ids', 'Every basic and upgrade ID must count separately')
     check(policy['useRequiresLearningClass'] is False and policy['learnedSlotLimit'] == 5, 'Class-independent use or five slots changed')
-    check(policy['masteryThresholds'] == 'stage_order_v1' and policy['classAssignments'] == 'implemented' and policy['trainingCosts'] == 'pending', 'Mastery/training implementation status differs')
+    check(policy['masteryThresholds'] == 'stage_order_v1' and policy['classAssignments'] == 'implemented' and policy['trainingCosts'] == 'durability_v1', 'Mastery/training implementation status differs')
     check(policy['spellbookArts'] is False and 'specificClassLevels' not in policy, 'Spellbook adaptation or obsolete level learning remains')
     check(policy['minimumTeacherClasses'] == 2 and policy['restrictedTeacherRange'] == [1, 2] and policy['restrictionScope'] == 'learning_sources_only', 'Shared/restricted learning policy changed')
     rows = list(learned_rows(catalog))
@@ -223,7 +223,9 @@ def audit(catalog_path=CATALOG, document_path=DOCUMENT):
         check(row['variant'] == 'upgrade' and parent in by_id, 'Training upgrade lacks a mastery-learned prerequisite')
         check('classIds' not in learning and 'classLevel' not in learning, 'Training is incorrectly a class mastery reward')
         check(learning['originClassIds'] == by_id[parent][1]['classIds'], 'Training prerequisite teaching provenance differs')
-        check(learning['trainingCost'] == {'days': None, 'gold': None} and learning['assignmentStatus'] == 'training_cost_pending', 'Training costs incorrectly presented as implemented')
+        days = max(2, (row['project']['cost'] + 1) // 2)
+        check(all(type(v) is int and v > 0 for v in learning['trainingCost'].values()), 'Training costs must be positive integers')
+        check(learning['trainingCost'] == {'days': days, 'gold': days * 200} and learning['assignmentStatus'] == 'implemented', 'Training durability_v1 costs/status differ')
         if parent in rules:
             check(learning.get('learningScope') == 'restricted' and learning['restrictionReason'] == rules[parent]['reason'], 'Powerful training upgrade bypasses the restricted prerequisite')
         if parent in adaptations:

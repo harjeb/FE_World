@@ -68,7 +68,7 @@ def audit(catalog_path, source_path=None):
     check(catalog['learningPolicy'] == {
         'ordinarySource': 'class_mastery', 'upgradeSource': 'art_training',
         'exceptionSource': 'equipment_grant', 'weaponRankRole': 'usage_requirement_only',
-        'masteryThresholds': 'stage_order_v1', 'trainingCosts': 'pending', 'learnedSlotLimit': 5,
+        'masteryThresholds': 'stage_order_v1', 'trainingCosts': 'durability_v1', 'learnedSlotLimit': 5,
         'sharedLearning': True, 'minimumTeacherClasses': 2, 'useRequiresLearningClass': False,
         'classAssignments': 'implemented', 'restrictedTeacherRange': [1, 2],
         'restrictionScope': 'learning_sources_only', 'perClassArtRange': [4, 6],
@@ -123,7 +123,9 @@ def audit(catalog_path, source_path=None):
             check(unlock['learningBand'] in {'foundation', 'core', 'advanced', 'upgrade'} and bool(unlock['teachingGroup']), 'Missing proposed teaching group')
         if unlock['kind'] == 'art_training':
             check(row['variant'] == 'upgrade' and 'classIds' not in unlock, 'Training upgrade counted as a class mastery reward')
-            check(unlock['trainingCost'] == {'days': None, 'gold': None} and unlock['assignmentStatus'] == 'training_cost_pending', 'Unknown training costs presented as implemented')
+            days = max(2, (project['cost'] + 1) // 2)
+            check(all(type(v) is int and v > 0 for v in unlock['trainingCost'].values()), 'Training costs must be positive integers')
+            check(unlock['trainingCost'] == {'days': days, 'gold': days * 200} and unlock['assignmentStatus'] == 'implemented', 'Training durability_v1 costs/status differ')
         if unlock['kind'] == 'equipment_grant':
             check(bool(unlock['referenceEquipment']), 'Missing equipment grant source')
         if row['variant'] == 'upgrade':

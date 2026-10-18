@@ -65,6 +65,18 @@ for plan in catalog['classMasteryPlans']:
         lines.append('  ' + json.dumps(plan['classId']) + ': ' + json.dumps(nodes, ensure_ascii=False) + ',')
         links += len(nodes)
 assert links == 408
-lines += ['};', '']
+lines += ['};', '', 'export interface ArtTraining { art: string; requires: string; days: number; gold: number }',
+          'export const ART_TRAINING: readonly ArtTraining[] = [']
+training = []
+for row in catalog['arts']:
+    unlock = row['project']['unlock']
+    if unlock['kind'] == 'art_training':
+        assert unlock['requiresArtId'] in {a['id'] for a in arts}
+        cost = unlock['trainingCost']
+        assert all(isinstance(cost[key], int) and cost[key] > 0 for key in ['days', 'gold'])
+        training.append({'art': row['id'], 'requires': unlock['requiresArtId'], **cost})
+assert len(training) == 103
+lines += ['  ' + json.dumps(row, ensure_ascii=False) + ',' for row in training]
+lines += ['];', '']
 (ROOT / 'backend/common/data/weapon-arts.ts').write_text('\n'.join(lines), encoding='utf-8')
-print(f'weapon arts: {len(arts)} (15 original, 283 reference, 17 supplement), {links} mastery links')
+print(f'weapon arts: {len(arts)} (15 original, 283 reference, 17 supplement), {links} mastery links, {len(training)} training upgrades')

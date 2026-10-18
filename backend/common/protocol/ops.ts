@@ -54,6 +54,8 @@ export const OPS: readonly OpDef[] = [
   { op: 84, name: 'GET_MASTERY', group: '名册', agentNote: '读取角色各职业的精通点、技能／战技奖励及阈值、已解锁节点和习得库；参战与派遣返程达到阈值后学会，换职保留，人物等级不直接发奖。' },
   { op: 85, name: 'SWITCH_CLASS', group: '名册', agentNote: '营地凭资格免费换职，不占购买额度并保留学习成果；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。' },
   { op: 86, name: 'EQUIP_SKILLS', group: '名册', agentNote: '在最多 5 个格子里装备已学会的技能（跨职业自由装备）；未学会的技能会被拒绝。' },
+  { op: 87, name: 'GET_ART_TRAINING', group: '名册', agentNote: '读取角色的103项强化战技研修：基础技前提、金币、工期、已学状态和阻挡原因；学习不要求原教学职业或使用武器等级。' },
+  { op: 88, name: 'TRAIN_ART', group: '名册', agentNote: '营地研修一项已学基础技对应的独立强化战技，传unitId与art；扣金币并推进工期，重复已学会被拒；commandId重试不重复支付，可先用PREVIEW_ACTION的art_training报价。' },
 
   { op: 90, name: 'GET_PRODUCTION', group: '生产', agentNote: '读取农田、工位、进行中的订单与可领取的产出。' },
   { op: 91, name: 'PLANT', group: '生产', agentNote: '在农田播种：消耗种子并推进 1 日，成熟后收获不额外耗日。' },

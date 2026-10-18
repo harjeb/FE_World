@@ -273,6 +273,20 @@
       "push": false
     },
     {
+      "op": 87,
+      "name": "GET_ART_TRAINING",
+      "group": "名册",
+      "agentNote": "读取角色的103项强化战技研修：基础技前提、金币、工期、已学状态和阻挡原因；学习不要求原教学职业或使用武器等级。",
+      "push": false
+    },
+    {
+      "op": 88,
+      "name": "TRAIN_ART",
+      "group": "名册",
+      "agentNote": "营地研修一项已学基础技对应的独立强化战技，传unitId与art；扣金币并推进工期，重复已学会被拒；commandId重试不重复支付，可先用PREVIEW_ACTION的art_training报价。",
+      "push": false
+    },
+    {
       "op": 90,
       "name": "GET_PRODUCTION",
       "group": "生产",

@@ -296,6 +296,14 @@ export interface ClassMarketRow {
 }
 
 // GET_MASTERY: class mastery by class, the nodes and the five equip slots (docs/00 §4.2.1).
+export interface ServerArtTraining {
+  unit: string; day: number; gold: number;
+  choices: { art: string; name: string; effect: string; requires: string; requiresName: string; days: number; gold: number; learned: boolean; available: boolean; blocker: string | null }[];
+}
+export interface ArtTrainingResult {
+  unit: string; art: string; name: string; days: number; costGold: number; day: number; gold: number; learnedArts: string[];
+}
+
 export interface ServerMastery {
   unit: string; classId: string; cycle: number; slots: number;
   progress: { classId: string; name: string; route: string; routeName: string; stage: number; mastery: number; nodes: { id: string; threshold: number; skill?: string; art?: string; name: string; referenceIds: string[]; unlocked: boolean }[] }[];
@@ -577,6 +585,10 @@ class SessionStore {
 
   async classMarket(unitId: string): Promise<{ year: number; monthLimit: number; monthUsed: number; classes: ClassMarketRow[] }> {
     return call(OP.GET_CLASS_MARKET, { unitId });
+  }
+
+  async artTraining(unitId: string): Promise<ServerArtTraining> {
+    return call<ServerArtTraining>(OP.GET_ART_TRAINING, { unitId });
   }
 
   async mastery(unitId: string): Promise<ServerMastery> {

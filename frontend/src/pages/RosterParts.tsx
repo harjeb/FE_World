@@ -22,6 +22,7 @@ import { links } from '../router.ts';
 import type { RosterTab } from '../router.ts';
 import { plainDate, shortDate } from '../ui/calendar.ts';
 import { asUnit, combatLine } from './profile.ts';
+import { ArtTrainingPanel } from './ArtTrainingPanel.tsx';
 import { UnitFace } from './SystemParts.tsx';
 
 export type ProfileTab = RosterTab | 'promote';
@@ -455,6 +456,7 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
           <button type="button" className="btn btn-primary" disabled={!dirty || busy || unit.status !== 'active'} onClick={() => void save()}>{busy ? '保存中…' : '保存技能格'}</button>
         </div>
       </section>
+      <ArtTrainingPanel unit={unit} />
     </div>
   );
 }

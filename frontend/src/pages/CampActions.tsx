@@ -202,6 +202,14 @@ export function CampActions() {
             </li>
           );
         })}
+        <li className="act" data-action="art-training">
+          <img className="px" src={ICONS.train} width={32} height={32} alt="" />
+          <div className="min-w-0">
+            <div><span className="a-name">战技研修</span><span className="a-desc">学会基础战技后，花费日期与金币研修进阶战技；在精通页查看前置、效果和报价</span></div>
+            <div className="a-opts">{trainee ? `研修单位：${trainee.name}（使用上方训练单位选择）` : '暂无可研修单位'}</div>
+          </div>
+          {trainee && <a className="btn btn-sm" href={links.roster(trainee.id, 'mastery')}>查看研修</a>}
+        </li>
         <li className="act" data-action="dispatch">
           <img className="px" src={ICONS.travel} width={32} height={32} alt="" />
           <div className="min-w-0">
