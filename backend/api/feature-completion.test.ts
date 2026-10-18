@@ -193,6 +193,7 @@ test('replay versions distinguish current, old-rule and old-engine records', () 
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v2' }).compatible, false);
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v3' }).compatible, false);
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v4' }).compatible, false);
+  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v5' }).compatible, false);
   assert.equal(replayCompatibility({ engineVersion: 0, rulesetVersion: RULESET_VERSION }).compatible, false);
 });
 

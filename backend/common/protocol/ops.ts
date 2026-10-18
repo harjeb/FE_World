@@ -105,9 +105,9 @@ export const OPS: readonly OpDef[] = [
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
-  { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数与击杀概率。' },
+  { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数与击杀概率；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。' },
   { op: 53, name: 'GET_THREAT_MAP', group: '战斗', agentNote: '敌方下个阶段所有单位能攻击到的格子与每格威胁数。' },
-  { op: 54, name: 'UNIT_ACT', group: '战斗', agentNote: '原子提交「移动 + 行动」，action 取 attack／heal／item／seize／escape／interact／wait／dance／art／cast／staff；传送与临时墙带 dest；战技可带 allyId 选友军、secondaryId 选分流次目标，先查 GET_REACHABLE。确认后不能悔棋，先查询再提交。' },
+  { op: 54, name: 'UNIT_ACT', group: '战斗', agentNote: '原子提交「移动 + 行动」，action 取 attack／heal／item／seize／escape／interact／wait／dance／art／cast／staff；传送与临时墙带 dest；战技可带 allyId 选友军、secondaryId 选分流次目标，postTo 选战后移动；support 为一次自付资源的非敌对追加 {target, spell 或 weapon, dest?}（target 不是 targetId，禁止嵌套 action/art）。先查 GET_REACHABLE。确认后不能悔棋，先查询再提交。' },
   { op: 55, name: 'END_PHASE', group: '战斗', agentNote: '结束己方阶段；未行动单位待机，随后敌方规则 AI 行动。' },
   { op: 56, name: 'RETREAT', group: '战斗', agentNote: '野外全军撤退，立即判负；已结算经验保留，不发通关奖励。' },
   { op: 57, name: 'GET_BATTLE_LOG', group: '战斗', agentNote: '读取本场战斗的完整事件日志。' },

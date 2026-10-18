@@ -156,6 +156,9 @@ def audit(catalog_path=CATALOG, document_path=DOCUMENT):
     policy = catalog['learningPolicy']
     check(catalog['schemaVersion'] == 4, 'Expected original mastery catalog schema version 4')
     audit_originals(catalog, classes)
+    check(len(catalog['arts']) == 283 and all(row['project']['status'] == 'implemented' for row in catalog['arts']), 'Reference implementation status/count differs')
+    check(len(catalog['supplements']) == 17 and all(row['status'] == 'implemented' for row in catalog['supplements']), 'Supplement implementation status/count differs')
+    # This is catalog evidence, not runtime effect proof; see classic-arts/art-effects engine and API tests.
     check(policy['ordinarySource'] == 'class_mastery' and policy['upgradeSource'] == 'art_training', 'Mastery and training learning channels differ')
     check(policy['perClassArtRange'] == [4, 6] and policy['counting'] == 'individual_art_ids', 'Every basic and upgrade ID must count separately')
     check(policy['useRequiresLearningClass'] is False and policy['learnedSlotLimit'] == 5, 'Class-independent use or five slots changed')

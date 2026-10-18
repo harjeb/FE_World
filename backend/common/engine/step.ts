@@ -1,18 +1,22 @@
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
+import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { decide } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { artCombatOptions } from './combat.ts';
+import { afterClassicArt, artStats, expireArtPhase } from './art-effects.ts';
+import { artObjects, artPostMoves, artSupportOptions, objectArtDamage, sameArtSupport } from './art-options.ts';
+import { roll100 } from './rng.ts';
 import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAction, validateArt } from './arts.ts';
 import { attackWeapons, cellKey, cureStatuses, distance, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
 import { adjacentFree, destinationValid, isHostileSpell, spellDestination, SPECIAL_SUPPORT_SPELLS, staffDestination, withSpellWeapon } from './support.ts';
 import type { DestinationRule } from './support.ts';
 import { EngineError } from './types.ts';
-import { interactionOptions, interactObject, runScenarioEvents } from './scenario.ts';
+import { damageObject, interactionOptions, interactObject, runScenarioEvents } from './scenario.ts';
 import type { ActAction, Action, BattleEvent, BattleState, Point, Side, UnitState } from './types.ts';
 
 // The single entry point that changes a battle: step(state, action) → { state, events } (docs/07).
@@ -55,7 +59,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
     case 'heal': {
       const target = foeOrAlly(action.target);
       if (target.side !== unit.side || target.id === unit.id) throw new EngineError('TARGET_OUT_OF_RANGE', '只能治疗其他友军');
-      if (target.petrified) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 石化庇护中，不能治疗`);
+      if (target.petrified || target.immunities?.includes('healing')) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 当前不能治疗`);
       if (!staffWeapons(unit).includes(action.weapon)) throw new EngineError('WEAPON_RANK_TOO_LOW', `${unit.name} 不能使用这根杖`);
       if (!inRange(unit, action.weapon, action.to, target.pos)) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在杖的射程内');
       if (target.hp >= target.stats.hp && !(WEAPONS[action.weapon].cure && hasCurableStatus(target))) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 没有受伤或异常`);
@@ -75,12 +79,10 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
       return null;
     }
     case 'art': {
-      const target = foeOrAlly(action.target);
-      if (target.side === unit.side) throw new EngineError('TARGET_OUT_OF_RANGE', '不能对战技目标友军');
       const art = WEAPON_ART_BY_ID.get(action.art);
       if (!art) throw new EngineError('FORBIDDEN', '没有这个战技');
       validateArt(state, unit, action, art);
-      return target;
+      return artObjects(state, action.to, art).includes(action.target) ? null : foeOrAlly(action.target);
     }
     case 'staff': {
       const target = foeOrAlly(action.target);
@@ -120,7 +122,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
     case 'item': {
       const stack = unit.items[action.item];
       if (!stack || !(stack.id in ITEMS) || (ITEMS[stack.id] as { shield?: boolean }).shield) throw new EngineError('NO_SUCH_ITEM', '没有这件道具');
-      if (unit.hp >= unit.stats.hp) throw new EngineError('NOTHING_TO_HEAL', `${unit.name} 没有受伤`);
+      if (unit.hp >= unit.stats.hp || unit.immunities?.includes('healing')) throw new EngineError('NOTHING_TO_HEAL', `${unit.name} 当前不能治疗`);
       return null;
     }
   }
@@ -168,61 +170,49 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     equipWeapon(unit, action.weapon);
     spendCharge(unit, action.weapon);
     runCombat(state, unit, target, action.weapon, events);
-  } else if (action.act === 'art' && target && art) {
+  } else if (action.act === 'art' && art) {
     equipWeapon(unit, action.weapon);
-    const instance = unit.weaponInstances?.find(row => row.id === action.weapon);
-    if (instance) instance.durability -= art.cost;
-    if (art.id === 'fe_art_king_fang' && target.artEffects?.scent) {
+    const instance = unit.weaponInstances!.find(row => row.id === action.weapon)!;
+    instance.durability -= art.cost;
+    const mechanics = ART_MECHANICS[art.id], refund = mechanics?.refund;
+    const refundChance = refund?.stat ? Math.max(0, Math.min(100, Math.floor(artStats(unit)[refund.stat] / (refund.divisor ?? 1)))) : 0;
+    let free = refundChance >= 100 || refundChance > 0 && roll100(state.rng) < refundChance;
+    if (!target) {
+      damageObject(state, unit, action.target, objectArtDamage(unit, action.weapon, art), events);
+      events.push({ t: 'art', unit: unit.id, target: action.target, art: art.id });
+      runScenarioEvents(state, events);
+    }
+    if (art.id === 'fe_art_king_fang' && target?.artEffects?.scent) {
       target.artEffects.scent = target.artEffects.scent.filter(side => side !== unit.side); artState(target, events);
     }
     for (const [index, hit] of hits.entries()) {
       if (!unit.alive || unit.petrified) break;
       const strikes = runCombat(state, unit, hit, action.weapon, events, artOptions[index]);
-      afterArt(state, unit, hit, action, art, strikes.some(strike => strike.by === unit.id && strike.hit), events);
+      const landed = strikes.some(strike => strike.by === unit.id && strike.hit);
+      free ||= !!refund?.critical && strikes.some(strike => strike.by === unit.id && strike.crit);
+      afterArt(state, unit, hit, action, art, landed, events);
+      if (mechanics) afterClassicArt(state, unit, hit, art.id, mechanics, landed, !hit.alive, events);
       if (!hit.alive || hit.petrified) break;
+    }
+    if (free) instance.durability = Math.min(instance.maxDurability, instance.durability + art.cost);
+    if (unit.alive && !unit.petrified && !state.result) {
+      if (action.postTo && artPostMoves(state, unit, unit.pos, art).some(p => samePoint(p, action.postTo!))) {
+        const range = moveRange(state, unit, mechanics!.postMove!);
+        events.push({ t: 'move', unit: unit.id, path: pathTo(state, range, action.postTo) });
+        unit.pos = [...action.postTo]; unit.movedTurn = state.turn; displace(unit, events);
+      }
+      if (action.support && artSupportOptions(state, unit, unit.pos, art).some(option => sameArtSupport(option, action.support!))) {
+        const support = action.support;
+        const extra: ActAction = support.spell ? { type: 'act', unit: unit.id, to: unit.pos, act: 'cast', target: support.target, spell: support.spell, dest: support.dest }
+          : { type: 'act', unit: unit.id, to: unit.pos, act: 'staff', target: support.target, weapon: support.weapon!, dest: support.dest };
+        performSupport(state, unit, extra, unitById(state, support.target), events);
+      }
     }
   } else if (action.act === 'heal' && target) {
     spendCharge(unit, action.weapon);
     runHeal(state, unit, target, action.weapon, events);
-  } else if (action.act === 'staff' && target) {
-    spendCharge(unit, action.weapon);
-    if (action.weapon === 'warp_staff' || action.weapon === 'rescue_staff') {
-      const dest = action.dest ?? adjacentFree(state, unit);
-      if (dest) { const from = [...target.pos] as Point; target.pos = [dest[0], dest[1]]; events.push({ t: 'move', unit: target.id, path: [from, [dest[0], dest[1]]] }); displace(target, events); }
-    } else if (action.weapon === 'sleep_staff') {
-      target.statuses = { ...(target.statuses ?? {}), sleep: true };
-      events.push({ t: 'status', unit: target.id, status: 'sleep', active: true });
-    } else if (action.weapon === 'silence_staff') {
-      target.statuses = { ...(target.statuses ?? {}), silence: 3 };
-      events.push({ t: 'status', unit: target.id, status: 'silence', active: true });
-    } else if (action.weapon === 'restore') {
-      for (const status of cureStatuses(target)) events.push({ t: 'status', unit: target.id, status, active: false });
-    } else {
-      runHeal(state, unit, target, action.weapon, events);
-    }
-  } else if (action.act === 'cast' && target) {
-    const book = SPELLBOOK_BY_ID.get(action.spell)!;
-    const instance = unit.spellbooks!.find(row => row.id === action.spell)!;
-    instance.charges = Math.max(0, instance.charges - 1);
-    events.push({ t: 'cast', unit: unit.id, target: target.id, spell: book.id });
-    if (book.id === 'fw_spell_9') {
-      const dest = action.dest!;
-      state.objects ??= [];
-      state.objects.push({ id: `spell-wall-${state.turn}-${dest[0]}-${dest[1]}`, kind: 'wall', pos: [dest[0], dest[1]], state: 'intact', hp: 15, maxHp: 15, label: '临时墙', expiresTurn: state.turn + 2 });
-    } else if (['fw_spell_49', 'fw_spell_56', 'fw_spell_57'].includes(book.id)) {
-      const dest = action.dest ?? adjacentFree(state, unit);
-      if (dest) { const from = [...target.pos] as Point; target.pos = [dest[0], dest[1]]; events.push({ t: 'move', unit: target.id, path: [from, [dest[0], dest[1]]] }); displace(target, events); }
-    } else if (book.id === 'fw_spell_58') {
-      target.statuses = { ...(target.statuses ?? {}), regen: 5 };
-      events.push({ t: 'status', unit: target.id, status: 'regen', active: true });
-    } else if (book.id === 'fw_spell_22') {
-      for (const status of cureStatuses(target)) events.push({ t: 'status', unit: target.id, status, active: false });
-    } else {
-      withSpellWeapon(book, () => {
-        if (isHostileSpell(book)) runCombat(state, unit, target, book.id as WeaponId, events);
-        else runHeal(state, unit, target, book.id as WeaponId, events);
-      });
-    }
+  } else if ((action.act === 'staff' || action.act === 'cast') && target) {
+    performSupport(state, unit, action, target, events);
   } else if (action.act === 'item') {
     useItem(unit, action.item, events);
   } else if (action.act === 'interact') {
@@ -251,6 +241,44 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
   unit.acted = true;
   endArtAction(state, unit, events);
   checkResult(state, events);
+}
+
+function performSupport(state: BattleState, unit: UnitState, action: ActAction, target: UnitState, events: BattleEvent[]): void {
+  if (action.act === 'staff') {
+    spendCharge(unit, action.weapon);
+    if (action.weapon === 'warp_staff' || action.weapon === 'rescue_staff') {
+      const dest = action.dest ?? adjacentFree(state, unit);
+      if (dest) { const from = [...target.pos] as Point; target.pos = [...dest]; events.push({ t: 'move', unit: target.id, path: [from, [...dest]] }); displace(target, events); }
+    } else if (action.weapon === 'sleep_staff') {
+      target.statuses = { ...target.statuses, sleep: true };
+      events.push({ t: 'status', unit: target.id, status: 'sleep', active: true });
+    } else if (action.weapon === 'silence_staff') {
+      target.statuses = { ...target.statuses, silence: 3 };
+      events.push({ t: 'status', unit: target.id, status: 'silence', active: true });
+    } else if (action.weapon === 'restore') {
+      for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
+    } else runHeal(state, unit, target, action.weapon, events);
+  } else if (action.act === 'cast') {
+    const book = SPELLBOOK_BY_ID.get(action.spell)!, instance = unit.spellbooks!.find(row => row.id === action.spell)!;
+    instance.charges = Math.max(0, instance.charges - 1);
+    events.push({ t: 'cast', unit: unit.id, target: target.id, spell: book.id });
+    if (book.id === 'fw_spell_9') {
+      const dest = action.dest!;
+      state.objects ??= [];
+      state.objects.push({ id: `spell-wall-${state.turn}-${dest[0]}-${dest[1]}`, kind: 'wall', pos: [...dest], state: 'intact', hp: 15, maxHp: 15, label: '临时墙', expiresTurn: state.turn + 2 });
+    } else if (['fw_spell_49', 'fw_spell_56', 'fw_spell_57'].includes(book.id)) {
+      const dest = action.dest ?? adjacentFree(state, unit);
+      if (dest) { const from = [...target.pos] as Point; target.pos = [...dest]; events.push({ t: 'move', unit: target.id, path: [from, [...dest]] }); displace(target, events); }
+    } else if (book.id === 'fw_spell_58') {
+      target.statuses = { ...target.statuses, regen: 5 };
+      events.push({ t: 'status', unit: target.id, status: 'regen', active: true });
+    } else if (book.id === 'fw_spell_22') {
+      for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
+    } else withSpellWeapon(book, () => {
+      if (isHostileSpell(book)) runCombat(state, unit, target, book.id as WeaponId, events);
+      else runHeal(state, unit, target, book.id as WeaponId, events);
+    });
+  }
 }
 
 function spendCharge(unit: UnitState, weapon: WeaponId): void {
@@ -319,12 +347,13 @@ function advanceNpcs(state: BattleState, events: BattleEvent[]): void {
 
 function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void {
   state.phase = side;
+  expireArtPhase(state, side, 'start', events);
   if (state.objects) state.objects = state.objects.filter(object => object.expiresTurn === undefined || object.expiresTurn > state.turn);
   // 石化庇护到下一个己方阶段解除（docs/13 §4.2）。
   if (side === 'player') for (const unit of living(state, 'player')) unit.petrified = false;
   for (const unit of living(state, side)) {
     unit.acted = false;
-    if (unit.statuses?.regen && unit.hp < unit.stats.hp) {
+    if (unit.statuses?.regen && !unit.petrified && !unit.immunities?.includes('healing') && unit.hp < unit.stats.hp) {
       const amount = Math.min(unit.stats.hp - unit.hp, Math.max(1, Math.floor(unit.stats.hp * 0.05)));
       unit.hp += amount;
       events.push({ t: 'heal', by: null, target: unit.id, amount, hpAfter: unit.hp, source: 'terrain' });
@@ -355,6 +384,7 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     }
     unit.acted = true;
   }
+  expireArtPhase(state, 'player', 'end', events);
   startPhase(state, 'enemy', events);
   for (const enemy of living(state, 'enemy')) {
     if (state.result) return;
@@ -363,6 +393,7 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     if (enemy.petrified || isAsleep(enemy)) { enemy.acted = true; continue; }
     applyAct(state, decide(state, enemy), events);
   }
+  expireArtPhase(state, 'enemy', 'end', events);
   if (state.result) return;
   if (state.turn >= state.turnLimit) {
     // 坚守图撑到回合上限即胜（docs/20）；其余图超过回合上限算失败。

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { WEAPONS } from '@common/data/weapons.ts';
-import { classOf, forecast } from '@common/engine/index.ts';
+import { classOf, forecast, forecastOnHit } from '@common/engine/index.ts';
 import type { UnitState } from '@common/engine/index.ts';
 import { fighterFor, SPARK, spriteFor, STAGE } from '../assets.ts';
 import { SkipIcon } from '../ui/icons.tsx';
@@ -18,7 +18,8 @@ export function CombatScene({ show }: { show: CombatShow }) {
   const attacker = find(event.attacker), defender = find(event.defender);
   const ally = attacker.side === 'player' ? attacker : defender;
   const enemy = ally === attacker ? defender : attacker;
-  const f = forecast(before, attacker.id, attacker.pos, event.weapons[0], defender.id);
+  const f = event.forecast ?? forecast(before, attacker.id, attacker.pos, event.weapons[0], defender.id);
+  const onHit = forecastOnHit(f);
   const [shown, setShown] = useState(0);
   const [lunge, setLunge] = useState<string | null>(null);
   const [hp, setHp] = useState<Record<string, number>>({ [attacker.id]: attacker.hp, [defender.id]: defender.hp });
@@ -36,7 +37,7 @@ export function CombatScene({ show }: { show: CombatShow }) {
       const start = shown === 0 ? 350 : STRIKE_MS - 300;
       at(start, () => setLunge(s.by));
       at(start + 160, () => {
-        setHp(prev => ({ ...prev, [s.target]: s.hpAfter }));
+        setHp(prev => ({ ...prev, [s.target]: s.hpAfter, ...(s.byHpAfter !== undefined ? { [s.by]: s.byHpAfter } : {}) }));
         setShown(n => n + 1);
       });
     }
@@ -74,6 +75,7 @@ export function CombatScene({ show }: { show: CombatShow }) {
     const side = u.side === 'player' ? 'ally' : 'enemy';
     const spec = sideSpec(u);
     const w = weaponOf(u);
+    const damages = onHit.filter(s => s.side === (u.id === attacker.id ? 'attacker' : 'defender'));
     return (
       <div className={`hpcard ${side}`}>
         <div className="hp-top">
@@ -90,7 +92,7 @@ export function CombatScene({ show }: { show: CombatShow }) {
           ))}
         </div>
         <div className="mini">
-          <span>伤害 <b>{w ? `${spec.damage}${spec.strikes > 1 ? ` × ${spec.strikes}` : ''}` : '—'}</b></span>
+          <span>伤害 <b>{w ? damages.map(s => s.damage === s.maxDamage ? s.damage : `${s.damage}–${s.maxDamage}`).join(' + ') || '—' : '—'}</b></span>
           <span>命中 <b>{w ? `${spec.hit}%` : '—'}</b></span>
           <span>必杀 <b>{w ? `${spec.crit}%` : '—'}</b></span>
         </div>
@@ -131,7 +133,7 @@ export function CombatScene({ show }: { show: CombatShow }) {
                   {last.hit ? last.damage : 'MISS'}
                 </span>
                 <span className="dmg-label" style={{ left: strikerSide === 'ally' ? 214 : 524 }}>
-                  {!last.hit ? '未命中' : last.crit ? '必杀！' : '命中'}
+                  {!last.hit ? '未命中' : `${last.proc ? '战技触发 · ' : ''}${last.crit ? '必杀！' : '命中'}`}
                 </span>
               </Fragment>
             )}
@@ -139,14 +141,13 @@ export function CombatScene({ show }: { show: CombatShow }) {
         </div>
         <div className="hpwrap">{card(enemy)}{card(ally)}</div>
         <ol className="seq" aria-label="出手顺序">
-          {f.order.slice(0, Math.max(event.strikes.length, 1)).map((spec, i) => {
-            const by = spec.side === 'attacker' ? attacker : defender;
-            const s = event.strikes[i];
+          {event.strikes.map((s, i) => {
+            const by = find(s.by);
             const result = !s ? '' : !s.hit ? '未命中' : s.crit ? `必杀，${s.damage} 伤害` : `命中，${s.damage} 伤害`;
             return (
               <li key={i} className={i < shown ? 'done' : 'next'}>
                 <b className="n">{i + 1}</b>
-                <span><b>{by.name} {verb(spec.side === 'attacker', spec.followUp)}</b>{i < shown ? ` —— ${result}` : <span className="muted"> · 命中 {sideSpec(by).hit}%</span>}</span>
+                <span><b>{by.name} {verb(s.by === attacker.id, false)}</b>{i < shown ? ` —— ${result}` : <span className="muted"> · 命中 {sideSpec(by).hit}%</span>}</span>
               </li>
             );
           })}

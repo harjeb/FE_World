@@ -102,7 +102,7 @@ def audit(catalog_path, source_path=None):
         check(bool(row['name']) and bool(row['effectSummary']), 'Empty name or effect')
         check(set(row['reference']) == set(REFERENCE_FIELDS), 'Missing reference fields')
         project = row['project']
-        check(project['status'] == 'not_implemented' and project['resource'] == 'weapon_durability', 'Incorrect implementation/resource claim')
+        check(project['status'] == 'implemented' and project['resource'] == 'weapon_durability', 'Incorrect implementation/resource claim')
         check(type(project['cost']) is int and project['cost'] > 0, 'Missing positive durability cost')
         check(all(type(project[field]) is int for field in ('might', 'hit', 'crit')), 'Non-numeric attack parameters')
         check(len(project['range']) == 2 and all(type(n) is int for n in project['range']) and 1 <= project['range'][0] <= project['range'][1] <= 10, 'Invalid project range')
@@ -149,6 +149,7 @@ def audit(catalog_path, source_path=None):
             cost = row.get('cost') if 'cost' in row else row['project']['cost']
             check(int(examples[row['id']][1][3]) == cost, 'Example durability differs: ' + row['id'])
     for row in supplements:
+        check(row['status'] == 'implemented', 'Supplement implementation status differs')
         learning = row['learning']
         check(learning['kind'] == 'class_mastery' and learning['masteryThresholdSource'] == 'classMasteryPlans' and learning['assignmentStatus'] == 'implemented', 'Supplement missing class mastery assignment')
         teacher_count = len(learning['classIds'])
@@ -188,6 +189,17 @@ def audit(catalog_path, source_path=None):
         if project['unlock']['kind'] == 'art_training':
             check('营地战技研修' in cells[6] and '不计入职业精通奖励' in cells[6], 'Training upgrade incorrectly rendered as a mastery reward')
             check('使用需武器' + project['unlock']['weaponRank'] in cells[6], 'Weapon proficiency is no longer just a usage requirement')
+
+    # Catalog/static mapping evidence only; engine/API tests prove runtime behavior.
+    mechanics = (ROOT / 'backend/common/data/art-mechanics.ts').read_text(encoding='utf-8')
+    check('export interface ArtMechanics' in mechanics and 'WEAPON_ARTS.filter(a => !a.original)' in mechanics,
+          'Missing typed 300-row reference/supplement mechanics mapping')
+    patched = set()
+    for group in re.findall(r'patch\(\[([^\]]+)\]', mechanics):
+        for token in group.split(','):
+            token = token.strip()
+            patched.add('fw_art_' + token if token.isdigit() else token.strip("'\""))
+    check(patched <= {row['id'] for row in rows + supplements}, 'Mechanics patch references unknown/non-classic art')
 
     link_count = 0
     files = ['README.md', 'TODO.md', 'docs/00-game-design.md', 'docs/15-class-catalog.md', 'docs/22-equipment-catalog.md', 'docs/23-skill-catalog.md', 'docs/25-fortunes-weave-skills.md', 'docs/26-weapon-art-catalog.md', 'docs/28-class-art-learning.md', 'docs/29-original-weapon-arts.md']

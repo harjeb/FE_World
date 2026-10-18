@@ -6,7 +6,7 @@ import type { Weapon, WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
 import type { Terrain } from '../maps/map.ts';
 import { EngineError } from './types.ts';
-import type { BattleState, Point, UnitState } from './types.ts';
+import type { BattleEvent, BattleState, Point, UnitState } from './types.ts';
 
 export function cellKey(state: BattleState, [x, y]: Point): number {
   return y * state.map.width + x;
@@ -59,7 +59,7 @@ export function effectiveLevel(unit: UnitState): number {
   return unit.level;
 }
 
-type WeaponUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'statuses' | 'bookInstances'>;
+type WeaponUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'statuses' | 'artEffects' | 'bookInstances'>;
 
 export function canWield(unit: WeaponUser, id: WeaponId): boolean {
   const w: Weapon = WEAPONS[id];
@@ -70,8 +70,8 @@ export function isAsleep(unit: Pick<UnitState, 'statuses'>): boolean {
   return !!unit.statuses?.sleep;
 }
 
-export function isSilenced(unit: Pick<UnitState, 'statuses'>): boolean {
-  return (unit.statuses?.silence ?? 0) > 0;
+export function isSilenced(unit: Pick<UnitState, 'statuses' | 'artEffects'>): boolean {
+  return (unit.statuses?.silence ?? 0) > 0 || !!unit.artEffects?.statuses?.includes('silence');
 }
 
 export function isBerserk(unit: UnitState): boolean {
@@ -86,10 +86,10 @@ export function canUseWeapon(unit: WeaponUser, id: WeaponId): boolean {
 }
 
 export function hasCurableStatus(unit: UnitState): boolean {
-  return !!unit.statuses?.sleep || (unit.statuses?.silence ?? 0) > 0 || (unit.statuses?.berserk ?? 0) > 0;
+  return !!unit.statuses?.sleep || (unit.statuses?.silence ?? 0) > 0 || (unit.statuses?.berserk ?? 0) > 0 || !!unit.artEffects?.statuses?.length || !!unit.artEffects?.buffs?.some(b => b.amount < 0);
 }
 
-export function cureStatuses(unit: UnitState): ('sleep' | 'silence' | 'berserk')[] {
+export function cureStatuses(unit: UnitState, events: BattleEvent[] = []): ('sleep' | 'silence' | 'berserk')[] {
   const cured: ('sleep' | 'silence' | 'berserk')[] = [];
   if (unit.statuses?.sleep) cured.push('sleep');
   if ((unit.statuses?.silence ?? 0) > 0) cured.push('silence');
@@ -99,6 +99,10 @@ export function cureStatuses(unit: UnitState): ('sleep' | 'silence' | 'berserk')
     delete unit.statuses.silence;
     delete unit.statuses.berserk;
     if (Object.keys(unit.statuses).length === 0) delete unit.statuses;
+  }
+  if (unit.artEffects?.statuses?.length || unit.artEffects?.buffs?.some(b => b.amount < 0)) {
+    unit.artEffects = { ...unit.artEffects, statuses: [], buffs: unit.artEffects.buffs?.filter(b => b.amount >= 0) };
+    events.push({ t: 'artState', unit: unit.id, effects: structuredClone(unit.artEffects) });
   }
   return cured;
 }

@@ -58,7 +58,7 @@ export function defaultBehavior(classId: ClassId): Behavior {
   return 'aggressive';
 }
 
-export interface EnemySpec { classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; name?: string }
+export interface EnemySpec { classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; name?: string; tags?: UnitState['tags'] }
 
 export function createEnemy(id: string, spec: EnemySpec): UnitState {
   const statsValue = enemyStats(spec.classId, spec.level);
@@ -68,6 +68,7 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
     id, name: spec.name ?? `灰岩${tpl.name}`, side: 'enemy', classId: spec.classId, level: spec.level, exp: 0,
     stats: statsValue, con: 8, hp: statsValue.hp, pos: [spec.pos[0], spec.pos[1]], weapons: [...tpl.weapons],
     items: [], ranks: { ...tpl.ranks }, boss: spec.boss, behavior, acted: false, alive: true,
+    ...(spec.tags ? { tags: [...spec.tags] } : {}),
   };
 }
 

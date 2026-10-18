@@ -1,6 +1,7 @@
 // Public surface of the battle engine. The frontend, the future API and the simulator all use these
 // functions, so every number a player or Agent sees comes from the same code (docs/07).
 export { step } from './step.ts';
+export { artObjectForecast } from './arts.ts';
 export { decide, GUARD_RADIUS } from './ai.ts';
 export { autoplay } from './autoplay.ts';
 export { artForecast, forecast, forecastOnHit, trueHit, unitCombatStats, terrainBonus } from './combat.ts';

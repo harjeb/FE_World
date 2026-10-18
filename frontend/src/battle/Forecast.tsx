@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
-import { expPreview, forecast, forecastOnHit, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
+import { artObjectForecast, expPreview, forecast, forecastOnHit, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
 import type { BattleState, Forecast, Point, SideForecast, UnitState } from '@common/engine/index.ts';
 import { artInfo, commandAction, commandForecast, isCommand, spellHeal, spellInfo, STAFF_EFFECT_TEXT, weaponLabel } from './commands.ts';
 import type { CommandMode } from './commands.ts';
@@ -66,8 +66,8 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
   const dealt = aHits.reduce((sum, s) => sum + s.damage, 0), taken = dHits.reduce((sum, s) => sum + s.damage, 0);
   const dLoss = Math.min(defender.hp - (d.protected ? 1 : 0), dealt);
   const aLoss = Math.min(attacker.hp - (a.protected ? 1 : 0), taken);
-  const killNote = dLoss >= defender.hp ? '全部命中即可击败'
-    : f.defenderDies > 0 ? '需要必杀才可能击败' : '本次无法击败';
+  const killNote = '阴影仅为全部命中、无必杀／攻击触发的伤害示意；非最终 HP（吸血可回复）';
+  const damageText = (s: (typeof onHit)[number]) => `${s.damage === s.maxDamage ? s.damage : `${s.damage}–${s.maxDamage}`}${s.chance !== undefined ? `（出手 ${s.chance}%）` : ''}`;
   const exp = attacker.side === 'player' && state.kind === 'field' ? expPreview(attacker, defender) : null;
   const tri = d.weapon && WEAPONS[weapon] ? `${WEAPON_TYPE_NAMES[WEAPONS[weapon].type]}${a.triangle > 0 ? '克' : '被'}${WEAPON_TYPE_NAMES[WEAPONS[d.weapon].type]}${a.triangle > 0 ? '' : '克'}` : '';
   const dash = '—';
@@ -77,6 +77,7 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         <h2 id={heading}>{title}</h2>
         <span style={{ fontSize: 12, color: '#6A6256' }}>命中与必杀为概率，实际结果以判定为准</span>
       </div>
+      {f.assumption && <p className="pfoot">后段按发动前状态独立预测，不是整次范围行动的联合概率；前段反击、屏障消耗与升级可能改变实际结果。</p>}
       <div className="fc-sides">
         <Fighter unit={attacker} label={displayName(state, attacker.id)} weapon={weapon} side={a} weaponName={weaponName} />
         <span className="fc-vs" aria-hidden="true">VS</span>
@@ -84,14 +85,14 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
       </div>
       <div className="fc-hps">
         <HpBox unit={attacker} loss={aLoss} color="#4A7FA6"
-          note={dHits.length ? `全部命中时反击损失 ${aLoss}（命中 ${d.hit}%）` : d.canAttack ? '首击失手仍可能被反击' : '对方无法反击'} />
+          note={dHits.length ? `反击伤害示意 ${aLoss}；${killNote}` : d.canAttack ? '首击失手仍可能被反击' : '对方无法反击'} />
         <HpBox unit={defender} loss={dLoss} color="#B8574A" right
-          note={`${aHits.length} 击命中 −${dLoss}；${killNote}`} />
+          note={`伤害示意 ${dLoss}；${killNote}`} />
       </div>
       <table className="fc-tbl">
         <caption className="sr-only">双方数值对比：左为{attacker.name}，右为{defender.name}</caption>
         <tbody>
-          <tr><td className="l fc-val">{aHits.map(s => s.damage).join(' + ') || dash}</td><th scope="row" className="c">命中伤害</th><td className="r fc-val">{dHits.map(s => s.damage).join(' + ') || dash}</td></tr>
+          <tr><td className="l fc-val">{aHits.map(damageText).join(' + ') || dash}</td><th scope="row" className="c">命中伤害</th><td className="r fc-val">{dHits.map(damageText).join(' + ') || dash}</td></tr>
           <tr><td className="l fc-val">{a.hit}<small>%</small></td><th scope="row" className="c">命中</th><td className="r fc-val">{d.canAttack ? <>{d.hit}<small>%</small></> : dash}</td></tr>
           <tr>
             <td className="l fc-val">{a.crit}<small>%{a.doubles && a.followUpCrit !== a.crit ? ` 追击 ${a.followUpCrit}%` : ''}</small></td>
@@ -102,16 +103,19 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         </tbody>
       </table>
       <div className="fc-adv">
+        {f.art?.procChance !== undefined && <span className="tag tag-brass">战技触发 {f.art.procChance}%（非必定；伤害区间含攻击触发）</span>}
+        {!!f.art?.forceProbability && <span className="tag tag-brass">额外追击概率 {f.art.forceProbability}%（非保证出手）</span>}
         {a.triangle > 0 && <span className="tag tag-green">▲ 武器克制：{tri} · 命中 +15 伤害 +1</span>}
         {a.triangle < 0 && <span className="tag tag-red">▼ 被克制：{tri} · 命中 −15 伤害 −1</span>}
         {a.effective && <span className="tag tag-brass">特效：威力 ×3</span>}
         {d.effective && d.canAttack && <span className="tag tag-red">对方对我方特效</span>}
         {!d.canAttack && <span className="tag tag-blue">对方无法反击</span>}
-        {f.art?.sealFollowUp && <span className="tag tag-blue">命中封锁攻速追击；失手时仍可能被追击</span>}
+        {f.art?.sealFollowUp && <span className="tag tag-blue">{f.art.sealOnHit ? '命中封锁攻速追击；失手时仍可能被追击' : '本次交战封锁攻速追击（无需命中）'}</span>}
         {(a.barrier > 0 || d.barrier > 0) && <span className="tag tag-blue">护鳞已计入第一段命中伤害</span>}
       </div>
       <div className="fc-sum">
         <div>
+          <span className="muted">期望净 HP 减少</span> <b>{f.expectedDealt.toFixed(1)}</b>（负数为净回复） ·
           <span className="muted">击败概率</span> <b style={{ fontSize: 16 }}>{pct(f.defenderDies)}</b>
           <span className="muted"> · 被击败风险 </span><b>{pct(f.attackerDies)}</b>
         </div>
@@ -173,11 +177,18 @@ export function ConfirmPanel({ state, to, kind, ready = true, onConfirm, onCance
 // 战技／法术／杖／舞蹈的预览：能交战的用引擎 forecast（战技加修正、攻击法术按法术书数值），其余显示效果。
 export function CommandPreview({ state, mode }: { state: BattleState; mode: CommandMode }) {
   if (!mode.target) return null;
+  if (mode.kind === 'art' && !state.units.some(u => u.id === mode.target)) {
+    if (!mode.art || !mode.weapon || !commandAction(state, mode)) return null;
+    const art = artInfo(mode.art);
+    if (!art) return null;
+    const preview = artObjectForecast(state, unitById(state, mode.unit), mode.to, mode.weapon, art, mode.target);
+    return <section className="panel"><div className="ph"><h2>墙体破坏预览</h2></div><p>墙体 {preview.object} · HP {preview.hp} → {preview.hpAfter} · 伤害 {preview.damage} · 耐久 −{preview.cost}</p></section>;
+  }
   const target = unitById(state, mode.target);
   const f = commandForecast(state, mode);
   if (f && mode.kind === 'art' && mode.art && mode.weapon) {
     const art = artInfo(mode.art);
-    return <>{(f.targets ?? [{ target: mode.target, forecast: f }]).map((entry, index) => <ForecastPanel key={entry.target} state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon!} targetId={entry.target} given={entry.forecast} title={`战技预测 · ${art?.name ?? mode.art} · ${displayName(state, entry.target)}${index > 0 ? '（前段未中止时）' : ''}`} weaponName={`${WEAPONS[mode.weapon!].name} · ${art?.name ?? ''}`} />)}</>;
+    return <><p className="pfoot">{art?.effect} · 随机触发效果按概率结算，非必定发生。</p>{(f.targets ?? [{ target: mode.target, forecast: f }]).map((entry, index) => <ForecastPanel key={entry.target} state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon!} targetId={entry.target} given={entry.forecast} title={`战技预测 · ${art?.name ?? mode.art} · ${displayName(state, entry.target)}${index > 0 ? '（前段未中止时）' : ''}`} weaponName={`${WEAPONS[mode.weapon!].name} · ${art?.name ?? ''}`} />)}</>;
   }
   if (f && mode.kind === 'cast' && mode.spell) {
     return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.spell as WeaponId} targetId={mode.target} given={f} title={`法术预测 · ${spellInfo(mode.spell)?.name ?? mode.spell}`} weaponName={spellInfo(mode.spell)?.name} />;
@@ -205,5 +216,5 @@ export function CommandPreview({ state, mode }: { state: BattleState; mode: Comm
 
 export function CommandConfirm({ state, mode, onConfirm, onCancel }: { state: BattleState; mode: Mode; onConfirm: () => void; onCancel: () => void }) {
   if (!isCommand(mode) || !mode.target) return null;
-  return <ConfirmPanel state={state} to={mode.to} kind={mode.kind} ready={commandAction(state, mode) !== null} onConfirm={onConfirm} onCancel={onCancel} />;
+  return <>{mode.kind === 'art' && (mode.postTo || mode.support) && <p className="pfoot">已选：{mode.postTo ? `战后移动至 (${mode.postTo[0]},${mode.postTo[1]})。` : ''}{mode.support ? `战后支援 ${displayName(state, mode.support.target)}${mode.support.dest ? `，落点 (${mode.support.dest[0]},${mode.support.dest[1]})` : ''}。` : ''}仅在结算时条件仍满足时执行；无法执行则跳过且不消耗支援费用。</p>}<ConfirmPanel state={state} to={mode.to} kind={mode.kind} ready={commandAction(state, mode) !== null} onConfirm={onConfirm} onCancel={onCancel} /></>;
 }

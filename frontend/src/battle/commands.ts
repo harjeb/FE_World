@@ -19,7 +19,7 @@ export function commandOptions(state: BattleState, mode: { unit: string; to: Poi
   const options = actionOptions(state, unit, mode.to);
   return {
     unit,
-    arts: options.arts.filter(o => o.targets.length > 0),
+    arts: options.arts.filter(o => o.targets.length > 0 || o.objects.length > 0),
     casts: options.casts.filter(o => o.targets.length > 0),
     // Healing staves keep the existing 治疗 flow; this menu is for the status and utility staves.
     staves: options.staff.filter(o => o.targets.length > 0 && o.effect !== 'heal' && o.effect !== 'cure'),
@@ -51,10 +51,12 @@ export function commandAction(state: BattleState, mode: CommandMode): ActAction 
   if (mode.kind === 'dance') return { ...base, act: 'dance', target: mode.target };
   if (mode.kind === 'art') {
     const option = commandOptions(state, mode).arts.find(a => a.art === mode.art && a.weapon === mode.weapon);
-    if (!option?.usable || !mode.art || !mode.weapon || !option.targets.some(t => t.id === mode.target)) return null;
+    if (!option?.usable || !mode.art || !mode.weapon || (!option.targets.some(t => t.id === mode.target) && !option.objects.includes(mode.target))) return null;
     if (mode.ally && !option.allies.includes(mode.ally)) return null;
     if (mode.secondary && !option.secondaries[mode.target]?.includes(mode.secondary)) return null;
-    return { ...base, act: 'art', target: mode.target, weapon: mode.weapon, art: mode.art, ...(mode.ally ? { ally: mode.ally } : {}), ...(mode.secondary ? { secondary: mode.secondary } : {}) };
+    if (mode.postTo && !option.postMoves.some(p => p[0] === mode.postTo![0] && p[1] === mode.postTo![1])) return null;
+    if (mode.support && !option.supportOptions.some(s => s.target === mode.support!.target && s.spell === mode.support!.spell && s.weapon === mode.support!.weapon && JSON.stringify(s.dest) === JSON.stringify(mode.support!.dest))) return null;
+    return { ...base, ...(mode.postTo ? { postTo: mode.postTo } : {}), ...(mode.support ? { support: mode.support } : {}), act: 'art', target: mode.target, weapon: mode.weapon, art: mode.art, ...(mode.ally ? { ally: mode.ally } : {}), ...(mode.secondary ? { secondary: mode.secondary } : {}) };
   }
   const dest = commandDest(state, mode);
   if (dest?.rule.required && !mode.dest) return null;
@@ -71,6 +73,7 @@ export function commandForecast(state: BattleState, mode: CommandMode): (Forecas
   if (!mode.target) return null;
   if (mode.kind === 'art' && mode.art && mode.weapon) {
     const art = artInfo(mode.art);
+    if (!state.units.some(u => u.id === mode.target)) return null;
     return art && commandAction(state, mode) ? artForecast(state, unitById(state, mode.unit), mode.to, mode.weapon, art, unitById(state, mode.target), mode.secondary, mode.ally) : null;
   }
   if (mode.kind === 'cast' && mode.spell) {

@@ -38,7 +38,7 @@ function actorOf(e: BattleEvent): string | null {
 function splitPhase(events: BattleEvent[], turn: number): Step[] {
   const steps: Step[] = [];
   let current: Step | null = null;
-  let side: Side = 'enemy';
+  let side: Side = 'player';
   for (const e of events) {
     if (e.t === 'phase') {
       side = e.side;
@@ -52,7 +52,8 @@ function splitPhase(events: BattleEvent[], turn: number): Step[] {
       current = { turn, side, actor, action: null, events: [] };
       steps.push(current);
     }
-    current!.events.push(e);
+    if (!current) { current = { turn, side, actor: null, action: null, events: [] }; steps.push(current); }
+    current.events.push(e);
   }
   return steps;
 }
@@ -75,7 +76,10 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
         break;
       }
       case 'combat':
-        for (const s of e.strikes) unit(s.target).hp = s.hpAfter;
+        for (const s of e.strikes) {
+          unit(s.target).hp = s.hpAfter;
+          if (s.byHpAfter !== undefined) unit(s.by).hp = s.byHpAfter;
+        }
         unit(e.attacker).acted = true;
         break;
       case 'defeated':
@@ -99,7 +103,7 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
         }
         break;
       }
-      case 'wait': case 'seize': case 'cast':
+      case 'wait': case 'seize': case 'cast': case 'art':
         unit(e.unit).acted = true;
         break;
       case 'dance':
@@ -111,7 +115,7 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
         break;
       case 'object': {
         const object = d.objects?.find(o => o.id === e.object);
-        if (object) object.state = e.state;
+        if (object) { object.state = e.state; if (e.hpAfter !== undefined) object.hp = e.hpAfter; }
         if (e.state === 'destroyed' && object) d.map.tiles[object.pos[1]][object.pos[0]] = 'floor';
         break;
       }
@@ -138,6 +142,12 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
         }
         break;
       }
+      case 'artState':
+        unit(e.unit).artEffects = structuredClone(e.effects);
+        break;
+      case 'embers':
+        d.embers = structuredClone(e.cells);
+        break;
       case 'end':
         d.result = { winner: e.winner, reason: e.reason };
         break;

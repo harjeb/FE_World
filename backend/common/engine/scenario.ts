@@ -66,8 +66,18 @@ function addFlag(state: BattleState, flag: string): void {
 
 function markObject(state: BattleState, object: BattleObject, next: BattleObject['state'], events: BattleEvent[], by: string): void {
   object.state = next;
-  events.push({ t: 'object', object: object.id, by, state: next });
+  events.push({ t: 'object', object: object.id, by, state: next, ...(object.hp === undefined ? {} : { hpAfter: object.hp }) });
   addFlag(state, `object:${object.id}:${next}`);
+}
+
+export function damageObject(state: BattleState, unit: UnitState, objectId: string, damage: number, events: BattleEvent[]): void {
+  const object = objectById(state, objectId);
+  if (object.kind !== 'wall' || object.state !== 'intact') throw new EngineError('OBJECT_ALREADY_USED', '障碍物已经破坏');
+  object.hp = Math.max(0, (object.hp ?? 1) - damage);
+  if (object.hp === 0) {
+    markObject(state, object, 'destroyed', events, unit.id);
+    state.map.tiles[object.pos[1]][object.pos[0]] = 'floor';
+  } else events.push({ t: 'object', object: object.id, by: unit.id, state: 'intact', hpAfter: object.hp });
 }
 
 function objectTreasure(state: BattleState, unit: UnitState, object: BattleObject, events: BattleEvent[]): void {
@@ -94,13 +104,7 @@ export function interactObject(state: BattleState, unit: UnitState, objectId: st
     const weapon = attackWeapons(unit)[0];
     if (!weapon) throw new EngineError('WEAPON_RANK_TOO_LOW', `${unit.name} 没有可用的攻击武器`);
     const damage = Math.max(1, unit.stats.str + WEAPONS[weapon].might - 10);
-    object.hp = Math.max(0, (object.hp ?? 1) - damage);
-    if (object.hp === 0) {
-      markObject(state, object, 'destroyed', events, unit.id);
-      state.map.tiles[object.pos[1]][object.pos[0]] = 'floor';
-    } else {
-      events.push({ t: 'object', object: object.id, by: unit.id, state: 'intact' });
-    }
+    damageObject(state, unit, object.id, damage, events);
   }
   runScenarioEvents(state, events);
 }

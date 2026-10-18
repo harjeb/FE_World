@@ -17,7 +17,7 @@ export type Mode =
   | { kind: 'heal'; unit: string; to: Point; weapon: WeaponId; target: string | null }
   | { kind: 'item'; unit: string; to: Point }
   // 战技／法术／功能杖／舞蹈：先选项（战技＋武器、法术书、杖），再选目标；传送与临时墙还要选落点。
-  | { kind: 'art'; unit: string; to: Point; art: string | null; weapon: WeaponId | null; target: string | null; ally?: string; secondary?: string }
+  | { kind: 'art'; unit: string; to: Point; art: string | null; weapon: WeaponId | null; target: string | null; ally?: string; secondary?: string; postTo?: Point; support?: { target: string; spell?: string; weapon?: WeaponId; dest?: Point } }
   | { kind: 'cast'; unit: string; to: Point; spell: string | null; target: string | null; dest: Point | null }
   | { kind: 'staff'; unit: string; to: Point; weapon: WeaponId | null; target: string | null; dest: Point | null }
   | { kind: 'dance'; unit: string; to: Point; target: string | null }
@@ -98,7 +98,9 @@ export function clickCell(state: BattleState, mode: Mode, point: Point, hover: P
 // planned destination again goes back to the action menu.
 function clickCommand(state: BattleState, mode: CommandMode, point: Point, other: UnitState | undefined): Mode {
   if (other && commandTargets(state, mode).some(t => t.id === other.id)) {
-    return mode.kind === 'cast' || mode.kind === 'staff' ? { ...mode, target: other.id, dest: null } : { ...mode, target: other.id };
+    return mode.kind === 'cast' || mode.kind === 'staff' ? { ...mode, target: other.id, dest: null }
+      : mode.kind === 'art' ? { ...mode, target: other.id, ally: undefined, secondary: undefined, postTo: undefined, support: undefined }
+        : { ...mode, target: other.id };
   }
   const dest = mode.target ? commandDest(state, mode) : null;
   if (dest && dest.cells.some(c => same(c, point)) && (mode.kind === 'cast' || mode.kind === 'staff')) return { ...mode, dest: point };

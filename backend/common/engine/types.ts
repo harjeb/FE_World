@@ -7,6 +7,7 @@ import type { ItemId, WeaponId, WeaponInstance } from '../data/weapons.ts';
 import type { Terrain } from '../maps/map.ts';
 import type { RngState } from './rng.ts';
 import type { InheritanceContract } from '../game/legacy.ts';
+import type { Forecast } from './combat.ts';
 
 export type Point = [number, number];
 export type Side = 'player' | 'enemy';
@@ -14,6 +15,10 @@ export type Side = 'player' | 'enemy';
 export type Behavior = 'aggressive' | 'opportunist' | 'hold' | 'guard' | 'healer';
 
 export interface ItemStack { id: ItemId; uses: number }
+
+export type ArtStat = 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'attack' | 'hit' | 'crit' | 'avoid' | 'dodge' | 'as' | 'protection' | 'move';
+export type ArtAilment = 'poison' | 'root' | 'silence' | 'confusion';
+export interface ArtBuff { source: string; stat: ArtStat; amount: number; duration: 'map' | 'next_phase' | 'phase' | 'exchange'; turn: number }
 
 export interface UnitState {
   id: string;
@@ -52,8 +57,9 @@ export interface UnitState {
   petrified?: boolean;
   // 睡眠：无法行动，受击或复原杖解除；沉默/混乱按己方阶段计数。
   statuses?: { sleep?: boolean; silence?: number; berserk?: number; regen?: number };
-  artEffects?: { movementPenalty?: number; scent?: Side[]; barrier?: { amount: number; by: string }; displaced?: boolean };
-  immunities?: ('movement_debuff' | 'follow_up_lock' | 'defense_pierce')[];
+  artEffects?: { movementPenalty?: number; scent?: Side[]; barrier?: { amount: number; by: string }; displaced?: boolean; buffs?: ArtBuff[]; statuses?: ArtAilment[] };
+  immunities?: ('movement_debuff' | 'follow_up_lock' | 'defense_pierce' | 'poison' | 'root' | 'silence' | 'confusion' | 'debuff' | 'healing')[];
+  tags?: ('large' | 'demon' | 'nether_protection')[];
   // 已学习的主动战技稳定 ID（最多五格；具体学习由成长系统写入）。
   arts?: string[];
   // 当前职业固有能力的参考资料 ID（sk-*）；精通节点另由 learnedSkills 提供。
@@ -183,21 +189,21 @@ export type ActAction =
   | ActBase & { act: 'escape' }
   | ActBase & { act: 'interact'; target: string }
   | ActBase & { act: 'dance'; target: string }
-  | ActBase & { act: 'art'; target: string; weapon: WeaponId; art: string; ally?: string; secondary?: string }
+  | ActBase & { act: 'art'; target: string; weapon: WeaponId; art: string; ally?: string; secondary?: string; postTo?: Point; support?: { target: string; spell?: string; weapon?: WeaponId; dest?: Point } }
   | ActBase & { act: 'cast'; target: string; spell: string; dest?: Point }
   | ActBase & { act: 'staff'; target: string; weapon: WeaponId; dest?: Point };
 // retreat: 全军撤退 in field battles (docs/06 op 56); surrender: 投降 in arena attacks (op 67).
 // Both end the battle as a loss.
 export type Action = ActAction | { type: 'endPhase' } | { type: 'retreat' } | { type: 'surrender' };
 
-export interface Strike { by: string; target: string; hit: boolean; crit: boolean; damage: number; hpAfter: number }
+export interface Strike { by: string; target: string; hit: boolean; crit: boolean; damage: number; hpAfter: number; byHpAfter?: number; proc?: boolean }
 
 export type BattleEvent =
   | { t: 'move'; unit: string; path: Point[] }
-  | { t: 'combat'; attacker: string; defender: string; weapons: [WeaponId, WeaponId | null]; strikes: Strike[] }
+  | { t: 'combat'; attacker: string; defender: string; weapons: [WeaponId, WeaponId | null]; strikes: Strike[]; forecast?: Forecast }
   | { t: 'defeated'; unit: string }
   | { t: 'shield'; unit: string }
-  | { t: 'heal'; by: string | null; target: string; amount: number; hpAfter: number; source: 'staff' | 'item' | 'terrain' }
+  | { t: 'heal'; by: string | null; target: string; amount: number; hpAfter: number; source: 'staff' | 'item' | 'terrain' | 'art' }
   | { t: 'exp'; unit: string; gained: number; exp: number; level: number }
   | { t: 'levelUp'; unit: string; level: number; gains: Partial<Stats>; rerolls: number }
   | { t: 'wait'; unit: string }
@@ -210,7 +216,7 @@ export type BattleEvent =
   | { t: 'loot'; unit: string; boxes: number }
   | { t: 'drop'; unit: string; boxes: number; at: Point }
   | { t: 'escape'; unit: string }
-  | { t: 'object'; object: string; by: string; state: BattleObjectState }
+  | { t: 'object'; object: string; by: string; state: BattleObjectState; hpAfter?: number }
   | { t: 'treasure'; unit: string; object: string; item: string; count: number }
   | { t: 'spawn'; unit: string; event: string; spawned: UnitState }
   | { t: 'scenario'; event: string; message: string }

@@ -29,12 +29,20 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       await new Promise<void>(resolve => ctl.set({
         combat: { event: e, before: view, done: () => { ctl.set({ combat: null }); resolve(); } },
       }));
-      edit(d => { for (const s of e.strikes) unitIn(d, s.target).hp = s.hpAfter; });
+      edit(d => {
+        for (const s of e.strikes) {
+          unitIn(d, s.target).hp = s.hpAfter;
+          if (s.byHpAfter !== undefined) unitIn(d, s.by).hp = s.byHpAfter;
+        }
+      });
     } else {
       for (const s of e.strikes) {
         const at = unitIn(view, s.target).pos;
         ctl.float(at, !s.hit ? 'MISS' : s.crit ? `${s.damage}!` : String(s.damage), !s.hit ? 'miss' : s.crit ? 'crit' : 'dmg');
-        edit(d => { unitIn(d, s.target).hp = s.hpAfter; });
+        edit(d => {
+          unitIn(d, s.target).hp = s.hpAfter;
+          if (s.byHpAfter !== undefined) unitIn(d, s.by).hp = s.byHpAfter;
+        });
         await sleep(STRIKE_MS);
       }
     }
@@ -86,7 +94,7 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       case 'object':
         edit(d => {
           const object = d.objects?.find(o => o.id === e.object);
-          if (object) object.state = e.state;
+          if (object) { object.state = e.state; if (e.hpAfter !== undefined) object.hp = e.hpAfter; }
           if (e.state === 'destroyed' && object) d.map.tiles[object.pos[1]][object.pos[0]] = 'floor';
         });
         break;
@@ -177,6 +185,7 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
         edit(d => { d.embers = structuredClone(e.cells); });
         break;
       case 'art':
+        edit(d => { unitIn(d, e.unit).acted = true; });
         break;
       case 'seize': {
         const at = unitIn(view, e.unit).pos;

@@ -3,6 +3,8 @@ import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { artAllies, artWeapon, availableArts } from './arts.ts';
+import { artObjects, artPostMoves, artSupportOptions } from './art-options.ts';
+import type { ArtSupport } from './art-options.ts';
 import { moveRange } from './movement.ts';
 import type { MoveRange } from './movement.ts';
 import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
@@ -29,7 +31,7 @@ export interface ActionOptions {
   interactions: { object: string; kind: 'door' | 'chest' | 'village' | 'wall' | 'switch' | 'ballista'; label: string }[];
   dance: string[];
   // 战技：已学（或装备授予）的战技 × 可用的同类武器；cost 是耐久消耗，durability 为该武器当前耐久。
-  arts: { art: string; weapon: WeaponId; cost: number; durability: number | null; usable: boolean; targets: UnitState[]; allies: string[]; secondaries: Record<string, string[]> }[];
+  arts: { art: string; weapon: WeaponId; cost: number; durability: number | null; usable: boolean; targets: UnitState[]; allies: string[]; secondaries: Record<string, string[]>; objects: string[]; postMoves: Point[]; supportOptions: ArtSupport[] }[];
   // 法术书：有剩余次数、未被沉默；dest 不为 null 时需要（或可以）指定落点。
   casts: { spell: string; role: string; charges: number; maxCharges: number; targets: UnitState[]; dest: DestinationRule | null }[];
   staff: { weapon: WeaponId; effect: StaffEffect; targets: UnitState[]; dest: DestinationRule | null }[];
@@ -59,9 +61,11 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
     return attackWeapons(unit).filter(weapon => artWeapon(unit, weapon, entry)).map(weapon => {
       const targets = artTargets(state, unit, to, entry, weapon);
       const durability = unit.weaponInstances?.find(row => row.id === weapon)?.durability ?? null;
-      const secondaries = entry.id === 'fe_art_split_breath' ? Object.fromEntries(targets.map(target => [target.id,
-        targets.filter(other => other.id !== target.id && distance(other.pos, target.pos) === 1).map(other => other.id)])) : {};
-      return { art, weapon, cost: entry.cost, durability, usable: durability === null || durability >= entry.cost, targets, allies: artAllies(state, unit, to, entry), secondaries };
+      const secondaries = ['fe_art_split_breath', 'axe_sweep'].includes(entry.id) ? Object.fromEntries(targets.map(target => [target.id,
+        targets.filter(other => other.id !== target.id && (entry.id === 'axe_sweep' || distance(other.pos, target.pos) === 1)).map(other => other.id)])) : {};
+      return { art, weapon, cost: entry.cost, durability, usable: durability !== null && durability >= entry.cost, targets,
+        allies: artAllies(state, unit, to, entry), secondaries, objects: artObjects(state, to, entry),
+        postMoves: artPostMoves(state, unit, to, entry), supportOptions: artSupportOptions(state, unit, to, entry) };
     });
   });
   const staffActions = staffWeapons(unit).map(weapon => ({ weapon, effect: staffEffect(weapon), targets: staffTargets(state, unit, to, weapon), dest: staffDestination(weapon) }));

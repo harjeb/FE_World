@@ -4,9 +4,9 @@ import { OP, OP_BY_NUMBER } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
-import { actionOptions, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
+import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
-import { availableArts } from '../common/engine/arts.ts';
+import { validateArt, availableArts } from '../common/engine/arts.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { ART_TRAINING, WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
@@ -97,6 +97,23 @@ const asPoint = (value: unknown, name: string): Point => {
   return [value[0] as number, value[1] as number];
 };
 
+// Nested support uses target (not targetId); it cannot recursively submit an action.
+function artExtras(data: Json): Pick<Extract<ActAction, { act: 'art' }>, 'ally' | 'secondary' | 'postTo' | 'support'> {
+  const extras: ReturnType<typeof artExtras> = {};
+  if (data.allyId !== undefined) extras.ally = asString(data.allyId, 'allyId');
+  if (data.secondaryId !== undefined) extras.secondary = asString(data.secondaryId, 'secondaryId');
+  if (data.postTo !== undefined) extras.postTo = asPoint(data.postTo, 'postTo');
+  if (data.support !== undefined) {
+    if (!data.support || typeof data.support !== 'object' || Array.isArray(data.support)) throw new OpError('BAD_REQUEST', 'support 必须是对象');
+    const support = data.support as Json;
+    if (Object.keys(support).some(key => !['target', 'spell', 'weapon', 'dest'].includes(key)) || (support.spell !== undefined) === (support.weapon !== undefined)) throw new OpError('BAD_REQUEST', 'support 只允许 target、spell/weapon（二选一）、dest');
+    extras.support = { target: asString(support.target, 'support.target'),
+      ...(support.spell === undefined ? { weapon: asString(support.weapon, 'support.weapon') as WeaponId } : { spell: asString(support.spell, 'support.spell') }),
+      ...(support.dest === undefined ? {} : { dest: asPoint(support.dest, 'support.dest') }) };
+  }
+  return extras;
+}
+
 function requireUnit(store: Store, player: Player, unitId: string): UnitRecord {
   const unit = store.unit(player.id, unitId);
   if (!unit) throw new OpError('NOT_FOUND', `没有单位 ${unitId}`);
@@ -186,7 +203,7 @@ function compactUnit(u: BattleState['units'][number]) {
   return {
     id: u.id, name: u.name, side: u.side, class: CLASSES[u.classId].name, lv: u.level, pos: u.pos,
     hp: [u.hp, u.stats.hp], acted: u.acted, leader: !!u.boss, equip: u.weapons[0] ? WEAPONS[u.weapons[0]].name : null,
-    petrified: !!u.petrified, statuses: u.statuses ?? {}, artEffects: u.artEffects ?? {}, immunities: u.immunities ?? [],
+    petrified: !!u.petrified, statuses: u.statuses ?? {}, artEffects: u.artEffects ?? {}, immunities: u.immunities ?? [], tags: u.tags ?? [],
     items: u.items.map(i => `${GAME_ITEMS[i.id as ItemKey]?.name ?? i.id}(${i.uses})`),
   };
 }
@@ -1361,7 +1378,7 @@ const handlers: Record<number, Handler> = {
         escape: options.escape,
         interactions: options.interactions,
         // 战技／法术／杖／舞蹈（UNIT_ACT action = art / cast / staff / dance）：只列有目标的项。
-        arts: options.arts.filter(o => o.targets.length > 0).map(o => ({ art: o.art, weapon: o.weapon, cost: o.cost, durability: o.durability, usable: o.usable, targets: o.targets.map(t => t.id), allies: o.allies, secondaries: o.secondaries, name: WEAPON_ART_BY_ID.get(o.art)?.name, effect: WEAPON_ART_BY_ID.get(o.art)?.effect, rank: WEAPON_ART_BY_ID.get(o.art)?.rank })),
+        arts: options.arts.filter(o => o.targets.length > 0 || o.objects.length > 0).map(o => ({ art: o.art, weapon: o.weapon, cost: o.cost, durability: o.durability, usable: o.usable, targets: o.targets.map(t => t.id), allies: o.allies, secondaries: o.secondaries, objects: o.objects, postMoves: o.postMoves, supportOptions: o.supportOptions, name: WEAPON_ART_BY_ID.get(o.art)?.name, effect: WEAPON_ART_BY_ID.get(o.art)?.effect, rank: WEAPON_ART_BY_ID.get(o.art)?.rank })),
         casts: options.casts.filter(o => o.targets.length > 0).map(o => ({ spell: o.spell, role: o.role, charges: o.charges, targets: o.targets.map(t => t.id), dest: dest(o.dest) })),
         staves: options.staff.filter(o => o.targets.length > 0 && o.effect !== 'heal').map(o => ({ weapon: o.weapon, effect: o.effect, targets: o.targets.map(t => t.id), dest: dest(o.dest) })),
         dance: options.dance,
@@ -1383,8 +1400,13 @@ const handlers: Record<number, Handler> = {
     const art = typeof data.art === 'string' ? WEAPON_ART_BY_ID.get(data.art as never) : undefined;
     if (data.art !== undefined && !art) throw new OpError('BAD_REQUEST', '没有这个战技');
     if (art && book) throw new OpError('BAD_REQUEST', '战技与法术不能同时使用');
-    const attackerUnit = unitById(record.state, attacker), defenderUnit = unitById(record.state, target);
+    const attackerUnit = unitById(record.state, attacker);
     if (!inBounds(record.state, from) || !moveRange(record.state, attackerUnit).stops.has(from[1] * record.state.map.width + from[0])) throw new OpError('UNREACHABLE', '预测落点不可达');
+    if (art) {
+      validateArt(record.state, attackerUnit, { type: 'act', unit: attacker, to: from, act: 'art', weapon, art: art.id, target, ...artExtras(data) }, art);
+      if (record.state.objects?.some(object => object.id === target)) return { art: art.id, ...artObjectForecast(record.state, attackerUnit, from, weapon, art, target) };
+    }
+    const defenderUnit = unitById(record.state, target);
     const run = () => art ? artForecast(record.state, attackerUnit, from, weapon, art, defenderUnit, data.secondaryId === undefined ? undefined : asString(data.secondaryId, 'secondaryId'), data.allyId === undefined ? undefined : asString(data.allyId, 'allyId'))
       : forecast(record.state, attacker, from, weapon, target);
     const f = book ? withSpellWeapon(book, run) : run();
@@ -1422,7 +1444,7 @@ const handlers: Record<number, Handler> = {
     else if (act === 'interact') action = { type: 'act', unit, to, act: 'interact', target: asString(data.targetId, 'targetId') };
     else if (act === 'wait') action = { type: 'act', unit, to, act: 'wait' };
     else if (act === 'dance') action = { type: 'act', unit, to, act: 'dance', target: asString(data.targetId, 'targetId') };
-    else if (act === 'art') action = { type: 'act', unit, to, act: 'art', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, art: asString(data.art, 'art'), ...(data.allyId === undefined ? {} : { ally: asString(data.allyId, 'allyId') }), ...(data.secondaryId === undefined ? {} : { secondary: asString(data.secondaryId, 'secondaryId') }) };
+    else if (act === 'art') action = { type: 'act', unit, to, act: 'art', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, art: asString(data.art, 'art'), ...artExtras(data) };
     else if (act === 'cast') action = { type: 'act', unit, to, act: 'cast', target: asString(data.targetId, 'targetId'), spell: asString(data.spell, 'spell'), ...(data.dest !== undefined ? { dest: asPoint(data.dest, 'dest') } : {}) };
     else if (act === 'staff') action = { type: 'act', unit, to, act: 'staff', target: asString(data.targetId, 'targetId'), weapon: asString(data.weapon, 'weapon') as never, ...(data.dest !== undefined ? { dest: asPoint(data.dest, 'dest') } : {}) };
     else throw new OpError('BAD_REQUEST', 'action 取 attack / heal / item / seize / escape / interact / wait / dance / art / cast / staff');

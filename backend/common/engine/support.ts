@@ -16,7 +16,7 @@ export interface DestinationRule { from: 'caster' | 'stand'; max: number; requir
 export type StaffEffect = 'heal' | 'cure' | 'sleep' | 'silence' | 'warp' | 'rescue';
 
 // 这几项辅助法术不看目标 HP：墙、传送、拉近。
-export const SPECIAL_SUPPORT_SPELLS: readonly string[] = ['fw_spell_9', 'fw_spell_49', 'fw_spell_56', 'fw_spell_57'];
+export const SPECIAL_SUPPORT_SPELLS: readonly string[] = ['fw_spell_9', 'fw_spell_22', 'fw_spell_49', 'fw_spell_56', 'fw_spell_57', 'fw_spell_58'];
 
 const HOSTILE_STAVES: readonly WeaponId[] = ['sleep_staff', 'silence_staff'];
 
@@ -101,7 +101,7 @@ export function spellTargets(state: BattleState, unit: UnitState, to: Point, spe
   const hostile = isHostileSpell(book);
   return living(state).filter(target => (hostile ? target.side !== unit.side : target.side === unit.side)
     && within(book.range, distance(target.pos, to))
-    && (hostile || SPECIAL_SUPPORT_SPELLS.includes(book.id) || (!target.petrified && target.hp < target.stats.hp)));
+    && (hostile || !target.petrified && !target.immunities?.includes('healing') && (SPECIAL_SUPPORT_SPELLS.includes(book.id) || target.hp < target.stats.hp)));
 }
 
 // 杖的目标：睡眠／沉默杖打敌军，其余给其他友军；复原杖要有可解除的异常，传送／救援不看 HP。

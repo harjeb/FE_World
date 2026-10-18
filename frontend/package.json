@@ -8,6 +8,7 @@
     "build": "rsbuild build",
     "preview": "rsbuild preview",
     "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
     "test:e2e": "rsbuild build && node test/battle-replay.e2e.mjs"
   },
   "dependencies": {

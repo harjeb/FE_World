@@ -243,9 +243,14 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
           </div>
         </div>
       )}
+      {mode.kind === 'art' && artOption && <>
+        {artOption.objects.length > 0 && <div className="sect"><label>墙体目标 <select value={artOption.objects.includes(mode.target ?? '') ? mode.target! : ''} onChange={e => { if (e.target.value) ctl.chooseTarget(e.target.value); }}><option value="">请选择墙体</option>{artOption.objects.map(id => <option key={id} value={id}>墙体 · {id}</option>)}</select></label></div>}
+        {mode.target && artOption.postMoves.length > 0 && <div className="sect"><label>战后移动（可选） <select value={artOption.postMoves.findIndex(p => p[0] === mode.postTo?.[0] && p[1] === mode.postTo?.[1])} onChange={e => ctl.chooseArtFollowup('postTo', Number(e.target.value))}><option value={-1}>不移动</option>{artOption.postMoves.map((p, i) => <option key={i} value={i}>({p[0]},{p[1]})</option>)}</select></label></div>}
+        {mode.target && artOption.supportOptions.length > 0 && <div className="sect"><label>战后支援（可选） <select value={artOption.supportOptions.findIndex(s => JSON.stringify(s) === JSON.stringify(mode.support))} onChange={e => ctl.chooseArtFollowup('support', Number(e.target.value))}><option value={-1}>不支援</option>{artOption.supportOptions.map((s, i) => <option key={i} value={i}>{displayName(state, s.target)} · {s.spell ? spellInfo(s.spell)?.name ?? s.spell : s.weapon ? WEAPONS[s.weapon].name : '支援'}{s.dest ? ` → (${s.dest[0]},${s.dest[1]})` : ''}</option>)}</select></label></div>}
+      </>}
       {mode.kind === 'art' && artOption && (['ally', 'secondary'] as const).map(kind => {
         const ids = kind === 'ally' ? artOption.allies : artOption.secondaries[mode.target ?? ''] ?? [];
-        const offered = kind === 'ally' ? mode.art === 'fe_art_cover_exchange' || mode.art === 'fe_art_scale_rebuff' : mode.art === 'fe_art_split_breath' && !!mode.target;
+        const offered = kind === 'ally' ? mode.art === 'fe_art_cover_exchange' || mode.art === 'fe_art_scale_rebuff' : !!mode.target && ids.length > 0;
         if (!offered) return null;
         return <div className="sect" key={kind}>
           <label>{kind === 'ally' ? '友军（可选）' : '次目标（可选）'}{' '}

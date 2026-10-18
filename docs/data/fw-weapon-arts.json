@@ -393,7 +393,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -449,7 +449,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -499,7 +499,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -551,7 +551,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -605,7 +605,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": -5,
@@ -656,7 +656,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -710,7 +710,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -772,7 +772,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -839,7 +839,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -922,7 +922,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -978,7 +978,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 5,
@@ -1033,7 +1033,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -1093,7 +1093,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 12,
@@ -1145,7 +1145,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -1197,7 +1197,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 5,
@@ -1244,7 +1244,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 0,
@@ -1300,7 +1300,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -1388,7 +1388,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -1452,7 +1452,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -1504,7 +1504,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -1555,7 +1555,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -1613,7 +1613,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 3,
@@ -1674,7 +1674,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 5,
@@ -1734,7 +1734,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 3,
@@ -1787,7 +1787,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 0,
@@ -1843,7 +1843,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 5,
@@ -1897,7 +1897,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -1957,7 +1957,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 12,
@@ -2009,7 +2009,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 10,
@@ -2056,7 +2056,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 5,
@@ -2103,7 +2103,7 @@
         "wp-44"
       ],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 0,
@@ -2180,7 +2180,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -2243,7 +2243,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -2307,7 +2307,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -2369,7 +2369,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -2429,7 +2429,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 8,
@@ -2481,7 +2481,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -2528,7 +2528,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 5,
@@ -2576,7 +2576,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 2,
@@ -2628,7 +2628,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 0,
@@ -2697,7 +2697,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -2763,7 +2763,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -2819,7 +2819,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 5,
@@ -2874,7 +2874,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 0,
@@ -2945,7 +2945,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -3006,7 +3006,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -3061,7 +3061,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 1,
@@ -3113,7 +3113,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 7,
@@ -3167,7 +3167,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 10,
@@ -3239,7 +3239,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -3301,7 +3301,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -3358,7 +3358,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -3422,7 +3422,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -3481,7 +3481,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 2,
@@ -3541,7 +3541,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -3593,7 +3593,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 5,
@@ -3640,7 +3640,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -3696,7 +3696,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 2,
@@ -3749,7 +3749,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -3804,7 +3804,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -3866,7 +3866,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -3925,7 +3925,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -3983,7 +3983,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 3,
@@ -4038,7 +4038,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -4097,7 +4097,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -4153,7 +4153,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 5,
@@ -4207,7 +4207,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 7,
@@ -4264,7 +4264,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 0,
@@ -4313,7 +4313,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 0,
@@ -4363,7 +4363,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -4420,7 +4420,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -4477,7 +4477,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -4530,7 +4530,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -4588,7 +4588,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -4640,7 +4640,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 15,
@@ -4687,7 +4687,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 1,
@@ -4736,7 +4736,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -4793,7 +4793,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 9,
@@ -4845,7 +4845,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -4892,7 +4892,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 8,
@@ -4939,7 +4939,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -4986,7 +4986,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 1,
@@ -5033,7 +5033,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -5082,7 +5082,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -5129,7 +5129,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -5176,7 +5176,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 2,
@@ -5230,7 +5230,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -5288,7 +5288,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -5341,7 +5341,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 1,
@@ -5395,7 +5395,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -5447,7 +5447,7 @@
       ],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 8,
@@ -5503,7 +5503,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 3,
@@ -5550,7 +5550,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 5,
@@ -5597,7 +5597,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 3,
@@ -5644,7 +5644,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 7,
@@ -5693,7 +5693,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -5754,7 +5754,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -5813,7 +5813,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -5870,7 +5870,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -5926,7 +5926,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -5981,7 +5981,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -6035,7 +6035,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -6097,7 +6097,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 8,
@@ -6155,7 +6155,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -6210,7 +6210,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -6268,7 +6268,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -6318,7 +6318,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -6363,7 +6363,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -6413,7 +6413,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 0,
@@ -6465,7 +6465,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 2,
@@ -6515,7 +6515,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -6565,7 +6565,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -6612,7 +6612,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -6657,7 +6657,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 30,
         "might": 0,
@@ -6712,7 +6712,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -6768,7 +6768,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 1,
@@ -6818,7 +6818,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 10,
@@ -6868,7 +6868,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -6930,7 +6930,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -6986,7 +6986,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 0,
@@ -7036,7 +7036,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -7096,7 +7096,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 2,
@@ -7151,7 +7151,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 10,
@@ -7205,7 +7205,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 12,
@@ -7260,7 +7260,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 7,
@@ -7315,7 +7315,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -7369,7 +7369,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -7423,7 +7423,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 5,
@@ -7479,7 +7479,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -7535,7 +7535,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 12,
@@ -7594,7 +7594,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 7,
@@ -7648,7 +7648,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -7710,7 +7710,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -7766,7 +7766,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -7821,7 +7821,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -7874,7 +7874,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 12,
@@ -7928,7 +7928,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 10,
@@ -7986,7 +7986,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 0,
@@ -8044,7 +8044,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 12,
@@ -8100,7 +8100,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 1,
@@ -8157,7 +8157,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 4,
@@ -8210,7 +8210,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -8266,7 +8266,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": -3,
@@ -8323,7 +8323,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -8375,7 +8375,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 1,
@@ -8431,7 +8431,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -8487,7 +8487,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 0,
@@ -8541,7 +8541,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 5,
@@ -8600,7 +8600,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -8650,7 +8650,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -8706,7 +8706,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -8759,7 +8759,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -8813,7 +8813,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 8,
@@ -8866,7 +8866,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 0,
@@ -8920,7 +8920,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 2,
@@ -8974,7 +8974,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 2,
@@ -9026,7 +9026,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 2,
@@ -9071,7 +9071,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 8,
@@ -9116,7 +9116,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 30,
@@ -9163,7 +9163,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -9219,7 +9219,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 8,
@@ -9275,7 +9275,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 0,
@@ -9333,7 +9333,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -9390,7 +9390,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -9446,7 +9446,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -9504,7 +9504,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 15,
@@ -9560,7 +9560,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 8,
@@ -9618,7 +9618,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -9675,7 +9675,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 10,
@@ -9731,7 +9731,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 8,
@@ -9787,7 +9787,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 15,
@@ -9843,7 +9843,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -9899,7 +9899,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -9955,7 +9955,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -10011,7 +10011,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -10067,7 +10067,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 4,
@@ -10123,7 +10123,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -10180,7 +10180,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -10238,7 +10238,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -10294,7 +10294,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 15,
@@ -10350,7 +10350,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 15,
@@ -10406,7 +10406,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 1,
@@ -10462,7 +10462,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -10518,7 +10518,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 10,
@@ -10574,7 +10574,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -10630,7 +10630,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -10688,7 +10688,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 5,
@@ -10744,7 +10744,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -10800,7 +10800,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -10856,7 +10856,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 30,
         "might": 4,
@@ -10913,7 +10913,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 5,
@@ -10969,7 +10969,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 15,
@@ -11025,7 +11025,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 10,
@@ -11081,7 +11081,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -11138,7 +11138,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -11194,7 +11194,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -11250,7 +11250,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -11306,7 +11306,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -11366,7 +11366,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 5,
@@ -11422,7 +11422,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -11479,7 +11479,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 0,
@@ -11535,7 +11535,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 0,
@@ -11593,7 +11593,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -11650,7 +11650,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -11706,7 +11706,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -11762,7 +11762,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -11818,7 +11818,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -11874,7 +11874,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 13,
@@ -11930,7 +11930,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 5,
@@ -11986,7 +11986,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 12,
@@ -12042,7 +12042,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 0,
@@ -12098,7 +12098,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -12154,7 +12154,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 2,
@@ -12210,7 +12210,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 13,
@@ -12266,7 +12266,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 4,
@@ -12322,7 +12322,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 3,
@@ -12378,7 +12378,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -12434,7 +12434,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 3,
@@ -12490,7 +12490,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 4,
@@ -12553,7 +12553,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 12,
@@ -12609,7 +12609,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 2,
@@ -12667,7 +12667,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 15,
@@ -12723,7 +12723,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 1,
@@ -12779,7 +12779,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -12835,7 +12835,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -12892,7 +12892,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 3,
@@ -12948,7 +12948,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -13004,7 +13004,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 12,
@@ -13060,7 +13060,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -13116,7 +13116,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 3,
@@ -13172,7 +13172,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -13228,7 +13228,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -13284,7 +13284,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 5,
@@ -13340,7 +13340,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 2,
@@ -13396,7 +13396,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -13452,7 +13452,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 9,
@@ -13508,7 +13508,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 9,
@@ -13564,7 +13564,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 5,
@@ -13620,7 +13620,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -13676,7 +13676,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 0,
@@ -13734,7 +13734,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -13790,7 +13790,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -13849,7 +13849,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 10,
@@ -13905,7 +13905,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 4,
@@ -13961,7 +13961,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 2,
@@ -14019,7 +14019,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 6,
@@ -14075,7 +14075,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -14131,7 +14131,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": -3,
@@ -14187,7 +14187,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 13,
@@ -14243,7 +14243,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 3,
         "might": 4,
@@ -14299,7 +14299,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 12,
@@ -14356,7 +14356,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 0,
@@ -14414,7 +14414,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -14472,7 +14472,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 0,
@@ -14528,7 +14528,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 3,
@@ -14584,7 +14584,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 1,
         "might": 0,
@@ -14640,7 +14640,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -14694,7 +14694,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": -10,
@@ -14750,7 +14750,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 10,
@@ -14800,7 +14800,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -14845,7 +14845,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 2,
         "might": 0,
@@ -14898,7 +14898,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -14952,7 +14952,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 7,
         "might": 0,
@@ -15012,7 +15012,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 4,
@@ -15066,7 +15066,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -15118,7 +15118,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 0,
@@ -15178,7 +15178,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 12,
@@ -15232,7 +15232,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -15286,7 +15286,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -15339,7 +15339,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 3,
@@ -15393,7 +15393,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 8,
@@ -15447,7 +15447,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 12,
@@ -15503,7 +15503,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 0,
@@ -15555,7 +15555,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 0,
@@ -15609,7 +15609,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 0,
@@ -15664,7 +15664,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 8,
         "might": 12,
@@ -15719,7 +15719,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 10,
         "might": 0,
@@ -15773,7 +15773,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 12,
@@ -15829,7 +15829,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 4,
         "might": 5,
@@ -15884,7 +15884,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 6,
         "might": 7,
@@ -15940,7 +15940,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -15993,7 +15993,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 7,
@@ -16049,7 +16049,7 @@
       "referenceClassIds": [],
       "equipmentReferenceIds": [],
       "project": {
-        "status": "not_implemented",
+        "status": "implemented",
         "resource": "weapon_durability",
         "cost": 5,
         "might": 13,
@@ -16084,7 +16084,7 @@
       "effectSummary": "威力＋4、命中＋10",
       "cost": 3,
       "unlock": "斗士／佣兵职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16104,7 +16104,7 @@
       "effectSummary": "威力＋2、对飞行特效",
       "cost": 4,
       "unlock": "猎兵／剑客职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16124,7 +16124,7 @@
       "effectSummary": "威力＋1，目标不能反击",
       "cost": 5,
       "unlock": "刀剑将领／刺客职业精通学习（节点待配置），限2个教学职业",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16146,7 +16146,7 @@
       "effectSummary": "威力＋5、命中＋10",
       "cost": 4,
       "unlock": "士兵／重装步兵职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16166,7 +16166,7 @@
       "effectSummary": "连续2击，不再按速度追加",
       "cost": 5,
       "unlock": "荣光骑士／奥利哈铁骑职业精通学习（节点待配置），限2个教学职业",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16188,7 +16188,7 @@
       "effectSummary": "威力＋3、重甲特效",
       "cost": 4,
       "unlock": "重装步兵／将军职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16208,7 +16208,7 @@
       "effectSummary": "威力＋3、命中＋15、必杀＋10",
       "cost": 3,
       "unlock": "土匪／将军职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16228,7 +16228,7 @@
       "effectSummary": "威力＋1、命中＋15",
       "cost": 3,
       "unlock": "猎兵／战车兵职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16248,7 +16248,7 @@
       "effectSummary": "威力＋2，距离每增1格命中－10",
       "cost": 5,
       "unlock": "宗师射手／弓骑士职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16268,7 +16268,7 @@
       "effectSummary": "连续2击，不追加速度追击",
       "cost": 5,
       "unlock": "狙击手／弓骑士职业精通学习（节点待配置），限2个教学职业",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16290,7 +16290,7 @@
       "effectSummary": "本次2击各取70%伤害，对重甲特效",
       "cost": 4,
       "unlock": "斗拳手／贤士职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16310,7 +16310,7 @@
       "effectSummary": "命中沿线至多3个敌人，逐目标预览",
       "cost": 6,
       "unlock": "战车兵职业精通学习（节点待配置），限1个教学职业",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16331,7 +16331,7 @@
       "effectSummary": "威力＋3，本击改用魔力对魔防；仍扣剑耐久，不是施法",
       "cost": 4,
       "unlock": "先知／神鸵兵／高阶墓志铭等5个职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16354,7 +16354,7 @@
       "effectSummary": "从自身四邻格选至多2名敌人，各1击、伤害×75%；不能选友军",
       "cost": 6,
       "unlock": "战斗将领／永霸神将职业精通学习（节点待配置），限2个教学职业",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16376,7 +16376,7 @@
       "effectSummary": "威力＋1；命中后目标防－3至其下一阶段结束，同名取较强",
       "cost": 3,
       "unlock": "盗贼／忍者职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16396,7 +16396,7 @@
       "effectSummary": "威力＋3；战后存活目标可被推远1格，落点非法则只造成伤害",
       "cost": 4,
       "unlock": "幼战士／兽战士／兽勇士等5个职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [
@@ -16419,7 +16419,7 @@
       "effectSummary": "威力＋2，魔力对魔防；命中后目标速－3至其下一阶段结束",
       "cost": 5,
       "unlock": "觉醒者／龙人／古龙卫等5个职业精通学习（节点待配置）",
-      "status": "not_implemented",
+      "status": "implemented",
       "learning": {
         "kind": "class_mastery",
         "classIds": [

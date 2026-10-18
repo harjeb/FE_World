@@ -45,7 +45,10 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
   const statuses = [unit.artEffects?.movementPenalty && `移动 −${unit.artEffects.movementPenalty}`, unit.artEffects?.scent?.length && '猎痕（标记方命中 +10）', unit.artEffects?.barrier && `护鳞（减伤 ${unit.artEffects.barrier.amount}）`, unit.statuses?.sleep && '睡眠', unit.statuses?.silence && `沉默 ${unit.statuses.silence}`, unit.statuses?.berserk && `混乱 ${unit.statuses.berserk}`,
     unit.statuses?.regen && `再生 ${unit.statuses.regen}`, unit.petrified && '石化（禁止一切回复）', (unit.shields ?? 0) > 0 && '持不朽盾',
     unit.artEffects?.displaced && '已位移（本次不能发动伏身／凝息）',
-    ...(unit.immunities ?? []).map(kind => ({ movement_debuff: '移动削弱免疫', follow_up_lock: '追击封锁免疫', defense_pierce: '防御忽略免疫' })[kind]),
+    ...(unit.tags ?? []).map(t => ({ large: '大型', demon: '魔物', nether_protection: '冥界庇护' })[t]),
+    ...(unit.artEffects?.statuses ?? []).map(t => ({ poison: '中毒', root: '定身', silence: '沉默', confusion: '混乱' })[t]),
+    ...(unit.artEffects?.buffs ?? []).map(b => `${b.source} · ${({ hp: '生命', str: '力量', mag: '魔力', skl: '技巧', spd: '速度', lck: '幸运', def: '防御', res: '魔防', mov: '移动' } as Record<string, string>)[b.stat] ?? b.stat} ${b.amount >= 0 ? '+' : ''}${b.amount}（${({ map: '本地图', next_phase: '至下一阶段', phase: '本阶段', exchange: '本次交战' })[b.duration]}）`),
+    ...(unit.immunities ?? []).map(kind => ({ movement_debuff: '移动削弱免疫', follow_up_lock: '追击封锁免疫', defense_pierce: '防御忽略免疫', poison: '中毒免疫', root: '定身免疫', silence: '沉默免疫', confusion: '混乱免疫', debuff: '削弱免疫', healing: '无法接受治疗' })[kind]),
   ].filter(Boolean) as string[];
   const gear = unit.weapons.map((id, i) => {
     const nth = unit.weapons.slice(0, i).filter(w => w === id).length;

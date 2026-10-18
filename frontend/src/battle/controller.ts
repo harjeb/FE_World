@@ -157,7 +157,7 @@ export class BattleController {
     const mode = this.snap.mode;
     if (this.blocked) return;
     if (mode.kind === 'cast' || mode.kind === 'staff') this.set({ mode: { ...mode, target: targetId, dest: null } });
-    else if (mode.kind === 'art') this.set({ mode: { ...mode, target: targetId, secondary: undefined } });
+    else if (mode.kind === 'art') this.set({ mode: { ...mode, target: targetId, ally: undefined, secondary: undefined, postTo: undefined, support: undefined } });
     else if (mode.kind === 'dance' || mode.kind === 'attack' || mode.kind === 'heal') this.set({ mode: { ...mode, target: targetId } });
   }
 
@@ -165,8 +165,15 @@ export class BattleController {
   chooseArt(art: string, weapon: WeaponId): void {
     const mode = this.snap.mode;
     if (this.blocked || mode.kind !== 'art') return;
-    this.set({ mode: { ...mode, art, weapon, ally: undefined, secondary: undefined } });
+    this.set({ mode: { ...mode, art, weapon, ally: undefined, secondary: undefined, postTo: undefined, support: undefined } });
     this.keepOrClearTarget();
+  }
+
+  chooseArtFollowup(kind: 'postTo' | 'support', index: number): void {
+    const mode = this.snap.mode;
+    if (this.blocked || mode.kind !== 'art') return;
+    const option = commandOptions(this.snap.state, mode).arts.find(a => a.art === mode.art && a.weapon === mode.weapon);
+    this.set({ mode: { ...mode, [kind]: (kind === 'postTo' ? option?.postMoves : option?.supportOptions)?.[index] } });
   }
 
   chooseArtExtra(kind: 'ally' | 'secondary', id: string | undefined): void {

@@ -57,7 +57,8 @@ test('all 36 canonical equipment links grant only their own weapon arts without 
     assert.equal(artForecast(state, me, me.pos, weapon, art, foe).targets[0].target, foe.id);
     const result = step(state, { type: 'act', unit: me.id, to: me.pos, act: 'art', weapon, art: art.id, target: foe.id });
     const after = unitById(result.state, me.id);
-    assert.equal(after.weaponInstances![0].durability, 40 - art.cost, art.id);
+    // 绝花在技巧100时必定返还本次成本；其余装备战技仍支付一次。
+    assert.equal(after.weaponInstances![0].durability, art.id === 'fw_art_112' ? 40 : 40 - art.cost, art.id);
     assert.equal(after.weaponInstances![1].durability, 20, art.id);
     assert.equal(after.weapons.length, 2, 'equipping for combat must not discard duplicates');
     assert.deepEqual(record.learnedArts, []);

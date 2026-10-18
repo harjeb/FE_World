@@ -46,7 +46,7 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       case 'combat': {
         const parts = e.strikes.map(s => {
           const result = !s.hit ? '未命中' : s.crit ? `必杀 ${s.damage}` : `命中 ${s.damage}`;
-          return `${name(s.by)} ${result}`;
+          return `${name(s.by)} ${result}${s.proc ? '（战技触发）' : ''}${s.byHpAfter !== undefined ? `（自身 HP ${s.byHpAfter}）` : ''}`;
         });
         const weapon = weaponLabel(e.weapons[0]);
         const counter = e.weapons[1] ? '' : `（${name(e.defender)} 无法反击）`;
@@ -112,6 +112,7 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       }
       case 'heal':
         if (e.source === 'terrain') push(`${name(e.target)} 在据点回复 ${e.amount} HP。`, 'g');
+        else if (e.source === 'art') push(`${name(e.target)} 受到战技治疗，回复 ${e.amount} HP。`, mark(e.target));
         else if (e.source === 'item') push(`${name(e.target)} 使用伤药，回复 ${e.amount} HP。`, mark(e.target));
         else push(`${name(e.by!)} 治疗 ${name(e.target)}，回复 ${e.amount} HP。`, mark(e.by!));
         break;

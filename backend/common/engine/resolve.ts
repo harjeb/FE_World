@@ -1,9 +1,10 @@
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
-import { combatProgress, forecast, recordStrikeHit, strikeDamage } from './combat.ts';
+import { combatProgress, forecast, resolveStrike, skipStrike, strikeRates } from './combat.ts';
 import type { CombatArt } from './combat.ts';
 import { artState, clearArtEffects } from './arts.ts';
+import { addArtBuff, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
 import { cureStatuses, living } from './units.ts';
@@ -12,49 +13,53 @@ import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
 export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: CombatArt): Strike[] {
   const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art);
-  const progress = combatProgress(f);
+  const progress = combatProgress(f), oldBuffs = [attacker, defender].map(u => [...(u.artEffects?.buffs ?? [])]);
   const strikes: Strike[] = [];
   const dealt = { attacker: false, defender: false };
+  const chance = (percent: number) => percent >= 100 || percent > 0 && roll100(state.rng) < percent;
   for (const spec of f.order) {
-    if (attacker.hp === 0 || defender.hp === 0) break;
-    // 石化庇护阻止后续连击、追击与其他攻击（docs/00 §7.2）。
-    if (attacker.petrified || defender.petrified) break;
-    if (spec.side === 'defender' && spec.followUp && art?.sealFollowUp && progress.attackerHit) continue;
-    const [me, foe, side] = spec.side === 'attacker'
-      ? [attacker, defender, f.attacker] as const
-      : [defender, attacker, f.defender] as const;
-    const hit = roll100(state.rng) + roll100(state.rng) < 2 * side.hit;
-    const crit = hit && roll100(state.rng) < (spec.followUp ? side.followUpCrit : side.crit);
-    const damage = hit ? strikeDamage(f, spec.side, crit, progress) : 0;
-    if (hit) {
-      recordStrikeHit(f, spec.side, progress);
-      if (foe.artEffects?.barrier) { delete foe.artEffects.barrier; artState(foe, events); }
+    if (attacker.petrified || defender.petrified || progress.stopped) break;
+    if (skipStrike(f, spec, progress)) continue;
+    if (spec.chance !== undefined) {
+      if (progress.forced < 0) progress.forced = chance(spec.chance) ? 1 : 0;
+      if (!progress.forced) continue;
     }
-    if (damage > 0) {
-      foe.hp = Math.max(0, foe.hp - damage);
-      // 睡眠单位受击即醒；本次交战的还击顺序已在睡眠时算好，不会立刻反击。
-      if (foe.statuses?.sleep) {
-        foe.statuses.sleep = false;
-        if (Object.keys(foe.statuses).length === 0) delete foe.statuses;
-        events.push({ t: 'status', unit: foe.id, status: 'sleep', active: false });
-      }
-      // 不朽盾：致命时消耗一枚、保留 1HP 并石化，后续攻击不再致死（docs/00 §7.2）。
-      if (foe.hp === 0 && (foe.shields ?? 0) > 0) {
-        foe.shields = (foe.shields ?? 0) - 1;
-        foe.shieldsUsed = (foe.shieldsUsed ?? 0) + 1;
-        const shieldIndex = foe.items.findIndex(item => item.id === 'immortal_shield');
-        if (shieldIndex >= 0) foe.items.splice(shieldIndex, 1);
-        foe.hp = 1;
-        foe.petrified = true;
-        events.push({ t: 'shield', unit: foe.id });
-      }
+    const [me, foe] = spec.side === 'attacker' ? [attacker, defender] : [defender, attacker];
+    const rates = strikeRates(f, spec, progress), proc = chance(rates.proc);
+    const hit = roll100(state.rng) + roll100(state.rng) < 2 * rates.hit;
+    const crit = hit && roll100(state.rng) < rates.crit;
+    const block = spec.side === 'attacker' && hit && chance(art?.counterBlockOnHit ?? 0);
+    const afflict = spec.side === 'attacker' && hit && !!art?.onHit && chance(art.onHit.chance ?? 100);
+    const resolved = resolveStrike(f, spec, progress, hit, crit, proc, block, afflict);
+    attacker.hp = progress.aHp; defender.hp = progress.dHp;
+    if (hit && foe.artEffects?.barrier) { delete foe.artEffects.barrier; artState(foe, events); }
+    if (resolved.damage > 0 && foe.statuses?.sleep) {
+      delete foe.statuses.sleep;
+      if (!Object.keys(foe.statuses).length) delete foe.statuses;
+      events.push({ t: 'status', unit: foe.id, status: 'sleep', active: false });
     }
-    if (damage > 0) dealt[spec.side] = true;
-    strikes.push({ by: me.id, target: foe.id, hit, crit, damage, hpAfter: foe.hp });
+    if (resolved.shield) {
+      foe.shields = (foe.shields ?? 0) - 1; foe.shieldsUsed = (foe.shieldsUsed ?? 0) + 1;
+      const shieldIndex = foe.items.findIndex(item => item.id === 'immortal_shield');
+      if (shieldIndex >= 0) foe.items.splice(shieldIndex, 1);
+      foe.petrified = true;
+      events.push({ t: 'shield', unit: foe.id });
+    }
+    if (resolved.afflicted && art?.onHit) {
+      for (const status of art.onHit.statuses ?? []) inflictArtStatus(foe, status, events);
+      if (art.onHit.movePenalty && (!art.onHit.onlyFlying || !f.defender.terrain.applies)) addArtBuff(state, foe, art.id, 'move', -art.onHit.movePenalty, 'phase', events);
+      if (art.onHit.debuff) { const b = art.onHit.debuff; addArtBuff(state, foe, art.id, b.stat, b.amount, b.duration, events); }
+      if (art.onHit.stripProtection) addArtBuff(state, foe, art.id, 'protection', -1, 'exchange', events);
+    }
+    if (resolved.damage > 0) dealt[spec.side] = true;
+    strikes.push({ by: me.id, target: foe.id, hit, crit, damage: resolved.damage, hpAfter: foe.hp,
+      ...(resolved.heal ? { byHpAfter: me.hp } : {}), ...(proc ? { proc: true } : {}) });
   }
+  [attacker, defender].forEach((u, index) => consumeArtExchange(u, oldBuffs[index], events));
   events.push({
     t: 'combat', attacker: attacker.id, defender: defender.id,
     weapons: [weaponId, f.defender.canAttack ? f.defender.weapon : null], strikes,
+    ...(art ? { forecast: f } : {}),
   });
   if (art) events.push({ t: 'art', unit: attacker.id, target: defender.id, art: art.id });
   for (const unit of [attacker, defender]) {
@@ -79,6 +84,7 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
 
 // Staff healing: 魔 + 10 (祈愿 +5) or full, never above max HP.
 export function healAmount(healer: UnitState, target: UnitState, weaponId: WeaponId): number {
+  if (!target.alive || target.petrified || target.hp <= 0 || target.immunities?.includes('healing')) return 0;
   const missing = target.stats.hp - target.hp;
   if (WEAPONS[weaponId].heal === 'full') return missing;
   const classHeal = (healer.classSkills ?? []).includes('sk-93') ? 5 : 0;
@@ -90,13 +96,13 @@ export function runHeal(state: BattleState, healer: UnitState, target: UnitState
   target.hp += amount;
   if (healer.skill === 'shelter') target.shelteredTurn = state.turn;
   events.push({ t: 'heal', by: healer.id, target: target.id, amount, hpAfter: target.hp, source: 'staff' });
-  if (WEAPONS[weaponId].cure) for (const status of cureStatuses(target)) events.push({ t: 'status', unit: target.id, status, active: false });
+  if (WEAPONS[weaponId].cure) for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
   if (healer.side === 'player') gainExp(state, healer, staffExp(healer), events);
 }
 
 export function useItem(unit: UnitState, index: number, events: BattleEvent[]): void {
   const stack = unit.items[index];
-  const amount = Math.min(unit.stats.hp - unit.hp, ITEMS[stack.id].heal);
+  const amount = unit.petrified || unit.immunities?.includes('healing') ? 0 : Math.min(unit.stats.hp - unit.hp, ITEMS[stack.id].heal);
   unit.hp += amount;
   stack.uses -= 1;
   if (stack.uses === 0) unit.items.splice(index, 1);
@@ -106,7 +112,7 @@ export function useItem(unit: UnitState, index: number, events: BattleEvent[]): 
 // Forts and thrones restore 20% max HP to the units standing on them when their phase starts.
 export function terrainHeal(state: BattleState, side: Side, events: BattleEvent[]): void {
   for (const unit of living(state, side)) {
-    if (unit.petrified) continue;
+    if (unit.petrified || unit.immunities?.includes('healing')) continue;
     const percent = TERRAINS[state.map.tiles[unit.pos[1]][unit.pos[0]]].heal;
     const amount = Math.min(unit.stats.hp - unit.hp, Math.floor(unit.stats.hp * percent / 100));
     if (amount <= 0) continue;

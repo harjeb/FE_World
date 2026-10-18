@@ -1,4 +1,5 @@
 import { rankAtLeast } from '../data/types.ts';
+import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import type { WeaponArt } from '../data/weapon-arts.ts';
 import { WEAPONS } from '../data/weapons.ts';
@@ -6,13 +7,14 @@ import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
 import { enterCost, moveRange, pathTo } from './movement.ts';
 import { objectBlocks } from './scenario.ts';
+import { artObjects, objectArtDamage, validateArtExtras } from './art-options.ts';
 import { attackWeapons, distance, inBounds, inRange, living, samePoint, unitById } from './units.ts';
 import { EngineError } from './types.ts';
 import type { ActAction, BattleEvent, BattleState, Point, UnitState } from './types.ts';
 
 export type ArtAction = Extract<ActAction, { act: 'art' }>;
 
-type ArtUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'weaponInstances' | 'statuses' | 'bookInstances'>;
+type ArtUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'weaponInstances' | 'statuses' | 'artEffects' | 'bookInstances'>;
 
 export function artWeapon(unit: ArtUser, weapon: WeaponId, art: WeaponArt): boolean {
   if (!attackWeapons(unit).includes(weapon)
@@ -65,7 +67,10 @@ export function legalArtTarget(state: BattleState, unit: UnitState, to: Point, w
   const d = distance(to, target.pos);
   if (!target.alive || target.petrified || target.side === unit.side || d < art.range[0] || d > art.range[1]) return false;
   if (art.id === 'chariot_line' && to[0] !== target.pos[0] && to[1] !== target.pos[1]) return false;
-  if (!art.original) return true;
+  if (!art.original) {
+    const range = WEAPONS[weapon].range;
+    return artSight(state, to, target.pos) && (!ART_MECHANICS[art.id]?.rangeWeaponRequired || range[0] <= 1 && range[1] >= 2);
+  }
   if (!artWeapon(unit, weapon, art) || !inRange(unit, weapon, to, target.pos) || !artSight(state, to, target.pos)) return false;
   if (['fe_art_braced_maul', 'fe_art_focused_breath'].includes(art.id)
     && (!samePoint(to, unit.pos) || unit.artEffects?.displaced)) return false;
@@ -96,23 +101,41 @@ export function artVictims(state: BattleState, unit: UnitState, to: Point, weapo
     }
     return victims;
   }
-  return art.id === 'fe_art_split_breath' && secondary ? [target, unitById(state, secondary)] : [target];
+  if (ART_MECHANICS[art.id]?.area === 'square') {
+    return [target, ...living(state).filter(foe => foe.id !== target.id && foe.side !== unit.side && !foe.petrified
+      && Math.abs(foe.pos[0] - target.pos[0]) <= 1 && Math.abs(foe.pos[1] - target.pos[1]) <= 1
+      && artSight(state, to, foe.pos)).sort((a, b) => distance(a.pos, target.pos) - distance(b.pos, target.pos) || a.id.localeCompare(b.id))].slice(0, 9);
+  }
+  return ['fe_art_split_breath', 'axe_sweep'].includes(art.id) && secondary ? [target, unitById(state, secondary)] : [target];
 }
 
 export function validateArt(state: BattleState, unit: UnitState, action: ArtAction, art: WeaponArt): UnitState[] {
   if (!availableArts(unit).includes(art.id)) throw new EngineError('FORBIDDEN', '尚未装备这个战技，或授予装备不满足条件');
   if (!artWeapon(unit, action.weapon, art)) throw new EngineError('WEAPON_RANK_TOO_LOW', '战技武器类型、职业权限或熟练度不满足');
+  const instance = unit.weaponInstances?.find(row => row.id === action.weapon);
+  if (!instance || instance.durability < art.cost) throw new EngineError('NO_SUCH_ITEM', '武器实例缺失或耐久不足，无法使用战技');
+  validateArtExtras(state, unit, action, art);
+  if (artObjects(state, action.to, art).includes(action.target)) {
+    if (action.ally || action.secondary) throw new EngineError('BAD_REQUEST', '破坏物件不能选择追加目标');
+    return [];
+  }
   const target = unitById(state, action.target);
   if (!legalArtTarget(state, unit, action.to, action.weapon, art, target)) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不满足战技射程、视线或发动条件');
-  const instance = unit.weaponInstances?.find(row => row.id === action.weapon);
-  if (instance && instance.durability < art.cost) throw new EngineError('NO_SUCH_ITEM', '武器耐久不足，无法使用战技');
   if (action.ally && !artAllies(state, unit, action.to, art).includes(action.ally)) throw new EngineError('BAD_REQUEST', '战技友军选择不合法');
   if (action.secondary) {
     const other = unitById(state, action.secondary);
-    if (art.id !== 'fe_art_split_breath' || other.id === target.id || distance(other.pos, target.pos) !== 1
-      || !legalArtTarget(state, unit, action.to, action.weapon, art, other)) throw new EngineError('TARGET_OUT_OF_RANGE', '分流次目标不合法');
+    if (!['fe_art_split_breath', 'axe_sweep'].includes(art.id) || other.id === target.id
+      || (art.id === 'fe_art_split_breath' && distance(other.pos, target.pos) !== 1)
+      || !legalArtTarget(state, unit, action.to, action.weapon, art, other)) throw new EngineError('TARGET_OUT_OF_RANGE', '战技次目标不合法');
   }
   return artVictims(state, unit, action.to, action.weapon, art, target, action.secondary);
+}
+
+export function artObjectForecast(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, objectId: string) {
+  validateArt(state, unit, { type: 'act', unit: unit.id, to, act: 'art', weapon, art: art.id, target: objectId }, art);
+  if (!artObjects(state, to, art).includes(objectId)) throw new EngineError('TARGET_OUT_OF_RANGE', '不是可破坏的战技物件');
+  const object = state.objects!.find(row => row.id === objectId)!, damage = objectArtDamage(unit, weapon, art), hp = object.hp ?? 1;
+  return { object: objectId, hp, damage, hpAfter: Math.max(0, hp - damage), cost: art.cost };
 }
 
 export function walkedCells(state: BattleState, unit: UnitState, to: Point): number {
