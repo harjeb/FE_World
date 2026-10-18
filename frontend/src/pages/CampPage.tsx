@@ -132,7 +132,7 @@ export function CampPage() {
   } else if (progress) {
     tasks.push({
       key: 'arena', icon: icon(ICONS.medal, 24), title: '竞技场 · 当日进攻', tag: [`进攻 ${progress.done} / ${progress.total}`, left === 0 ? 'tag-green' : 'tag-brass'],
-      desc: left > 0 ? `还有 ${left} 场进攻没打，每场推进 1 日；离开当日后未打的按落败计、不发金币。` : '进攻已全部打完；推进日期后结算积分与金币。',
+      desc: left > 0 ? `还有 ${left} 场进攻没打，每场推进 1 日；打完或到下一个竞技场日时，未打的才按落败计。` : '进攻已全部打完，积分与金币已结算。',
       action: { label: '去竞技场', href: links.arena, primary: left > 0 },
     });
   } else {

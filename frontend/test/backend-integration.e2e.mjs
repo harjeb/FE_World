@@ -130,7 +130,9 @@ try {
     try { await api(page, 127, {}); } catch { repeated = true; }
     check('setup cannot be repeated', repeated, 'second completion rejected');
     await page.open(`http://127.0.0.1:${API_PORT}/#/quests`, '.ch-acts button');
-    check('quest kinds include escort, escape and gathering labels', await page.evaluate(`['护送', '撤离', '抢物资'].every(kind => document.body.innerText.includes(kind))`), 'all six objective kinds');
+    const quests = await api(page, 123);
+    const kinds = [...new Set(quests.regions.flatMap(region => region.quests.map(q => q.kind)))];
+    check('quest data covers all six objective kinds', ['rout', 'seize', 'defend', 'escape', 'gather', 'escort'].every(kind => kinds.includes(kind)), kinds.join(', '));
     await page.click('.ch-acts button');
     check('quest preparation shows team selection, date, enemy level and permanent-death risk',
       await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');
@@ -142,7 +144,7 @@ try {
     await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '.topbar');
     const topbar = await page.evaluate(`document.querySelector('.topbar').innerText.replace(/\\s+/g, ' ')`);
     check('login shows server gold', topbar.includes('13,120'), topbar.slice(0, 120));
-    check('top bar shows the personal date and next event', topbar.includes('第 2 年 · 第 3 季 · 第 30 日') && topbar.includes('今天 · 竞技场日') && !topbar.includes('赛季'), topbar.slice(0, 160));
+    check('top bar shows the personal date and next event', topbar.includes('第 2 年 · 第 4 季 · 第 125 日') && topbar.includes('今天 · 竞技场日') && !topbar.includes('赛季'), topbar.slice(0, 160));
     check('login shows the seeded legion', topbar.includes('军团'), topbar.slice(0, 160));
     // The browser never sends agentModel, so no Agent has checked in yet (stateView.agentLastSeen).
     check('agent chip follows the heartbeat', topbar.includes('Agent 离线') && !topbar.includes('Agent 在线'), topbar.slice(-40));
@@ -154,23 +156,26 @@ try {
     await page.open(`http://127.0.0.1:${API_PORT}/#/arena`, '.panel');
     const arena = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
     check('arena lists the server opponents', arena.includes('霜狼骑团') && arena.includes('赤枫商会') && arena.includes('白塔学士团'), arena.slice(0, 160));
-    // Before settlement nothing has attacked the defense yet, so no made-up results or real-clock deadlines.
-    check('arena day shows only real results', arena.includes('今日对局与结果') && arena.includes('推进日期结算时') && !arena.includes('苍穹议会') && !arena.includes('24:00'), arena.slice(0, 160));
+    check('arena is attack-only and shows the open set',
+      arena.includes('当日对局') && arena.includes('首版只有进攻') && arena.includes('每场入场推进 1 日') && !arena.includes('保存防守') && !arena.includes('24:00'),
+      arena.slice(0, 200));
 
-    await page.open(`http://127.0.0.1:${API_PORT}/#/arena/defense`, '.dfrow');
-    const defense = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
-    check('defense page shows the server lock', defense.includes('今天的防守已在第 2 年 · 第 3 季 · 第 30 日报名时锁定') && !defense.includes('月末'), defense.slice(0, 200));
+    // 已移除的防守入口会回落到只进攻的竞技场页，而不是再要求编防守队。
+    await page.open(`http://127.0.0.1:${API_PORT}/#/arena/defense`, '#atk-h');
+    const retired = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
+    check('the removed defense route falls back to attack-only arena',
+      retired.includes('我方进攻') && retired.includes('首版只有进攻') && !retired.includes('保存防守'), retired.slice(0, 200));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/erin/growth`, '#snap-h');
     for (let i = 0; i < 30 && (await page.evaluate(`document.body.innerText.includes('读取快照中')`)); i++) await sleep(100);
     const snaps = await page.evaluate(`document.querySelector('#snap-h').closest('.panel').innerText.replace(/\\s+/g, ' ')`);
-    check('roster compares real arena snapshots', snaps.includes('2 年 3 季 30 日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
+    check('roster compares real arena snapshots', snaps.includes('2 年 4 季 125 日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_erin`, '#eq-h');
     const charm = await page.evaluate(`(() => { const row = [...document.querySelectorAll('tbody tr')].find(r => r.querySelector('th')?.innerText === '魅力'); return row ? [...row.querySelectorAll('td')].map(td => td.innerText.trim()) : null; })()`);
     const erin = await api(page, 21, { unitId: 'u_erin' });
     check('roster shows independent charm values, cap and growth from the server',
-      charm?.[0] === String(erin.stats.cha) && charm?.[1] === String(erin.caps.cha) && charm?.at(-1) === `${erin.growth.cha}%`, JSON.stringify(charm));
+      charm?.[0] === String(erin.stats.cha) && charm?.[1] === String(erin.caps.cha) && charm?.at(-1) === `${erin.totalGrowth.cha}%`, JSON.stringify(charm));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster`, '.panel');
     const roster = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
@@ -211,17 +216,17 @@ try {
     await page.click('.act[data-action=rest] button');
     let after = before;
     for (let i = 0; i < 40 && after === before; i++) { await sleep(150); after = await today(); }
-    check('camp rest moves the date one day', before.includes('第 30 日') && after.includes('第 4 季 · 第 1 日'), `${before} → ${after}`);
+    check('camp rest moves the date one day', before.includes('第 125 日') && after.includes('第 3 年 · 第 1 季 · 第 1 日'), `${before} → ${after}`);
 
-    // Off the arena day: the top bar counts down to the next one and the arena page shows the settled day.
+    // 离开竞技场日后：顶栏倒数，但未打完的进攻不会被后台扫描吞掉，仍可在竞技场页继续。
     const topbar2 = await page.evaluate(`document.querySelector('.topbar').innerText.replace(/\\s+/g, ' ')`);
-    check('top bar counts down to the next arena day', topbar2.includes('第 2 年 · 第 4 季 · 第 1 日') && topbar2.includes('29 日后'), topbar2.slice(0, 160));
+    check('top bar counts down to the next arena day', topbar2.includes('第 3 年 · 第 1 季 · 第 1 日') && topbar2.includes('124 日后'), topbar2.slice(0, 160));
     const camp2 = await page.evaluate(`document.querySelector('#tasks-h').closest('.panel').innerText.replace(/\\s+/g, ' ')`);
-    check('camp lists the settled arena day', camp2.includes('上次竞技场 · 第 2 年 · 第 3 季 · 第 30 日') && camp2.includes('下一个竞技场日'), camp2.slice(0, 160));
+    check('camp keeps the unfinished arena set and counts down', camp2.includes('进攻 0 / 3') && camp2.includes('还有 3 场进攻没打'), camp2.slice(0, 200));
     await page.open(`http://127.0.0.1:${API_PORT}/#/arena`, '#atk-h');
     const arena2 = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
-    check('arena shows the last result and the next date',
-      arena2.includes('上次竞技场结果') && arena2.includes('下一个竞技场日：第 2 年 · 第 4 季 · 第 30 日') && arena2.includes('没打，按落败计') && arena2.includes('试攻') && !arena2.includes('24:00'),
+    check('arena still offers the remaining attacks after the date moves',
+      arena2.includes('当日对局') && arena2.includes('已打 0 / 3 场') && arena2.includes('下一个竞技场日：第 3 年 · 第 1 季 · 第 125 日') && !arena2.includes('24:00'),
       arena2.slice(0, 200));
     await page.evaluate(`localStorage.clear()`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
@@ -231,11 +236,11 @@ try {
     const original = await api(page, 21, { unitId: 'u_owen' });
     const rowValue = () => page.evaluate(`(() => { const row = [...document.querySelector('#st-h').closest('section').querySelectorAll('tbody tr')].find(row => row.querySelector('th').innerText === '力'); return row?.lastElementChild.innerText.trim(); })()`);
     const originalValue = await rowValue();
-    check('duplicate templates keep the first instance growth', originalValue?.startsWith(`${original.growth.str}%`), 'first growth matches server');
+    check('duplicate templates keep the first instance growth', originalValue === `${original.totalGrowth.str}%`, `first ${originalValue} vs ${original.totalGrowth.str}%`);
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen_twin`, '#st-h');
     const twin = await api(page, 21, { unitId: 'u_owen_twin' });
     const twinValue = await rowValue();
-    check('duplicate templates keep the second instance growth', twinValue?.startsWith(`${twin.growth.str}%`) && twinValue !== originalValue, 'second growth independently matches server');
+    check('duplicate templates keep the second instance growth', twinValue === `${twin.totalGrowth.str}%` && twinValue !== originalValue, `second ${twinValue} vs ${twin.totalGrowth.str}%`);
     check('no console errors', page.errors.length === 0, page.errors.join(' | ') || 'none');
   } finally {
     await page.close();

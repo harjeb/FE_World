@@ -84,7 +84,12 @@ export function syncPlayer(store: Store, player: Player): Player {
     store.addEvent(player.id, 'arena', `竞技场日：${day.opponents.length} 个对手已生成。`, { day: player.day });
   }
   for (const day of store.unsettledArenaDays(player.id)) {
-    if (day.day < player.day) settleArenaDay(store, player, day);
+    if (day.day >= player.day) continue;
+    // 普通竞技场每场推进 1 日，不能因为日期离开竞技场日就把同一记录里还没打的进攻
+    // 直接判负：只有全部场次都结束，或已经走到下一个竞技场日，才结算剩余场次。
+    const attacks = Object.values(day.attacks);
+    const finished = attacks.every(attack => attack.status === 'won' || attack.status === 'lost');
+    if (finished || player.day >= nextArenaDay(day.day)) settleArenaDay(store, player, day);
   }
   // 后台派遣达到 return_day 时一次结算（docs/13 §5.5）。
   settleDispatches(store, player);
@@ -526,6 +531,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
     daysUntilBirthday: daysUntilBirthday(unit, day), lifespanWarning: lifespanWarning(unit, day),
     growthAllocation: unit.growthAllocation ?? {}, classQualifications: unit.classQualifications ?? [],
     classMastery: unit.classMastery ?? {}, learnedSkills: unit.learnedSkills ?? [], equippedSkills: unit.equippedSkills ?? [],
+    personalGrowth: unit.personalGrowth ?? null,
     inheritedGrowth: unit.inheritedGrowth ?? null, lockedRunId: unit.lockedRunId ?? null, lockedDispatchId: unit.lockedDispatchId ?? null,
     hasInheritance: !!unit.inheritance,
     // 身份来源：神主角、固定人物（开局同伴／任务加入，沿用角色表姓名）或随机招募（有自己的姓名）。

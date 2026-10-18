@@ -61,7 +61,7 @@ export function BanPage({ id }: { id: string }) {
       <Versus opponent={opponent} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Flow current={1} />
-        <span style={{ fontSize: 13, color: '#4E473D' }}>每场进攻推进 1 日；当日没打的进攻在结算时按落败计</span>
+        <span style={{ fontSize: 13, color: '#4E473D' }}>每场进攻推进 1 日；三场打完或到下一个竞技场日时，未打的才按落败计</span>
       </div>
       <div className="arena-cols">
         <section className="panel" aria-labelledby="list-h" style={{ flex: '999 1 640px', minWidth: 0 }}>

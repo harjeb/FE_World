@@ -67,6 +67,12 @@ export function arenaMap(defense: Defense): ArenaMap {
   return ARENA_MAPS[defense.map];
 }
 
+// 玩家看到的是头像；自捏主角可以把形象预设换成另一个角色，所以“同一形象”按 portrait 判断，
+// 不能只看 character 锚点。
+export function unitLook(unit: Pick<SnapshotUnit, 'character' | 'portrait'>): CharacterId {
+  return unit.portrait ?? unit.character;
+}
+
 export function validateDefense(defense: Defense): string[] {
   const map = arenaMap(defense);
   const errors: string[] = [];
@@ -74,6 +80,8 @@ export function validateDefense(defense: Defense): string[] {
   const characters = defense.slots.map(s => s.unit.character);
   if (defense.slots.length !== map.deploy + map.bans) errors.push(`防守名单必须是 ${map.deploy + map.bans} 人`);
   if (new Set(characters).size !== characters.length) errors.push('同一角色不能重复上场');
+  const looks = defense.slots.map(s => unitLook(s.unit));
+  if (new Set(looks).size !== looks.length) errors.push('同一形象不能重复上场');
   const spots = defense.slots.map(s => key(s.pos));
   if (spots.some(s => !zone.has(s))) errors.push('站位必须在防守出生区内');
   if (new Set(spots).size !== spots.length) errors.push('站位不能重复');
@@ -115,11 +123,17 @@ export function validateAttack(defense: Defense, reveal: Reveal, roster: Snapsho
   const map = arenaMap(defense);
   const errors: string[] = [];
   const zone = new Set(map.attackerZone.map(key));
-  const allowed = roster.filter(u => !reveal.barred.includes(u.id ?? u.character) && !reveal.barred.includes(u.character)).map(u => u.character);
-  const need = Math.min(map.deploy, allowed.length);
+  const allowedUnits = roster.filter(u => !reveal.barred.includes(u.id ?? u.character) && !reveal.barred.includes(u.character));
+  const allowed = allowedUnits.map(u => u.character);
+  // 同一形象只能上一人：名额也按可用形象数封顶，否则重名头像会让玩家永远凑不满。
+  const need = Math.min(map.deploy, new Set(allowedUnits.map(unitLook)).size);
   const chosen = plan.picks.map(p => p.character);
   if (chosen.length !== need) errors.push(`需要出战 ${need} 人`);
   if (new Set(chosen).size !== chosen.length) errors.push('同一角色只能出战一次');
+  // 同形象的两个单位实例（例如自捏主角与同头像的固定人物）不能同时上场。
+  const picked = plan.picks.map(p => roster.find(u => (p.unitId !== undefined && u.id === p.unitId) || u.character === p.character));
+  const picksLooks = picked.filter((u): u is SnapshotUnit => !!u).map(unitLook);
+  if (new Set(picksLooks).size !== picksLooks.length) errors.push('同一形象只能有一名角色上场');
   for (const c of chosen) {
     if (reveal.barred.includes(c)) errors.push(`${CHARACTERS[c].name} 被防守方禁用`);
     else if (!allowed.includes(c)) errors.push(`${c} 不在快照名册中`);
@@ -134,7 +148,7 @@ export function validateAttack(defense: Defense, reveal: Reveal, roster: Snapsho
 function fromSnapshot(snap: SnapshotUnit, side: Side, id: string, pos: Point, extra: Partial<UnitState>): UnitState {
   const character = CHARACTERS[snap.character];
   return {
-    id, name: character.name, side, character: snap.character, classId: snap.classId,
+    id, name: snap.name ?? character.name, side, character: snap.character, portrait: snap.portrait, classId: snap.classId,
     level: snap.level, exp: 0, stats: withCharm(snap.stats), con: snap.con, hp: snap.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...snap.weapons], items: snap.items.map(i => ({ ...i })), ranks: { ...snap.ranks },
     skill: character.skill, acted: false, alive: true, ...extra,

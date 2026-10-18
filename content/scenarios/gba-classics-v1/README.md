@@ -42,4 +42,4 @@
 | fe8 | 16 / eirika | 圣魔之光石 · 荒废的王都 | 22×28 | 48 | 脚本引用分组 | [JSON](fe8/fe8-ch16-eirika/scenario.json) · [敌军CSV](fe8/fe8-ch16-eirika/enemies.csv) |
 | fe8 | 17 / eirika | 圣魔之光石 · 诀别的大河 | 23×21 | 107 | 脚本引用分组 | [JSON](fe8/fe8-ch17-eirika/scenario.json) · [敌军CSV](fe8/fe8-ch17-eirika/enemies.csv) |
 | fe8 | 20 / eirika | 圣魔之光石 · 暗之树海 | 30×21 | 79 | 脚本引用分组 | [JSON](fe8/fe8-ch20-eirika/scenario.json) · [敌军CSV](fe8/fe8-ch20-eirika/enemies.csv) |
-| fe8 | final-1 / eirika | 圣魔之光石 · 圣魔之光石·决战前半 | 23×25 | 50 | 脚本引用分组 | [JSON](fe8/fe8-chfinal-1-eirika/scenario.json) · [敌军CSV](fe8/fe8-chfinal-1-eirika/enemies.csv) |
+| fe8 | final-1 / eirika | 神蚀纪 · 终焉王座 | 23×25 | 50 | 脚本引用分组 | [JSON](fe8/fe8-chfinal-1-eirika/scenario.json) · [敌军CSV](fe8/fe8-chfinal-1-eirika/enemies.csv) |

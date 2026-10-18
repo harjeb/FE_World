@@ -80,19 +80,35 @@ export function DeployPage({ id }: { id: string }) {
   const roster = state.units.filter(u => u.status === 'active' && !u.lockedDispatchId);
   const barred = (u: { id: string; character: string }) => reveal.barred.includes(u.id) || reveal.barred.includes(u.character);
   const allowed = roster.filter(u => !barred(u));
-  const need = Math.min(map.deploy, allowed.length);
-  const current = picks ?? allowed.slice(0, need).map((u, i) => ({ unitId: u.id, character: u.character, pos: map.attackerZone[i] }));
+  const lookOf = (unit: { character: string; portrait?: string | null }) => unit.portrait ?? unit.character;
+  // 同形象只能上一人，出战名额也按可用形象数封顶。
+  const need = Math.min(map.deploy, new Set(allowed.map(lookOf)).size);
+  const freeCell = (taken: Placement[]) => map.attackerZone.find(z => !taken.some(p => same(p.pos, z)));
+  const defaultPicks = () => {
+    const seen = new Set<string>();
+    return allowed.filter(u => {
+      const look = lookOf(u);
+      if (seen.has(look)) return false;
+      seen.add(look);
+      return true;
+    }).slice(0, need).map((u, i) => ({ unitId: u.id, character: u.character, pos: map.attackerZone[i] }));
+  };
+  const current = picks ?? defaultPicks();
   const lead = commander && current.some(p => p.unitId === commander) ? commander : current[0]?.unitId ?? null;
   const placed = (unitId: string) => current.find(p => p.unitId === unitId);
-  const freeCell = (taken: Placement[]) => map.attackerZone.find(z => !taken.some(p => same(p.pos, z)));
-  // 竞技场按角色校验出战（同一形象只能上一人）。
-  const clash = (unitId: string, character: string) => current.some(p => p.character === character && p.unitId !== unitId);
+  // 同形象只能上一人：随机招募与自捏主角可能让两个不同 character 锚点共用一张头像。
+  const clash = (unitId: string) => {
+    const unit = roster.find(u => u.id === unitId);
+    if (!unit) return false;
+    const look = lookOf(unit);
+    return current.some(p => p.unitId !== unitId && lookOf(roster.find(x => x.id === p.unitId) ?? p) === look);
+  };
   const togglePick = (unitId: string) => {
     const unit = roster.find(u => u.id === unitId)!;
     if (placed(unitId)) {
       setPicks(current.filter(p => p.unitId !== unitId));
       if (selected === unitId) setSelected(null);
-    } else if (current.length < need && !clash(unitId, unit.character)) {
+    } else if (current.length < need && !clash(unitId)) {
       setPicks([...current, { unitId, character: unit.character, pos: freeCell(current)! }]);
       setSelected(unitId);
     }
@@ -200,7 +216,7 @@ export function DeployPage({ id }: { id: string }) {
               {roster.map(u => {
                 const ban = barred(u);
                 const spot = placed(u.id);
-                const dupe = !spot && clash(u.id, u.character);
+                const dupe = !spot && clash(u.id);
                 const looks = { classId: u.classId as ClassId, side: 'player' as const, character: u.character, portrait: u.portrait ?? undefined };
                 return (
                   <li key={u.id} className={`urow${ban ? ' ban' : spot ? '' : ' off'}${selected === u.id ? ' sel' : ''}`}>

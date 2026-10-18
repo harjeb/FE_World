@@ -51,6 +51,9 @@ export interface UnitRecord {
   joinedDay: number;
   // 成长类型与年龄（docs/02）: baseAge is the age at recruitment; age is refreshed from the calendar.
   growthType: GrowthType;
+  // 掷定后固定保存的个人成长率（不含职业、装备、年龄与轮回分配）。随机招募必须保存，
+  // 否则升级时会错误回退到形象角色的个人成长。
+  personalGrowth?: Stats;
   baseAge: number;
   age: number;
   // 年龄按天计（docs/13 §2.2）：ageBaseDays 是 ageEpochDay 当天的年龄天数，之后随个人日历增加。
@@ -127,6 +130,11 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   // Old IDs, levels and earned attributes stay intact; only absent progression fields are filled.
   unit.stats = withCharm(unit.stats);
   if (unit.inheritedGrowth) unit.inheritedGrowth.cha ??= 0;
+  // 旧存档没有单独保存个人成长：能还原的只有传承替换向量或角色表默认值。
+  if (!unit.personalGrowth) {
+    const fallback = CHARACTERS[unit.character].growth;
+    unit.personalGrowth = Object.fromEntries(STAT_KEYS.map(key => [key, unit.inheritedGrowth?.[key] ?? fallback[key]])) as Stats;
+  }
   if (unit.inheritance) unit.inheritance.caps = withCharm(unit.inheritance.caps);
   unit.species ??= classSpecies(unit.classId);
   unit.cycle ??= 0;
@@ -203,7 +211,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     weapons: [...kit.weapons], weaponInstances: kit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) })),
     bookInstances: kit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) })),
     items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
-    ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, baseAge: age, age,
+    ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, personalGrowth: { ...personal }, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
@@ -279,7 +287,7 @@ export function effectiveCaps(unit: UnitRecord): Stats {
 }
 
 export function growthRates(unit: UnitRecord): Stats {
-  const personal = unit.inheritedGrowth ?? CHARACTERS[unit.character].growth;
+  const personal = unit.inheritedGrowth ?? unit.personalGrowth ?? CHARACTERS[unit.character].growth;
   const own = CLASSES[unit.classId].growth;
   const rates = {} as Stats;
   for (const key of STAT_KEYS) {
@@ -378,6 +386,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
     ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
+    personalGrowth: unit.personalGrowth ? { ...unit.personalGrowth } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
     inheritance: unit.inheritance ? structuredClone(unit.inheritance) : undefined,
     skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])], classSkills: [...(CLASS_ABILITY_BY_ID.get(unit.classId as never)?.inherentIds ?? [])], arts: [...new Set([...(unit.learnedArts ?? []), ...equipmentArts(unit)])],

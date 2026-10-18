@@ -2,12 +2,13 @@ import { createUnit, toSnapshot } from '../common/game/model.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import type { Defense } from '../common/arena/rules.ts';
 import type { Store, Player } from './store.ts';
-import { DEMO_LEVEL, SEED_DAY } from './store.ts';
+import { DEMO_LEVEL, SEED_BEXP, SEED_DAY } from './store.ts';
 
 // 测试用：开局只发主角，但多数测试需要整套演示名册，这里补全（等级与旧 SEED_LEVELS 一致）。
 export function seedFullRoster(store: Store, player: Player): void {
   // 测试夹具继续使用旧演示日，保证年度／剧情用例稳定；正式新档仍从 D0 开始。
   player.day = SEED_DAY;
+  player.bexp = SEED_BEXP;
   store.savePlayer(player);
   const owned = new Set(store.units(player.id).map(u => u.character));
   for (const [character, level] of Object.entries(DEMO_LEVEL)) {

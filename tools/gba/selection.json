@@ -52,7 +52,7 @@
         {"index": 16, "chapter": "16", "route": "eirika", "name": "荒废的王都", "goal": "seize", "expectedInternalName": "E15"},
         {"index": 17, "chapter": "17", "route": "eirika", "name": "诀别的大河", "goal": "boss", "expectedInternalName": "E16"},
         {"index": 20, "chapter": "20", "route": "eirika", "name": "暗之树海", "goal": "seize", "expectedInternalName": "E19"},
-        {"index": 21, "chapter": "final-1", "route": "eirika", "name": "圣魔之光石·决战前半", "goal": "boss", "expectedInternalName": "E20"}
+        {"index": 21, "chapter": "final-1", "route": "eirika", "name": "终焉王座", "goal": "boss", "expectedInternalName": "E20"}
       ]
     }
   ]

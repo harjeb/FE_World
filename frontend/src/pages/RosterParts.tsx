@@ -118,9 +118,9 @@ export function ProfileHeader({ unit, current }: { unit: ServerUnit; current: Pr
 const pct = (n: number) => `${Math.max(0, n)}%`;
 const signed = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`;
 
-// 个人基础成长：成长传承或自捏主角写入的向量优先，否则用角色表（随机招募取形象锚点的角色表）。
+// 个人基础成长：成长传承或单位自身掷定的向量优先；旧存档才回退到角色表。
 export function personalGrowth(unit: ServerUnit, key: (typeof STAT_KEYS)[number]): number {
-  return (unit.inheritedGrowth?.[key] ?? CHARACTERS[unit.character].growth[key]) + (unit.growthAllocation[key] ?? 0);
+  return (unit.inheritedGrowth?.[key] ?? unit.personalGrowth?.[key] ?? CHARACTERS[unit.character].growth[key]) + (unit.growthAllocation[key] ?? 0);
 }
 
 export function StatsPanel({ unit }: { unit: ServerUnit }) {

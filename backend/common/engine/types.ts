@@ -39,7 +39,9 @@ export interface UnitState {
   age?: number;
   // 轮回的 30 点个人成长率分配（docs/00 §5.2），加在个人基础上。
   growthAllocation?: Partial<Stats>;
-  // 成长率传承替换后的个人基础成长（绝对向量）；存在时优先于角色表基础。
+  // 单位自身掷定的个人基础成长（随机招募必须随战斗带入，否则升级会回退到形象角色）。
+  personalGrowth?: Partial<Stats>;
+  // 成长率传承替换后的个人基础成长（绝对向量）；存在时优先于 personalGrowth 与角色表基础。
   inheritedGrowth?: Partial<Stats>;
   inheritance?: InheritanceContract;
   // 已学会并装备的技能（最多 5 个，跨职业自由装备）；个人技能单列在 skill。

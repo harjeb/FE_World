@@ -8,8 +8,9 @@ import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { applyBattleOutcome, syncPlayer, stateView } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
-import { regionById } from '../common/game/calendar.ts';
+import { nextArenaDay, regionById } from '../common/game/calendar.ts';
 import { createFieldBattle, FIELD_BATTLE } from '../common/game/battles.ts';
+import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { decide } from '../common/engine/index.ts';
 import { tick } from '../worker/worker.ts';
 import { TERRAINS } from '../common/maps/map.ts';
@@ -236,15 +237,48 @@ test('arena pays gold only for matches actually fought', () => {
   const day = store.arenaDay(ctx.player.id, arenaDay)!;
   assert.equal(day.attacks[opponent.id].surrender, true, '投降应被记录');
   const goldBefore = ctx.player.gold;
-  // 跨过 24:00：投降的那场与未打完的两场都计落败，但不发参与金币，防守也不发可用金币。
+  // 每场推进 1 日。后台扫描不能因为日期离开竞技场日，就把同一记录里还没打的进攻判负。
   ctx.player.day += 31;
   store.savePlayer(ctx.player);
   tick(store, Date.now());
-  assert.equal(ctx.player.gold, goldBefore, '投降、未打完与防守都不发可用金币');
+  assert.equal(store.arenaDay(ctx.player.id, day.day)!.settled, false, 'mid-arena background tick must not settle the set');
+  assert.equal(ctx.player.gold, goldBefore, '投降与未打完都不发可用金币');
+  // 到下一个竞技场日才把剩余场次按没打结算。
+  ctx.player.day = nextArenaDay(day.day);
+  store.savePlayer(ctx.player);
+  tick(store, Date.now());
   const settled = store.arenaDay(ctx.player.id, day.day)!;
   assert.equal(settled.settled, true);
   assert.equal(Object.values(settled.attacks).every(a => a.status === 'lost'), true);
   assert.equal(Object.values(settled.attacks).filter(a => a.noShow).length, 2);
+});
+
+test('three arena attacks may span days without the background consuming the rest', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const arena = dispatch(ctx, OP.GET_ARENA, {}) as { opponents: { id: string; map: string; deploy: number; bans: number }[] };
+  assert.equal(arena.opponents.length, 3);
+  const arenaDay = ctx.player.day;
+  const roster = stateView(store, ctx.player).units as { character: string }[];
+  arena.opponents.forEach((opponent, index) => {
+    const list = dispatch(ctx, OP.GET_OPPONENT, { opponentId: opponent.id }) as { list: { character: string }[] };
+    const bans = list.list.slice(0, opponent.bans).map(u => u.character);
+    const reveal = dispatch(ctx, OP.ARENA_BAN, { opponentId: opponent.id, bans }) as { reveal: { barred: string[] } };
+    const banned = new Set(reveal.reveal.barred);
+    const chars = roster.map(u => u.character).filter(c => !banned.has(c)).slice(0, opponent.deploy);
+    const zone = ARENA_MAPS[opponent.map as keyof typeof ARENA_MAPS].attackerZone;
+    const picks = chars.map((character, i) => ({ character, pos: zone[i] }));
+    const attack = dispatch(ctx, OP.ARENA_ATTACK, { opponentId: opponent.id, picks, commander: chars[0] }) as { battleId: string };
+    dispatch(ctx, OP.SURRENDER, { battleId: attack.battleId });
+    if (index < 2) {
+      // Simulate the worker running between two attacks: the record must stay open.
+      tick(store, Date.now());
+      assert.equal(store.arenaDay(ctx.player.id, arenaDay)!.settled, false, `attack ${index + 1} must not settle the set`);
+    }
+  });
+  const day = store.arenaDay(ctx.player.id, arenaDay)!;
+  assert.equal(day.settled, true, 'the third result settles the set immediately');
+  assert.equal(Object.values(day.attacks).every(a => a.status === 'lost' && a.surrender && !a.noShow), true);
 });
 
 test('defense can be read, edited and validated', () => {
@@ -300,7 +334,7 @@ test('arena settlement does not run defense trials', () => {
   const ctx = ctxFor(store, accountId, player);
   dispatch(ctx, OP.GET_ARENA, {});
   const day = store.arenaDay(ctx.player.id, ctx.player.day)!;
-  ctx.player.day += 31;
+  ctx.player.day = nextArenaDay(day.day);
   store.savePlayer(ctx.player);
   tick(store, Date.now());
   const settled = store.arenaDay(ctx.player.id, day.day)!;
@@ -480,10 +514,9 @@ test('the worker settles arena days that the player has moved past', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   dispatch(ctx, OP.GET_ARENA, {});
-  ctx.player.day += 31;
+  ctx.player.day = nextArenaDay(999);
   store.savePlayer(ctx.player);
-  const handled = tick(store, Date.now());
-  assert.ok(handled >= 1);
+  tick(store, Date.now());
   const day = store.arenaDay(ctx.player.id, 999);
   assert.equal(day?.settled, true);
 });

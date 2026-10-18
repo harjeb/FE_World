@@ -38,6 +38,21 @@ test('arena maps match the pixel art, zones fit the rules and connect', () => {
   }
 });
 
+test('two units sharing one portrait cannot attack together', () => {
+  const map = ARENA_MAPS[frost.map];
+  const reveal = applyBans(frost, ['lina', 'sera'], MY_ROSTER);
+  // 取一组合法出战单位，并把前两名改成同一张“形象”；character 锚点仍不同。
+  const roster = MY_ROSTER
+    .filter(unit => !reveal.barred.includes(unit.character))
+    .slice(0, map.deploy)
+    .map((unit, index) => index < 2 ? { ...unit, portrait: 'sera' as const } : unit);
+  const picks = roster.map((unit, index) => ({ character: unit.character, unitId: unit.id, pos: map.attackerZone[index] }));
+  const errors = validateAttack(frost, reveal, roster, { picks, commander: picks[0].character });
+  assert.ok(errors.some(error => error.includes('同一形象')), errors.join('；'));
+  // 六个可用实例里只有五个不同形象：名额按形象数封顶，而不是逼玩家重复上场。
+  assert.ok(errors.some(error => error.includes('需要出战 5 人')), errors.join('；'));
+});
+
 test('demo defenses are valid and the ban list hides priority', () => {
   for (const defense of [...OPPONENTS, MY_DEFENSE]) assert.deepEqual(validateDefense(defense), [], defense.legion);
   const levels = opponentList(frost).map(u => u.level);

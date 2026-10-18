@@ -54,7 +54,7 @@ export function RulesPage() {
       <div className="rules-grid">
         <Section id="calendar" title="个人日历与行动" link={['军营', links.camp]}>
           <li>每个军团有自己的日历：一年 {SEASONS_PER_YEAR} 季、每季 {DAYS_PER_SEASON} 日。只有你的行动会推进日期，离线不会。</li>
-          <li>每季第 {ARENA_DAY_OF_MONTH} 日是竞技场日（已报名的军团当天生成对手）。离开那一天后当日竞技场结算，没打的进攻按落败计。</li>
+          <li>每季第 {ARENA_DAY_OF_MONTH} 日是竞技场日（已报名的军团当天生成对手）。每场进攻推进 1 日；三场都打完，或日历走到下一个竞技场日时，剩余没打的进攻才按落败计。</li>
           {actions.map(a => <li key={a.key}>{a.name}：{a.key === 'rest' ? '自选日数' : `${a.costDays} 日`}{a.costGold ? `、${a.costGold} 金币` : ''}。{a.note}。</li>)}
           <li>整理仓库、买卖、装备、分配公共经验都不推进日期。</li>
         </Section>
@@ -136,7 +136,7 @@ export function RulesPage() {
         <Section id="legacy" title="传承与轮回" link={['传承', links.legacy]}>
           <li>普通角色达到 {LEGACY_MIN_LEVEL} 级后战死、寿终或正常退役，会留下一份遗产；主角不会。</li>
           <li>遗产交给一名 1 级新角色：成长传承替换个人成长率，数值传承保证属性总和逐级追平来源（超出继承者属性上限的部分不保留）。每人一生只接受一次，接受过的人不能再传。</li>
-          <li>轮回：{REINCARNATION_LEVEL} 级、{REINCARNATION_GOLD.toLocaleString()} 金币与一枚轮回核心。回到 1 级与初始职业、16 岁，清空熟练度、职业资格和学习进度，携带物品回到仓库，另分配 {REINCARNATION_POINTS} 点成长（单项最多 {REINCARNATION_STAT_MAX}）。一生一次。</li>
+          <li>轮回：{REINCARNATION_LEVEL} 级、{REINCARNATION_GOLD.toLocaleString()} 金币与一枚轮回核心。回到 1 级与初始职业、16 岁，清空熟练度、职业资格、学习进度、已学技能与已学战技，携带物品回到仓库，另分配 {REINCARNATION_POINTS} 点成长（单项最多 {REINCARNATION_STAT_MAX}）。一生一次。</li>
         </Section>
       </div>
     </Shell>

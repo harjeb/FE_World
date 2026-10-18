@@ -377,7 +377,7 @@
     },
     {
       "id": "fe8-chfinal-1-eirika",
-      "name": "圣魔之光石 · 圣魔之光石·决战前半",
+      "name": "神蚀纪 · 终焉王座",
       "game": "fe8",
       "chapter": "final-1",
       "route": "eirika",
@@ -385,7 +385,7 @@
       "height": 25,
       "enemyTemplates": 50,
       "file": "fe8/fe8-chfinal-1-eirika/scenario.json",
-      "sha256": "aa9e132f3c86b4b06d8a63c6ef285b4419366650d8b341dd2e6712c8af3ff03c"
+      "sha256": "63db29fd1f4fc4bed087161af791ae2fcb6547e4f3908ebbbd4611c43d0fab71"
     }
   ]
 }

@@ -48,7 +48,9 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
     ? unit.items.map((_, i) => i).filter(i => !(ITEMS[unit.items[i].id] as { shield?: boolean }).shield)
     : [];
   const dance = (unit.classId === 'dancer' || unit.classId === 'apsara')
-    ? living(state, unit.side).filter(target => target.id !== unit.id && target.acted && !target.petrified && !target.npc).map(target => target.id)
+    ? living(state, unit.side)
+      .filter(target => target.id !== unit.id && target.acted && !target.petrified && !target.npc && distance(to, target.pos) === 1)
+      .map(target => target.id)
     : [];
   const arts = (unit.arts ?? []).flatMap(art => {
     const entry = WEAPON_ART_BY_ID.get(art as never);

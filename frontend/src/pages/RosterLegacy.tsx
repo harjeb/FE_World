@@ -220,7 +220,7 @@ function ReincarnatePanel({ unit }: { unit: ServerUnit }) {
       </div>
       <dl className="facts">
         <dt>清除</dt>
-        <dd>等级与经验（回到 Lv 1）、升级记录、能力药额度、职业资格、各职业精通与学习进度、已学与已装备的技能、武器熟练度{unit.hasInheritance ? '、数值传承的保底合同' : ''}{prior ? '、原有的成长分配（被这次分配替换）' : ''}；职业回到{initial.name}。</dd>
+        <dd>等级与经验（回到 Lv 1）、升级记录、能力药额度、职业资格、各职业精通与学习进度、已学与已装备的技能、已学战技、武器熟练度{unit.hasInheritance ? '、数值传承的保底合同' : ''}{prior ? '、原有的成长分配（被这次分配替换）' : ''}；职业回到{initial.name}。</dd>
         <dt>保留</dt>
         <dd>姓名与形象、成长类型、个人基础成长{unit.inheritedGrowth ? '（含成长传承）' : ''}、传承关系（接受过遗产的仍不能再接）、纪念与战报记录；年龄回到 16 岁重新计算。</dd>
         <dt>物品</dt>

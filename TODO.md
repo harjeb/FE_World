@@ -1,6 +1,6 @@
 # 未完成需求总表
 
-更新日期：2026-10-18。核对基线：`40f962a`（`main`）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
+更新日期：2026-10-18。核对基线：`d522968`（`main`）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
 
 玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)、[14](docs/14-integration-handoff.md) 含多轮历史记录，不能直接把其中的旧“未实现”全部复制为新任务。最近一次已完成修复见 [21](docs/21-code-design-audit.md)。
 
@@ -10,6 +10,14 @@
 
 - `842ff6a` 接入经典关卡：FE1／FE2／FE3／FE6／FE7／FE8 各10张，共60张地图、60个单图任务和18个连战副本；目录、`START_QUEST`／`CONTINUE_DUNGEON` 战斗创建和前端标签已有。门、宝箱、地图变化、增援、事件状态、场景专用校验和逐图发布验收已在 QUEST-06～09 完成，见下。
 - `40f962a` 补齐 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)：58项职业固有／精通、300项主动武器战技，以及170项装备／法术模板（113武器／兽龙媒介、48法术书、9主动杖；27新增61武器＋40书）。装备目录已全部进入运行时表（170项），300项战技已接入主动战技动作与耐久消耗；法术/杖的完整施法功能与部分装备授予效果仍按后续条目收口。相关实现更新 CLASS-02、CLASS-04、ITEM-01、ITEM-02、ITEM-05、ITEM-06、DESIGN-04。
+
+## 2026-10-18 界面更新与规则修复
+
+- 界面更新见 [30](docs/30-ui-update-design.md)：普通竞技场只进攻、旧防守入口回落、真实服务端名册、战报与实时观战。UI-01～04 的页面级收口证据见第 7 节。
+- 随机招募的 `personalGrowth` 现在写入单位记录并随存档、战斗和升级保存；此前只用于 1 级推导，升级时会退回形象角色的成长。
+- 普通竞技场每场仍推进 1 日，但后台扫描不会在两次进攻之间结算同一记录；只有三场都结束或到达下一个竞技场日才把剩余场次按没打结算。
+- 舞蹈增加相邻距离校验（服务端校验与可行动列表同时生效）；轮回清空 `learnedArts`；竞技场按 `portrait` 限制同一形象只能上一人。
+- 挑战塔终层地图的显示名由重复的 `圣魔之光石 · 圣魔之光石·决战前半` 改为本作原创的 `神蚀纪 · 终焉王座`，原始来源仍保留在内容数据。
 - [27](docs/27-fortunes-weave-equipment-magic.md) 引用的 `tools/audit/equipment-catalog.py` 当前不在仓库，文档提到的 `fe-world-m2n` 也没有 Beads 记录；由 DOC-01 跟踪补齐或改引用。
 
 ## 2026-10-18 交付文档
@@ -133,10 +141,10 @@
 
 来源：[README 当前界面限制](README.md)、[12 G06、G10、G30](docs/12-implementation-gap-checklist.md)、[00 §11](docs/00-game-design.md)。现状：[model/roster.ts](frontend/src/model/roster.ts)、[api/session.ts](frontend/src/api/session.ts)、[watch](frontend/src/watch/SpectatePage.tsx)。
 
-- [ ] **UI-01｜部分实现：真实单位与仅进攻界面。**移除模板固定主力／替补／重伤推断和武器阈值占位，身份／熟练度／名次用真实数据；出战人数读地图规则。旧防守页面／入口按新无防守规则退出主流程，不能继续要求玩家编防守队，替补约10名的容量与管理同时接线。
-- [ ] **UI-02｜待开发：实时观战。** 当前“实时观战”自动播放最近历史回放。接入进行中战斗的实际进度、阶段与 Agent 说明、只读订阅、断线续看；界面区分实时与历史，不依赖本地模拟推进真实对局。
-- [ ] **UI-03｜部分实现：完整战报与回放管理。** 现有列表、播放、单步、倍速和跳转基础上，补按活动／日期／结果检索、伤亡与消耗报告、活动间导航和无记录／未公开状态；具体检索范围先定首版，验收真实数据与权限。
-- [ ] **UI-04｜部分实现：传承／轮回／纪念的完整确认信息。** 数值传承已有预览，继续核对成长模式来源、目标／上限裁剪、逐级承诺、轮回后 1 级属性、保留与清除项，以及纪念中的最终状态、死亡经过、战绩与继承关系。真实服务器预览与执行一致，姓名／年龄／身份按单位实例展示。
+- [x] **UI-01｜已完成：真实单位与仅进攻界面。** `DefensePage`／`DefensePanels`／`defenseStore` 已删除，`#/arena/defense` 回落到竞技场；名册、身份、熟练度、名次与出战人数全部读服务端，`model/roster.ts` 不再推断模板主力／替补。`ROSTER_LIMIT=18` 与地图 `maxUnits` 支撑主力＋约10名替补的管理。验证：`backend-integration.e2e.mjs`、`systems.e2e.mjs`。
+- [x] **UI-02｜已完成：实时观战。** `SpectatePage` 轮询进行中战斗的 `GET_BATTLE(sinceEvent)`，只读播放事件、显示阶段与 Agent 意图，断线退避并从同一游标续看；没有战斗时明确显示“没有进行中的战斗”并链接历史战报，不再自动播放最近回放。验证：`battle-replay.e2e.mjs`。
+- [x] **UI-03｜已完成：完整战报与回放管理。** `ReportsPage` 支持按活动／结果／日期范围筛选、只看自己或含其他军团公开竞技场；`report.ts` 输出伤亡、道具／耐久／次数消耗、升级、战利品、出手统计与 Agent 说明，并链接同一远征／年度赛事的其他战斗；空列表、未公开和不兼容回放都有说明。验证：`battle-replay.e2e.mjs`、`systems.e2e.mjs`。
+- [x] **UI-04｜已完成：传承／轮回／纪念的完整确认信息。** 传承预览与执行共用 `previewInheritance`／`claimLegacy`，显示来源、上限裁剪、逐级保底、继承者条件与石头；轮回页显示 1 级属性、清除项（含已学技能与战技）、保留项、年龄与花费；纪念名册显示最终状态、死亡经过／退役、战绩和传承关系，姓名／年龄／身份按实例展示。验证：`systems.e2e.mjs`、`legacy.test.ts`。
 
 ## 8. Agent、协议与连接恢复
 

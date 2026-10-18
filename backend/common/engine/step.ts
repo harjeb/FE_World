@@ -6,7 +6,7 @@ import { decide } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
-import { attackWeapons, cellKey, cureStatuses, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
+import { attackWeapons, cellKey, cureStatuses, distance, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
 import { adjacentFree, destinationValid, isHostileSpell, spellDestination, SPECIAL_SUPPORT_SPELLS, staffDestination, withSpellWeapon } from './support.ts';
 import type { DestinationRule } from './support.ts';
 import { EngineError } from './types.ts';
@@ -114,6 +114,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
       const target = foeOrAlly(action.target);
       if (target.side !== unit.side || target.id === unit.id) throw new EngineError('TARGET_OUT_OF_RANGE', '只能再行动友军');
       if (!(unit.classId === 'dancer' || unit.classId === 'apsara')) throw new EngineError('FORBIDDEN', '这个职业不能跳舞');
+      if (distance(action.to, target.pos) !== 1) throw new EngineError('TARGET_OUT_OF_RANGE', '跳舞只能选择相邻的友军');
       if (!target.acted) throw new EngineError('BAD_REQUEST', '目标尚未行动');
       return target;
     }

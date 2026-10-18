@@ -74,6 +74,15 @@ test('dancer can return one acted ally to action; SS/SSS weapons require the new
   assert.ok(options.dance.includes('ally'));
   const result = step(battle, { type: 'act', unit: 'dancer', to: dancerUnit.pos, act: 'dance', target: 'ally' });
   assert.equal(result.state.units.find(unit => unit.id === 'ally')!.acted, false);
+  // 舞蹈只能选相邻友军：拉远后既不出现在可用列表，也不能提交。
+  const far = structuredClone(battle);
+  const farDancer = far.units.find(unit => unit.id === 'dancer')!;
+  const farAlly = far.units.find(unit => unit.id === 'ally')!;
+  farDancer.pos = [1, 1];
+  farAlly.pos = [4, 1];
+  farAlly.acted = true;
+  assert.ok(!actionOptions(far, farDancer, farDancer.pos).dance.includes(farAlly.id));
+  assert.throws(() => step(far, { type: 'act', unit: 'dancer', to: farDancer.pos, act: 'dance', target: 'ally' }), /相邻/);
   assert.equal(WEAPONS.royal_sword.rank, 'SS');
   assert.equal(WEAPONS.divine_lance.rank, 'SSS');
 });

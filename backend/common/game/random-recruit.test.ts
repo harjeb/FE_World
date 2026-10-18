@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { CLASS_GROWTH } from '../data/class-growth.ts';
 import { CLASSES, initialClass } from '../data/classes.ts';
 import { STAT_KEYS } from '../data/types.ts';
+import type { Stats } from '../data/types.ts';
+import { applyGrowthBonus } from '../data/growth-types.ts';
 import { seedRng } from '../engine/rng.ts';
+import { createUnit, growthRates, normalizeUnit } from './model.ts';
 import { RECRUIT_GROWTH_CAP, RECRUIT_UNLOCK_DAY, generateRecruit, recruitClass, recruitLevel, regionRoutes, rollPersonalGrowth } from './random-recruit.ts';
 
 test('recruit generation is deterministic per seed', () => {
@@ -99,4 +102,21 @@ test('recruit class follows level, allowing promoted classes', () => {
   // 短链封顶到末阶，不越界。
   assert.equal(recruitClass('axe', 99), 'everlord');
   assert.ok(CLASSES[recruitClass('sword', 30)].tier === 'promoted');
+});
+
+test('a rolled personal growth is persisted and used by later level-ups', () => {
+  const rolled = generateRecruit('persisted-growth');
+  const unit = createUnit('owen', 20, 'u_rolled', 0, false, {
+    classId: rolled.classId, growthType: 'normal', age: 20, personalGrowth: rolled.growth,
+  });
+  assert.deepEqual(unit.personalGrowth, rolled.growth);
+  // 模拟存档 JSON 往返；旧实现只把它用于 1 级推导，升级时会退回形象角色的成长。
+  const restored = normalizeUnit(JSON.parse(JSON.stringify(unit)));
+  assert.deepEqual(restored.personalGrowth, rolled.growth);
+  const own = CLASSES[rolled.classId].growth;
+  const expected = applyGrowthBonus(
+    Object.fromEntries(STAT_KEYS.map(key => [key, Math.max(0, rolled.growth[key] + own[key])])) as Stats,
+    'normal', 20,
+  );
+  assert.deepEqual(growthRates(restored), expected);
 });

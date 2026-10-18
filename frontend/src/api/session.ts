@@ -55,6 +55,7 @@ export interface ServerUnit {
   lockedDispatchId: string | null;
   hasInheritance: boolean;
   growthAllocation: Partial<Record<StatKey, number>>;
+  personalGrowth: Partial<Stats> | null;
   inheritedGrowth: Partial<Stats> | null;
   classQualifications: string[];
   classMastery: Record<string, number>;

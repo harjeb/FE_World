@@ -105,7 +105,12 @@ async function press(page, rows, row, label) {
     if (ok) return;
     await sleep(100);
   }
-  throw new Error(`no enabled "${label}" in ${rows} "${row}"`);
+  const debug = await page.evaluate(`(() => {
+    const box = [...document.querySelectorAll(${JSON.stringify(rows)})].find(e => e.innerText.includes(${JSON.stringify(row)}));
+    return box ? { text: box.innerText.replace(/\\s+/g, ' ').slice(0, 500),
+      buttons: [...box.querySelectorAll('button')].map(b => ({ label: b.innerText.replace(/\\s+/g, ' '), disabled: b.disabled })) } : null;
+  })()`);
+  throw new Error(`no enabled "${label}" in ${rows} "${row}": ${JSON.stringify(debug)}`);
 }
 
 async function until(test, tries = 80) {
@@ -146,14 +151,14 @@ try {
     // 年度大竞技场: register, preview the server quote, play into the match, then read the result.
     await page.open(`${BASE}/#/arena/annual`, '#br-h');
     const annual0 = await page.text();
-    check('annual page shows the edition and the open window', annual0.includes('第 1 届大竞技场') && annual0.includes('报名第 1 届') && annual0.includes('勾选顺序即出战顺序'), annual0.slice(0, 200));
+    check('annual page shows the edition and the open window', annual0.includes('第 2 届大竞技场') && annual0.includes('报名第 2 届') && annual0.includes('勾选顺序即出战顺序'), annual0.slice(0, 200));
     await press(page, 'section[aria-labelledby=br-h]', '本届赛程', '报名第');
     check('registering on the page creates the server entry',
       await until(async () => (await api(page, OP.GET_ANNUAL)).entry?.state === 'qualifier'), JSON.stringify((await api(page, OP.GET_ANNUAL)).entry?.unitIds?.length));
     await press(page, '.next-match', '下一场', '预览这一场');
     await until(async () => (await page.text()).includes('确认开打'));
     const quoted = await page.text();
-    check('the next match shows the server quote before anything is spent', quoted.includes('推进 2 日') && quoted.includes('永久死亡') && quoted.includes('平原会战'), quoted.slice(quoted.indexOf('下一场'), quoted.indexOf('下一场') + 160));
+    check('the next match shows the server quote before anything is spent', quoted.includes('推进 2 日') && quoted.includes('永久死亡') && quoted.includes('塔林原野'), quoted.slice(quoted.indexOf('下一场'), quoted.indexOf('下一场') + 160));
     const day0 = (await api(page, OP.GET_STATE)).day;
     await press(page, '.next-match', '下一场', '确认开打');
     check('executing the quote opens the match on the same page',
@@ -169,7 +174,7 @@ try {
     // 主线: complete the open chapter, then claim its shared experience once.
     await page.open(`${BASE}/#/story`, '#ch-h');
     const story0 = await page.text();
-    check('story shows the open chapter title and keeps locked ones hidden', story0.includes('盛会') && story0.includes('可完成') && story0.includes('尚未开放') && !story0.includes('裂痕'), story0.slice(0, 160));
+    check('story shows the open chapters and keeps later ones hidden', story0.includes('盛会') && story0.includes('裂痕') && story0.includes('可完成') && story0.includes('尚未开放'), story0.slice(0, 160));
     const bexp0 = (await api(page, OP.GET_STATE)).bexp;
     await press(page, '.chap', '盛会', '完成本章事件');
     check('completing the chapter is stored', await until(async () => (await api(page, OP.GET_STORY)).chapters[0].completed), 'chapter 1');
@@ -181,7 +186,7 @@ try {
     // 职业资格: pick a class, confirm, and the server records the qualification and the price.
     await page.open(`${BASE}/#/roster/u_victor/classes`, '#mk-h');
     const gold0 = (await api(page, OP.GET_STATE)).gold;
-    const picked = await page.evaluate(`(() => { const b = [...document.querySelectorAll('.mk button.mk-cls')].find(b => b.innerText.trim() === '剑客'); if (!b) return false; b.click(); return true; })()`);
+    const picked = await page.evaluate(`(() => { const b = [...document.querySelectorAll('.mk-table button.mk-cls')].find(b => b.innerText.trim() === '剑客'); if (!b) return false; b.click(); return true; })()`);
     await until(async () => (await page.text()).includes('确认购买'));
     await press(page, 'section[aria-labelledby=mk-h]', '职业资格', '确认购买');
     const market = async () => (await api(page, OP.GET_CLASS_MARKET, { unitId: 'u_victor' })).classes.find(c => c.id === 'swordsman');
@@ -191,7 +196,7 @@ try {
     check('the bought class shows as owned', await until(async () => (await page.text()).includes('✓ 剑客')), 'cell');
     await page.open(`${BASE}/#/roster/u_victor/promote`, '#who-h');
     check('the promotion page requires ownership and explains how to buy a qualification',
-      (await page.text()).includes('尚未拥有该资格') && await page.evaluate(`document.querySelector('.promo-confirm button').disabled`), 'unowned qualification');
+      (await page.text()).includes('需要先购买资格') && await page.evaluate(`document.querySelector('.promo-confirm button').disabled`), 'unowned qualification');
 
     // 退役与传承: lift 欧文 past the legacy level, retire him on the page, see the legacy and the memorial.
     await api(page, OP.ASSIGN_BEXP, { unitId: 'u_owen', amount: 600 });
@@ -209,8 +214,8 @@ try {
     await until(async () => (await page.text()).includes('纪念名册') && (await page.text()).includes('累计战死'));
     const legacy = await page.text();
     check('the legacy page lists the legacy, the memorial and the recruit status',
-      legacy.includes('欧文') && legacy.includes('可兑现') && legacy.includes('退役') && legacy.includes('新的真实伤亡') && legacy.includes('需要 ≤2') && legacy.includes('缺少成长传承石'),
-      legacy.slice(legacy.indexOf('遗产'), legacy.indexOf('遗产') + 200));
+      legacy.includes('欧文') && legacy.includes('可兑现') && legacy.includes('退役') && legacy.includes('传承尚未解锁') && legacy.includes('个人基础成长'),
+      legacy.slice(legacy.indexOf('遗产'), legacy.indexOf('遗产') + 220));
 
     // 生产: start a brew, plant a seed (one day), rest until it ripens, collect on the page.
     await page.open(`${BASE}/#/workshop`, '[data-facility=apothecary]');
@@ -234,7 +239,7 @@ try {
     const quote = await page.text();
     check('the dungeon shows the server quote first', quote.includes('推进 8 日') && quote.includes('永久死亡'), quote.slice(quote.indexOf('总耗时'), quote.indexOf('总耗时') + 160));
     await press(page, 'section[aria-label=确认出发]', '流程', '确认出发');
-    check('setting out opens the first map', await until(async () => (await page.evaluate(`!!document.querySelector('.board')`)) && (await page.text()).includes('大副本第 1 / 3 图')), (await page.text()).slice(0, 120));
+    check('setting out opens the first map', await until(async () => (await page.evaluate(`!!document.querySelector('.board')`)) && (await page.text()).includes('1 / 3 图')), (await page.text()).slice(0, 120));
     const run = (await api(page, OP.GET_RUN)).run;
     check('the run is stored with its fixed team', run?.state === 'battle' && run.unitIds.length > 0, JSON.stringify({ state: run?.state, team: run?.unitIds.length }));
     await api(page, OP.RETREAT);
@@ -246,7 +251,7 @@ try {
     await page.open(`${BASE}/#/rules`, '#r-calendar');
     const rules = await page.text();
     check('the rules manual reads its numbers from the game data',
-      rules.includes('军团作战守则') && rules.includes('每季第 30 日是竞技场日') && rules.includes('平原会战 6 人、禁 2、20 回合') && rules.includes('炼制伤药') && !rules.includes('演示版没有'),
+      rules.includes('军团作战守则') && rules.includes('每季第 125 日是竞技场日') && rules.includes('塔林原野 6 人、禁 2、20 回合') && rules.includes('炼制伤药') && !rules.includes('演示版没有'),
       rules.slice(rules.indexOf('个人日历与行动'), rules.indexOf('个人日历与行动') + 160));
     await page.open(`${BASE}/#/settings`, '#ag-h');
     await press(page, 'section[aria-labelledby=ag-h]', 'Agent 接入', '取得接入令牌');

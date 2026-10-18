@@ -36,7 +36,7 @@ import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } fro
 import type { GrowthType } from '../common/data/growth-types.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, publicUnitSummary, recordDeath, recordRetire, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, recipeUnlocked, slotsUsed } from '../common/game/production.ts';
@@ -250,6 +250,10 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     if (day) {
       settleAttack(day, record.opponentId, record.state);
       ctx.store.saveArenaDay(day);
+      // 三场都结束后立刻结算，奖励与积分不必等下一次 API 请求；中途只推进日期不会触发。
+      if (Object.values(day.attacks).every(attack => attack.status === 'won' || attack.status === 'lost')) {
+        settleArenaDay(ctx.store, ctx.player, day);
+      }
     }
   }
   ctx.store.addEvent(ctx.player.id, 'battle-end', `${record.name} 结束：${record.state.result?.winner === 'player' ? '胜利' : '失败'}。`, {

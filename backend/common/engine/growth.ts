@@ -33,7 +33,7 @@ export function expPreview(unit: UnitState, foe: UnitState): { fight: number; ki
 export function growthRates(unit: UnitState): Stats | null {
   if (!unit.character) return null;
   const def = CHARACTERS[unit.character];
-  const personal = unit.inheritedGrowth ?? def.growth;
+  const personal = unit.inheritedGrowth ?? unit.personalGrowth ?? def.growth;
   const own = classOf(unit).growth;
   const rates = {} as Stats;
   for (const key of STAT_KEYS) rates[key] = Math.max(0, (personal[key] ?? 0) + (unit.growthAllocation?.[key] ?? 0) + own[key]);

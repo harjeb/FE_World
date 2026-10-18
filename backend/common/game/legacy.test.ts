@@ -116,6 +116,9 @@ test('reincarnation resets growth, skills, qualifications and age, once only', (
   const unit = createUnit('erin', 99, 'r1', 0, false, { classId: 'sword_hero', age: 40 });
   unit.classQualifications = ['sword_hero', 'swordmaster'];
   unit.learningProgress = { sword_hero: ['node-a'] };
+  unit.learnedSkills = ['opening'];
+  unit.learnedArts = ['wrath_cut'];
+  unit.equippedSkills = ['opening'];
   unit.weapons = ['killing_edge'];
   unit.ranks = { sword: 'A' };
   unit.drugCounts = { hp: 3 };
@@ -129,6 +132,9 @@ test('reincarnation resets growth, skills, qualifications and age, once only', (
   assert.equal(unit.classId, 'gladiator');
   assert.deepEqual(unit.classQualifications, []);
   assert.deepEqual(unit.learningProgress, {});
+  assert.deepEqual(unit.learnedSkills, []);
+  assert.deepEqual(unit.learnedArts, []);
+  assert.deepEqual(unit.equippedSkills, []);
   assert.deepEqual(unit.growthLog, []);
   assert.deepEqual(unit.drugCounts, {});
   assert.equal(unit.weapons.length, 0);

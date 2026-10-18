@@ -28,13 +28,14 @@ export function advance(day: number, days: number): { label: string; passes: str
   return { label: dateLabel(end), passes };
 }
 
-// Moving the date off today's arena day settles it: unplayed attacks count as losses with no gold
-// (backend services.ts::settleArenaDay). Null when nothing is at stake.
+// An arena set settles when every attack is final, or at the next arena day; simply advancing the
+// date between attacks must not mark the rest as no-shows (backend services.ts::syncPlayer).
+// Null when nothing is at stake.
 export function arenaTodayWarning(): string | null {
   const { arena } = session.get();
-  if (!arena?.isArenaDay || arena.settled || !arena.progress) return null;
+  if (!arena || arena.settled || !arena.progress) return null;
   const left = arena.progress.total - arena.progress.done;
-  return left > 0 ? `今天是竞技场日，还有 ${left} 场进攻没打。推进日期后今天的竞技场随即结算，没打的按落败计，不发金币。` : null;
+  return left > 0 ? `还有 ${left} 场竞技场进攻没打。每场推进 1 日；打完或到下一个竞技场日时，没打的才按落败计。` : null;
 }
 
 // Real-world timestamps (reports, Agent notes, leases) in 24-hour Chinese form, whatever the browser locale.

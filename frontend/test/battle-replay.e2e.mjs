@@ -1,7 +1,7 @@
-// Server-backed browser smoke test for the battle, arena and defense pages (docs/07, docs/11).
-// Starts the Fastify API with a throwaway database, serves the built frontend from it, logs in, then
-// drives real server battles through the UI: ending a phase in the browser must advance the battle the
-// server stores, and saving a defense must reach the server.
+// Server-backed browser smoke test for the battle, attack-only arena, reports and live spectate pages
+// (docs/07, docs/11). Starts the Fastify API with a throwaway database, serves the built frontend from
+// it, logs in, then drives real server battles through the UI: ending a phase in the browser must
+// advance the battle the server stores, and the reports/spectate pages must read the same data.
 //
 // Usage (from frontend/): npm run build && node test/battle-replay.e2e.mjs
 // Needs Node.js 22.18+ and Chromium (CHROME_BIN overrides the binary name).
@@ -68,6 +68,12 @@ async function openPage(profile) {
       for (let i = 0; i < 150 && !(await evaluate(`document.readyState === 'complete' && !!document.querySelector(${JSON.stringify(selector)})`)); i++) await sleep(100);
       await sleep(700);
     },
+    // Re-reads the server after a state change made by serverOp (the page session is otherwise stale).
+    async reload(selector) {
+      await send('Page.reload', { ignoreCache: true });
+      for (let i = 0; i < 150 && !(await evaluate(`document.readyState === 'complete' && !!document.querySelector(${JSON.stringify(selector)})`)); i++) await sleep(100);
+      await sleep(700);
+    },
     async clickText(selector, text, optional = false) {
       const at = await evaluate(`(() => { const el = [...document.querySelectorAll(${JSON.stringify(selector)})].find(e => e.textContent.includes(${JSON.stringify(text)}));
         if (!el) return null; el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
@@ -80,18 +86,27 @@ async function openPage(profile) {
   };
 }
 
-// Skips combat scenes, acknowledges level-ups and waits until the page accepts commands again.
+// Skips combat scenes, acknowledges level-ups and waits until the battle HUD accepts commands again.
 async function settle(page) {
   for (let i = 0; i < 800; i++) {
-    const s = await page.evaluate(`({ combat: !!document.querySelector('.combat'),
-      dialog: document.querySelector('[role=dialog] h2')?.innerText ?? null, ready: !document.querySelector('.hud button')?.disabled })`);
+    const s = await page.evaluate(`({ hud: !!document.querySelector('.hud'),
+      combat: !!document.querySelector('.combat'),
+      dialog: document.querySelector('[role=dialog] h2')?.innerText ?? null,
+      ready: !!document.querySelector('.hud') && !document.querySelector('.hud button')?.disabled })`);
     if (s.combat) await page.key(' ', 'Space', 32, ' ');
     else if (s.dialog?.includes('升级')) await page.key('Enter', 'Enter', 13, '\r');
     else if (s.dialog) return s.dialog;
     else if (s.ready) return null;
     await sleep(120);
   }
-  throw new Error('the page never became ready');
+  const debug = await page.evaluate(`({
+    text: document.body.innerText.replace(/\\s+/g, ' ').slice(0, 500),
+    hud: document.querySelector('.hud')?.innerText.replace(/\\s+/g, ' ').slice(0, 300) ?? null,
+    dialogs: [...document.querySelectorAll('[role=dialog]')].map(d => d.innerText.replace(/\\s+/g, ' ').slice(0, 120)),
+    combat: !!document.querySelector('.combat'),
+    buttons: [...document.querySelectorAll('.hud button')].map(b => ({ label: b.innerText.replace(/\\s+/g, ' '), disabled: b.disabled })),
+  })`);
+  throw new Error(`the page never became ready: ${JSON.stringify(debug)}`);
 }
 
 // Ends the player phase through the UI: HUD button, then the confirmation dialog. The command travels
@@ -147,8 +162,8 @@ try {
     await page.clickText('button', '确认禁用并揭晓阵容', true);
     await sleep(900);
     await page.clickText('.ready button', '开始战斗');
-    for (let i = 0; i < 60 && !(await page.evaluate(`!!document.querySelector('.board')`)); i++) await sleep(100);
-    await sleep(1400);
+    for (let i = 0; i < 80 && !(await page.evaluate(`!!document.querySelector('.hud')`)); i++) await sleep(100);
+    await sleep(600);
     await settle(page);
     const arenaBefore = await serverOp(page, 50, { full: true });
     await endPhase(page);
@@ -159,6 +174,7 @@ try {
     // Surrender so the field sortie below is not blocked by an active battle.
     await serverOp(page, 67, { battleId: arenaAfter.state.id });
     await page.open(`${base}/#/camp`, '.topbar');
+    await page.reload('.topbar');
 
     // 出击: 出征准备 spends nothing until confirmed; then the server owns the battle, and ending the
     // phase in the UI advances it.
@@ -169,40 +185,41 @@ try {
     check('sortie prep shows the rules and spends nothing',
       dayOnPrep === dayBefore && prep.includes('回合上限 20') && prep.includes('永久死亡') && prep.includes('8 日 →') && !(await page.evaluate(`!!document.querySelector('.board')`)),
       `day ${dayBefore} → ${dayOnPrep}; ${prep.slice(0, 140)}`);
-    await page.clickText('.rg', '绿林');
+    await page.clickText('.rg', '希尔瓦林地');
     await page.clickText('.go-bar button', '确认出征');
-    for (let i = 0; i < 60 && !(await page.evaluate(`!!document.querySelector('.board')`)); i++) await sleep(100);
-    await sleep(1400);
+    for (let i = 0; i < 80 && !(await page.evaluate(`!!document.querySelector('.hud')`)); i++) await sleep(100);
+    await sleep(600);
     await settle(page);
     const fieldBefore = await serverOp(page, 50, { full: true });
     await endPhase(page);
     const fieldAfter = await serverOp(page, 50, { full: true });
     const dayAfter = (await serverOp(page, 30)).day;
     check('field sortie is server-backed',
-      fieldBefore.state.turn === 1 && fieldBefore.state.name.startsWith('绿林') && dayAfter === dayBefore + 8
+      fieldBefore.state.turn === 1 && fieldBefore.state.name.includes('希尔瓦林地') && dayAfter === dayBefore + 8
         && fieldAfter.state.turn > fieldBefore.state.turn && fieldAfter.eventCount > 0 && page.errors.length === 0,
       `${fieldBefore.state.name}, day +${dayAfter - dayBefore}, turn ${fieldBefore.state.turn} → ${fieldAfter.state.turn}, events ${fieldAfter.eventCount} ${page.errors.join(' | ')}`);
     await serverOp(page, 56, { battleId: fieldAfter.state.id });
     await page.open(`${base}/#/camp`, '.topbar');
 
-    // 防守: edit, save to the server, reload and confirm it stuck.
-    await page.open(`${base}/#/arena/defense`, '.dfrow');
-    await page.clickText('.mapopt', '林中遭遇');
-    await page.clickText('.headrow button', '保存防守');
-    await sleep(900);
-    await page.open(`${base}/#/arena/defense`, '.dfrow');
-    const kept = await page.evaluate(`document.querySelector('.mapopt[aria-pressed=true] .mo-n')?.innerText ?? ''`);
-    const saved = await serverOp(page, 61);
-    check('defense saved to the server', kept.includes('林中遭遇') && saved.defense?.map === 'woods' && page.errors.length === 0,
-      `page ${kept}, server map ${saved.defense?.map} ${page.errors.join(' | ')}`);
+    // 防守入口已移除：旧地址只回落到只进攻的竞技场页。
+    await page.open(`${base}/#/arena/defense`, '#atk-h');
+    const noDefense = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
+    check('the removed defense route falls back to attack-only arena',
+      noDefense.includes('我方进攻') && noDefense.includes('首版只有进攻') && !noDefense.includes('保存防守'), noDefense.slice(0, 160));
 
-    // 回放 / 观战: both read the stored battle from the server, no local demo data.
-    await page.open(`${base}/#/replay`, '.rp-player');
-    const replayText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 240)`);
+    // 战报 / 回放 / 观战: all read server data; the viewer needs a concrete replay id.
+    await page.open(`${base}/#/replay`, '.report-filters');
+    const reportsText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 320)`);
+    check('reports page lists server battles and filters', reportsText.includes('战报与回放') && reportsText.includes('全部活动') && reportsText.includes('全部结果'), reportsText.slice(0, 160));
+    const replays = await serverOp(page, 72, { mine: true, limit: 10 });
+    const replayId = replays.replays?.[0]?.id;
+    check('the account has a stored replay to open', !!replayId, `${replays.replays?.length ?? 0} replays`);
+    await page.open(`${base}/#/replay/${replayId}`, '.hud');
+    const replayText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 260)`);
     check('replay viewer loads a server battle', replayText.includes('历史回放') && replayText.includes('回合') && page.errors.length === 0, replayText.slice(0, 120));
     await page.open(`${base}/#/spectate`, '.live-badge');
-    const spectateText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 200)`);
-    check('spectate auto-plays a server battle', spectateText.includes('实时观战') && page.errors.length === 0, spectateText.slice(0, 120));
+    const spectateText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 240)`);
+    check('spectate is live-only when no battle is running', spectateText.includes('实时观战') && spectateText.includes('没有进行中的战斗') && page.errors.length === 0, spectateText.slice(0, 140));
   } finally {
     await page.close();
   }

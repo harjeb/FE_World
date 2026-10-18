@@ -96,7 +96,7 @@ export function ArenaHub() {
       <div className="arena-cols">
         <div className="flex flex-col gap-3" style={{ flex: '999 1 560px', minWidth: 0 }}>
           <section className="panel" aria-labelledby="atk-h">
-            <div className="ph"><h2 id="atk-h">我方进攻</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{open ? '每场入场推进 1 日；当日结算时没打的按落败计' : recordDay !== null ? '已结算' : ''}</span></div>
+            <div className="ph"><h2 id="atk-h">我方进攻</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{open ? '每场入场推进 1 日；打完或到下一个竞技场日时，没打的才按落败计' : recordDay !== null ? '已结算' : ''}</span></div>
             {opponents.length === 0 && <p className="def-next">{state.arena.registered ? '还没有对手：到达竞技场日时会生成。' : '报名后当天生成对手。'}</p>}
             <ol>
               {opponents.map(o => {
@@ -158,7 +158,7 @@ export function ArenaHub() {
 
         <div className="flex flex-col gap-3" style={{ flex: '1 1 340px', minWidth: 0 }}>
           <section className="panel" aria-labelledby="rw-h">
-            <div className="ph"><h2 id="rw-h">{open ? '当日奖励' : '上次奖励'}</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{open ? '推进日期后结算' : '已结算'}</span></div>
+            <div className="ph"><h2 id="rw-h">{open ? '当日奖励' : '上次奖励'}</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{open ? '打完三场或到下一个竞技场日时结算' : '已结算'}</span></div>
             <div className="rw">
               <div><img className="px" src={ICONS.coin} width={24} height={24} alt="" /><span><span>金币{open ? '（已打完的场次）' : ''}</span><b>+{gold}</b></span></div>
               <div><img className="px" src={ICONS.medal} width={24} height={24} alt="" /><span><span>积分</span><b>+{open ? day.points : info?.progress?.points ?? 0}</b></span></div>

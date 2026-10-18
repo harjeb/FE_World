@@ -20,6 +20,11 @@ from terrain import TERRAIN_VISUALS
 
 METADATA = json.loads((HERE / 'metadata.json').read_text(encoding='utf-8'))
 GAME_NAMES = {'fe6': '封印之剑', 'fe7': '烈火之剑', 'fe8': '圣魔之光石'}
+# 项目原创显示名：来源作品只保留在 source 字段，玩家看到的作品名／章节名不沿用原作标题。
+# 修改 selection 的章节名后，这里仍需显式覆盖，避免重新抽取时又拼回原作作品名。
+DISPLAY_NAME_OVERRIDES = {
+    'fe8-chfinal-1-eirika': '神蚀纪 · 终焉王座',
+}
 
 
 def hx(value):
@@ -387,9 +392,10 @@ class GbaReader:
                             'itemId': event['scriptPointer'] if kind == 'chest' and event['scriptPointer'] < 256 else None})
         # Preserve selected edition/route labels and pointer evidence. The format
         # does not pretend source class/item IDs are project catalog IDs.
+        map_id = f"{self.game}-ch{chosen['chapter']}-{chosen['route']}"
         return {'format': 'agent-tactics.scenario', 'schemaVersion': 1,
-                'id': f"{self.game}-ch{chosen['chapter']}-{chosen['route']}",
-                'name': f"{GAME_NAMES[self.game]} · {chosen['name']}",
+                'id': map_id,
+                'name': DISPLAY_NAME_OVERRIDES.get(map_id, f"{GAME_NAMES[self.game]} · {chosen['name']}"),
                 'chapter': {'number': chosen['chapter'], 'route': chosen['route'], 'tableIndex': index, 'internalName': internal},
                 'source': {'kind': 'gba-rom', 'game': self.game, 'gameCode': self.code, 'fileName': self.path.name,
                            'bytes': len(self.data), 'sha1': self.sha1, 'sha256': self.sha256,

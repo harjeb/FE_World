@@ -76,7 +76,7 @@ export function eligibleForLegacy(unit: UnitRecord): boolean {
 
 // Freeze personal growth only; separate reincarnation points cannot pass to an heir.
 export function sourceGrowthVector(unit: UnitRecord): Stats {
-  const personal = unit.inheritedGrowth ?? CHARACTERS[unit.character].growth;
+  const personal = unit.inheritedGrowth ?? unit.personalGrowth ?? CHARACTERS[unit.character].growth;
   const out = {} as Stats;
   for (const key of STAT_KEYS) out[key] = Math.max(0, personal[key] ?? 0);
   return out;
@@ -225,7 +225,7 @@ export interface ReincarnationResult {
   allocation: Partial<Stats>;
 }
 
-// 轮回：清技能学习、熟练度、职业资格与学习进度，回初始职业，年龄 16 岁，额外 30 点分配。
+// 轮回：清技能学习、已学战技、熟练度、职业资格与学习进度，回初始职业，年龄 16 岁，额外 30 点分配。
 export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initialClassId: ClassId, daysPerYear: number, day: number): ReincarnationResult {
   const problem = canReincarnate(unit);
   if (problem) throw new Error(problem);
@@ -259,6 +259,7 @@ export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initia
   unit.classMastery = {};
   unit.learningProgress = {};
   unit.learnedSkills = [];
+  unit.learnedArts = [];
   unit.equippedSkills = [];
   unit.weapons = [];
   unit.items = [];
