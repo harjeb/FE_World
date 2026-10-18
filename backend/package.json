@@ -8,7 +8,8 @@
     "start": "node api/server.ts",
     "worker": "node worker/worker.ts",
     "test": "node --test common/**/*.test.ts api/*.test.ts worker/*.test.ts",
-    "docs": "node api/generate-docs.ts"
+    "docs": "node api/generate-docs.ts",
+    "migrate-save": "node api/migrate-save.ts"
   },
   "dependencies": {
     "@fastify/websocket": "^11.2.0",

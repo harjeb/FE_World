@@ -45,7 +45,7 @@
 
 本轮更新任务：`fe-world-uzi`。已确认：逐地图限制人数、无全局统一出战上限，主力外约10名替补；每图敌人等级上限而非年度经验硬额度；账号一次解锁传承；每人1枚稀缺盾、石化禁一切治疗；完美锻造＋10，物理战技耗耐久，法术书普通施法消耗每本独立次数、旅馆／食物恢复；装备／技能和两项酒馆小游戏纳入首版；只进攻、实例BAN、同日不足官方兜底；最终首领／塔／高难首版；玩家操作与Agent 1:1对等。
 
-**日历已确认：八年4000日、一年500日、一季125日。**不再缩到960／978日；最长年度赛程也纳入4000日，不自动延长至4018日。新装备／技能分表见[22](docs/22-equipment-catalog.md)、[23](docs/23-skill-catalog.md)。现有120日运行时及老存档仍需迁移，下面已定条目未勾选表示待开发。后续确认任务`fe-world-qpp`。
+**日历已确认：八年4000日、一年500日、一季125日。**不再缩到960／978日；最长年度赛程也纳入4000日，不自动延长至4018日。新装备／技能分表见[22](docs/22-equipment-catalog.md)、[23](docs/23-skill-catalog.md)。旧120日运行时已经替换，旧档显式迁移工具及文件级验收见[33](docs/33-save-migration.md)；生产实迁另记实际执行结果。下面已定条目未勾选表示待开发。后续确认任务`fe-world-qpp`。
 
 **技能补充确认：**以《万缕千丝》为主参考，前作机制作补充；[25](docs/25-fortunes-weave-skills.md)补齐58项现用职业的固有／精通与效果。[26](docs/26-weapon-art-catalog.md)保留此前283项参考武器战技（180基础＋103强化）＋17项既有补充，按最新允许原创的要求加入[29](docs/29-original-weapon-arts.md)的15项，共315项，支援／圣焰另计；24项仅为示例，不是上限，也不要求把345条全部实装。其余已确认范围保持。文档任务`fe-world-8jl`、`fe-world-juh`、`fe-world-wdj`、`fe-world-d1f`、`fe-world-x6k`不替代下列实现任务。
 
@@ -173,7 +173,7 @@
 - [x] **DATA-02｜已完成首版：多连接、API／Worker 竞争和崩溃恢复。** SQLite 启用 WAL、`busy_timeout=5000`，所有写命令和收据在 `BEGIN IMMEDIATE` 事务内；`savePlayer(expectedVersion)` 拒绝陈旧版本，物资/遗产/工位/战斗/死亡均先校验再落账。崩溃重启后从 SQLite 恢复事件、战斗与状态，不会重放已提交收据；`commandId` 重试返回原结果。多进程压测仍属部署验收，不在自动测试内。
 - [x] **DATA-03｜已完成：规则版本与历史活动兼容。** 新增 `version.ts` 固定 `ENGINE_VERSION=1`、`RULESET_VERSION='rules-v2'`、`CATALOG_VERSION=10`；战斗/竞技场/年度记录写入规则与目录版本，`GET_REPLAY`/`GET_REPLAYS` 返回兼容性和原因，旧规则/旧引擎只查看终局快照而不静默重算。黄金回放由既有 `autoplay('replay')` 一致性测试覆盖，新增旧版本判定测试。
 - [x] **DATA-04｜已完成：可靠事件游标和投递。** 事件 ID 以十进制字符串作为 cursor，查询直接比较、不转 `Number`；`GET_STATE.eventCursor` + `GET_EVENTS(cursor)` 支持增量补拉，事件表按自增 ID 排序去重。`addEvent` 同事务写 `outbox`，推送失败可按 event id 重试，`pendingOutbox`/`markOutboxDelivered` 提供确认；最终状态仍以 events/state 表为准。
-- [x] **DATA-05｜已完成首版：正式存档、权限及部署边界。** 账号/玩家/单位/库存/战斗/回放按 `account_id`/`player_id` 归属，`GET_BATTLE`/`GET_REPLAY` 只返回自己的或已公开记录；网页会话 30 天不活跃失效，Agent token 独立且可重置。docs/28 记录 SQLite WAL 备份/恢复/迁移步骤与回滚前提；数据库选型见 docs/29，首版不把换库当功能。真实多人长流程仍作为部署验收。
+- [x] **DATA-05｜已完成首版：正式存档、权限及部署边界。** 账号/玩家/单位/库存/战斗/回放按 `account_id`/`player_id` 归属，`GET_BATTLE`/`GET_REPLAY` 只返回自己的或已公开记录；网页会话30天不活跃失效，Agent token独立且可重置。新增schema／日历metadata与显式迁移CLI，默认预演，120日换算／500日原样采纳、WAL一致备份、事务回滚、重开幂等与活动门禁有文件级测试；详见[33](docs/33-save-migration.md)。docs/28记录部署边界，数据库选型见docs/29。生产旧档实迁、部署机恢复演练和真实多人长流程另作实际验收。
 
 ## 10. 八年经验、经济与规模校准
 

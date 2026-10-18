@@ -1,18 +1,27 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { assertCurrentSave, initializeSaveMetadata } from './save-migration.ts';
 
 // SQLite keeps the prototype self-contained (docs/07 specifies PostgreSQL; the schema below is plain
 // SQL and the store is the only place that touches it, so swapping the driver is a contained change).
 export function openDb(path: string): DatabaseSync {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
-  db.exec('PRAGMA journal_mode = WAL;');
-  db.exec('PRAGMA foreign_keys = ON;');
-  db.exec('PRAGMA busy_timeout = 5000;');
-  db.exec(SCHEMA);
-  migrate(db);
-  return db;
+  try {
+    db.exec('PRAGMA busy_timeout = 5000;');
+    assertCurrentSave(db);
+    db.exec('PRAGMA journal_mode = WAL;');
+    db.exec('PRAGMA foreign_keys = ON;');
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      db.exec(SCHEMA);
+      migrate(db);
+      initializeSaveMetadata(db);
+      db.exec('COMMIT');
+    } catch (error) { db.exec('ROLLBACK'); throw error; }
+    return db;
+  } catch (error) { db.close(); throw error; }
 }
 
 const SCHEMA = `

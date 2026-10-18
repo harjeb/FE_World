@@ -437,7 +437,7 @@ export class Store {
   // ---- snapshots ---------------------------------------------------------
 
   saveSnapshot(playerId: string, day: number, data: SnapshotData): SnapshotRow {
-    const id = `snap-${playerId}-${day}`;
+    const id = this.snapshot(playerId, day)?.id ?? `snap-${playerId}-${day}`;
     this.db.prepare('INSERT INTO snapshots (id, player_id, day, data, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = ?')
       .run(id, playerId, day, JSON.stringify(data), Date.now(), JSON.stringify(data));
     return { id, day, data, createdAt: Date.now() };
