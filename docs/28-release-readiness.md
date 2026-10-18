@@ -12,7 +12,7 @@
 | 武器战技 | 315 | 283参考＋17补充＋15原创；原创逐项结算、目标选择、网页／Agent预测及耐久支付已接；176项精通／408条教学已接入参战、返程和存档；103项营地同步研修已接入（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`，先学基础、付费耗日、重试安全）；36项装备授予已实现（含毒弓＋3强化路径、实例／资源保存，见27及`backend/api/equipment-grants.test.ts`）；共用五格运行时／API／网页已实现（完整库与独立选择、原子提交及旧档一次迁移见28）；既有300项特殊效果已完成首版显式实现（边界见26）；CLASS-02首版可确认主动战技与12被动已实现，DESIGN-04及ITEM-06因特殊装备与投放仍部分实现 | `original-arts.test.ts`、`classic-arts.test.ts`（引擎／API）、`art-effects.test.ts`、`api/ui-protocol.test.ts`、`tools/audit/class-art-learning.py` |
 | 职业目录 | 77 | 运行时可用；舞者/神乐再行动、战车直线攻击已接 | `class-data` 测试 |
 | 地区任务 | 12 地区 | 希尔瓦林地／托尔加丘陵／莱斯米尔湖镇完整 500 声望链；其余地区有基础三任务链 | `quests.test.ts` |
-| 挑战塔 | 3 层 | 可开战、首通/重复奖励与保存 | `challenges.ts`、`api` 测试 |
+| 挑战塔 | 3 层 | 可开战、首通/重复奖励与保存；终层地图显示名为「神蚀纪 · 终焉王座」 | `challenges.ts`、`classic.test.ts`、`api` 测试 |
 | 酒馆 | 第二年季度候选 | 付费雇佣、候选不重掷 | `GET_TAVERN`／`HIRE_TAVERN` |
 
 运行时与目录仍有差距：攻击／治疗／状态／功能杖及传送、临时墙、再生已接入；法术仍须逐项验收，不能声称所有特殊法术完成。58项职业能力仅落实已知数值，未知不臆造；315项主动战技完成首版显式机制，选择、预测、学习／研修与共用五格已接入网页及Agent。特殊装备与逐项投放仍属ITEM-06未完成范围，首稿不等于原作精确复刻或平衡验收。发布时必须按“目录可用”和“运行时可用”分列，不能用一个总数掩盖差异。
@@ -49,6 +49,9 @@ npm --prefix backend test
 node tools/audit/design-consistency.mjs
 npm --prefix frontend run typecheck
 npm --prefix frontend run build
+node frontend/test/backend-integration.e2e.mjs
+node frontend/test/battle-replay.e2e.mjs
+node frontend/test/systems.e2e.mjs
 ```
 
 ## 5. 已知边界
@@ -66,6 +69,7 @@ npm --prefix frontend run build
 | 装备/法术/战技 | `equipment-catalog.py` 170、`weapon-art-catalog.py` 315、`original-arts.test.ts` 原创效果、`feature-completion.test.ts` 目录/次数/装备授予 |
 | 职业/成长 | `class-abilities.ts` 58、`mastery.test.ts`、`growth.test.ts`、`permanent.test.ts` |
 | 任务/地区 | 132 任务/12 地区、`quests.test.ts`、远征 stage goals/供给测试 |
-| 竞技场/年度 | 1 日单场、实例 Ban、64 队签表、`arena.test.ts`、`annual.test.ts` |
+| 竞技场/年度 | 普通竞技场每场 1 日、只进攻、实例 Ban、同形象限制、跨日结算；64 队签表；`arena.test.ts`、`annual.test.ts`、`api.test.ts` |
+| 网页/交互 | 真实服务端名册、战报筛选、历史回放、实时观战只读轮询；`backend-integration.e2e.mjs`、`battle-replay.e2e.mjs`、`systems.e2e.mjs` |
 | Agent/持久化 | 全 op schema、`commandId`、事务/版本、outbox、事件游标测试 |
 - 经典地图的敌军武器/AI 使用项目默认规则；逐图模板报告记录替换差异，但不是原作完整复刻。

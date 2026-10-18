@@ -1,6 +1,6 @@
 # 未完成需求总表
 
-更新日期：2026-10-18。核对基线：`574a478`后的item 6实现（具体提交见Git日志）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
+更新日期：2026-10-18。核对基线：`eb0cd7e`（`main`，含 item 6 战技机制实现）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
 
 玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)、[14](docs/14-integration-handoff.md) 含多轮历史记录，不能直接把其中的旧“未实现”全部复制为新任务。最近一次已完成修复见 [21](docs/21-code-design-audit.md)。
 
@@ -20,6 +20,8 @@
 - 舞蹈增加相邻距离校验（服务端校验与可行动列表同时生效）；轮回清空 `learnedArts`；竞技场按 `portrait` 限制同一形象只能上一人。
 - 挑战塔终层地图的显示名由重复的 `圣魔之光石 · 圣魔之光石·决战前半` 改为本作原创的 `神蚀纪 · 终焉王座`，原始来源仍保留在内容数据。
 - 历史缺失的 `tools/audit/equipment-catalog.py` 与 `fe-world-m2n` 记录已由DOC-01补齐；装备审计现区分历史35项基线、170个设计ID与187条运行兼容记录，不据此宣称全部特殊效果完成。
+- 代码提交 `deccf43`；文档同步 [05 普通竞技场](docs/05-arena.md)、[11 战斗页](docs/11-battle-engine-and-page.md)、[08 UI 提示词](docs/08-ui-design-prompts.md)、[24 经典关卡](docs/24-classic-scenarios-integration-todo.md)、[28 交付边界](docs/28-release-readiness.md) 等；验证为后端 666 项、前端 typecheck／build、三个 e2e（30／8／32 项检查）和设计审计 15 probes／0 mismatches。随后远端合入 `eb0cd7e` 战技机制实现，本表基线已更新。
+- Beads：`fe-world-ilq` 已关闭并记录 UI-01～04 证据；`fe-world-z2w`、`fe-world-8n4`、`fe-world-bwo`、`fe-world-mze` 已补充普通竞技场跨日结算／同形象、招募成长持久化、舞蹈距离／轮回战技和文档同步范围，仍保留各自未完成的年度内容、资源、技能运行时与历史文档收尾。
 
 ## 2026-10-18 交付文档
 
@@ -77,7 +79,7 @@
 来源：[00 §3、§5、§7](docs/00-game-design.md)、[19 §1](docs/19-experience-time-balance.md)、[20 §5](docs/20-region-quests-reputation.md)。当前入口：[store.ts](backend/api/store.ts)、[handlers.ts](backend/api/handlers.ts)、[random-recruit.ts](backend/common/game/random-recruit.ts)。
 
 - [x] **SETUP-01｜已完成：正式新档配置。** 新账号从 D0、空地区进度、正式金币与 0 公共经验开始；占位主角和开局同伴从 1 级创建。`SEED_DAY=999` 只用于测试/演示夹具，不再作为正式起点。
-- [x] **SETUP-02｜已完成：随机人物生成器接入全部招募渠道。** 游历、紧急补员和酒馆都使用 `generateRecruit`；随机角色有独立姓名、性别、种族、职业、个人成长、年龄与形象锚点。固定人物只经任务奖励加入，普通池不再消耗预设身份。
+- [x] **SETUP-02｜已完成：随机人物生成器接入全部招募渠道。** 游历、紧急补员和酒馆都使用 `generateRecruit`；随机角色有独立姓名、性别、种族、职业、个人成长、年龄与形象锚点。固定人物只经任务奖励加入，普通池不再消耗预设身份。掷出的 `personalGrowth` 已随单位记录保存，并带入升级、战斗、存档、页面显示和传承来源；测试见 `random-recruit.test.ts`「a rolled personal growth is persisted and used by later level-ups」。
 - [x] **SETUP-03｜已完成：游历候选确认与地区保底。** 成功先写入 `pendingRecruit`，重连不重掷；`ACCEPT_RECRUIT`／`DECLINE_RECRUIT` 分离接受与拒绝，拒绝不退日期，满员保留候选；失败计数按地区累计并保留第 5 次保底。
 - [x] **SETUP-04｜已完成：常规付费酒馆招募。** 第二年开放；每地区每季度 3 名候选，季度刷新一次；`GET_TAVERN`／`HIRE_TAVERN` 用金币雇佣，不耗行动日，满员/重复/金币不足拒绝，候选不重掷。
 - [x] **SETUP-05｜已完成：生日、寿命预警与行动边界。** 新增 `daysUntilBirthday`／`lifespanWarning`／`nextLifespanEventDay`，名册摘要给出距生日与寿终警示；报价及 START_QUEST／START_DUNGEON／START_DISPATCH／START_ANNUAL_MATCH 跨寿终时阻挡并提示先传承/退役或缩短行动。
@@ -89,7 +91,7 @@
 
 - [x] **CLASS-01｜已完成首版：职业能力和精通节点内容。** 58 项 `CLASS_ABILITIES` 已绑定逐职业固有/精通参考 ID，精通节点通过 `referenceIds` 暴露；可在交战公式直接验证的固有数值（命中/回避/攻击/防/魔防/攻速/剑斧弓拳魔法武器加成/治疗）已接入 `classSkills`，未知阈值和原表冲突保留为参考不臆造。五格仍只由已学技能占用，不因战技装备＋1/2/3扩容。
 - [x] **CLASS-02｜首版可确认主动战技与12被动已实现：个人技能、习得技能及315项主动武器战技。** 58项职业能力仅落实已知数值，未知不臆造；不是原作精确复刻或人工平衡验收。 15项原创已接入逐项战斗结算、合法目标、网页／Agent预测与选择、一次耐久支付及保存重试。每职4～6项、176项战技／408条关联的精通学习已接入参战、派遣返程、旧存档补领和网页／Agent查询，阈值逐项配置；103项独立强化研修已实现（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`；营地先学基础、同步付费耗日、重试安全，换职保留／轮回清除，不赠EXP／精通）；36项武器特有授予已实现（选中匹配实物、权限／熟练度／耐久／强化门槛，毒弓＋3强化与实例保存见27）；共用五格运行时／API／网页已实现（`equippedSkills`＋独立`equippedArts`合计5，`learnedArts`保留全库，原子调整与旧档一次迁移见28）；既有300项特殊效果已完成item 6首版显式实现，机制边界见[26](docs/26-weapon-art-catalog.md)。315项战技（283参考＋17补充＋15原创）有稳定ID、基础/强化、武器类型、威力/命中/必杀、射程与耐久成本；`art` 动作与 `PREVIEW_COMBAT.art` 逐项预测，普通物攻/被动不耗耐久。个人/职业固有技能通过 `skills`/`classSkills` 生效，装备可授予技能与战技（`grants.skill/arts`，战技项含`art`／`minimumRefinement`），卸下即撤销且不占五格；个人技能与轮回重置保留。未给参数的原作触发/概率保留为参考，不臆造。
-- [x] **CLASS-03｜已完成：舞者、神乐神将和战车兵专属机制。** 舞者/神乐再行动通过 `dance` 指令实现（目标本回合可再行动，AI/预览/回放走同一 action）；战车兵通过 `chariot_line` 战技实现直线至多 3 名敌人依次结算，已纳入战技耐久与 `learnedArts`；三个职业不再列入 `PENDING_MECHANICS`，可正常购买/切换/派遣。
+- [x] **CLASS-03｜已完成：舞者、神乐神将和战车兵专属机制。** 舞者/神乐再行动通过 `dance` 指令实现（目标必须是相邻且本回合已行动的友军，AI/预览/回放走同一 action；可行动列表与服务端校验都做距离检查）；战车兵通过 `chariot_line` 战技实现直线至多 3 名敌人依次结算，已纳入战技耐久与 `learnedArts`；三个职业不再列入 `PENDING_MECHANICS`，可正常购买/切换/派遣。
 - [x] **CLASS-04｜已完成首版：40种新增攻击／功能法术与个人魔法习得表。** 40 项法术/48 书已进入 `SPELLS`/`SPELLBOOKS`，魔法职业按职业书表携带独立次数；`cast` 支持攻击（魔攻对魔防）、治疗、状态/复原、传送/拉近（不刷新行动）、再生、临时墙（1格、HP15、3回合）和 9 种主动杖（含睡眠/沉默/复原/救援/传送）。目标/射程/落点、石化禁疗、状态持续、耐久次数与结算/预测入口已接线；未知固定双击/原作标签保留参数，不臆造额外效果。
 - [x] **CLASS-05｜已完成可确认部分：魅力、幸运的原作对应机制。** 新增 `charm-reference.ts`：幸运必杀回避标记 verified；计略/骑士团等无来源条目保留 `unverified`，不参与计算。不把魅力用于招募或掉落，不冒用其他作品公式。
 - [x] **CLASS-06｜已完成可确认部分：职业擅长 EXP 加成。** 新增 `trainingBonusFor`／`studyForWeapon`，训练读取当前职业的“擅长项目”加成；原始资料空白项继续返回 undefined，不臆造数值。人物经验、武器熟练度、职业精通仍分开记账。
@@ -124,8 +126,8 @@
 
 来源：[00 §9.4、§10](docs/00-game-design.md)、[13 §6](docs/13-backend-target-design.md)。现状：[calendar.ts](backend/common/game/calendar.ts)、[arena.ts](backend/common/game/arena.ts)、[annual.ts](backend/common/game/annual.ts)、[services.ts](backend/api/services.ts)。
 
-- [x] **ARENA-01｜已完成：普通竞技场独立每场 1 日。** `ACTION_DAYS.arenaMatch=1`，`ARENA_ATTACK` 入场扣 1 日；报名后任意日期可生成当日记录，单场锁定对手/名单/战斗，重连读同一 battle 不重复扣；保持零等级经验、模拟消耗及投降无参与金币。
-- [x] **ARENA-02｜已完成首版：仅进攻的真实对手链路。** 新 `ArenaDayRecord` 不再绑定玩家防守，结算不跑防守 trial；历史防守快照只作为 AI 对手。网页不再过滤非演示队伍，未知队伍保留服务器摘要；Ban 使用单位实例 id，服务端校验合法剩余单位。旧 `GET_DEFENSE/SET_DEFENSE` 保留仅用于读取/兼容旧存档，不再是挑战前置。
+- [x] **ARENA-01｜已完成：普通竞技场独立每场 1 日。** `ACTION_DAYS.arenaMatch=1`，`ARENA_ATTACK` 入场扣 1 日；报名后任意日期可生成当日记录，单场锁定对手/名单/战斗，重连读同一 battle 不重复扣；保持零等级经验、模拟消耗及投降无参与金币。三场可以跨日继续，后台扫描只在三场结束或到达下一个竞技场日时结算剩余场次；测试见 `api.test.ts`「three arena attacks may span days without the background consuming the rest」。
+- [x] **ARENA-02｜已完成首版：仅进攻的真实对手链路。** 新 `ArenaDayRecord` 不再绑定玩家防守，结算不跑防守 trial；历史防守快照只作为 AI 对手。网页不再过滤非演示队伍，未知队伍保留服务器摘要；Ban 使用单位实例 id，服务端校验合法剩余单位。旧 `GET_DEFENSE/SET_DEFENSE` 保留仅用于读取/兼容旧存档，不再是挑战前置。同一形象只能上一人，`rules.ts` 按 `portrait` 校验并让出战名额按可用形象数封顶；测试见 `arena.test.ts`「two units sharing one portrait cannot attack together」。
 - [x] **ARENA-03｜已完成：不可变同日对手池与官方兜底。** `ArenaDayRecord` 冻结 `day/opponents/ruleVersion='arena-v2'/frozenAt`，新记录不再绑定玩家防守，结算不再跑 defense trial；同日对手不足由官方 `OPPONENTS` 兜底；Ban 存单位实例 id，服务端校验合法剩余单位；年度 `AnnualEntry.ruleVersion='annual-v2'` 与冻结名单不被后续报名覆盖。
 - [x] **ARENA-04｜已完成：完整 64 队签表与八届对手内容。** 报名生成 64 队签表、63 个正赛节点，其他对局按规则 AI 结算并持久化；名单/种子冻结，刷新与断线读同一记录；正赛地图按届数轮换，对手由各自赛事种子生成，海选保持固定部署规则。
 - [x] **ARENA-05｜已完成：进攻赛事奖励与真实月榜。** 年度冠军/淘汰按唯一键发金币与荣誉；`GET_STATE` 名次改为当月真实积分榜；不新增防守荣誉/防守榜，现实月榜归档继续沿用。
@@ -191,7 +193,7 @@
 
 ## 12. 文档与交付清理
 
-- [x] **DOC-01｜已完成：清理旧状态与新定案冲突。** 06／14 的 `docVersion` 已同步为 2，11／12 加历史记录横幅；补建 `tools/audit/equipment-catalog.py` 并修复 docs/27 的无效可选参数；补齐 `fe-world-m2n` Beads 记录。旧防守/每击耗耐久/精工+5/16+4/年度经验硬上限均标为历史，不再作为目标。
+- [x] **DOC-01｜已完成：清理旧状态与新定案冲突。** 06／14 的 `docVersion` 已同步为 2，11／12 加历史记录横幅；补建 `tools/audit/equipment-catalog.py` 并修复 docs/27 的无效可选参数；补齐 `fe-world-m2n` Beads 记录。旧防守/每击耗耐久/精工+5/16+4/年度经验硬上限均标为历史，不再作为目标。2026-10-18 又重写 05 为只进攻竞技场、更新 01／02／03／04／06／07／08／09／11／12／14／24／28 的当前规则说明，并补上 30 的文档同步记录。
 - [x] **DOC-02｜已完成首版交付文档：正式交付和完成证据。** [28 首版交付](docs/28-release-readiness.md) 列出 170 项装备/法术、300 项战技、60 张经典图、正常新档、SQLite 备份/恢复/迁移、需求覆盖矩阵、自动八年结果和已知边界；经典图有逐图 adaptation report。真实多人压力和 40–60 小时人工试玩明确列为部署验收，不用测试总数替代。
 
 ## 已完成或已明确排除的内容
