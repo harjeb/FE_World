@@ -188,7 +188,7 @@ export function CampPage() {
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 13, color: '#4E473D' }}>第 {date.year} 年 · 第 {date.season} / {SEASONS_PER_YEAR} 季（{seasonLeft > 0 ? `本季还剩 ${seasonLeft} 日` : '本季最后一天'}）</div>
+          <div style={{ fontSize: 13, color: '#4E473D' }}>距下次补货 {seasonLeft + 1} 日</div>
           <div className="seasons" aria-hidden="true">
             {Array.from({ length: SEASONS_PER_YEAR }, (_, i) => <i key={i} className={i + 1 < date.season ? 'past' : i + 1 === date.season ? 'cur' : ''} />)}
           </div>

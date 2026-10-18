@@ -1,19 +1,21 @@
-// 个人日历 (docs/00 §2): every label comes from the shared dateOf, so the page and the server agree.
+// 个人日历 (docs/00 §2): every label comes from the shared dateOf/formatEraDate, so the page and the
+// server agree. Actual dates render in the 星辉历 era (星辉历 1001年1月1日); the internal relative
+// year/season stay logic-only and are not shown on real dates.
 // Actions show where they move the date and which arena days they pass (docs/00 §2「跨多日行动」、§11).
-import { DAYS_PER_SEASON, dateOf, nextArenaDay } from '@common/game/calendar.ts';
+import { DAYS_PER_SEASON, dateOf, formatEraDate, nextArenaDay } from '@common/game/calendar.ts';
 import { session } from '../api/session.ts';
 
 export const dateLabel = (day: number): string => dateOf(day).label;
 
+// Actual date without the arena-day suffix: 星辉历 1001年1月1日.
 export function plainDate(day: number): string {
-  const d = dateOf(day);
-  return `第 ${d.year} 年 · 第 ${d.season} 季 · 第 ${d.dayOfSeason} 日`;
+  return formatEraDate(dateOf(day));
 }
 
-// For narrow table cells: 2 年 3 季 30 日.
+// For narrow table cells: 1001年1月1日 (no era prefix).
 export function shortDate(day: number): string {
   const d = dateOf(day);
-  return `${d.year} 年 ${d.season} 季 ${d.dayOfSeason} 日`;
+  return `${d.eraYear}年${d.month}月${d.monthDay}日`;
 }
 
 // Where `days` of action from `day` lands, and the arena days strictly in between (the landing day

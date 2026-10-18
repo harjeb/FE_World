@@ -1,16 +1,46 @@
 // The personal calendar (docs/00 §2.1–2.2): 500 days a year, 125 days a season, 4 seasons. Time moves
 // only when an action spends days; nothing is handed out by the wall clock.
-
+//
+// Display layer: every actual date is shown in the in-world 星辉历 era. Year 1 (internal, relative —
+// all gameplay logic and indexes stay on it) renders as 星辉历 1001年1月1日. Each season (quarter) is
+// split into 3 fictional months of 42/42/41 days, giving 12 months × ~42 days per 500-day year.
 export const DAYS_PER_SEASON = 125;
 export const SEASONS_PER_YEAR = 4;
 export const DAYS_PER_YEAR = DAYS_PER_SEASON * SEASONS_PER_YEAR;
+
+// 星辉历 display constants. ERA_BASE_YEAR maps internal year 1 → era year 1001; internal date.year
+// itself is never shifted, so enemy interpolation, class-open years and saves stay untouched.
+export const ERA_NAME = '星辉历';
+export const ERA_BASE_YEAR = 1001;
+export const MONTHS_PER_SEASON = 3;
+export const MONTHS_PER_YEAR = MONTHS_PER_SEASON * SEASONS_PER_YEAR;
+// Month lengths inside one season (quarter): 42 + 42 + 41 = 125.
+export const MONTH_DAYS_PER_SEASON = [42, 42, 41] as const;
+// Fictional month names, season-major order (3 per season). Flavor only; ids/lengths never change.
+export const MONTH_NAMES = [
+  '新月', '芽月', '风月',
+  '雨月', '炎月', '辉月',
+  '露月', '丰月', '霜月',
+  '雾月', '雪月', '寂月',
+] as const;
+
+// Cumulative start offsets of the 3 months inside a season, derived from MONTH_DAYS_PER_SEASON.
+const MONTH_STARTS = [0, MONTH_DAYS_PER_SEASON[0], MONTH_DAYS_PER_SEASON[0] + MONTH_DAYS_PER_SEASON[1]] as const;
+
+// `星辉历 1001年1月1日` — the canonical era rendering shared by backend payloads and the frontend.
+export function formatEraDate(date: Pick<CalendarDate, 'eraYear' | 'month' | 'monthDay'>): string {
+  return `${ERA_NAME} ${date.eraYear}年${date.month}月${date.monthDay}日`;
+}
 
 // Arena days sit at the end of each game month, when the month-end snapshot is taken (docs/07).
 export const ARENA_DAY_OF_MONTH = DAYS_PER_SEASON;
 // The annual 大竞技场 window opens at the end of each year (docs/00 §9.4.2).
 export const FESTIVAL_DAY = DAYS_PER_YEAR;
 
-export interface CalendarDate { year: number; season: number; dayOfSeason: number; dayOfMonth: number; label: string }
+export interface CalendarDate {
+  year: number; season: number; dayOfSeason: number; dayOfMonth: number;
+  era: string; eraYear: number; month: number; monthDay: number; label: string;
+}
 
 export function dateOf(day: number): CalendarDate {
   const year = Math.floor(day / DAYS_PER_YEAR) + 1;
@@ -19,9 +49,15 @@ export function dateOf(day: number): CalendarDate {
   const dayOfSeason = (withinYear % DAYS_PER_SEASON) + 1;
   const dayOfMonth = (day % DAYS_PER_SEASON) + 1;
   const festival = dayOfMonth === ARENA_DAY_OF_MONTH;
+  // Locate the fictional month within the season: 1–42 → 1st, 43–84 → 2nd, 85–125 → 3rd.
+  let monthInSeason = MONTH_STARTS.length - 1;
+  while (dayOfSeason - 1 < MONTH_STARTS[monthInSeason]) monthInSeason--;
+  const month = (season - 1) * MONTHS_PER_SEASON + monthInSeason + 1;
+  const monthDay = dayOfSeason - MONTH_STARTS[monthInSeason];
   return {
     year, season, dayOfSeason, dayOfMonth,
-    label: `第 ${year} 年 · 第 ${season} 季 · 第 ${dayOfSeason} 日${festival ? ' · 竞技场日' : ''}`,
+    era: ERA_NAME, eraYear: year + ERA_BASE_YEAR - 1, month, monthDay,
+    label: `${formatEraDate({ eraYear: year + ERA_BASE_YEAR - 1, month, monthDay })}${festival ? ' · 竞技场日' : ''}`,
   };
 }
 
