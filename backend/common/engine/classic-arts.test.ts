@@ -30,7 +30,8 @@ function setup(id: string, chosen?: WeaponId) {
   }
   me.id = 'me'; me.side = 'player'; me.pos = [3, 4];
   me.classId = CATALOG_CLASS_IDS.find(c => CLASSES[c].weapons[WEAPONS[weapon].type])!;
-  me.ranks = { [WEAPONS[weapon].type]: 'SSS' }; me.weapons = [weapon];
+  // 多熟练度武器（巨剑、长柄刀等）另列的副类熟练度也须达标。
+  me.ranks = { [WEAPONS[weapon].type]: 'SSS', ...Object.fromEntries((WEAPONS[weapon].requires ?? []).map(req => [req.type, 'SSS'])) }; me.weapons = [weapon];
   me.weaponInstances = [{ id: weapon, durability: 200, maxDurability: 200, refinement: link?.minimumRefinement ?? 0 }];
   me.arts = link ? [] : [id];
   foe.id = 'foe'; foe.side = 'enemy'; foe.pos = [3 + art.range[0], 4]; foe.classId = 'swordsman';

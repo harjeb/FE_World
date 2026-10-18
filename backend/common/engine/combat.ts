@@ -1,5 +1,5 @@
 import { WEAPONS, triangle } from '../data/weapons.ts';
-import type { WeaponId } from '../data/weapons.ts';
+import type { Weapon, WeaponAilment, WeaponId } from '../data/weapons.ts';
 import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import type { ArtMechanics } from '../data/art-mechanics.ts';
 import { TERRAINS } from '../maps/map.ts';
@@ -19,6 +19,8 @@ export interface SideForecast {
   attackSpeed: number; attack: number; damage: number; rawDamage: number; hit: number; crit: number; followUpCrit: number;
   strikes: number; canAttack: boolean; doubles: boolean; triangle: -1 | 0 | 1; effective: boolean;
   terrain: TerrainBonus; barrier: number; protected: boolean; netherProtected: boolean; silenceable: boolean;
+  // 武器自身的普通攻击效果（战技另按战技规则）：反噬概率、命中附加状态。
+  backlash: number; afflicts: WeaponAilment[]; locks: boolean;
 }
 export interface StrikeSpec { side: 'attacker' | 'defender'; followUp: boolean; chance?: number }
 export interface Forecast {
@@ -35,17 +37,18 @@ export interface CombatArt extends ArtMechanics {
 }
 export interface CombatProgress {
   aHp: number; dHp: number; attackerHit: boolean; counterReduced: boolean; barrierA: number; barrierD: number;
-  counterBlocked: boolean; defenderNoFollow: boolean; misses: number; attacks: number; stopped: boolean;
+  counterBlocked: boolean; defenderNoFollow: boolean; attackerNoFollow: boolean; misses: number; attacks: number; stopped: boolean;
   defenseLoss: number; speedLoss: number; netherDisabled: boolean; forced: -1 | 0 | 1;
 }
 export function combatProgress(f: Forecast): CombatProgress {
   return { aHp: f.attacker.hp, dHp: f.defender.hp, attackerHit: false, counterReduced: false,
     barrierA: f.attacker.barrier, barrierD: f.defender.barrier, counterBlocked: false,
-    defenderNoFollow: !!f.art?.sealFollowUp && !f.art.sealOnHit, misses: 0, attacks: 0, stopped: false,
+    defenderNoFollow: !!f.art?.sealFollowUp && !f.art.sealOnHit, attackerNoFollow: false, misses: 0, attacks: 0, stopped: false,
     defenseLoss: 0, speedLoss: 0, netherDisabled: false, forced: -1 };
 }
 export function skipStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress): boolean {
-  return p.stopped || p.aHp <= 0 || p.dHp <= 0 || (spec.side === 'defender' && (p.counterBlocked
+  return p.stopped || p.aHp <= 0 || p.dHp <= 0 || (spec.side === 'attacker' && spec.followUp && p.attackerNoFollow)
+    || (spec.side === 'defender' && (p.counterBlocked
     || (spec.followUp && (p.defenderNoFollow || f.defender.attackSpeed - p.speedLoss - f.attacker.attackSpeed < 4))));
 }
 export function strikeRates(f: Forecast, spec: StrikeSpec, p: CombatProgress) {
@@ -55,6 +58,7 @@ export function strikeRates(f: Forecast, spec: StrikeSpec, p: CombatProgress) {
     hit: guaranteed ? 100 : clamp(me.hit + (art?.hitAfterMiss ?? 0) * p.misses),
     crit: spec.followUp ? me.followUpCrit : me.crit,
     proc: art?.proc && (!spec.followUp || art.proc.followUp) && (art.proc.when !== 'foe_full' || p.dHp === f.defender.maxHp) ? art.procChance ?? 0 : 0,
+    backlash: me.backlash,
   };
 }
 export function strikeDamage(f: Forecast, side: StrikeSpec['side'], critical: boolean, p: CombatProgress, followUp = false, proc = false): number {
@@ -69,12 +73,19 @@ export function strikeDamage(f: Forecast, side: StrikeSpec['side'], critical: bo
   if (side === 'attacker' && art?.nonlethal && p.dHp >= 2) damage = Math.min(damage, p.dHp - 1);
   return damage;
 }
-export interface StrikeResolution { damage: number; hpAfter: number; heal: number; shield: boolean; afflicted: boolean }
+export interface StrikeResolution { damage: number; hpAfter: number; heal: number; shield: boolean; afflicted: boolean; backlash: boolean; inflicted: boolean }
 // Runtime rolls and exact forecast branches both use this state transition.
-export function resolveStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress, hit: boolean, critical: boolean, proc = false, block = false, afflict = false): StrikeResolution {
-  const isA = spec.side === 'attacker', art = f.art;
+export function resolveStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress, hit: boolean, critical: boolean, proc = false, block = false, afflict = false, backlash = false): StrikeResolution {
+  const isA = spec.side === 'attacker', art = f.art, me = f[spec.side];
   if (spec.chance !== undefined) p.forced = 1;
   const damage = hit ? strikeDamage(f, spec.side, critical, p, spec.followUp, proc) : 0;
+  if (hit && backlash) {
+    // 反噬：这一击的伤害改由出手者承受；不朽盾照常保命，保命后交战结束。
+    let after = Math.max(0, (isA ? p.aHp : p.dHp) - damage), shield = false;
+    if (after === 0 && me.protected) { after = 1; shield = true; p.stopped = true; }
+    if (isA) { p.aHp = after; p.attacks++; } else p.dHp = after;
+    return { damage, hpAfter: after, heal: 0, shield, afflicted: false, backlash: true, inflicted: false };
+  }
   const before = isA ? p.dHp : p.aHp;
   let after = Math.max(0, before - damage), shield = false, heal = 0;
   if (hit) {
@@ -82,6 +93,10 @@ export function resolveStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress, 
     if (isA) { p.attackerHit = true; p.barrierD = 0; }
     else { p.barrierA = 0; if (!art?.reductionOnHit || p.attackerHit) p.counterReduced = true; }
   }
+  // 普通攻击与反击按武器自身的命中附加；主动战技只按战技自己的规则。
+  const weaponRules = !isA || !art;
+  const inflicted = hit && weaponRules && after > 0 && !shield && me.afflicts.length > 0;
+  if (inflicted && me.locks) { if (isA) p.defenderNoFollow = true; else p.attackerNoFollow = true; }
   if (isA) {
     p.dHp = after; p.attacks++;
     if (!hit) { p.misses++; if (art?.counterBlockOnMiss) p.counterBlocked = true; }
@@ -97,7 +112,7 @@ export function resolveStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress, 
       if (art?.onHit?.stripProtection) p.netherDisabled = true;
     }
   } else p.aHp = after;
-  return { damage, hpAfter: after, heal, shield, afflicted: hit && afflict && after > 0 && !shield };
+  return { damage, hpAfter: after, heal, shield, afflicted: hit && afflict && after > 0 && !shield, backlash: false, inflicted };
 }
 export function forecastOnHit(f: Forecast): (StrikeSpec & { damage: number; criticalDamage: number; maxDamage: number; criticalMaxDamage: number })[] {
   const result: (StrikeSpec & { damage: number; criticalDamage: number; maxDamage: number; criticalMaxDamage: number })[] = [];
@@ -118,16 +133,19 @@ export function terrainBonus(state: BattleState, unit: UnitState, [x, y]: Point)
   const t = TERRAINS[state.map.tiles[y][x]], applies = classOf(unit).moveType !== 'flying';
   return { name: t.name, avoid: applies ? t.avoid : 0, def: applies ? t.def : 0, applies };
 }
+export function isMagicWeapon(w: Weapon): boolean {
+  return !!w.magic || w.type === 'tome' || w.type === 'dragon';
+}
 export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: WeaponId | null, pos: Point = unit.pos) {
   const w = weaponId ? WEAPONS[weaponId] : null, s = artStats(unit);
   const mods = skillMods(state, { unit, pos, weapon: w, moved: unit.movedTurn === state.turn });
   const as = attackSpeed(unit, weaponId);
   return {
-    attack: w ? ((w.type === 'tome' || w.type === 'dragon') ? s.mag : s.str) + w.might + mods.attack + artBonus(unit, 'attack') : 0,
+    attack: w ? (isMagicWeapon(w) ? s.mag : s.str) + w.might + mods.attack + artBonus(unit, 'attack') : 0,
     hit: w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + mods.hit + artBonus(unit, 'hit') : 0,
     crit: w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(unit, 'crit') : 0,
     attackSpeed: as + mods.attackSpeed + artBonus(unit, 'as'),
-    avoid: as * 2 + s.lck + terrainBonus(state, unit, pos).avoid + mods.avoid + artBonus(unit, 'avoid'),
+    avoid: as * 2 + s.lck + terrainBonus(state, unit, pos).avoid + mods.avoid + artBonus(unit, 'avoid') + (w?.bonus?.avoid ?? 0),
   };
 }
 function matches(unit: UnitState, kind: NonNullable<ArtMechanics['effective']>[number]): boolean {
@@ -135,22 +153,36 @@ function matches(unit: UnitState, kind: NonNullable<ArtMechanics['effective']>[n
   return kind === 'flying' || kind === 'mounted' ? c.moveType === kind : kind === 'armored' ? c.armored
     : kind === 'beast' || kind === 'dragon' ? c.route === kind : !!unit.tags?.includes('demon');
 }
-function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null, art?: CombatArt, incoming?: CombatArt): SideForecast {
+export function weaponEffective(w: Weapon | null, foe: UnitState): boolean {
+  if (!w) return false;
+  const c = classOf(foe);
+  return !!w.effective?.includes(c.moveType) || (c.armored && !!w.effective?.includes('armored'))
+    || !!w.effectiveRoutes?.some(route => route === c.route);
+}
+function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null, role: StrikeSpec['side'], art?: CombatArt, incoming?: CombatArt): SideForecast {
   const w = me.weapon, fw = foe.weapon, s = artStats(me.unit), fs = artStats(foe.unit);
-  const tri = w && fw ? triangle(w.type, fw.type) : 0;
-  const effective = !!w?.effective?.includes(classOf(foe.unit).moveType) || (classOf(foe.unit).armored && !!w?.effective?.includes('armored'))
-    || !!w?.effectiveRoutes?.some(route => route === classOf(foe.unit).route) || !!art?.effective?.some(kind => matches(foe.unit, kind));
+  // 逆克制：任一方持逆克制武器时本次克制反转，双方都持有则抵消。
+  const raw = w && fw ? triangle(w.type, fw.type) : 0, tri = raw && !!w?.reaver !== !!fw?.reaver ? -raw as -1 | 1 : raw;
+  const effective = weaponEffective(w, foe.unit) || !!art?.effective?.some(kind => matches(foe.unit, kind));
   const mods = skillMods(state, me), fm = skillMods(state, foe), am = art?.mods, im = incoming?.foeMods;
-  const magic = art?.magic || w?.type === 'tome' || w?.type === 'dragon';
-  const attack = w ? (magic ? s.mag : s.str) + (w.might + tri) * (effective ? 3 : 1) + mods.attack + artBonus(me.unit, 'attack') + (art?.might ?? 0) + (am?.attack ?? 0) + (im?.attack ?? 0) : 0;
+  // 战技按战技自己的伤害类型；普通攻击按武器（魔法武器、法术书与龙石为魔力）。
+  const magic = art ? !!art.magic || w?.type === 'tome' || w?.type === 'dragon' : !!w && isMagicWeapon(w);
+  const attack = w ? (magic ? s.mag : s.str) + (w.might + tri) * (effective ? 3 : 1) + mods.attack + artBonus(me.unit, 'attack') + (art?.might ?? 0) + (am?.attack ?? 0) + (im?.attack ?? 0)
+    + (role === 'defender' ? w.guard?.attack ?? 0 : 0) : 0;
   const ft = terrainBonus(state, foe.unit, foe.pos), foeAm = incoming?.mods, foeIm = art?.foeMods;
-  const protection = Math.max(0, (magic ? fs.res + fm.res + (foeAm?.res ?? 0) + (foeIm?.res ?? 0) : fs.def + fm.def + (foeAm?.def ?? 0) + (foeIm?.def ?? 0)) - (art?.pierce ?? 0)) + (art?.ignoreTerrain ? 0 : ft.def);
+  const defense = magic ? fs.res + fm.res + (foeAm?.res ?? 0) + (foeIm?.res ?? 0) + (fw?.bonus?.res ?? 0)
+    : fs.def + fm.def + (foeAm?.def ?? 0) + (foeIm?.def ?? 0) + (role === 'attacker' ? fw?.guard?.def ?? 0 : 0);
+  const protection = Math.max(0, defense - (art?.pierce ?? 0)) + (art?.ignoreTerrain ? 0 : ft.def);
   const hitRaw = w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + tri * 15 + mods.hit + artBonus(me.unit, 'hit') + (art?.hit ?? 0) + (am?.hit ?? 0) + (im?.hit ?? 0)
-    + (foe.unit.artEffects?.scent?.includes(me.unit.side) && art?.id !== 'fe_art_king_fang' ? 10 : 0) : 0;
-  const avoid = attackSpeed(foe.unit, foeWeapon) * 2 + fs.lck + (art?.ignoreTerrain ? 0 : Math.max(0, ft.avoid - (art?.terrainAvoid ?? 0))) + fm.avoid + artBonus(foe.unit, 'avoid') + (foeAm?.avoid ?? 0) + (foeIm?.avoid ?? 0);
+    + (art ? w.artHit ?? 0 : 0) + (foe.unit.artEffects?.scent?.includes(me.unit.side) && art?.id !== 'fe_art_king_fang' ? 10 : 0) : 0;
+  const avoid = attackSpeed(foe.unit, foeWeapon) * 2 + fs.lck + (art?.ignoreTerrain ? 0 : Math.max(0, ft.avoid - (art?.terrainAvoid ?? 0))) + fm.avoid + artBonus(foe.unit, 'avoid') + (foeAm?.avoid ?? 0) + (foeIm?.avoid ?? 0)
+    + (fw?.bonus?.avoid ?? 0);
   const critRaw = w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(me.unit, 'crit') + (art?.crit ?? 0) + (am?.crit ?? 0) + (im?.crit ?? 0) : 0;
   const dodge = fs.lck + artBonus(foe.unit, 'dodge') + (foeAm?.dodge ?? 0) + (foeIm?.dodge ?? 0);
   const rawDamage = w ? attack + mods.damage - protection : 0;
+  // 普通攻击／反击的武器效果；主动战技不叠加武器的附毒或反噬。
+  const weaponRules = role === 'defender' || !art;
+  const afflicts = weaponRules ? (w?.onHit?.statuses ?? []).filter(status => !foe.unit.immunities?.includes(status)) : [];
   return { unit: me.unit.id, weapon: meWeapon, hp: me.unit.hp, maxHp: me.unit.stats.hp,
     attackSpeed: attackSpeed(me.unit, meWeapon) + mods.attackSpeed + artBonus(me.unit, 'as') + (am?.as ?? 0) + (im?.as ?? 0),
     attack, rawDamage, damage: Math.max(0, rawDamage), hit: w ? art?.fixedHit ?? clamp(hitRaw - avoid) : 0,
@@ -158,8 +190,10 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
     followUpCrit: w && !art?.noCrit ? clamp(critRaw + mods.followUpCrit + (art?.followUpCrit ?? 0) - dodge) : 0,
     strikes: 0, canAttack: false, doubles: false, triangle: tri, effective, terrain: terrainBonus(state, me.unit, me.pos),
     barrier: me.unit.artEffects?.barrier?.amount ?? 0, protected: (me.unit.shields ?? 0) > 0,
-    netherProtected: !!me.unit.tags?.includes('nether_protection') && artBonus(me.unit, 'protection') >= 0,
-    silenceable: w?.type === 'tome' || w?.type === 'staff' };
+    netherProtected: !!me.unit.tags?.includes('nether_protection') && artBonus(me.unit, 'protection') >= 0 && !fw?.purify,
+    silenceable: w?.type === 'tome' || w?.type === 'staff',
+    backlash: weaponRules && w?.backlash ? clamp(31 - s.lck) : 0,
+    afflicts, locks: afflicts.some(status => status === 'poison' || status === 'confusion') && !foe.unit.immunities?.includes('follow_up_lock') };
 }
 const TRUE_HIT = Array.from({ length: 101 }, (_, h) => {
   let pairs = 0; for (let s = 0; s < 2 * h && s <= 198; s++) pairs += s <= 99 ? s + 1 : 199 - s;
@@ -185,7 +219,7 @@ export function forecast(state: BattleState, attackerId: string, from: Point, we
   const au = unitById(state, attackerId), du = unitById(state, defenderId), counter = equipped(du);
   const a: Fighter = { unit: au, pos: from, weapon: WEAPONS[weaponId], moved: !samePoint(from, au.pos) || au.movedTurn === state.turn };
   const d: Fighter = { unit: du, pos: du.pos, weapon: counter ? WEAPONS[counter] : null, moved: du.movedTurn === state.turn };
-  const attacker = sideVs(state, a, weaponId, d, counter, art), defender = sideVs(state, d, counter, a, weaponId, undefined, art);
+  const attacker = sideVs(state, a, weaponId, d, counter, 'attacker', art), defender = sideVs(state, d, counter, a, weaponId, 'defender', undefined, art);
   attacker.canAttack = true;
   defender.canAttack = !art?.noCounter && !du.petrified && counter !== null && inRange(du, counter, du.pos, from);
   const blocked = (u: UnitState) => !u.immunities?.includes('follow_up_lock') && u.artEffects?.statuses?.some(s => s === 'poison' || s === 'confusion');
@@ -224,6 +258,9 @@ export function artCombatOptions(state: BattleState, unit: UnitState, to: Point,
     result.might += (m.adjacentAttack ?? 0) * living(state, unit.side).filter(ally => ally.id !== unit.id && !ally.petrified && distance(to, ally.pos) === 1).length;
     if (m.proc) result.procChance = clamp(Math.floor((m.proc.stat ? s[m.proc.stat] / (m.proc.divisor ?? 1) : m.proc.chance ?? 0) + (m.proc.plus ?? 0)));
     if (m.forceChance) result.forceProbability = clamp(Math.floor(s[m.forceChance.stat] / m.forceChance.divisor));
+    // 专属武器可替换战技的吸血比例（索雷尔的辉枪：太阳回复100%，不与50%相加）。
+    const drainOverride = WEAPONS[weapon].artDrain?.[art.id];
+    if (drainOverride !== undefined) result.drain = drainOverride;
     if (m.drainPoisonOnly && !checks.foe_poison || unit.immunities?.includes('healing')) result.drain = 0;
     if (m.onHit) {
       result.onHit = { ...m.onHit, statuses: m.onHit.statuses?.filter(status => !target.immunities?.includes(status)) };
@@ -279,19 +316,22 @@ function outcomes(f: Forecast): Tally {
       for (const field of Object.keys(total) as (keyof Tally)[]) total[field] += q * t[field];
     };
     const chance = spec.chance === undefined ? 1 : p.forced < 0 ? spec.chance / 100 : p.forced;
-    const rates = strikeRates(f, spec, p), hit = trueHit(rates.hit), crit = rates.crit / 100;
+    const rates = strikeRates(f, spec, p), hit = trueHit(rates.hit), crit = rates.crit / 100, backlash = rates.backlash / 100;
     add(1 - chance, spec.chance === undefined ? p : { ...p, forced: 0 });
-    const branch = (q: number, hit: boolean, critical = false, proc = false, block = false, afflict = false) => {
-      if (q <= 0) return; const next = { ...p }; resolveStrike(f, spec, next, hit, critical, proc, block, afflict); add(q, next);
+    const branch = (q: number, hit: boolean, critical = false, proc = false, block = false, afflict = false, rebound = false) => {
+      if (q <= 0) return; const next = { ...p }; resolveStrike(f, spec, next, hit, critical, proc, block, afflict, rebound); add(q, next);
     };
     branch(chance * (1 - hit), false);
     const block = spec.side === 'attacker' ? (f.art?.counterBlockOnHit ?? 0) / 100 : 0;
     const afflict = spec.side === 'attacker' && f.art?.onHit ? (f.art.onHit.chance ?? 100) / 100 : 0;
-    for (const [critical, cq] of [[false, 1 - crit], [true, crit]] as const)
+    for (const [critical, cq] of [[false, 1 - crit], [true, crit]] as const) {
+      // 反噬只来自武器的普通攻击，与战技的触发／封锁／附加互斥。
+      branch(chance * hit * cq * backlash, true, critical, false, false, false, true);
       for (const [proc, pq] of [[false, 1 - rates.proc / 100], [true, rates.proc / 100]] as const)
         for (const [blocked, bq] of [[false, 1 - block], [true, block]] as const)
           for (const [afflicted, aq] of [[false, 1 - afflict], [true, afflict]] as const)
-            branch(chance * hit * cq * pq * bq * aq, true, critical, proc, blocked, afflicted);
+            branch(chance * hit * cq * (1 - backlash) * pq * bq * aq, true, critical, proc, blocked, afflicted);
+    }
     memo.set(key, total); return total;
   };
   return visit(0, combatProgress(f));

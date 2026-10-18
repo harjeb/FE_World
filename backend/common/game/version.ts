@@ -1,10 +1,12 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v6';
+export const RULESET_VERSION = 'rules-v7';
+// v17 / rules-v7: special equipment effects (magic weapons, poison, backlash, reaver, purify, guard and
+// avoid/res bonuses, multi-rank requirements).
 // v16 / rules-v6: explicit classic-art mechanics, shared probabilistic forecast and strike resolution.
 // Finish active runs/battles before deployment; prior replays remain frozen only.
-export const CATALOG_VERSION = 16;
+export const CATALOG_VERSION = 17;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

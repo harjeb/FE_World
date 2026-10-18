@@ -61,9 +61,11 @@ export function effectiveLevel(unit: UnitState): number {
 
 type WeaponUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'statuses' | 'artEffects' | 'bookInstances'>;
 
+// 主类别须有现职业权限并达到熟练度；武器另列的熟练度也全部达标（副类可来自已学经历）。
 export function canWield(unit: WeaponUser, id: WeaponId): boolean {
   const w: Weapon = WEAPONS[id];
-  return CLASSES[unit.classId].weapons[w.type] !== undefined && rankAtLeast(unit.ranks[w.type], w.rank);
+  return CLASSES[unit.classId].weapons[w.type] !== undefined && rankAtLeast(unit.ranks[w.type], w.rank)
+    && (w.requires ?? []).every(req => rankAtLeast(unit.ranks[req.type], req.rank));
 }
 
 export function isAsleep(unit: Pick<UnitState, 'statuses'>): boolean {
@@ -87,6 +89,14 @@ export function canUseWeapon(unit: WeaponUser, id: WeaponId): boolean {
 
 export function hasCurableStatus(unit: UnitState): boolean {
   return !!unit.statuses?.sleep || (unit.statuses?.silence ?? 0) > 0 || (unit.statuses?.berserk ?? 0) > 0 || !!unit.artEffects?.statuses?.length || !!unit.artEffects?.buffs?.some(b => b.amount < 0);
+}
+
+// 受到伤害即醒；返回是否真的叫醒了。
+export function wake(unit: UnitState): boolean {
+  if (!unit.statuses?.sleep) return false;
+  delete unit.statuses.sleep;
+  if (Object.keys(unit.statuses).length === 0) delete unit.statuses;
+  return true;
 }
 
 export function cureStatuses(unit: UnitState, events: BattleEvent[] = []): ('sleep' | 'silence' | 'berserk')[] {

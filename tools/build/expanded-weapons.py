@@ -5,14 +5,36 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 data = json.loads((ROOT / 'docs/data/fw-equipment-expansion.json').read_text(encoding='utf-8'))
+MOVE_TAGS = {'flying', 'mounted', 'armored'}
+ROUTE_TAGS = {'beast', 'dragon'}
 rows = []
 for weapon in data['weapons']:
     project = weapon['project']
-    rows.append((weapon['id'], {
+    effects = dict(project.get('effects', {}))
+    tags = project['effectiveTags']
+    assert set(tags) <= MOVE_TAGS | ROUTE_TAGS, weapon['id']
+    row = {
         'name': weapon['name'], 'type': weapon['type'], 'rank': project['rank'],
         **{key: project[key] for key in ['might', 'hit', 'weight', 'crit', 'range', 'maxDurability']},
-        'note': weapon.get('effectSummary', ''),
-    }))
+    }
+    if [t for t in tags if t in MOVE_TAGS]:
+        row['effective'] = [t for t in tags if t in MOVE_TAGS]
+    if [t for t in tags if t in ROUTE_TAGS]:
+        row['effectiveRoutes'] = [t for t in tags if t in ROUTE_TAGS]
+    if project['damageType'] == 'magic':
+        row['magic'] = True
+    if project['avoid']:
+        effects['bonus'] = {**effects.get('bonus', {}), 'avoid': project['avoid']}
+    # The main type's rank is `rank`; every further listed proficiency must also be met (AND rule).
+    extra = [req for req in project['rankRequirements'] if req['type'] != weapon['type']]
+    assert len(extra) == len(project['rankRequirements']) - 1, weapon['id']
+    if extra:
+        row['requires'] = extra
+    if project['exclusiveArts']:
+        row['exclusiveArts'] = project['exclusiveArts']
+    row.update(effects)
+    row['note'] = weapon.get('effectSummary', '')
+    rows.append((weapon['id'], row))
 links = [{key: link[key] for key in ['artId', 'projectWeaponId', 'minimumRefinement']}
          for link in data['equipmentArtLinks']]
 assert len(links) == len({row['artId'] for row in links}) == 36

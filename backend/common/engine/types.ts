@@ -196,7 +196,8 @@ export type ActAction =
 // Both end the battle as a loss.
 export type Action = ActAction | { type: 'endPhase' } | { type: 'retreat' } | { type: 'surrender' };
 
-export interface Strike { by: string; target: string; hit: boolean; crit: boolean; damage: number; hpAfter: number; byHpAfter?: number; proc?: boolean }
+// backlash: 反噬，这一击的伤害落在出手者身上（hpAfter 仍是目标 HP，byHpAfter 是出手者 HP）。
+export interface Strike { by: string; target: string; hit: boolean; crit: boolean; damage: number; hpAfter: number; byHpAfter?: number; proc?: boolean; backlash?: boolean }
 
 export type BattleEvent =
   | { t: 'move'; unit: string; path: Point[] }

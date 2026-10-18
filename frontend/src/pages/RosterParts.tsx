@@ -167,7 +167,9 @@ export function weaponSpec(id: WeaponId): string {
   const w = WEAPONS[id];
   if (w.type === 'staff') return `杖 ${w.rank} · ${w.note ?? ''}`;
   const range = w.range[0] === w.range[1] ? `${w.range[0]}` : `${w.range[0]}–${w.range[1]}`;
-  return `${WEAPON_TYPE_NAMES[w.type]} ${w.rank} · 威力 ${w.might} · 命中 ${w.hit} · 重量 ${w.weight} · 必杀 ${w.crit} · 射程 ${range}${w.note ? ` · ${w.note}` : ''}`;
+  // 多熟练度武器另列的副类要求（全部达标才能用）。
+  const extra = (w.requires ?? []).map(req => `＋${WEAPON_TYPE_NAMES[req.type]} ${req.rank}`).join('');
+  return `${WEAPON_TYPE_NAMES[w.type]} ${w.rank}${extra} · 威力 ${w.might} · 命中 ${w.hit} · 重量 ${w.weight} · 必杀 ${w.crit} · 射程 ${range}${w.magic ? ' · 魔力伤害' : ''}${w.note ? ` · ${w.note}` : ''}`;
 }
 
 export const artName = (id: string) => WEAPON_ART_BY_ID.get(id as never)?.name ?? id;

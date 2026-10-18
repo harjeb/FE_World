@@ -133,7 +133,7 @@ export function CombatScene({ show }: { show: CombatShow }) {
                   {last.hit ? last.damage : 'MISS'}
                 </span>
                 <span className="dmg-label" style={{ left: strikerSide === 'ally' ? 214 : 524 }}>
-                  {!last.hit ? '未命中' : `${last.proc ? '战技触发 · ' : ''}${last.crit ? '必杀！' : '命中'}`}
+                  {!last.hit ? '未命中' : last.backlash ? '反噬！伤害落在自己身上' : `${last.proc ? '战技触发 · ' : ''}${last.crit ? '必杀！' : '命中'}`}
                 </span>
               </Fragment>
             )}
@@ -143,7 +143,7 @@ export function CombatScene({ show }: { show: CombatShow }) {
         <ol className="seq" aria-label="出手顺序">
           {event.strikes.map((s, i) => {
             const by = find(s.by);
-            const result = !s ? '' : !s.hit ? '未命中' : s.crit ? `必杀，${s.damage} 伤害` : `命中，${s.damage} 伤害`;
+            const result = !s ? '' : !s.hit ? '未命中' : s.backlash ? `反噬，自己承受 ${s.damage} 伤害` : s.crit ? `必杀，${s.damage} 伤害` : `命中，${s.damage} 伤害`;
             return (
               <li key={i} className={i < shown ? 'done' : 'next'}>
                 <b className="n">{i + 1}</b>

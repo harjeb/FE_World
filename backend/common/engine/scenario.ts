@@ -1,6 +1,6 @@
 import { createEnemy } from '../game/enemies.ts';
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
-import { attackWeapons, cellKey, classOf, inBounds, living, samePoint, unitAt } from './units.ts';
+import { attackWeapons, cellKey, classOf, inBounds, living, samePoint, unitAt, wake } from './units.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import { EngineError } from './types.ts';
 import type {
@@ -210,11 +210,7 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
     for (const target of targets) {
       if (action.kind === 'damage') {
         target.hp = Math.max(0, target.hp - Math.max(1, action.amount));
-        if (target.statuses?.sleep) {
-          delete target.statuses.sleep;
-          if (Object.keys(target.statuses).length === 0) delete target.statuses;
-          events.push({ t: 'status', unit: target.id, status: 'sleep', active: false });
-        }
+        if (wake(target)) events.push({ t: 'status', unit: target.id, status: 'sleep', active: false });
         if (target.hp === 0) {
           target.alive = false;
           events.push({ t: 'defeated', unit: target.id });

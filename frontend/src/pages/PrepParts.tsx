@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CLASSES } from '@common/data/classes.ts';
 import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
-import { STAT_KEYS, STAT_NAMES, rankAtLeast } from '@common/data/types.ts';
+import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES, rankAtLeast } from '@common/data/types.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from '@common/game/items.ts';
@@ -49,7 +49,9 @@ export function cannotWield(unit: ServerUnit, weapon: WeaponId): string | null {
   const w = WEAPONS[weapon];
   const cap = CLASSES[unit.classId as keyof typeof CLASSES]?.weapons[w.type];
   if (!cap) return `${unit.className}不能用${w.name}`;
-  return rankAtLeast(unit.ranks[w.type], w.rank) ? null : `需要 ${w.rank} 级，现在 ${unit.ranks[w.type] ?? 'E'}`;
+  if (!rankAtLeast(unit.ranks[w.type], w.rank)) return `需要 ${w.rank} 级，现在 ${unit.ranks[w.type] ?? 'E'}`;
+  const missing = (w.requires ?? []).find(req => !rankAtLeast(unit.ranks[req.type], req.rank));
+  return missing ? `另需${WEAPON_TYPE_NAMES[missing.type]} ${missing.rank} 级，现在 ${unit.ranks[missing.type] ?? '无'}` : null;
 }
 
 // Why a 能力药 would be refused for this unit (game/model.ts::useDrug), or null if it can be used.

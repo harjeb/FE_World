@@ -18,7 +18,8 @@ function setup(weapon: WeaponId, refinement = 0) {
   const type = WEAPONS[weapon].type;
   record.classId = CATALOG_CLASS_IDS.find(id => CLASSES[id].weapons[type])!;
   record.weapons = [weapon, weapon];
-  record.ranks = { [type]: 'SSS' };
+  // 另列的副类熟练度（长柄刀、风火轮等）也须达标。
+  record.ranks = { [type]: 'SSS', ...Object.fromEntries((WEAPONS[weapon].requires ?? []).map(req => [req.type, 'SSS'])) };
   record.weaponInstances = [
     { id: weapon, durability: 40, maxDurability: 50, refinement },
     { id: weapon, durability: 20, maxDurability: 40 },

@@ -54,6 +54,17 @@ def audit(items_path=None, skills_path=None):
     expanded = (ROOT / 'backend/common/data/expanded-weapons.ts').read_text(encoding='utf-8')
     expanded_rows = dict((m[0], json.loads(m[1])) for m in re.findall(r'^  "([^"]+)": (\{.*\}),?$', expanded, re.M))
     check(set(expanded_rows) == {w['id'] for w in weapons}, 'Generated 61 weapon IDs differ')
+    for row in weapons:
+        p, generated = row['project'], expanded_rows[row['id']]
+        moves = [t for t in p['effectiveTags'] if t in ('flying', 'mounted', 'armored')]
+        routes = [t for t in p['effectiveTags'] if t in ('beast', 'dragon')]
+        check(generated.get('effective', []) == moves and generated.get('effectiveRoutes', []) == routes, 'Effective tags not wired: ' + row['id'])
+        check(generated.get('magic', False) == (p['damageType'] == 'magic'), 'Damage type not wired: ' + row['id'])
+        check(generated.get('bonus', {}).get('avoid', 0) == p['avoid'], 'Avoid bonus not wired: ' + row['id'])
+        check(generated.get('requires', []) == [r for r in p['rankRequirements'] if r['type'] != row['type']], 'Extra proficiency not wired: ' + row['id'])
+        check(generated.get('exclusiveArts', []) == p['exclusiveArts'], 'Exclusive arts not wired: ' + row['id'])
+        for key, value in p.get('effects', {}).items():
+            check(key == 'bonus' or generated.get(key) == value, 'Effect ' + key + ' not wired: ' + row['id'])
     physical_ids = runtime_ids | set(expanded_rows)
     planned_physical = {r['id'] for r in baseline if r['kind'] != 'spellbook'} | {w['id'] for w in weapons}
     check(planned_physical <= physical_ids, 'Runtime is missing planned physical/staff IDs: ' + ', '.join(sorted(planned_physical - physical_ids)))
@@ -171,7 +182,8 @@ def audit(items_path=None, skills_path=None):
             for row in entries + reused:
                 check(row['name'] == original_ids[row['sourceId']]['name'] and row['reference'] == reference(original_ids[row['sourceId']]), 'Source values or provenance changed')
             print('PASS: all ' + str(len(original)) + ' source ' + key + ' records accounted for; selected/reused fields match')
-    print('PASS: all 170 design template IDs present; 187 runtime rows include 11 additional old weapons, 2 old spellbooks and 4 legacy tome aliases (effects not certified)')
+    print('PASS: all 170 design template IDs present; 187 runtime rows include 11 additional old weapons, 2 old spellbooks and 4 legacy tome aliases')
+    print('PASS: 61 weapon effect fields wired into the runtime table (combat behaviour is covered by engine tests, balance is not certified)')
     print('PASS: short bow, per-book charges, ' + str(len(expected)) + ' equipment/art links, rendered parameters and ' + str(links) + ' local links')
 
 

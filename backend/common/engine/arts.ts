@@ -17,7 +17,8 @@ export type ArtAction = Extract<ActAction, { act: 'art' }>;
 type ArtUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'weaponInstances' | 'statuses' | 'artEffects' | 'bookInstances'>;
 
 export function artWeapon(unit: ArtUser, weapon: WeaponId, art: WeaponArt): boolean {
-  if (!attackWeapons(unit).includes(weapon)
+  // 达格扎的棍棒等专属武器只允许发动列出的战技。
+  if (!attackWeapons(unit).includes(weapon) || (WEAPONS[weapon].exclusiveArts && !WEAPONS[weapon].exclusiveArts!.includes(art.id))
     || !art.weaponCompatibility.includes(WEAPONS[weapon].type)
     || (art.rank && !rankAtLeast(unit.ranks[WEAPONS[weapon].type], art.rank))) return false;
   if (art.unlock.kind !== 'equipment_grant') return true;

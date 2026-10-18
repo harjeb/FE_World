@@ -45,7 +45,7 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
         break;
       case 'combat': {
         const parts = e.strikes.map(s => {
-          const result = !s.hit ? '未命中' : s.crit ? `必杀 ${s.damage}` : `命中 ${s.damage}`;
+          const result = !s.hit ? '未命中' : s.backlash ? `反噬，自己承受 ${s.damage}` : s.crit ? `必杀 ${s.damage}` : `命中 ${s.damage}`;
           return `${name(s.by)} ${result}${s.proc ? '（战技触发）' : ''}${s.byHpAfter !== undefined ? `（自身 HP ${s.byHpAfter}）` : ''}`;
         });
         const weapon = weaponLabel(e.weapons[0]);

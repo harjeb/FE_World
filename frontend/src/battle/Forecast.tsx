@@ -14,6 +14,7 @@ import { displayName } from './names.ts';
 import { Portrait } from './UnitCard.tsx';
 
 const pct = (p: number) => `${Math.round(p * 100)}%`;
+const AILMENT: Record<string, string> = { poison: '中毒', root: '定身', silence: '沉默', confusion: '混乱' };
 
 function terrainNote(side: SideForecast) {
   if (!side.terrain.applies) return '飞行，不受地形加成';
@@ -112,6 +113,10 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         {!d.canAttack && <span className="tag tag-blue">对方无法反击</span>}
         {f.art?.sealFollowUp && <span className="tag tag-blue">{f.art.sealOnHit ? '命中封锁攻速追击；失手时仍可能被追击' : '本次交战封锁攻速追击（无需命中）'}</span>}
         {(a.barrier > 0 || d.barrier > 0) && <span className="tag tag-blue">护鳞已计入第一段命中伤害</span>}
+        {a.backlash > 0 && <span className="tag tag-red">反噬 {a.backlash}%：命中时这一击改由自己承受（不朽盾照常保命）</span>}
+        {d.backlash > 0 && d.canAttack && <span className="tag tag-blue">对方反击反噬 {d.backlash}%</span>}
+        {a.afflicts.length > 0 && <span className="tag tag-brass">命中附加：{a.afflicts.map(s => AILMENT[s]).join('、')}{a.locks ? '（对方不能追击）' : ''}</span>}
+        {d.afflicts.length > 0 && d.canAttack && <span className="tag tag-red">对方命中附加：{d.afflicts.map(s => AILMENT[s]).join('、')}</span>}
       </div>
       <div className="fc-sum">
         <div>

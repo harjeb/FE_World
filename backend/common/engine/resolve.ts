@@ -7,7 +7,7 @@ import { artState, clearArtEffects } from './arts.ts';
 import { addArtBuff, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
-import { cureStatuses, living } from './units.ts';
+import { cureStatuses, living, wake } from './units.ts';
 import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.ts';
 
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
@@ -28,22 +28,21 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
     const rates = strikeRates(f, spec, progress), proc = chance(rates.proc);
     const hit = roll100(state.rng) + roll100(state.rng) < 2 * rates.hit;
     const crit = hit && roll100(state.rng) < rates.crit;
+    const backlash = hit && chance(rates.backlash);
     const block = spec.side === 'attacker' && hit && chance(art?.counterBlockOnHit ?? 0);
     const afflict = spec.side === 'attacker' && hit && !!art?.onHit && chance(art.onHit.chance ?? 100);
-    const resolved = resolveStrike(f, spec, progress, hit, crit, proc, block, afflict);
+    const resolved = resolveStrike(f, spec, progress, hit, crit, proc, block, afflict, backlash);
     attacker.hp = progress.aHp; defender.hp = progress.dHp;
-    if (hit && foe.artEffects?.barrier) { delete foe.artEffects.barrier; artState(foe, events); }
-    if (resolved.damage > 0 && foe.statuses?.sleep) {
-      delete foe.statuses.sleep;
-      if (!Object.keys(foe.statuses).length) delete foe.statuses;
-      events.push({ t: 'status', unit: foe.id, status: 'sleep', active: false });
-    }
+    // 反噬时伤害落在出手者身上，目标既不受击也不消耗屏障。
+    const victim = resolved.backlash ? me : foe;
+    if (hit && !resolved.backlash && foe.artEffects?.barrier) { delete foe.artEffects.barrier; artState(foe, events); }
+    if (resolved.damage > 0 && wake(victim)) events.push({ t: 'status', unit: victim.id, status: 'sleep', active: false });
     if (resolved.shield) {
-      foe.shields = (foe.shields ?? 0) - 1; foe.shieldsUsed = (foe.shieldsUsed ?? 0) + 1;
-      const shieldIndex = foe.items.findIndex(item => item.id === 'immortal_shield');
-      if (shieldIndex >= 0) foe.items.splice(shieldIndex, 1);
-      foe.petrified = true;
-      events.push({ t: 'shield', unit: foe.id });
+      victim.shields = (victim.shields ?? 0) - 1; victim.shieldsUsed = (victim.shieldsUsed ?? 0) + 1;
+      const shieldIndex = victim.items.findIndex(item => item.id === 'immortal_shield');
+      if (shieldIndex >= 0) victim.items.splice(shieldIndex, 1);
+      victim.petrified = true;
+      events.push({ t: 'shield', unit: victim.id });
     }
     if (resolved.afflicted && art?.onHit) {
       for (const status of art.onHit.statuses ?? []) inflictArtStatus(foe, status, events);
@@ -51,9 +50,13 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
       if (art.onHit.debuff) { const b = art.onHit.debuff; addArtBuff(state, foe, art.id, b.stat, b.amount, b.duration, events); }
       if (art.onHit.stripProtection) addArtBuff(state, foe, art.id, 'protection', -1, 'exchange', events);
     }
-    if (resolved.damage > 0) dealt[spec.side] = true;
+    if (resolved.inflicted) {
+      // 武器的命中附加（毒等），持续到受害方自己的阶段结束。
+      for (const status of f[spec.side].afflicts) inflictArtStatus(foe, status, events);
+    }
+    if (resolved.damage > 0 && !resolved.backlash) dealt[spec.side] = true;
     strikes.push({ by: me.id, target: foe.id, hit, crit, damage: resolved.damage, hpAfter: foe.hp,
-      ...(resolved.heal ? { byHpAfter: me.hp } : {}), ...(proc ? { proc: true } : {}) });
+      ...(resolved.heal || resolved.backlash ? { byHpAfter: me.hp } : {}), ...(proc ? { proc: true } : {}), ...(resolved.backlash ? { backlash: true } : {}) });
   }
   [attacker, defender].forEach((u, index) => consumeArtExchange(u, oldBuffs[index], events));
   events.push({
