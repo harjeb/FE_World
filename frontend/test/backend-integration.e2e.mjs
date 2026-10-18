@@ -144,7 +144,7 @@ try {
     await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '.topbar');
     const topbar = await page.evaluate(`document.querySelector('.topbar').innerText.replace(/\\s+/g, ' ')`);
     check('login shows server gold', topbar.includes('13,120'), topbar.slice(0, 120));
-    check('top bar shows the personal date and next event', topbar.includes('第 2 年 · 第 4 季 · 第 125 日') && topbar.includes('今天 · 竞技场日') && !topbar.includes('赛季'), topbar.slice(0, 160));
+    check('top bar shows the personal date and next event', topbar.includes('星辉历 1002年12月41日') && topbar.includes('今天 · 竞技场日') && !topbar.includes('赛季'), topbar.slice(0, 160));
     check('login shows the seeded legion', topbar.includes('军团'), topbar.slice(0, 160));
     // The browser never sends agentModel, so no Agent has checked in yet (stateView.agentLastSeen).
     check('agent chip follows the heartbeat', topbar.includes('Agent 离线') && !topbar.includes('Agent 在线'), topbar.slice(-40));
@@ -169,7 +169,7 @@ try {
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/erin/growth`, '#snap-h');
     for (let i = 0; i < 30 && (await page.evaluate(`document.body.innerText.includes('读取快照中')`)); i++) await sleep(100);
     const snaps = await page.evaluate(`document.querySelector('#snap-h').closest('.panel').innerText.replace(/\\s+/g, ' ')`);
-    check('roster compares real arena snapshots', snaps.includes('2 年 4 季 125 日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
+    check('roster compares real arena snapshots', snaps.includes('1002年12月41日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_erin`, '#eq-h');
     const charm = await page.evaluate(`(() => { const row = [...document.querySelectorAll('tbody tr')].find(r => r.querySelector('th')?.innerText === '魅力'); return row ? [...row.querySelectorAll('td')].map(td => td.innerText.trim()) : null; })()`);
@@ -216,17 +216,17 @@ try {
     await page.click('.act[data-action=rest] button');
     let after = before;
     for (let i = 0; i < 40 && after === before; i++) { await sleep(150); after = await today(); }
-    check('camp rest moves the date one day', before.includes('第 125 日') && after.includes('第 3 年 · 第 1 季 · 第 1 日'), `${before} → ${after}`);
+    check('camp rest moves the date one day', before.includes('1002年12月41日') && after.includes('星辉历 1003年1月1日'), `${before} → ${after}`);
 
     // 离开竞技场日后：顶栏倒数，但未打完的进攻不会被后台扫描吞掉，仍可在竞技场页继续。
     const topbar2 = await page.evaluate(`document.querySelector('.topbar').innerText.replace(/\\s+/g, ' ')`);
-    check('top bar counts down to the next arena day', topbar2.includes('第 3 年 · 第 1 季 · 第 1 日') && topbar2.includes('124 日后'), topbar2.slice(0, 160));
+    check('top bar counts down to the next arena day', topbar2.includes('星辉历 1003年1月1日') && topbar2.includes('124 日后'), topbar2.slice(0, 160));
     const camp2 = await page.evaluate(`document.querySelector('#tasks-h').closest('.panel').innerText.replace(/\\s+/g, ' ')`);
     check('camp keeps the unfinished arena set and counts down', camp2.includes('进攻 0 / 3') && camp2.includes('还有 3 场进攻没打'), camp2.slice(0, 200));
     await page.open(`http://127.0.0.1:${API_PORT}/#/arena`, '#atk-h');
     const arena2 = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
     check('arena still offers the remaining attacks after the date moves',
-      arena2.includes('当日对局') && arena2.includes('已打 0 / 3 场') && arena2.includes('下一个竞技场日：第 3 年 · 第 1 季 · 第 125 日') && !arena2.includes('24:00'),
+      arena2.includes('当日对局') && arena2.includes('已打 0 / 3 场') && arena2.includes('下一个竞技场日：星辉历 1003年3月41日') && !arena2.includes('24:00'),
       arena2.slice(0, 200));
     await page.evaluate(`localStorage.clear()`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
