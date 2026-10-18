@@ -118,7 +118,8 @@ for (const region of [1, 4, 6, 7, 8, 9, 10, 11, 12]) {
   QUESTS.push(
     short(`${prefix}-1`, region, `${name}·边境巡逻`, '击败当地威胁', 'rout'),
     standard(`${prefix}-2`, region, `${name}·据点压制`, '压制当地据点', 'seize', { quest: `${prefix}-1` }),
-    region6(`${prefix}-3`, region, `${name}·地区远征`, '清剿地区守军', [['ore', 6], ['herb', 6]], { quest: `${prefix}-2`, reputation: 100 }),
+    // 前两项共 20+40 声望，远征门槛与之对齐，避免前置锁死（docs/20 §6）。
+    region6(`${prefix}-3`, region, `${name}·地区远征`, '清剿地区守军', [['ore', 6], ['herb', 6]], { quest: `${prefix}-2`, reputation: 60 }),
   );
 }
 ALL_QUESTS.push(...QUESTS.filter(q => !ALL_QUESTS.includes(q)));

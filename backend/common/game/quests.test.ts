@@ -53,3 +53,16 @@ test('reputation tiers sit at the four documented thresholds', () => {
   assert.equal(reputationTier(500).next, null);
   assert.equal(REPEAT_REPUTATION_CAP, 250);
 });
+
+test('every regional quest chain can be finished without a reputation deadlock', () => {
+  for (const region of QUEST_REGIONS) {
+    const quests = questsForRegion(region);
+    const done = new Set<string>();
+    let reputation = 0, progressed = true;
+    while (progressed) {
+      progressed = false;
+      for (const quest of quests) if (questAvailable(quest, { done, reputation })) { done.add(quest.id); reputation += quest.reward.reputation; progressed = true; }
+    }
+    assert.deepEqual(quests.filter(quest => !done.has(quest.id)).map(quest => quest.id), [], `region ${region}`);
+  }
+});
