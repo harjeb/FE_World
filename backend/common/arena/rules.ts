@@ -33,6 +33,7 @@ export interface SnapshotUnit {
   spellbooks?: UnitState['spellbooks'];
   skills?: UnitState['skills'];
   arts?: UnitState['arts'];
+  learnedSpells?: UnitState['learnedSpells'];
 }
 
 export interface DefenseSlot { unit: SnapshotUnit; pos: Point; behavior: Behavior }
@@ -160,6 +161,7 @@ function fromSnapshot(snap: SnapshotUnit, side: Side, id: string, pos: Point, ex
     bookInstances: snap.bookInstances?.map(row => ({ ...row })),
     spellbooks: snap.spellbooks?.map(row => ({ ...row })),
     skills: snap.skills ? [...snap.skills] : undefined, arts: snap.arts ? [...snap.arts] : undefined,
+    learnedSpells: snap.learnedSpells ? [...snap.learnedSpells] : undefined,
     skill: character.skill, acted: false, alive: true, ...extra,
   };
 }

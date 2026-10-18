@@ -1,21 +1,29 @@
 import { RANKS } from '../data/types.ts';
-import type { StatKey } from '../data/types.ts';
+import type { Rank, StatKey } from '../data/types.ts';
+import { SPELLBOOKS } from '../data/spellbooks.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
+
+// 职业法术书（cast 用）在仓库里以 spellbook:<法术 id> 存放，避免与同名的魔道书武器（火焰等）混淆；
+// manual:<法术 id> 是限量法术的教材，用后为该角色解锁这门法术。
+export type SpellbookItemKey = `spellbook:${string}`;
+export type ManualItemKey = `manual:${string}`;
 
 // Everything that can sit in the warehouse. Battle items the engine understands (伤药) reuse the
 // engine's ItemId; the rest exist only for the economy (docs/09「物品」, prices are drafts).
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
   | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
-  | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal';
+  | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal'
+  | SpellbookItemKey | ManualItemKey;
 
 export interface GameItem {
   name: string;
-  kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food';
+  kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food' | 'spellbook' | 'manual';
   price: number;
-  // Weapons carry the engine id; 伤药 uses uses; 能力药 names the stat and amount.
+  // Weapons carry the engine id; 伤药 uses uses; 能力药 names the stat and amount; 法术书／教材写法术 id。
   weapon?: WeaponId;
   item?: ItemId;
+  spell?: string;
   uses?: number;
   stat?: StatKey;
   amount?: number;
@@ -24,19 +32,34 @@ export interface GameItem {
 }
 
 // Base weapon price: a rough function of might and rank, enough for a working shop (docs/09 open).
-function weaponPrice(id: WeaponId): number {
-  const w = WEAPONS[id];
-  return 300 + w.might * 120 + RANKS.indexOf(w.rank) * 500;
+function priceFor(might: number, rank: Rank): number {
+  return 300 + might * 120 + RANKS.indexOf(rank) * 500;
 }
 
 const WEAPON_ITEMS = Object.fromEntries(
   (Object.keys(WEAPONS) as WeaponId[]).map(id => [id, {
-    name: WEAPONS[id].name, kind: 'weapon' as const, price: weaponPrice(id), weapon: id,
+    name: WEAPONS[id].name, kind: 'weapon' as const, price: priceFor(WEAPONS[id].might, WEAPONS[id].rank), weapon: id,
   }]),
 ) as Record<WeaponId, GameItem>;
 
+export const spellbookItem = (spell: string): SpellbookItemKey => `spellbook:${spell}`;
+export const manualItem = (spell: string): ManualItemKey => `manual:${spell}`;
+
+// 新书带满次数入库；之后剩余次数跟着这本书走（仓库行的 uses）。
+const SPELLBOOK_ITEMS = Object.fromEntries(SPELLBOOKS.map(book => [spellbookItem(book.id), {
+  name: `《${book.name}》`, kind: 'spellbook' as const, price: priceFor(book.might, book.rank), spell: book.id, uses: book.maxCharges,
+  note: `${book.study === 'whiteMagic' ? '白魔法' : '黑魔法'} ${book.rank} · ${book.maxCharges} 次 · ${book.effect}`,
+}])) as Record<SpellbookItemKey, GameItem>;
+
+const MANUAL_ITEMS = Object.fromEntries(SPELLBOOKS.filter(book => book.effects.manual).map(book => [manualItem(book.id), {
+  name: `${book.name}教材`, kind: 'manual' as const, price: 12_000, spell: book.id,
+  note: `限量教材：让一名有${book.study === 'whiteMagic' ? '白魔法' : '黑魔法'}权限的角色学会${book.name}；施放仍要持有该书并达到 ${book.rank} 级`,
+}])) as Record<ManualItemKey, GameItem>;
+
 export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   ...WEAPON_ITEMS,
+  ...SPELLBOOK_ITEMS,
+  ...MANUAL_ITEMS,
   vulnerary: { name: '伤药', kind: 'consumable', price: 300, item: 'vulnerary', uses: 3 },
   seal_promote: { name: '转职印', kind: 'seal', price: 5000, note: '转职消耗一枚' },
   energy_drop: { name: '天使之衣', kind: 'stat', price: 8000, stat: 'hp', amount: 5 },
@@ -65,6 +88,11 @@ export function isItemKey(value: unknown): value is ItemKey {
 
 export function isWeaponKey(value: unknown): value is WeaponId {
   return typeof value === 'string' && Object.hasOwn(WEAPONS, value);
+}
+
+// 新入库时一件物品的次数：伤药 3 次、新书满次数，其余为 0。
+export function stockUses(item: ItemKey): number {
+  return GAME_ITEMS[item].uses ?? 0;
 }
 
 // Each round a character may use at most 5 of one 能力药 and 20 in total (docs/09.3).

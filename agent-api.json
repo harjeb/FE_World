@@ -164,14 +164,14 @@
       "op": 43,
       "name": "TRANSFER_ITEM",
       "group": "整备",
-      "agentNote": "在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具各最多 5 件；只有武器和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，剩余次数随物品走。",
+      "agentNote": "在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具、法术书（item 为 spellbook:<法术id>，同种只带一本）各最多 5 件；只有武器、法术书和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，耐久与剩余次数随物品走；出战或远征中的角色不能搬运。",
       "push": false
     },
     {
       "op": 44,
       "name": "USE_ITEM",
       "group": "整备",
-      "agentNote": "使用能力药等道具；超出永久上限或额度的使用会被拦截，道具不扣。",
+      "agentNote": "使用能力药或限量法术教材（manual:<法术id>，为有对应魔法权限的角色解锁该法术）；超出永久上限、额度或已学会时拦截，道具不扣。",
       "push": false
     },
     {

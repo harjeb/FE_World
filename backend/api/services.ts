@@ -3,7 +3,7 @@ import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_A
 import { CLASSES } from '../common/data/classes.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { GAME_ITEMS } from '../common/game/items.ts';
+import { GAME_ITEMS, spellbookItem } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { addWeaponExp, ageAt, daysUntilBirthday, effectiveCaps, equipmentArts, gainExperience, growthRates, lifespanEndDayOf, lifespanWarning, toSnapshot, unitName } from '../common/game/model.ts';
 import { gainMastery, MASTERY_PER_BATTLE, MASTERY_PER_TRAIN_DAY, MASTERY_PER_WIN } from '../common/game/mastery.ts';
@@ -182,24 +182,34 @@ export function recordRetire(store: Store, player: Player, unit: UnitRecord, def
 // 回收真实装备并保留当时耐久／剩余次数，不额外复制新品（docs/00 §7.1）。
 // deferred：活动途中先入回收袋，活动结束后再入仓库（docs/13 §2.3）。
 function recoverEquipment(store: Store, player: Player, unit: UnitRecord, deferred: boolean): void {
-  const instances = [...(unit.weaponInstances ?? [])];
+  const instances = [...(unit.weaponInstances ?? [])], books = [...(unit.bookInstances ?? [])];
   for (const weapon of unit.weapons) {
     const index = instances.findIndex(row => row.id === weapon);
     const instance = index >= 0 ? instances.splice(index, 1)[0] : undefined;
+    const bookIndex = books.findIndex(row => row.id === weapon);
+    const book = bookIndex >= 0 ? books.splice(bookIndex, 1)[0] : undefined;
     if (deferred) {
       player.flags.recoveryBag ??= [];
-      player.flags.recoveryBag.push({ item: weapon, uses: 0, weapon: instance ? { ...instance } : undefined });
+      player.flags.recoveryBag.push({ item: weapon, uses: 0, weapon: instance ? { ...instance } : undefined, book: book ? { ...book } : undefined });
     } else {
       store.addInventory(player.id, weapon, 0, 1);
       if (instance) (player.flags.storedWeapons ??= []).push({ ...instance });
+      if (book) (player.flags.storedBooks ??= []).push({ ...book });
     }
   }
   for (const item of unit.items) {
     if (deferred) (player.flags.recoveryBag ??= []).push({ item: item.id, uses: item.uses });
     else store.addInventory(player.id, item.id, item.uses, 1);
   }
+  // 职业法术书同样连同剩余次数回收。
+  for (const book of unit.spellbooks ?? []) {
+    if (deferred) (player.flags.recoveryBag ??= []).push({ item: spellbookItem(book.id), uses: book.charges });
+    else store.addInventory(player.id, spellbookItem(book.id), book.charges, 1);
+  }
   unit.weapons = [];
   unit.weaponInstances = [];
+  unit.bookInstances = [];
+  unit.spellbooks = [];
   unit.items = [];
 }
 
@@ -210,6 +220,7 @@ export function flushRecoveryBag(store: Store, player: Player): number {
   for (const row of bag) {
     store.addInventory(player.id, row.item, row.uses, 1);
     if (row.weapon) (player.flags.storedWeapons ??= []).push({ ...row.weapon });
+    if (row.book) (player.flags.storedBooks ??= []).push({ ...row.book });
   }
   player.flags.recoveryBag = [];
   store.savePlayer(player);
@@ -547,7 +558,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
     lifespanYears: unit.lifespanYears, lifespanEndDay: lifespanEndDayOf(unit),
     daysUntilBirthday: daysUntilBirthday(unit, day), lifespanWarning: lifespanWarning(unit, day),
     growthAllocation: unit.growthAllocation ?? {}, classQualifications: unit.classQualifications ?? [],
-    classMastery: unit.classMastery ?? {}, learnedSkills: unit.learnedSkills ?? [], equippedSkills: unit.equippedSkills ?? [],
+    classMastery: unit.classMastery ?? {}, learnedSkills: unit.learnedSkills ?? [], equippedSkills: unit.equippedSkills ?? [], learnedSpells: unit.learnedSpells ?? [],
     personalGrowth: unit.personalGrowth ?? null,
     inheritedGrowth: unit.inheritedGrowth ?? null, lockedRunId: unit.lockedRunId ?? null, lockedDispatchId: unit.lockedDispatchId ?? null,
     hasInheritance: !!unit.inheritance,

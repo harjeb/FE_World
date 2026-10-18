@@ -7,16 +7,17 @@ import type { ShopRow } from '../api/session.ts';
 import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
-import { BexpPanel, CARRY, CarriedPanel, cannotWield, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
+import { BexpPanel, CARRY, CarriedPanel, cannotCast, cannotLearn, cannotWield, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
 
-type Filter = 'all' | 'weapon' | 'item' | 'food' | 'stat' | 'material';
-const FILTERS: [Filter, string][] = [['all', '全部'], ['weapon', '武器'], ['item', '道具'], ['food', '食物'], ['stat', '能力药'], ['material', '材料']];
-const ORDER = ['weapon', 'consumable', 'food', 'stat', 'seal', 'material'];
+type Filter = 'all' | 'weapon' | 'book' | 'item' | 'food' | 'stat' | 'material';
+const FILTERS: [Filter, string][] = [['all', '全部'], ['weapon', '武器'], ['book', '法术书'], ['item', '道具'], ['food', '食物'], ['stat', '能力药'], ['material', '材料']];
+const ORDER = ['weapon', 'spellbook', 'manual', 'consumable', 'food', 'stat', 'seal', 'material'];
 
 function inFilter(key: string, filter: Filter): boolean {
   const kind = itemOf(key)?.kind;
   if (filter === 'all') return true;
   if (filter === 'item') return kind === 'consumable' || kind === 'seal';
+  if (filter === 'book') return kind === 'spellbook' || kind === 'manual';
   return kind === filter;
 }
 const byKind = (a: string, b: string) => ORDER.indexOf(itemOf(a)?.kind ?? '') - ORDER.indexOf(itemOf(b)?.kind ?? '');
@@ -55,6 +56,17 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
       acts.push(<button key="give" type="button" className="btn btn-sm" disabled={full} title={full ? '道具栏已满' : undefined}
         onClick={() => void runOp(OP.TRANSFER_ITEM, { unitId: unit.id, item: key, action: 'toUnit', uses }, () => `${item.name}（${uses} 次）交给了${unit.name}`)}>交给{unit.name}</button>);
     }
+    if (unit && item?.kind === 'spellbook' && item.spell) {
+      const carried = unit.spellbooks.some(book => book.id === item.spell);
+      const full = unit.spellbooks.length >= CARRY;
+      acts.push(<button key="give" type="button" className="btn btn-sm" disabled={full || carried} title={carried ? '已经携带同一种书' : full ? '法术书栏已满' : undefined}
+        onClick={() => void runOp(OP.TRANSFER_ITEM, { unitId: unit.id, item: key, action: 'toUnit', uses }, () => `${item.name}（${uses} 次）交给了${unit.name}`)}>交给{unit.name}</button>);
+    }
+    if (unit && item?.kind === 'manual' && item.spell) {
+      const blocked = cannotLearn(unit, item.spell);
+      acts.push(<button key="learn" type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined}
+        onClick={() => void runOp(OP.USE_ITEM, { unitId: unit.id, item: key }, () => `${unit.name}学会了${item.name.replace('教材', '')}`)}>{unit.name}学习</button>);
+    }
     if (unit && item?.kind === 'stat') {
       const blocked = drugBlock(unit, key);
       acts.push(<button key="use" type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined}
@@ -91,13 +103,14 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
             <ul className="eq gear-list">
               {stock.map(r => {
                 const item = itemOf(r.item);
-                const wield = unit && item?.kind === 'weapon' && item.weapon ? cannotWield(unit, item.weapon as WeaponId) : null;
+                const wield = unit && item?.kind === 'weapon' && item.weapon ? cannotWield(unit, item.weapon as WeaponId)
+                  : unit && item?.kind === 'spellbook' && item.spell ? cannotCast(unit, item.spell) : null;
                 const perfect = state?.perfectWeapons[r.item] ?? 0;
                 return (
                   <li key={`${r.item}:${r.uses}`}>
                     <img className="px" src={itemIcon(r.item)} width={32} height={32} alt="" />
                     <div className="min-w-0">
-                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{item?.kind === 'consumable' && <span className="tag tag-grey">剩 {r.uses} 次</span>}{perfect > 0 && <span className="tag tag-brass" title="交给角色时消耗一张，生成耐久 +10 的实例">完美锻造 ×{perfect}</span>}</div>
+                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{(item?.kind === 'consumable' || item?.kind === 'spellbook') && <span className="tag tag-grey">剩 {r.uses}{item.kind === 'spellbook' ? ` / ${item.uses}` : ''} 次</span>}{perfect > 0 && <span className="tag tag-brass" title="交给角色时消耗一张，生成耐久 +10 的实例">完美锻造 ×{perfect}</span>}</div>
                       <div className="sp">{itemSpec(r.item)}</div>
                       {wield && <div className="why">{unit!.name}现在用不了：{wield}（仍可携带）</div>}
                     </div>

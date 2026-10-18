@@ -9,7 +9,7 @@ import type { Promotion } from '../data/promotions.ts';
 import { RANKS, STAT_KEYS, withCharm } from '../data/types.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
-import { SPELLBOOKS } from '../data/spellbooks.ts';
+import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import type { ItemId, WeaponId, WeaponInstance } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
 import { nextU32 } from '../engine/rng.ts';
@@ -84,6 +84,8 @@ export interface UnitRecord {
   learnedArts?: string[];
   equippedSkills: SkillId[];
   equippedArts?: string[];
+  // 用限量教材学会的法术（芬布尔之夜等）；轮回与其他学习成果一起清除。
+  learnedSpells?: string[];
   // 传承血缘锁（docs/00 §7.3）：接收过遗产的 B 为 1，永不再接或再产。
   lineageDepth: 0 | 1;
   receivedLegacyId: string | null;
@@ -150,6 +152,7 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   unit.learningProgress ??= {};
   unit.learnedSkills ??= [];
   unit.learnedArts ??= [];
+  unit.learnedSpells ??= [];
   unit.equippedSkills ??= [];
   normalizeLoadout(unit);
   // 新增节点按已赚取的精通补领；加载不增加精通，也不重复发放。
@@ -160,13 +163,14 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   if (unit.ageBaseDays === undefined) unit.ageBaseDays = (unit.baseAge ?? CHARACTERS[unit.character].age) * DAYS_PER_YEAR;
   unit.lifespanYears ??= lifespanYearsFor(unit.id, unit.species);
   unit.weaponInstances ??= unit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) }));
-  const magicClass = (Object.keys(CLASSES[unit.classId]?.weapons ?? {}) as WeaponType[]).some(type => type === 'tome' || type === 'staff');
-  unit.spellbooks ??= magicClass ? SPELLBOOKS.filter(book => book.role === 'attack' || book.role === 'heal').slice(0, 4).map(book => ({ id: book.id, charges: book.maxCharges, maxCharges: book.maxCharges })) : [];
+  unit.spellbooks ??= starterSpellbooks(unit.classId);
   unit.bookInstances ??= unit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) }));
   return unit;
 }
 
 export const ROSTER_LIMIT = 18;
+// 每名角色最多随身 5 本法术书（与武器、道具各 5 件的携带栏一致），同一种书只带一本。
+export const SPELLBOOK_CARRY = 5;
 
 // docs/04: a new character starts at level 1 with the class base. `expected: true` uses the growth
 // expectation (deterministic) — the seed roster and opponents use it; real level-ups roll randomly.
@@ -184,6 +188,14 @@ export function weaponMax(id: WeaponId): number {
 
 export function bookMax(id: WeaponId): number {
   return WEAPONS[id].maxCharges ?? 10;
+}
+
+// 职业起始法术书（按职业书表携带）：有 理 权限的给四本基础黑魔法书，只有 杖 权限的给圣疗；
+// 能否施放仍按权限、熟练度与教材逐本判断。
+export function starterSpellbooks(classId: ClassId): { id: string; charges: number; maxCharges: number }[] {
+  const weapons = CLASSES[classId]?.weapons ?? {};
+  const ids = weapons.tome ? ['fire', 'thunder', 'wind', 'flame_lance'] : weapons.staff ? ['fw_spell_12'] : [];
+  return ids.map(id => ({ id, charges: SPELLBOOK_BY_ID.get(id)!.maxCharges, maxCharges: SPELLBOOK_BY_ID.get(id)!.maxCharges }));
 }
 
 export function createUnit(character: CharacterId, level: number, id: string, joinedDay: number, expected = true, opts: UnitOptions = {}): UnitRecord {
@@ -223,8 +235,8 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
-    learnedSkills: [], learnedArts: [], equippedSkills: [], equippedArts: [],
-    spellbooks: (Object.keys(cls.weapons) as WeaponType[]).some(type => type === 'tome' || type === 'staff') ? SPELLBOOKS.filter(book => book.role === 'attack' || book.role === 'heal').slice(0, 4).map(book => ({ id: book.id, charges: book.maxCharges, maxCharges: book.maxCharges })) : [],
+    learnedSkills: [], learnedArts: [], equippedSkills: [], equippedArts: [], learnedSpells: [],
+    spellbooks: starterSpellbooks(classId),
     lineageDepth: 0, receivedLegacyId: null,
   };
 }
@@ -374,6 +386,7 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),
     skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])],
     arts: [...new Set(unit.equippedArts ?? [])],
+    learnedSpells: [...(unit.learnedSpells ?? [])],
   };
 }
 
@@ -406,6 +419,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
     bookInstances: unit.bookInstances?.map(row => ({ ...row })),
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),
+    learnedSpells: [...(unit.learnedSpells ?? [])],
     shields: Math.min(1, unit.items.filter(i => i.id === 'immortal_shield').length),
     acted: false, alive: true, ...extra,
   };

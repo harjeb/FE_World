@@ -260,9 +260,13 @@ export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initia
   unit.learningProgress = {};
   unit.learnedSkills = [];
   unit.learnedArts = [];
+  unit.learnedSpells = [];
   unit.equippedSkills = [];
   unit.equippedArts = [];
   unit.weapons = [];
+  unit.weaponInstances = [];
+  unit.bookInstances = [];
+  unit.spellbooks = [];
   unit.items = [];
   unit.ranks = {};
   unit.weaponExp = {};

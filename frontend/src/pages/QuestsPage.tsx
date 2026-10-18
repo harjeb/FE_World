@@ -10,6 +10,7 @@ import { Shell } from '../shell/Shell.tsx';
 import { LockIcon } from '../ui/icons.tsx';
 import { advance, dateLabel } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
+import { itemSpec } from './PrepParts.tsx';
 
 type Phase = 'locked' | 'available' | 'done' | 'claimed';
 const phaseOf = (q: QuestView): Phase => (!q.available && !q.done ? 'locked' : !q.done ? 'available' : !q.claimed ? 'done' : 'claimed');
@@ -20,7 +21,7 @@ const KIND_TEXT: Record<QuestView['kind'], string> = { rout: '讨伐', seize: '�
 const TIER_TEXT: Record<QuestView['tier'], string> = { short: '短任务', standard: '标准任务', region: '地区远征' };
 
 const items = (list: [string, number][] | undefined) => (list ?? []).map(([item, count]) => `${itemName(item)} ×${count}`);
-const rewardText = (q: QuestView) => [`${q.reward.gold.toLocaleString()} 金币`, `${q.reward.reputation} 声望`, ...items(q.reward.items)].join(' · ');
+const rewardText = (q: QuestView) => [`${q.reward.gold.toLocaleString()} 金币`, `${q.reward.reputation} 声望`, ...items(q.reward.items), ...(q.exclusive ? [`专属实物：${q.exclusive.name}`] : [])].join(' · ');
 
 function Tabs({ current }: { current: 'regions' | 'tower' }) {
   return (
@@ -201,7 +202,7 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
           {region.shop.map(s => (
             <li key={s.item}>
               <span className="slot-free" aria-hidden="true" />
-              <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span></div><div className="sp">需要声望 {s.reputation}</div></div>
+              <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span></div><div className="sp">需要声望 {s.reputation} · {itemSpec(s.item)}</div></div>
               {s.unlocked
                 ? <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => onBuy(region.region, s.item)}>{busy === `b${region.region}-${s.item}` ? '购买中…' : '购买'}</button>
                 : <span className="tag tag-grey">声望不足</span>}

@@ -64,6 +64,8 @@ export interface ServerUnit {
   learnedArts: string[];
   equippedArts: string[];
   equipmentArts: string[];
+  // 用限量教材学会的法术（施放还要持书并达到熟练度）。
+  learnedSpells: string[];
   lifespanYears: number;
   lifespanEndDay: number | null;
   daysUntilBirthday: number;
@@ -241,6 +243,8 @@ export interface QuestView {
   optionalReward: { item: string; perExtraBox: number } | null;
   reward: { gold: number; reputation: number; items?: [string, number][] };
   requires: { quest?: string; reputation?: number } | null;
+  // 固定专属实物（首次领奖时入库）。
+  exclusive: { item: string; name: string } | null;
   done: boolean; claimed: boolean; available: boolean;
   classic?: { game: string; mapName: string; stageCount: number; adapted?: boolean } | null;
 }

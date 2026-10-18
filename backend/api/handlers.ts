@@ -16,7 +16,7 @@ import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonica
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_MAX, PROTAGONIST_CLASSES, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
-import { GAME_ITEMS, isItemKey } from '../common/game/items.ts';
+import { GAME_ITEMS, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
@@ -25,7 +25,7 @@ import type { BattleRecord } from '../common/game/battles.ts';
 import { CATALOG_VERSION, RULESET_VERSION, replayCompatibility } from '../common/game/version.ts';
 import { generateRecruit, RECRUIT_UNLOCK_DAY, recruitClass, recruitLevel, recruitPortrait, regionRoutes } from '../common/game/random-recruit.ts';
 import type { RandomRecruit } from '../common/game/random-recruit.ts';
-import { addWeaponExp, ageDaysOf, createUnit, weaponMax, gainExperience, growthRates, lifespanEndDayOf, nextLifespanEventDay, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
+import { addWeaponExp, ageDaysOf, bookMax, createUnit, SPELLBOOK_CARRY, weaponMax, gainExperience, growthRates, lifespanEndDayOf, nextLifespanEventDay, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { promotionsFor } from '../common/data/promotions.ts';
 import { settleAttack, startAttack } from '../common/game/arena.ts';
@@ -673,8 +673,9 @@ const handlers: Record<number, Handler> = {
     if (taken === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件物品');
     for (let i = 0; i < taken; i++) {
       const index = ctx.player.flags.storedWeapons?.findIndex(row => row.id === item) ?? -1;
-      if (index < 0) break;
-      ctx.player.flags.storedWeapons!.splice(index, 1);
+      if (index >= 0) ctx.player.flags.storedWeapons!.splice(index, 1);
+      const book = ctx.player.flags.storedBooks?.findIndex(row => row.id === item) ?? -1;
+      if (book >= 0) ctx.player.flags.storedBooks!.splice(book, 1);
     }
     const gain = Math.floor(GAME_ITEMS[item].price / 2) * taken;
     ctx.player.gold += gain;
@@ -686,6 +687,10 @@ const handlers: Record<number, Handler> = {
   [OP.TRANSFER_ITEM]: (ctx, data) => {
     const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
     if (unit.lockedDispatchId) throw new OpError('FORBIDDEN', '派遣中的角色不能搬运物品');
+    // 战斗与远征按出发时的物资结算，途中改动会在结算时被覆盖或复制，所以出战中的角色不能搬运。
+    if (unit.lockedRunId || ctx.store.activeBattle(ctx.player.id)?.state.units.some(u => u.id === unit.id && u.side === 'player')) {
+      throw new OpError('BATTLE_IN_PROGRESS', '该角色正在战斗或远征中，结束后再整理物品');
+    }
     const item = asString(data.item, 'item');
     const action = asString(data.action, 'action');
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有物品 ${item}`);
@@ -694,7 +699,10 @@ const handlers: Record<number, Handler> = {
     if (annual && annual.unitIds.includes(unit.id) && (action === 'toUnit' || action === 'equip')) {
       throw new OpError('FORBIDDEN', '大竞技场整届固定物资，报名名单中的角色不能中途补给');
     }
-    const isWeapon = GAME_ITEMS[item].kind === 'weapon';
+    const kind = GAME_ITEMS[item].kind;
+    const isWeapon = kind === 'weapon';
+    // 魔道书与杖的剩余次数跟着实物走：放回仓库时记下，交给角色时取回，不因搬运补满。
+    const charged = isWeapon && (WEAPONS[item as WeaponId].type === 'tome' || WEAPONS[item as WeaponId].type === 'staff');
     if (action === 'equip') {
       if (!unit.weapons.includes(item as never)) throw new OpError('BAD_REQUEST', '该单位没有携带这件武器');
       const index = unit.weapons.indexOf(item as never);
@@ -715,10 +723,23 @@ const handlers: Record<number, Handler> = {
           const max = weaponMax(item as never) + (perfect > 0 ? 10 : 0);
           unit.weaponInstances.push({ id: item as never, durability: max, maxDurability: max });
         }
+        if (charged) {
+          const bookIndex = ctx.player.flags.storedBooks?.findIndex(row => row.id === item) ?? -1;
+          unit.bookInstances ??= [];
+          unit.bookInstances.push(bookIndex >= 0 ? ctx.player.flags.storedBooks!.splice(bookIndex, 1)[0] : { id: item as WeaponId, charges: bookMax(item as WeaponId), maxCharges: bookMax(item as WeaponId) });
+        }
         unit.weapons.push(item as never);
+      } else if (kind === 'spellbook') {
+        const spell = GAME_ITEMS[item].spell!;
+        unit.spellbooks ??= [];
+        if (unit.spellbooks.length >= SPELLBOOK_CARRY) throw new OpError('BAD_REQUEST', `法术书携带栏已满（最多 ${SPELLBOOK_CARRY} 本）`);
+        if (unit.spellbooks.some(row => row.id === spell)) throw new OpError('BAD_REQUEST', '已经携带同一种法术书');
+        const charges = ctx.store.takeStack(ctx.player.id, item, typeof data.uses === 'number' ? data.uses : null);
+        if (charges === null) throw new OpError('NO_SUCH_ITEM', '仓库里没有这本书');
+        unit.spellbooks.push({ id: spell, charges, maxCharges: SPELLBOOK_BY_ID.get(spell)!.maxCharges });
       } else {
-        // 只有武器和战斗道具能带进战斗；材料、转职印、能力药留在仓库 (docs/00 §6「材料不占战斗携带栏」)。
-        if (GAME_ITEMS[item].kind !== 'consumable') throw new OpError('BAD_REQUEST', `${GAME_ITEMS[item].name}不能带进战斗`);
+        // 只有武器、法术书和战斗道具能带进战斗；材料、转职印、能力药留在仓库 (docs/00 §6「材料不占战斗携带栏」)。
+        if (kind !== 'consumable') throw new OpError('BAD_REQUEST', `${GAME_ITEMS[item].name}不能带进战斗`);
         if (item === 'immortal_shield' && unit.items.some(entry => entry.id === 'immortal_shield')) throw new OpError('FORBIDDEN', '每名角色最多携带 1 枚不朽盾');
         if (unit.items.length >= 5) throw new OpError('BAD_REQUEST', '携带栏已满');
         const uses = ctx.store.takeStack(ctx.player.id, item, typeof data.uses === 'number' ? data.uses : null);
@@ -735,7 +756,15 @@ const handlers: Record<number, Handler> = {
           ctx.player.flags.storedWeapons ??= [];
           ctx.player.flags.storedWeapons.push(unit.weaponInstances!.splice(instanceIndex, 1)[0]);
         }
+        const bookIndex = charged ? unit.bookInstances?.findIndex(row => row.id === item) ?? -1 : -1;
+        if (bookIndex >= 0) (ctx.player.flags.storedBooks ??= []).push(unit.bookInstances!.splice(bookIndex, 1)[0]);
         ctx.store.addInventory(ctx.player.id, item, 0, 1);
+      } else if (kind === 'spellbook') {
+        const index = unit.spellbooks?.findIndex(row => row.id === GAME_ITEMS[item].spell) ?? -1;
+        if (index < 0) throw new OpError('NO_SUCH_ITEM', '该单位没有携带这本书');
+        const [book] = unit.spellbooks!.splice(index, 1);
+        // 剩余次数随书回仓库，不会变回满的。
+        ctx.store.addInventory(ctx.player.id, item, book.charges, 1);
       } else {
         const index = unit.items.findIndex(i => i.id === item);
         if (index < 0) throw new OpError('NO_SUCH_ITEM', '该单位没有这件物品');
@@ -771,6 +800,21 @@ const handlers: Record<number, Handler> = {
       ctx.store.saveUnit(unit, ctx.player.id);
       ctx.push(OP.STATE_CHANGED, { reason: 'use-item' });
       return { unit: unit.id, stat: result.stat, amount: result.amount, stats: unit.stats, drugCounts: unit.drugCounts };
+    }
+    if (GAME_ITEMS[item].kind === 'manual') {
+      // 限量教材：为一名有对应魔法权限的角色解锁法术，消耗教材；施放仍须持书并达到熟练度。
+      const book = SPELLBOOK_BY_ID.get(GAME_ITEMS[item].spell!)!;
+      if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
+      if (ctx.store.countInventory(ctx.player.id, item) === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件教材');
+      if (CLASSES[unit.classId].weapons[book.study === 'whiteMagic' ? 'staff' : 'tome'] === undefined) {
+        throw new OpError('FORBIDDEN', `${unitName(unit)}的现职业没有${book.study === 'whiteMagic' ? '白魔法' : '黑魔法'}权限`);
+      }
+      if (unit.learnedSpells?.includes(book.id)) throw new OpError('FORBIDDEN', `${unitName(unit)}已经学会${book.name}`);
+      ctx.store.takeInventory(ctx.player.id, item, 1);
+      unit.learnedSpells = [...(unit.learnedSpells ?? []), book.id];
+      ctx.store.saveUnit(unit, ctx.player.id);
+      ctx.push(OP.STATE_CHANGED, { reason: 'use-item' });
+      return { unit: unit.id, learnedSpell: book.id, learnedSpells: unit.learnedSpells };
     }
     throw new OpError('BAD_REQUEST', '这件物品不能这样使用');
   },
@@ -873,7 +917,9 @@ const handlers: Record<number, Handler> = {
     const initial = unit.species === 'human' ? initialClassOf(CHARACTERS[unit.character].classId) : initialClass(unit.species);
     // 轮回只清学习成果（docs/00 §5.2），不没收装备：携带的武器与道具连同剩余次数回到仓库。
     // 先记下来，轮回校验通过后再入库，校验失败时什么都不写。
-    const gear = { weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })) };
+    // 武器耐久／强化、魔道书与杖次数、法术书次数都跟着实物回仓库，不因轮回补满。
+    const gear = { weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })), spellbooks: (unit.spellbooks ?? []).map(row => ({ ...row })) };
+    const instances = (unit.weaponInstances ?? []).map(row => ({ ...row })), books = (unit.bookInstances ?? []).map(row => ({ ...row }));
     let result: ReturnType<typeof reincarnate>;
     try {
       result = reincarnate(unit, allocation as never, initial, DAYS_PER_YEAR, ctx.player.day);
@@ -882,6 +928,9 @@ const handlers: Record<number, Handler> = {
     }
     for (const weapon of gear.weapons) ctx.store.addInventory(ctx.player.id, weapon as ItemKey, 0, 1);
     for (const item of gear.items) ctx.store.addInventory(ctx.player.id, item.id as ItemKey, item.uses, 1);
+    for (const book of gear.spellbooks) ctx.store.addInventory(ctx.player.id, spellbookItem(book.id), book.charges, 1);
+    (ctx.player.flags.storedWeapons ??= []).push(...instances.filter(row => gear.weapons.includes(row.id)));
+    (ctx.player.flags.storedBooks ??= []).push(...books.filter(row => gear.weapons.includes(row.id)));
     ctx.store.takeInventory(ctx.player.id, 'reincarnation_core', 1);
     ctx.player.gold -= cost;
     ctx.store.saveUnit(unit, ctx.player.id);
@@ -1877,6 +1926,8 @@ const handlers: Record<number, Handler> = {
             classic: q.classic ?? null,
             optionalReward: q.kind === 'gather' ? { item: region === 3 ? 'ore' : region === 5 ? 'herb' : 'wood', perExtraBox: 1 } : null,
             requires: q.requires ?? null,
+            // 固定专属实物：领取前预览（docs/27「确认领取前预览绑定」）。
+            exclusive: q.exclusive ? { item: q.exclusive, name: GAME_ITEMS[q.exclusive].name } : null,
             done: done.has(q.id), claimed: claimed.has(q.id),
             available: questAvailable(q, { done, reputation: rep }),
           })),
@@ -2118,7 +2169,7 @@ const handlers: Record<number, Handler> = {
       const extra = Math.max(0, (ctx.player.flags.questBoxes?.[quest.id] ?? 1) - 1);
       if (extra) items.push([quest.region === 3 ? 'ore' : quest.region === 5 ? 'herb' : 'wood', extra]);
     }
-    for (const [item, count] of items) ctx.store.addInventory(ctx.player.id, item, 0, count);
+    for (const [item, count] of items) ctx.store.addInventory(ctx.player.id, item, stockUses(item), count);
     ctx.player.flags.regionReputation ??= {};
     const before = ctx.player.flags.regionReputation[quest.region] ?? 0;
     const after = before + quest.reward.reputation;
@@ -2148,7 +2199,7 @@ const handlers: Record<number, Handler> = {
     if (reputation < found.entry.reputation) throw new OpError('FORBIDDEN', `需要 ${regionById(region).name} 声望 ${found.entry.reputation}`);
     if (ctx.player.gold < found.price) throw new OpError('NOT_ENOUGH_GOLD', `购买需要 ${found.price} 金币`);
     ctx.player.gold -= found.price;
-    ctx.store.addInventory(ctx.player.id, found.entry.item, 0, 1);
+    ctx.store.addInventory(ctx.player.id, found.entry.item, stockUses(found.entry.item), 1);
     ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'quest-shop' });
     return { region, item: found.entry.item, name: GAME_ITEMS[found.entry.item].name, price: found.price, gold: ctx.player.gold };

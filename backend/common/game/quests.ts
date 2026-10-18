@@ -1,4 +1,5 @@
 import type { ItemKey } from './items.ts';
+import { manualItem, spellbookItem } from './items.ts';
 import type { CharacterId } from '../data/characters.ts';
 import { regionById } from './calendar.ts';
 
@@ -123,11 +124,22 @@ for (const region of [1, 4, 6, 7, 8, 9, 10, 11, 12]) {
   );
 }
 ALL_QUESTS.push(...QUESTS.filter(q => !ALL_QUESTS.includes(q)));
+// 限量投放（docs/27）：短弓为前期任务首通奖励（另有当地商店资格）；三本最上级法术书连同教材只经
+// 一次性核心／远征任务发放，不进普通商店。
+const LIMITED_REWARDS: Record<string, [ItemKey, number][]> = {
+  gw1: [['short_bow', 1]],
+  ih8: [[spellbookItem('fw_spell_61'), 1], [manualItem('fw_spell_61'), 1]],
+  wl8: [[spellbookItem('fw_spell_60'), 1], [manualItem('fw_spell_60'), 1]],
+  'r11-3': [[spellbookItem('fw_spell_11'), 1], [manualItem('fw_spell_11'), 1]],
+};
 for (const quest of ALL_QUESTS) {
   quest.event ??= `${quest.name}：${quest.objective}。当地斥候已标出路线，完成后可领取本地资源。`;
+  if (LIMITED_REWARDS[quest.id]) quest.reward = { ...quest.reward, items: [...(quest.reward.items ?? []), ...LIMITED_REWARDS[quest.id]] };
   if (quest.id === 'r9-3') quest.exclusive = 'royal_sword';
   if (quest.id === 'r10-3') quest.exclusive = 'divine_lance';
   if (quest.id === 'r11-3') quest.exclusive = 'master_lance';
+  // 净化剑：潮汐碑文的固定专属实物，领取前在任务预览中显示。
+  if (quest.id === 'wl7') quest.exclusive = 'fw_weapon_8';
   quest.enemyLevelCap ??= QUEST_LEVEL_CAP[quest.tier];
   if (!quest.scenarioId && !(quest.scenarioIds?.length)) quest.maxUnits ??= 8;
 }

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { CLASSES } from '@common/data/classes.ts';
 import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
+import { spellBlock } from '@common/engine/index.ts';
 import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES, rankAtLeast } from '@common/data/types.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
-import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from '@common/game/items.ts';
+import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS, spellbookItem } from '@common/game/items.ts';
 import type { GameItem, ItemKey } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { ICONS, weaponIcon } from '../assets.ts';
@@ -15,7 +16,7 @@ import { toast } from '../ui/toast.tsx';
 import { instanceFor, ResourceBar, weaponSpec } from './RosterParts.tsx';
 import { stock, UnitFace } from './SystemParts.tsx';
 
-// Carry limits as TRANSFER_ITEM enforces them: weapons and battle items are counted separately.
+// Carry limits as TRANSFER_ITEM enforces them: weapons, battle items and spellbooks are counted separately.
 export const CARRY = 5;
 
 export const itemOf = (key: string): GameItem | undefined => GAME_ITEMS[key as ItemKey];
@@ -27,6 +28,7 @@ export function itemIcon(key: string): string {
   if (item?.kind === 'stat') return ICONS.elixir;
   if (item?.kind === 'food') return ICONS.herb;
   if (item?.kind === 'material') return ICONS[key as 'herb' | 'ore' | 'wood' | 'seed'] ?? ICONS.seal;
+  if (item?.kind === 'spellbook') return weaponIcon(SPELLBOOK_BY_ID.get(item.spell ?? '')?.study === 'whiteMagic' ? 'staff' : 'tome');
   return ICONS.seal;
 }
 
@@ -41,7 +43,24 @@ export function itemSpec(key: string): string {
     case 'seal': return item.note ?? '转职印';
     case 'food': return `${item.note ?? '恢复法术书次数'} · 在角色的书旁使用，不推进日期`;
     case 'material': return item.note ?? '生产材料：在「生产」里播种、炼药或锻造，也可以出售';
+    case 'spellbook': return `${item.note ?? ''} · 交给角色后可施法，剩余次数随书走`;
+    case 'manual': return item.note ?? '';
   }
+}
+
+// Why the selected unit could not cast a spellbook it is given (it can still carry it).
+export function cannotCast(unit: ServerUnit, spell: string): string | null {
+  const book = SPELLBOOK_BY_ID.get(spell);
+  return book ? spellBlock({ classId: unit.classId as never, ranks: unit.ranks, learnedSpells: unit.learnedSpells }, book) : null;
+}
+
+// Why a manual could not teach this unit (USE_ITEM refuses the same cases).
+export function cannotLearn(unit: ServerUnit, spell: string): string | null {
+  const book = SPELLBOOK_BY_ID.get(spell);
+  if (!book) return '没有这门法术';
+  if (unit.learnedSpells.includes(spell)) return '已经学会';
+  const type = book.study === 'whiteMagic' ? 'staff' : 'tome';
+  return CLASSES[unit.classId as keyof typeof CLASSES]?.weapons[type] ? null : `${unit.className}没有${type === 'staff' ? '白魔法' : '黑魔法'}权限`;
 }
 
 // Why the selected unit could not wield a weapon it is given (it can still carry it).
@@ -195,19 +214,24 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
         {items.length === 0 && <li className="empty-row">没有携带道具</li>}
       </ul>
       {unit.spellbooks.length > 0 && <>
-        <div className="grp">职业法术书 · 每本独立次数，旅馆补满或用食物恢复</div>
+        <div className="grp">法术书 {unit.spellbooks.length} / {CARRY} · 每本独立次数，旅馆补满或用食物恢复；放回仓库时剩余次数随书走</div>
         <ul className="eq">
           {unit.spellbooks.map(book => {
             const def = SPELLBOOK_BY_ID.get(book.id);
+            const blocked = cannotCast(unit, book.id);
             return (
               <li key={book.id}>
-                <img className="px" src={weaponIcon(def && (def.role === 'attack' || def.role === 'hostile_support') ? 'tome' : 'staff')} width={32} height={32} alt="" />
+                <img className="px" src={weaponIcon(def?.study === 'whiteMagic' ? 'staff' : 'tome')} width={32} height={32} alt="" />
                 <div className="min-w-0">
-                  <div className="nm">{def?.name ?? book.id}</div>
+                  <div className="nm">{def?.name ?? book.id}{def && <span className="tag tag-grey">{def.study === 'whiteMagic' ? '白' : '黑'} {def.rank}</span>}</div>
                   <div className="sp">{def?.effect}</div>
+                  {blocked && <div className="why">现在不能施放：{blocked}</div>}
                   <ResourceBar now={book.charges} max={book.maxCharges} kind="charges" />
                   <BookActions unit={unit} id={book.id} book={book} spellbook />
                 </div>
+                <span className="acts">
+                  <button type="button" className="btn btn-sm btn-ghost" onClick={() => void move(spellbookItem(book.id), 'toWarehouse', `${def?.name ?? book.id}放回了仓库，剩 ${book.charges} 次`)}>放回仓库</button>
+                </span>
               </li>
             );
           })}
