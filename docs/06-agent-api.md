@@ -1,6 +1,6 @@
 # 06 Agent 接口设计
 
-> 当前可调用协议以 [自动生成文档](agent-api.md)、`agent-api.json` 和 `backend/common/protocol/ops.ts` 为准（`docVersion: 2`，数字 op）。浏览器使用 `POST /api/login`、`POST /api/op`，Agent 使用 `/ws`。下文包含历史设计，具体已实现状态以代码与 [功能缺口清单](12-implementation-gap-checklist.md) 为准；后续 v2 目标见 [13](13-backend-target-design.md)，不代表已有 `/api/v2` 服务。
+> 当前可调用协议以 [自动生成文档](agent-api.md)、`agent-api.json` 和 `backend/common/protocol/ops.ts` 为准（`docVersion: 3`，数字 op）。浏览器使用 `POST /api/login`、`POST /api/op`，Agent 使用 `/ws`。下文包含历史设计，具体已实现状态以代码与 [功能缺口清单](12-implementation-gap-checklist.md) 为准；后续 v2 目标见 [13](13-backend-target-design.md)，不代表已有 `/api/v2` 服务。
 
 ## 沿用 SLG 的做法
 

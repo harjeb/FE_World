@@ -48,7 +48,7 @@ const ROUTE_CON: Record<ClassRoute, number> = {
   sword: 6, axe: 11, armor: 12, cavalry: 9, flying: 5, bow: 7, magic: 4, healing: 5, stealth: 6, fist: 6, beast: 8, dragon: 9,
 };
 
-// 职业基础值 = 路线底 + 成长率加成。同一职业的所有单位共用（自捏主角再叠加个人随机与分配）。
+// 职业基础值 = 路线底 + 成长率加成。指定职业的普通单位共用；神主角使用单独的直接分配。
 export function classBase(route: ClassRoute, growth: Stats): Stats {
   const floor = ROUTE_BASE[route];
   const out = {} as Stats;
@@ -66,7 +66,7 @@ export interface ClassDef {
   moveType: MoveType;
   move: number;
   armored: boolean;
-  // 该职业 1 级基础数值与体格（自捏主角用）：按路线给底，再按职业成长率加成。
+  // 普通单位该职业的1级基础数值与体格；神主角九属性直接分配，不叠加这里的数值。
   base: Stats;
   con: number;
   // S is the current global rank ceiling, not a rank granted by changing class.

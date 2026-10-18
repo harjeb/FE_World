@@ -51,6 +51,8 @@ test('changesSince reports the first release and rejects unknown versions', () =
   assert.deepEqual(changesSince(DOC_VERSION), { from: DOC_VERSION, to: DOC_VERSION, changes: [] });
   assert.equal(changesSince(0)?.to, DOC_VERSION);
   assert.ok(changesSince(1)?.changes.some(change => change.includes('WITHDRAW_ANNUAL')));
+  assert.ok(changesSince(2)?.changes.some(change => change.includes('COMPLETE_SETUP')));
+  assert.ok(!changesSince(2)?.changes.some(change => change.startsWith('v2:')));
   assert.equal(changesSince(99), null);
 });
 

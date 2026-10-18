@@ -1,5 +1,5 @@
 import type { CharacterId } from '../common/data/characters.ts';
-import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_MAX, PROTAGONIST_CLASSES, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION } from '../common/data/characters.ts';
 import { CLASSES } from '../common/data/classes.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
@@ -548,6 +548,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
   const band = ageBandOf(unit.age);
   return {
     id: unit.id, character: unit.character, name: unitName(unit), sex: unit.sex ?? null, portrait: unit.portrait ?? null, classId: unit.classId,
+    homeClassId: unit.homeClassId ?? CHARACTERS[unit.character].classId,
     className: cls.name, tier: cls.tier, stage: cls.stage, route: cls.route, species: unit.species, ranks: unit.ranks, level: unit.level, exp: unit.exp, hp: unit.hp, maxHp: unit.stats.hp,
     status: unit.status, equipped: unit.weapons[0] ?? null, items: unit.items.map(i => GAME_ITEMS[i.id as ItemKey]?.name ?? i.id),
     joinedDay: unit.joinedDay, weaponExp: unit.weaponExp, growthLog: unit.growthLog, drugCounts: unit.drugCounts,
@@ -596,13 +597,14 @@ export function unitDetail(unit: UnitRecord, day = unit.ageEpochDay ?? unit.join
 
 
 // The whole visible state, shared by GET_STATE and the browser's camp page.
-// 开局可自选的同伴：全部预设角色，去掉主角与剧情奖励人物（ren/ig/mira）。
+// 开局可自选的同伴：全部预设角色，去掉主角所选形象与剧情奖励人物（ren/ig/mira）。
 export function companionPool(exclude: string[] = []): CharacterId[] {
   return CHARACTER_IDS.filter(id => !exclude.includes(id) && !QUEST_RECRUITS.includes(id));
 }
 
-export function startingCompanionPool(protagonist: string): CharacterId[] {
-  return companionPool([protagonist]);
+// 神主角的 character 即所选形象：同伴池排除该形象，避免同名同脸重复。
+export function startingCompanionPool(portrait: string): CharacterId[] {
+  return companionPool([portrait]);
 }
 
 // 新账号只发占位主角，需要先完成自捏开局；老存档（已有多人）不再要求。
@@ -653,11 +655,15 @@ export function stateView(store: Store, player: Player) {
       pool: companionPool().map(id => ({ id, name: CHARACTERS[id].name, classId: CHARACTERS[id].classId, level: 1 })),
       chosen: player.flags.companions ?? null,
       protagonist: {
-        classes: PROTAGONIST_CLASSES.map(c => ({ classId: c.classId, name: c.name, character: c.character, con: CLASSES[c.classId].con })),
-        tendencies: Object.entries(PROTAGONIST_TENDENCIES).map(([id, t]) => ({ id, name: t.name })),
+        // 职业与成长类型固定（平民／成长型），不再下发职业／倾向选择器。
+        classId: PROTAGONIST_CLASS_ID,
+        className: CLASSES[PROTAGONIST_CLASS_ID].name,
+        growthType: PROTAGONIST_GROWTH_TYPE,
         portraits: CHARACTER_IDS.map(id => ({ id, name: CHARACTERS[id].name })),
         budget: PROTAGONIST_ALLOCATION_BUDGET,
-        maxPerStat: PROTAGONIST_ALLOCATION_MAX,
+        defaultAllocation: { ...PROTAGONIST_ALLOCATION_DEFAULT },
+        minPerStat: { ...PROTAGONIST_MIN_ALLOCATION },
+        maxPerStat: { ...PROTAGONIST_MAX_ALLOCATION },
       },
     },
     seed: { day: 0 },

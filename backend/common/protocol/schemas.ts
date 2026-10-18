@@ -1,5 +1,7 @@
 // Concrete request schemas for high-value/new ops. The prose op table remains the overview; MCP and
 // the HTTP dispatcher can use these to reject missing or mistyped fields consistently.
+import { PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION } from '../data/characters.ts';
+import { STAT_KEYS } from '../data/types.ts';
 import { OP } from './ops.ts';
 
 export interface SchemaProperty {
@@ -41,7 +43,14 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   GET_ART_TRAINING: { required: ['unitId'], properties: { unitId: { type: 'string' } } },
   TRAIN_ART: { required: ['unitId', 'art'], properties: { unitId: { type: 'string' }, art: { type: 'string' } } },
   START_ANNUAL_MATCH: { properties: {} },
-  COMPLETE_SETUP: { required: ['protagonist', 'companions'], properties: { protagonist: { type: 'object' }, companions: { type: 'array' } } },
+  COMPLETE_SETUP: { required: ['protagonist', 'companions'], properties: {
+    protagonist: { type: 'object', required: ['name', 'sex', 'portrait', 'allocation'], additionalProperties: false, properties: {
+      name: { type: 'string' }, sex: { type: 'string', enum: ['male', 'female'] }, portrait: { type: 'string' },
+      allocation: { type: 'object', required: ['hp'], additionalProperties: false,
+        description: `直接填写九属性起始值，总计必须正好${PROTAGONIST_ALLOCATION_BUDGET}点；不叠加基础属性，倾向自动推导。`,
+        properties: Object.fromEntries(STAT_KEYS.map(key => [key, { type: 'number', minimum: PROTAGONIST_MIN_ALLOCATION[key], maximum: PROTAGONIST_MAX_ALLOCATION[key] }])) },
+    } }, companions: { type: 'array', items: { type: 'string' } },
+  } },
 };
 
 // Every public op has at least an empty schema so the Agent/MCP layer cannot drift silently;

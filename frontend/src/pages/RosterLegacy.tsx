@@ -23,7 +23,7 @@ const allowed = (unit: ServerUnit, route: ClassRoute) =>
   unit.species === 'beast' ? route === 'beast' : unit.species === 'dragon' ? route === 'dragon' : route !== 'beast' && route !== 'dragon';
 
 // 本命职业与已购资格可以免费切回（SWITCH_CLASS，不占月度购买额度）。
-const homeClass = (unit: ServerUnit) => canonicalClassId(CHARACTERS[unit.character].classId);
+const homeClass = (unit: ServerUnit) => canonicalClassId((unit.homeClassId ?? CHARACTERS[unit.character].classId) as ClassId);
 
 // 职业资格 (docs/00 §5「职业按年份开放并花钱购买，允许跨路线」): every class by route and stage, when it
 // opens and its price. Picking a class shows its real growth for this unit; owned ones switch for free.
@@ -184,7 +184,7 @@ function ReincarnatePanel({ unit }: { unit: ServerUnit }) {
   const cores = stock(state, 'reincarnation_core');
   const away = busyReason(unit, annual);
   const used = STAT_KEYS.reduce((n, k) => n + alloc[k], 0);
-  const initialId = unit.species === 'human' ? initialClassOf(CHARACTERS[unit.character].classId) : initialClass(unit.species);
+  const initialId = unit.species === 'human' ? initialClassOf((unit.homeClassId ?? CHARACTERS[unit.character].classId) as ClassId) : initialClass(unit.species);
   const initial = CLASSES[initialId];
   // 轮回后 1 级的固定基准（game/legacy.ts::reincarnationBase），与服务端执行用同一个函数。
   const base = reincarnationBase(unit.character, initialId);

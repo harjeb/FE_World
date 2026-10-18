@@ -1,8 +1,8 @@
 import { stats } from './types.ts';
+import type { StatKey, Stats } from './types.ts';
 import type { ClassId } from './classes.ts';
 import type { GrowthType } from './growth-types.ts';
 import type { SkillId } from './skills.ts';
-import type { Stats } from './types.ts';
 
 // docs/02-units-classes-growth.md「样例角色」: base stats include the starting class.
 // The last four were added for the 12-character pool that 王城 (8 + 3) needs.
@@ -38,27 +38,40 @@ export type CharacterId = keyof typeof TABLE;
 export const CHARACTERS: Record<CharacterId, CharacterDef> = TABLE;
 export const CHARACTER_IDS = Object.keys(TABLE) as CharacterId[];
 
-// 自捏主角（docs/00 「神主角」、docs/13 §开局）：先选职业（数值取 CLASSES[classId].base/.con），
-// 再自定姓名、成长类型与培养倾向，并用固定预算分配九属性点。character 只作形象与技能锚点。
-export interface ProtagonistClass { classId: ClassId; name: string; character: CharacterId }
-export const PROTAGONIST_CLASSES: ProtagonistClass[] = [
-  { classId: 'swordsman', name: '剑士', character: 'erin' },
-  { classId: 'fighter', name: '战士', character: 'karl' },
-  { classId: 'cavalier', name: '骑兵', character: 'victor' },
-  { classId: 'archer', name: '弓手', character: 'owen' },
-  { classId: 'mage', name: '法师', character: 'sera' },
-  { classId: 'cleric', name: '僧侣', character: 'noah' },
-  { classId: 'pegasus', name: '天马骑士', character: 'lina' },
-  { classId: 'knight', name: '重甲骑士', character: 'gustav' },
-];
-// 九属性分配预算：总计 18 点，单项 0–6（首版数值，docs/00 标注待校准）。
-export const PROTAGONIST_ALLOCATION_BUDGET = 18;
-export const PROTAGONIST_ALLOCATION_MAX = 6;
-// 培养倾向：选择个人成长向量（基础值，后续再加职业成长）。
-export const PROTAGONIST_TENDENCIES: Record<string, { name: string; growth: Stats }> = {
+// 自捏神主角（docs/00「神主角」、docs/13 §开局）：职业与成长类型固定（平民／成长型），
+// 自定姓名、性别与形象，并把九属性的 1 级全值直接分配出来（不再是「底值 + 追加点」）。
+// character 只作形象与技能锚点：主角的数值、成长全部来自显式保存的字段，不泄露形象预设。
+export const PROTAGONIST_CLASS_ID: ClassId = 'commoner';
+export const PROTAGONIST_GROWTH_TYPE: GrowthType = 'growth';
+
+// 九属性直接分配：HP 1–30、其余 0–10，总计必须正好 60 点（首版数值，docs/00 标注待校准）。
+export const PROTAGONIST_ALLOCATION_BUDGET = 60;
+export const PROTAGONIST_ALLOCATION_DEFAULT: Stats = stats(20, 6, 4, 6, 6, 5, 5, 4, 4);
+export const PROTAGONIST_MIN_ALLOCATION: Record<StatKey, number> = { hp: 1, str: 0, mag: 0, skl: 0, spd: 0, lck: 0, def: 0, res: 0, cha: 0 };
+export const PROTAGONIST_MAX_ALLOCATION: Record<StatKey, number> = { hp: 30, str: 10, mag: 10, skl: 10, spd: 10, lck: 10, def: 10, res: 10, cha: 10 };
+
+// 培养倾向：不再手选，由属性分配自动推导（deriveProtagonistTendency）；这里只保留五条
+// 个人成长向量作为推导结果的数据来源（基础值，运行时再叠加职业成长、年龄修正与轮回分配）。
+export type ProtagonistTendency = 'balanced' | 'might' | 'skill' | 'magic' | 'guard';
+export const PROTAGONIST_TENDENCY_NAMES: Record<ProtagonistTendency, string> = {
+  balanced: '均衡', might: '力量', skill: '技巧', magic: '魔力', guard: '守护',
+};
+export const PROTAGONIST_TENDENCIES: Record<ProtagonistTendency, { name: string; growth: Stats }> = {
   balanced: { name: '均衡', growth: stats(60, 40, 40, 45, 45, 40, 30, 30, 20) },
   might: { name: '力量', growth: stats(75, 60, 5, 40, 35, 30, 40, 15, 20) },
   skill: { name: '技巧', growth: stats(55, 35, 10, 65, 60, 45, 20, 25, 20) },
   magic: { name: '魔力', growth: stats(50, 10, 65, 45, 45, 30, 15, 45, 20) },
   guard: { name: '守护', growth: stats(75, 45, 5, 35, 25, 25, 55, 35, 20) },
 };
+
+// 由九属性分配推导培养倾向：力×2、魔×2、技+速、防+魔防四组打分，最高者胜；
+// 平手（含全同的默认分配）一律取「均衡」。纯函数，前后端共用。
+export function deriveProtagonistTendency(allocation: Stats): ProtagonistTendency {
+  const scores: [ProtagonistTendency, number][] = [
+    ['might', allocation.str * 2], ['magic', allocation.mag * 2],
+    ['skill', allocation.skl + allocation.spd], ['guard', allocation.def + allocation.res],
+  ];
+  const best = Math.max(...scores.map(([, value]) => value));
+  const winners = scores.filter(([, value]) => value === best).map(([id]) => id);
+  return winners.length === 1 ? winners[0] : 'balanced';
+}

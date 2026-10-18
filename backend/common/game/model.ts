@@ -2,13 +2,13 @@ import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
 import { CLASSES, classChangeReason, classSpecies, weaponRankCap } from '../data/classes.ts';
 import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
-import type { ClassId } from '../data/classes.ts';
+import type { ClassId, ClassRoute } from '../data/classes.ts';
 import { applyGrowthBonus } from '../data/growth-types.ts';
 import type { GrowthType } from '../data/growth-types.ts';
 import type { Promotion } from '../data/promotions.ts';
 import { RANKS, STAT_KEYS, withCharm } from '../data/types.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
-import { WEAPONS } from '../data/weapons.ts';
+import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import type { ItemId, WeaponId, WeaponInstance } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
@@ -34,6 +34,8 @@ export interface UnitRecord {
   sex?: 'male' | 'female';
   portrait?: CharacterId;
   classId: ClassId;
+  // 当前轮次起始职业；形象模板不赠送其原人物的职业资格。旧档缺省时沿用旧模板口径。
+  homeClassId?: ClassId;
   species: 'human' | 'beast' | 'dragon';
   level: number;
   exp: number;
@@ -174,8 +176,13 @@ export const SPELLBOOK_CARRY = 5;
 
 // docs/04: a new character starts at level 1 with the class base. `expected: true` uses the growth
 // expectation (deterministic) — the seed roster and opponents use it; real level-ups roll randomly.
-// `opts` lets recruitment override the character default's growth type and age.
-export interface UnitOptions { growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1; base?: Stats; personalGrowth?: Stats }
+// `opts` lets recruitment override the character default's growth type and age. `startingGear`
+// selects the production starting kit ('basic' for the initial party, 'recruit' for hired/quest
+// units); without it the legacy/demo kits stay untouched so old fixtures and saves are unaffected.
+export interface UnitOptions {
+  growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1;
+  base?: Stats; personalGrowth?: Stats; startingGear?: StartingGear;
+}
 
 export function weaponMax(id: WeaponId): number {
   const w = WEAPONS[id];
@@ -190,8 +197,8 @@ export function bookMax(id: WeaponId): number {
   return WEAPONS[id].maxCharges ?? 10;
 }
 
-// 职业起始法术书（按职业书表携带）：有 理 权限的给四本基础黑魔法书，只有 杖 权限的给圣疗；
-// 能否施放仍按权限、熟练度与教材逐本判断。
+// 职业起始法术书（旧演示套装，供未指定 startingGear 的既有夹具/旧存档沿用）：有 理 权限的给四本
+// 基础黑魔法书，只有 杖 权限的给圣疗。生产线新单位改用 startingGearKit，只发一本入门 E 书。
 export function starterSpellbooks(classId: ClassId): { id: string; charges: number; maxCharges: number }[] {
   const weapons = CLASSES[classId]?.weapons ?? {};
   const ids = weapons.tome ? ['fire', 'thunder', 'wind', 'flame_lance'] : weapons.staff ? ['fw_spell_12'] : [];
@@ -224,32 +231,128 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     const first = (Object.keys(WEAPONS) as WeaponId[]).find(id => WEAPONS[id].type === type && WEAPONS[id].rank === 'E');
     return first ? [first] : [];
   }).slice(0, 5);
-  const kit = opts.classId ? { weapons: startingWeapons,
-    ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character];
+  // 生产线新单位用显式起始装备；未指定时保留旧演示套装（老测试夹具与旧存档不受影响）。
+  const gear = opts.startingGear ? startingGearKit(classId, level, opts.startingGear) : null;
+  const kit = gear ?? (opts.classId ? { weapons: startingWeapons,
+    ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character]);
   return {
-    id, character, classId, species, level, exp: 0, stats, con: classBased ? cls.con : def.con, hp: stats.hp,
+    id, character, classId, homeClassId: classId, species, level, exp: 0, stats, con: classBased ? cls.con : def.con, hp: stats.hp,
     weapons: [...kit.weapons], weaponInstances: kit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) })),
     bookInstances: kit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) })),
-    items: (kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
-    ranks: { ...kit.ranks }, weaponExp: {}, status: 'active', joinedDay, growthType, personalGrowth: { ...personal }, baseAge: age, age,
+    items: (gear ? gear.items : kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
+    ranks: { ...kit.ranks }, weaponExp: gear ? { ...gear.weaponExp } : {}, status: 'active', joinedDay, growthType, personalGrowth: { ...personal }, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
     learnedSkills: [], learnedArts: [], equippedSkills: [], equippedArts: [], learnedSpells: [],
-    spellbooks: starterSpellbooks(classId),
+    spellbooks: gear ? gear.spellbooks : starterSpellbooks(classId),
     lineageDepth: 0, receivedLegacyId: null,
   };
 }
 
-// 自捏主角 1 级基础值（docs/00「神主角」）：不直接沿用代表角色的 base，而是把 base 当作该职业 1 级最低值，
-// 再按个人成长率掷一个 0.5–1.5 倍的随机加成（成长越高，1 级基础越可能偏高）。
-export function rollProtagonistBase(classMin: Stats, personalGrowth: Stats, rng: RngState): Stats {
-  const base = {} as Stats;
-  for (const key of STAT_KEYS) {
-    const factor = 0.5 + (nextU32(rng) % 1000) / 1000;
-    base[key] = classMin[key] + Math.floor(personalGrowth[key] / 20 * factor);
+// ---- production starting gear (docs/13 §开局) -------------------------------------------
+
+export type StartingGear = 'basic' | 'recruit';
+
+// Each route's natural primary weapon (mage→理、僧侣→杖、骑士→枪…); classes listing several studies
+// still lead with their route's type. Falls back to the first listed type if unsupported.
+const ROUTE_PRIMARY: Record<ClassRoute, WeaponType> = {
+  sword: 'sword', axe: 'axe', armor: 'lance', cavalry: 'lance', flying: 'lance', bow: 'bow',
+  magic: 'tome', healing: 'staff', stealth: 'dagger', fist: 'fist', beast: 'beast', dragon: 'dragon',
+};
+
+// A class's primary weapon type drives which single weapon a 'basic' unit receives.
+export function primaryWeaponType(classId: ClassId): WeaponType {
+  const cls = CLASSES[classId];
+  const preferred = ROUTE_PRIMARY[cls.route];
+  return cls.weapons[preferred] ? preferred : (Object.keys(cls.weapons) as WeaponType[])[0];
+}
+
+// 'basic' 起 手武器：主武器类型的最便宜 E 级装备；有木制/青铜基础版就用木制版。
+// 平民只拿一把木剑，不再按职业权限每类发一把、更不送四本法术书。
+const BASIC_WEAPONS: Record<WeaponType, WeaponId> = {
+  sword: 'fw_weapon_1', lance: 'fw_weapon_24', axe: 'fw_weapon_52', bow: 'fw_weapon_72',
+  fist: 'fw_weapon_89', tome: 'fire', staff: 'heal', dagger: 'dagger', beast: 'beast_claw', dragon: 'dragonstone',
+};
+
+// 'recruit' 成套装备的阶梯：E 档只有铁系/基础款；D 档加钢系；C 档及以上换成钢系主力。
+// 刻意不含必杀（killer_*）、特效、稀有或剧情武器——那些必须自己挣。
+interface RankLadder { e: WeaponId; d?: WeaponId; c?: WeaponId }
+const RECRUIT_LADDERS: Record<WeaponType, RankLadder> = {
+  sword: { e: 'iron_sword', d: 'steel_sword' },
+  lance: { e: 'iron_lance', d: 'steel_lance' },
+  axe: { e: 'iron_axe', d: 'steel_axe' },
+  bow: { e: 'iron_bow', d: 'steel_bow' },
+  tome: { e: 'fire', d: 'thunder' },
+  staff: { e: 'heal', c: 'recover' },
+  fist: { e: 'gauntlet', d: 'steel_gauntlet' },
+  dagger: { e: 'dagger' },
+  beast: { e: 'beast_claw', d: 'beast_fang' },
+  dragon: { e: 'dragonstone' },
+};
+
+// 招募/任务加入单位的熟练度：每 12 级晋升一档，从 E 起步，且封顶在该职业对此类武器的上限
+// （weaponRankCap，随职业阶段而变）。1 级永远是 E；招募上限 30 级时最高 C，不会出现早期 S/SS/SSS。
+export const RECRUIT_RANK_STEP_LEVELS = 12;
+export function recruitRank(level: number, classId: ClassId, type: WeaponType): Rank {
+  const cap = weaponRankCap(classId, type) ?? 'E';
+  const earned = Math.floor(Math.max(0, level - 1) / RECRUIT_RANK_STEP_LEVELS);
+  return RANKS[Math.min(earned, RANKS.indexOf(cap))];
+}
+
+interface GearKit {
+  weapons: WeaponId[];
+  ranks: Partial<Record<WeaponType, Rank>>;
+  items: [ItemId, number][];
+  spellbooks: { id: string; charges: number; maxCharges: number }[];
+  weaponExp: Partial<Record<WeaponType, number>>;
+}
+
+function bookEntry(id: string): { id: string; charges: number; maxCharges: number } {
+  const max = SPELLBOOK_BY_ID.get(id)!.maxCharges;
+  return { id, charges: max, maxCharges: max };
+}
+
+// Magic beginners get exactly one E beginner book (火焰 for 理, 圣疗 for 杖), never the old four-book bundle.
+function beginnerSpellbooks(primary: WeaponType): GearKit['spellbooks'] {
+  if (primary === 'tome') return [bookEntry('fire')];
+  if (primary === 'staff') return [bookEntry('fw_spell_12')];
+  return [];
+}
+
+// Builds the explicit production starting kit. All granted items come with full uses/durability.
+export function startingGearKit(classId: ClassId, level: number, gear: StartingGear): GearKit {
+  const cls = CLASSES[classId];
+  const allTypes = Object.keys(cls.weapons) as WeaponType[];
+  const primary = primaryWeaponType(classId);
+  // 主武器类型排最前（多武器职业的成套装备优先保主力）。
+  const types = [primary, ...allTypes.filter(type => type !== primary)];
+  const vulnerary: [ItemId, number][] = [['vulnerary', ITEMS.vulnerary.uses]];
+  if (gear === 'basic') {
+    return {
+      weapons: [BASIC_WEAPONS[primary]],
+      ranks: Object.fromEntries(types.map(type => [type, 'E'])) as Partial<Record<WeaponType, Rank>>,
+      items: vulnerary,
+      spellbooks: beginnerSpellbooks(primary),
+      weaponExp: {},
+    };
   }
-  return base;
+  const ranks: Partial<Record<WeaponType, Rank>> = {};
+  const weaponExp: Partial<Record<WeaponType, number>> = {};
+  const weapons: WeaponId[] = [];
+  for (const type of types) {
+    const rank = recruitRank(level, classId, type);
+    ranks[type] = rank;
+    const ladder = RECRUIT_LADDERS[type];
+    const tier = RANKS.indexOf(rank);
+    if (tier <= 0) { weapons.push(ladder.e); continue; }
+    // 熟练度经验与授予等级一致，后续 addWeaponExp 不会回退。
+    weaponExp[type] = RANK_EXP[rank];
+    if (tier >= 2) weapons.push(ladder.c ?? ladder.d ?? ladder.e, ladder.e);
+    else if (ladder.d) weapons.push(ladder.e, ladder.d);
+    else weapons.push(ladder.e);
+  }
+  return { weapons: weapons.slice(0, 5), ranks, items: vulnerary, spellbooks: beginnerSpellbooks(primary), weaponExp };
 }
 
 // Personal + class growth with the growth-type/age offset already applied.

@@ -14,7 +14,7 @@ import type { ArtTraining } from '../common/data/weapon-arts.ts';
 import type { WeaponId } from '../common/data/weapons.ts';
 import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
-import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_MAX, PROTAGONIST_CLASSES, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { CHARACTERS, CHARACTER_IDS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import { GAME_ITEMS, isBoundWeapon, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
@@ -25,7 +25,7 @@ import type { BattleRecord } from '../common/game/battles.ts';
 import { CATALOG_VERSION, RULESET_VERSION, replayCompatibility } from '../common/game/version.ts';
 import { generateRecruit, RECRUIT_UNLOCK_DAY, recruitClass, recruitLevel, recruitPortrait, regionRoutes } from '../common/game/random-recruit.ts';
 import type { RandomRecruit } from '../common/game/random-recruit.ts';
-import { addWeaponExp, ageDaysOf, bookMax, createUnit, SPELLBOOK_CARRY, weaponMax, gainExperience, growthRates, lifespanEndDayOf, nextLifespanEventDay, rankFromExp, rollProtagonistBase, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
+import { addWeaponExp, ageDaysOf, bookMax, createUnit, SPELLBOOK_CARRY, weaponMax, gainExperience, growthRates, lifespanEndDayOf, nextLifespanEventDay, rankFromExp, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { promotionsFor } from '../common/data/promotions.ts';
 import { settleAttack, startAttack } from '../common/game/arena.ts';
@@ -34,8 +34,8 @@ import type { AttackPlan, Defense } from '../common/arena/rules.ts';
 import { applyBans, opponentList, validateDefense } from '../common/arena/rules.ts';
 import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { seedRng } from '../common/engine/rng.ts';
-import { GROWTH_TYPE_NAMES, MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
-import type { GrowthType } from '../common/data/growth-types.ts';
+import { MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/growth-types.ts';
+import type { Stats } from '../common/data/types.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
 import { activeSnapshot, applyBattleOutcome, bindDefense, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
@@ -46,8 +46,7 @@ import { classMasteryOf, gainMastery, masteryNodesFor, setEquippedSkills, SKILL_
 import { createDispatch, dispatchSummary, DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS, DISPATCH_MIN_DAYS } from '../common/game/dispatch.ts';
 import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
 import type { WeaponType } from '../common/data/types.ts';
-import { STAT_KEYS, withCharm } from '../common/data/types.ts';
-import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, stageCount, survivingIds } from '../common/game/expedition.ts';
+import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, stageCount, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
@@ -298,7 +297,7 @@ function randomRecruitUnit(candidate: RandomRecruit, region: number, day: number
   const age = rollRecruitAge(growthType, remainingYears, traits[1]);
   const portrait = recruitPortrait(seed);
   const unit = createUnit(portrait, level, `u_random_${region}_${hashSeed(seed)}`, day, true, {
-    classId: candidate.classId, growthType, age, personalGrowth: candidate.growth,
+    classId: candidate.classId, growthType, age, personalGrowth: candidate.growth, startingGear: 'recruit',
   });
   unit.name = candidate.name;
   unit.sex = candidate.sex;
@@ -915,7 +914,7 @@ const handlers: Record<number, Handler> = {
     const cost = REINCARNATION_GOLD;
     if (ctx.player.gold < cost) throw new OpError('NOT_ENOUGH_GOLD', `轮回需要 ${cost} 金币`);
     const allocation = (data.allocation && typeof data.allocation === 'object' ? data.allocation : {}) as Record<string, number>;
-    const initial = unit.species === 'human' ? initialClassOf(CHARACTERS[unit.character].classId) : initialClass(unit.species);
+    const initial = unit.species === 'human' ? initialClassOf(unit.homeClassId ?? CHARACTERS[unit.character].classId) : initialClass(unit.species);
     // 轮回只清学习成果（docs/00 §5.2），不没收装备：携带的武器与道具连同剩余次数回到仓库。
     // 先记下来，轮回校验通过后再入库，校验失败时什么都不写。
     // 武器耐久／强化、魔道书与杖次数、法术书次数都跟着实物回仓库，不因轮回补满。
@@ -1099,8 +1098,8 @@ const handlers: Record<number, Handler> = {
     if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能换职');
     const eligibility = classChangeReason(unit, classId);
     if (eligibility) throw new OpError('FORBIDDEN', eligibility);
-    // 已购资格或本命职业可免费切回；切回不占购买额度（docs/00 §4.1）。
-    const owned = hasClassQualification(unit.classQualifications ?? [], classId) || classId === canonicalClassId(unit.classId) || classId === canonicalClassId(CHARACTERS[unit.character].classId);
+    // 已购资格或本轮起始职业可免费切回，形象不授予其原人物的职业资格。
+    const owned = hasClassQualification(unit.classQualifications ?? [], classId) || classId === canonicalClassId(unit.classId) || classId === canonicalClassId(unit.homeClassId ?? CHARACTERS[unit.character].classId);
     if (!owned) throw new OpError('FORBIDDEN', '尚未购买该职业资格');
     switchClass(unit, classId);
     ctx.store.saveUnit(unit, ctx.player.id);
@@ -1247,7 +1246,7 @@ const handlers: Record<number, Handler> = {
     for (const unit of units) {
       const eligibility = classChangeReason(unit, classId);
       if (eligibility) throw new OpError('FORBIDDEN', eligibility);
-      const owned = hasClassQualification(unit.classQualifications ?? [], classId) || classId === canonicalClassId(unit.classId) || classId === canonicalClassId(CHARACTERS[unit.character].classId);
+      const owned = hasClassQualification(unit.classQualifications ?? [], classId) || classId === canonicalClassId(unit.classId) || classId === canonicalClassId(unit.homeClassId ?? CHARACTERS[unit.character].classId);
       if (!owned) throw new OpError('FORBIDDEN', `${unitName(unit)} 没有 ${CLASSES[classId].name} 资格`);
     }
     const defaultWeapon = units[0].weapons[0] ? WEAPONS[units[0].weapons[0]].type : (Object.keys(CLASSES[classId].weapons)[0] as WeaponType);
@@ -2181,7 +2180,7 @@ const handlers: Record<number, Handler> = {
       const units = ctx.store.units(ctx.player.id);
       const owned = units.some(u => u.character === quest.recruit);
       if (!owned) {
-        const unit = createUnit(quest.recruit, CHARACTERS[quest.recruit].level, `u_${quest.recruit}`, ctx.player.day, true);
+        const unit = createUnit(quest.recruit, CHARACTERS[quest.recruit].level, `u_${quest.recruit}`, ctx.player.day, true, { startingGear: 'recruit' });
         ctx.store.addUnit(ctx.player.id, unit);
         recruited.push({ character: quest.recruit, name: CHARACTERS[quest.recruit].name, unitId: unit.id });
       }
@@ -2207,6 +2206,8 @@ const handlers: Record<number, Handler> = {
   },
 
   // 开局：自建神主角 + 两名同伴，一次事务完成（docs/00「神主角」、docs/13 §开局）。
+  // 职业与成长类型固定（平民／成长型）：可选 legacy 字段传了错值要明确报错；培养倾向由属性分配
+  // 自动推导，不接受手选。九属性是 1 级全值直接分配：HP 1–30、其余 0–10、总计正好 60。
   [OP.COMPLETE_SETUP]: (ctx, data) => {
     if (ctx.player.flags.setupCompleted) throw new OpError('FORBIDDEN', '开局已经完成，不能重开');
     const p = (data.protagonist ?? {}) as Record<string, unknown>;
@@ -2214,62 +2215,61 @@ const handlers: Record<number, Handler> = {
     if (name.length < 2 || name.length > 12) throw new OpError('BAD_REQUEST', '主角姓名需要 2–12 个字符');
     const sex = p.sex === 'female' ? 'female' : p.sex === 'male' ? 'male' : null;
     if (!sex) throw new OpError('BAD_REQUEST', '主角性别需要 male 或 female');
-    const cls = PROTAGONIST_CLASSES.find(c => c.classId === p.classId);
-    if (!cls) throw new OpError('BAD_REQUEST', '主角职业不合法');
-    const growthType = p.growthType as GrowthType;
-    if (!['early', 'normal', 'late', 'growth'].includes(growthType)) throw new OpError('BAD_REQUEST', '成长类型不合法');
-    const tendencyKey = asString(p.tendency, 'protagonist.tendency');
-    const tendency = PROTAGONIST_TENDENCIES[tendencyKey];
-    if (!tendency) throw new OpError('BAD_REQUEST', '培养倾向不合法');
-    const portrait = (p.portrait === undefined ? cls.character : asString(p.portrait, 'protagonist.portrait')) as CharacterId;
+    if (p.classId !== undefined && p.classId !== PROTAGONIST_CLASS_ID) {
+      throw new OpError('BAD_REQUEST', `神主角固定以平民开局，不能自选职业（只接受 ${PROTAGONIST_CLASS_ID}）`);
+    }
+    if (p.growthType !== undefined && p.growthType !== PROTAGONIST_GROWTH_TYPE) {
+      throw new OpError('BAD_REQUEST', `神主角成长类型固定为成长型（只接受 ${PROTAGONIST_GROWTH_TYPE}）`);
+    }
+    if (p.tendency !== undefined) throw new OpError('BAD_REQUEST', '培养倾向由属性分配自动推导，不能指定');
+    const portrait = (p.portrait === undefined ? 'erin' : asString(p.portrait, 'protagonist.portrait')) as CharacterId;
     if (!CHARACTER_IDS.includes(portrait)) throw new OpError('BAD_REQUEST', '形象预设不合法');
     const allocation = (p.allocation ?? {}) as Record<string, unknown>;
-    let spent = 0;
-    for (const key of STAT_KEYS) {
-      const value = allocation[key];
-      if (value === undefined) continue;
-      if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > PROTAGONIST_ALLOCATION_MAX) {
-        throw new OpError('BAD_REQUEST', `${key} 分配需为 0–${PROTAGONIST_ALLOCATION_MAX} 的整数`);
-      }
-      spent += value;
+    for (const key of Object.keys(allocation)) {
+      if (!(STAT_KEYS as string[]).includes(key)) throw new OpError('BAD_REQUEST', `未知属性 ${key}`);
     }
-    if (spent > PROTAGONIST_ALLOCATION_BUDGET) throw new OpError('BAD_REQUEST', `属性分配超出预算 ${PROTAGONIST_ALLOCATION_BUDGET} 点`);
+    const alloc = { hp: 0, str: 0, mag: 0, skl: 0, spd: 0, lck: 0, def: 0, res: 0, cha: 0 } as Stats;
+    for (const key of STAT_KEYS) {
+      const value = allocation[key] ?? 0;
+      if (typeof value !== 'number' || !Number.isInteger(value) || value < PROTAGONIST_MIN_ALLOCATION[key] || value > PROTAGONIST_MAX_ALLOCATION[key]) {
+        throw new OpError('BAD_REQUEST', `${key} 分配需为 ${PROTAGONIST_MIN_ALLOCATION[key]}–${PROTAGONIST_MAX_ALLOCATION[key]} 的整数`);
+      }
+      alloc[key] = value;
+    }
+    const spent = STAT_KEYS.reduce((sum, key) => sum + alloc[key], 0);
+    if (spent !== PROTAGONIST_ALLOCATION_BUDGET) throw new OpError('BAD_REQUEST', `属性分配总计需为 ${PROTAGONIST_ALLOCATION_BUDGET} 点（当前 ${spent}）`);
+    const tendency = deriveProtagonistTendency(alloc);
     const raw = Array.isArray(data.companions) ? data.companions : [];
     const ids = raw.map(value => asString(value, 'companions'));
     if (ids.length !== 2) throw new OpError('BAD_REQUEST', '必须正好选择 2 名同伴');
     if (new Set(ids).size !== 2) throw new OpError('BAD_REQUEST', '两名同伴不能重复');
-    const pool = startingCompanionPool(cls.character);
+    const pool = startingCompanionPool(portrait);
     for (const id of ids) {
       if (!pool.includes(id as CharacterId)) throw new OpError('FORBIDDEN', `${id} 不能作为开局同伴`);
     }
     // 先移除占位主角，再建自捏主角与同伴（同一请求内一次写入）。
     const placeholder = ctx.store.units(ctx.player.id).find(u => u.isProtagonist);
     if (placeholder) ctx.store.removeUnit(ctx.player.id, placeholder.id);
-    const level = 1;
-    // 1 级基础值随机（以职业 1 级基础值 + 个人成长率折算），再按成长率推导到起始等级的收益。
-    const base = rollProtagonistBase(CLASSES[cls.classId].base, tendency.growth, seedRng(`protagonist:${ctx.player.id}`));
-    const hero = createUnit(cls.character, level, 'u_protagonist', ctx.player.day, true, { classId: cls.classId, growthType, age: 16, base, personalGrowth: tendency.growth });
+    // 1 级属性就是分配本身（不再掷随机基础值）；个人成长取推导出的倾向向量，只存 personalGrowth。
+    const hero = createUnit(portrait, 1, 'u_protagonist', ctx.player.day, true, {
+      classId: PROTAGONIST_CLASS_ID, growthType: PROTAGONIST_GROWTH_TYPE, age: 16,
+      base: alloc, personalGrowth: PROTAGONIST_TENDENCIES[tendency].growth, startingGear: 'basic',
+    });
     hero.name = name;
     hero.sex = sex;
     hero.portrait = portrait;
-    hero.inheritedGrowth = { ...tendency.growth };
-    for (const key of STAT_KEYS) {
-      const add = typeof allocation[key] === 'number' ? allocation[key] as number : 0;
-      hero.stats[key] = Math.min(CLASSES[cls.classId].caps[key], hero.stats[key] + add);
-    }
-    hero.hp = hero.stats.hp;
     hero.isProtagonist = true;
     ctx.store.addUnit(ctx.player.id, hero);
     for (const id of ids) {
-      ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, 1, `u_${id}`, ctx.player.day, true));
+      ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, 1, `u_${id}`, ctx.player.day, true, { classId: CHARACTERS[id as CharacterId].classId, startingGear: 'basic' }));
     }
-    ctx.player.protagonist = cls.character;
+    ctx.player.protagonist = portrait;
     ctx.player.flags.companions = ids as CharacterId[];
     ctx.player.flags.setupCompleted = true;
     ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'setup' });
     return {
-      protagonist: { id: hero.id, name, sex, classId: cls.classId, portrait, tendency: tendencyKey },
+      protagonist: { id: hero.id, name, sex, classId: PROTAGONIST_CLASS_ID, portrait, tendency },
       companions: ids, state: stateView(ctx.store, ctx.player),
     };
   },

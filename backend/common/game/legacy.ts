@@ -248,6 +248,7 @@ export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initia
   };
   unit.cycle = 1;
   unit.classId = initialClassId;
+  unit.homeClassId = initialClassId;
   unit.level = 1;
   unit.exp = 0;
   unit.stats = { ...baseStats };

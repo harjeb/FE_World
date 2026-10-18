@@ -8,7 +8,8 @@ export const RULESET_VERSION = 'rules-v7';
 // v16 / rules-v6: explicit classic-art mechanics, shared probabilistic forecast and strike resolution.
 // Finish active runs/battles before deployment; prior replays remain frozen only.
 // v18: twelve equal-budget regional reputation routes; classic rewards no longer add regional reputation.
-export const CATALOG_VERSION = 18;
+// v19: direct protagonist allocation, fixed commoner/growth and modest production starting kits.
+export const CATALOG_VERSION = 19;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

@@ -8,7 +8,7 @@
 | --- | --- |
 | 玩法定案、日期与声望 | [00](00-game-design.md)、[19](19-experience-time-balance.md)、[20](20-region-quests-reputation.md) |
 | 当前范围与完成证据 | [TODO](../TODO.md)、[28 首版交付](28-release-readiness.md) |
-| 协议唯一来源 | `backend/common/protocol/ops.ts`和`schemas.ts`，`docVersion: 2`，数字op |
+| 协议唯一来源 | `backend/common/protocol/ops.ts`和`schemas.ts`，`docVersion: 3`，数字op |
 | 生成的接口说明 | `docs/agent-api.md`、`agent-api.json`；由`npm --prefix backend run docs`生成 |
 | 浏览器登录与请求 | `frontend/src/api/client.ts`：`login`、`call`、`ApiError`、`newCommandId` |
 | 页面状态与业务操作 | `frontend/src/api/session.ts`：`session`、`useSession`、`run`及活动方法；战斗状态在`battle/session.ts` |
@@ -30,7 +30,7 @@ HTTP使用`POST /api/login`、`POST /api/op`，Agent使用`/ws`。当前没有`/
 - `CLAIM_CONTROL`／`RELEASE_CONTROL`提供5分钟租约；人工与Agent共享规则、权限及事务，另一方可查询。实时观战读取进行中的战斗事件游标，历史战报有独立入口。
 - 原型的持久化待处理命令日志与专门的收据查询并未接入当前客户端，页面重载后先重新查询服务器状态；不能把原型测试当作当前服务端的恢复验收。
 
-`rules-v7`／目录18为当前版本；315项战技、170项装备／法术模板已接入首版运行时，未知原作数值保留为未知，首稿参数仍需人工平衡。旧规则回放按兼容性展示冻结终局，不能静默用新规则重算。普通竞技场只进攻、每场1日；旧防守路由回落。原三地人物、传承／轮回资源和盾的限量来源保留。
+`rules-v7`／目录19为当前版本；目录19修正神主角直接分配、固定平民／成长型与E级起装。315项战技、170项装备／法术模板已接入首版运行时，未知原作数值保留为未知，首稿参数仍需人工平衡。旧规则回放按兼容性展示冻结终局，不能静默用新规则重算。普通竞技场只进攻、每场1日；旧防守路由回落。原三地人物、传承／轮回资源和盾的限量来源保留。
 
 成长类型仅展示玩家可见标签、实例属性、年龄及准确总成长；不要将内部年龄曲线、随机权重或修正百分点写成教程。行动耗日、永久死亡风险和实际传承／轮回结果须在确认前显示。
 

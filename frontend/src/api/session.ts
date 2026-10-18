@@ -23,6 +23,7 @@ export interface ServerUnit {
   sex: 'male' | 'female' | null;
   portrait: CharacterId | null;
   classId: string;
+  homeClassId: string;
   className: string;
   tier: string;
   stage: number;
@@ -129,12 +130,16 @@ export interface ServerState {
     needed: boolean;
     pool: { id: string; name: string; classId: string; level: number }[];
     chosen: string[] | null;
+    // 神主角固定 平民／成长型；培养倾向由属性分配自动推导，前端只发分配值。
     protagonist: {
-      classes: { classId: string; name: string; character: string; con: number }[];
-      tendencies: { id: string; name: string }[];
+      classId: string;
+      className: string;
+      growthType: string;
       portraits: { id: string; name: string }[];
       budget: number;
-      maxPerStat: number;
+      defaultAllocation: Record<string, number>;
+      minPerStat: Record<string, number>;
+      maxPerStat: Record<string, number>;
     };
   };
 }
@@ -540,10 +545,9 @@ class SessionStore {
     return result;
   }
 
-  // 完成自捏开局：自建主角 + 两名同伴，只能提交一次。
+  // 完成自捏开局：自建主角（固定平民／成长型，属性即 1 级全值）+ 两名同伴，只能提交一次。
   async completeSetup(protagonist: {
-    name: string; sex: 'male' | 'female'; classId: string; growthType: string;
-    tendency: string; portrait: string; allocation: Record<string, number>;
+    name: string; sex: 'male' | 'female'; portrait: string; allocation: Record<string, number>;
   }, companions: string[]): Promise<{ companions: string[] }> {
     return this.run<{ companions: string[] }>(OP.COMPLETE_SETUP, { protagonist, companions });
   }

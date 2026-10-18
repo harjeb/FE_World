@@ -88,7 +88,7 @@ export const OPS: readonly OpDef[] = [
   { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。' },
-  { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：自建神主角（姓名/性别/形象/职业/成长倾向/九属性分配）并选两名同伴（不能是剧情奖励人物，也不能重复）；只能提交一次。' },
+  { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，九属性直接分配60点（HP1–30，其余0–10），倾向自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。' },
   { op: 128, name: 'ACCEPT_RECRUIT', group: '日历', agentNote: '接受当前游历候选；名册满时保留候选，不重掷。' },
   { op: 129, name: 'DECLINE_RECRUIT', group: '日历', agentNote: '拒绝当前游历候选；已支付日期不退，之后可重新游历。' },
   { op: 130, name: 'GET_TAVERN', group: '整备', agentNote: '读取第二年后当地酒馆本季度候选、职业、种族、等级与价格。' },
@@ -145,7 +145,7 @@ export const OP = Object.fromEntries(OPS.map(def => [def.name, def.op])) as Reco
 export const OP_BY_NUMBER = new Map(OPS.map(def => [def.op, def]));
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 2;
+export const DOC_VERSION = 3;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

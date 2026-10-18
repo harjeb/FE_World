@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 2
+docVersion: 3
 
 本文件由 `backend/common/protocol/ops.ts` 生成，不要手改。
 
@@ -151,7 +151,7 @@ docVersion: 2
 | 124 | START_QUEST | 接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。 |
 | 125 | CLAIM_QUEST_REWARD | 领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。 |
 | 126 | BUY_QUEST_ITEM | 用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。 |
-| 127 | COMPLETE_SETUP | 完成开局：自建神主角（姓名/性别/形象/职业/成长倾向/九属性分配）并选两名同伴（不能是剧情奖励人物，也不能重复）；只能提交一次。 |
+| 127 | COMPLETE_SETUP | 完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，九属性直接分配60点（HP1–30，其余0–10），倾向自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。 |
 ### 日历
 
 | op | 名称 | 说明 |

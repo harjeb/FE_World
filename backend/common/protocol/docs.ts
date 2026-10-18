@@ -50,12 +50,13 @@ export function renderMarkdown(): string {
   return lines.join('\n');
 }
 
-// docs/06「版本只加不改」: GET /agent-api/changes/{v} returns the delta. v1 is the first version.
+// docs/06「版本只加不改」: GET /agent-api/changes/{v} returns all later changes.
 export function changesSince(version: number): { from: number; to: number; changes: string[] } | null {
-  if (version === DOC_VERSION) return { from: version, to: DOC_VERSION, changes: [] };
-  if (version < 1) {
-    return { from: version, to: DOC_VERSION, changes: [`v1: 首次发布。`, 'v2: 新增 WITHDRAW_ANNUAL(113)；年度赛事锁定报名培养和物资；START_MAIN_STAGE兼容入口也要求年度报名；任务预览补齐敌军等级、日期、风险及额外物资。'] };
-  }
-  if (version === 1) return { from: version, to: DOC_VERSION, changes: ['v2: 新增 WITHDRAW_ANNUAL(113)；年度赛事锁定报名培养和物资；START_MAIN_STAGE兼容入口也要求年度报名；任务预览补齐敌军等级、日期、风险及额外物资。'] };
-  return null;
+  if (!Number.isInteger(version) || version > DOC_VERSION) return null;
+  const releases = [
+    { version: 1, text: 'v1: 首次发布。' },
+    { version: 2, text: 'v2: 新增 WITHDRAW_ANNUAL(113)；年度赛事锁定报名培养和物资；START_MAIN_STAGE兼容入口也要求年度报名；任务预览补齐敌军等级、日期、风险及额外物资。' },
+    { version: 3, text: 'v3: COMPLETE_SETUP改为神主角完整属性分配：固定平民与成长型，60点直接填写九属性，倾向自动推导；setup.protagonist返回固定配置与逐属性上下限，初始三人使用E级基础装备。' },
+  ];
+  return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

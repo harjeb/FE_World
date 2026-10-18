@@ -126,6 +126,11 @@ try {
       await until(() => page.evaluate(`!!document.querySelector('.topbar')`)) && (await api(page, 10)).units.length === 3, 'three-member party');
     const protagonist = (await api(page, 10)).units.find(unit => unit.isProtagonist);
     check('the custom protagonist retains its identity', protagonist?.id === 'u_protagonist' && protagonist.name === '星海神主', 'custom protagonist');
+    const starters = (await api(page, 10)).units;
+    check('the starting three carry all-E ranks and the cheapest wooden/iron basic kit',
+      starters.every(unit => Object.values(unit.ranks).every(rank => rank === 'E'))
+      && starters.every(unit => ['fw_weapon_1', 'fw_weapon_24', 'fw_weapon_52', 'fw_weapon_72'].includes(unit.equipped)),
+      starters.map(unit => `${unit.name}:${unit.equipped}`).join(', '));
     let repeated = false;
     try { await api(page, 127, {}); } catch { repeated = true; }
     check('setup cannot be repeated', repeated, 'second completion rejected');

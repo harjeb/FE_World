@@ -1,6 +1,6 @@
 # 需求与验收状态总表
 
-更新日期：2026-10-18。核对基线：`8c70086`十二地区声望、`dca536b`分支整合、`f0232c3`显式旧档迁移；当前`rules-v7`／目录18、存档schema 1。稳定ID共65项（初表60项，后增ITEM-07与QUEST-06～09），64项完成首版，BAL-04部分完成。完整证据与任务状态见[34](docs/34-task-closure.md)，独立实际验收见[35](docs/35-release-validation-record.md)。后续新增需求继续在此维护。
+更新日期：2026-10-18。核对基线：`8c70086`十二地区声望、`dca536b`分支整合、`f0232c3`显式旧档迁移；当前`rules-v7`／目录19、协议文档3、存档schema 1。稳定ID共65项（初表60项，后增ITEM-07与QUEST-06～09），64项完成首版，BAL-04部分完成。完整证据与任务状态见[34](docs/34-task-closure.md)，独立实际验收见[35](docs/35-release-validation-record.md)。后续新增需求继续在此维护。
 
 玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)含历史轮次和候选数据模型；[14](docs/14-integration-handoff.md)记录当前接入边界。历史“未实现”不直接复制为新任务，最新覆盖矩阵以34为准。
 
@@ -91,7 +91,7 @@
 
 来源：[00 §3、§5、§7](docs/00-game-design.md)、[19 §1](docs/19-experience-time-balance.md)、[20 §5](docs/20-region-quests-reputation.md)。当前入口：[store.ts](backend/api/store.ts)、[handlers.ts](backend/api/handlers.ts)、[random-recruit.ts](backend/common/game/random-recruit.ts)。
 
-- [x] **SETUP-01｜已完成：正式新档配置。** 新账号从 D0、空地区进度、正式金币与 0 公共经验开始；占位主角和开局同伴从 1 级创建。`SEED_DAY=999` 只用于测试/演示夹具，不再作为正式起点。
+- [x] **SETUP-01｜已完成：正式新档配置。** 新账号从D0、13,120金币与0公共经验开始，自捏神主角固定平民／成长型，完整九属性直接分配60点、倾向自动推导，不叠加职业／人物／随机底值；两名同伴与主角均1级、E级熟练度、木制等基础装备。其他招募按等级与职业上限初始化熟练度并配普通装备。`SEED_DAY=999`及旧高阶起装只用于演示夹具，已有角色和 既得数据不重置。证据：`api.test.ts`开局回滚／幂等／形象不赠职业资格、`protagonist.test.ts`起装与招募权限、浏览器开局检查。
 - [x] **SETUP-02｜已完成：随机人物生成器接入全部招募渠道。** 游历、紧急补员和酒馆都使用 `generateRecruit`；随机角色有独立姓名、性别、种族、职业、个人成长、年龄与形象锚点。固定人物只经任务奖励加入，普通池不再消耗预设身份。
 - [x] **SETUP-03｜已完成：游历候选确认与地区保底。** 成功先写入 `pendingRecruit`，重连不重掷；`ACCEPT_RECRUIT`／`DECLINE_RECRUIT` 分离接受与拒绝，拒绝不退日期，满员保留候选；失败计数按地区累计并保留第 5 次保底。
 - [x] **SETUP-04｜已完成：常规付费酒馆招募。** 第二年开放；每地区每季度 3 名候选，季度刷新一次；`GET_TAVERN`／`HIRE_TAVERN` 用金币雇佣，不耗行动日，满员/重复/金币不足拒绝，候选不重掷。
@@ -178,7 +178,7 @@
 
 - [x] **DATA-01｜已完成：业务状态与命令收据原子提交。** `Store.transaction()` 使用 SQLite `BEGIN IMMEDIATE/COMMIT/ROLLBACK` 包裹所有 `WRITE_OPS` 与命令收据；扣款、日期、战斗、伤亡、经验、库存、声望、完成标记和事件在同一 handler 内提交。新增注入失败测试验证回滚，以及 `savePlayer(expectedVersion)` 拒绝陈旧版本。
 - [x] **DATA-02｜已完成首版可靠性基础：WAL、原子写入、版本校验与重开恢复。** SQLite 启用 WAL、`busy_timeout=5000`，所有写命令和收据在 `BEGIN IMMEDIATE` 事务内；`savePlayer(expectedVersion)` 拒绝陈旧版本，`commandId`重试返回原结果。自动回归覆盖注入异常回滚、文件重开和Worker顺序结算；真实多连接／API与Worker进程竞争、崩溃或异常掉电恢复尚无实际验收，由LOAD-01／OPS-01分别记录，不把配置和顺序测试当作已通过压测。
-- [x] **DATA-03｜已完成：规则版本与历史活动兼容。** `version.ts`当前为`ENGINE_VERSION=1`、`RULESET_VERSION='rules-v7'`、`CATALOG_VERSION=18`（初版为v2／目录10）；战斗／竞技场／年度记录冻结规则版本，`GET_REPLAY`／`GET_REPLAYS`返回兼容性和原因。旧规则／旧引擎只查看终局快照，不静默重算；同一规则下的目录变更不直接判为引擎不兼容。`autoplay('replay')`一致性和旧版本判定有自动测试。
+- [x] **DATA-03｜已完成：规则版本与历史活动兼容。** `version.ts`当前为`ENGINE_VERSION=1`、`RULESET_VERSION='rules-v7'`、`CATALOG_VERSION=19`（初版为v2／目录10）；战斗／竞技场／年度记录冻结规则版本，`GET_REPLAY`／`GET_REPLAYS`返回兼容性和原因。旧规则／旧引擎只查看终局快照，不静默重算；同一规则下的目录变更不直接判为引擎不兼容。`autoplay('replay')`一致性和旧版本判定有自动测试。
 - [x] **DATA-04｜已完成：可靠事件游标和投递。** 事件 ID 以十进制字符串作为 cursor，查询直接比较、不转 `Number`；`GET_STATE.eventCursor` + `GET_EVENTS(cursor)` 支持增量补拉，事件表按自增 ID 排序去重。`addEvent` 同事务写 `outbox`，推送失败可按 event id 重试，`pendingOutbox`/`markOutboxDelivered` 提供确认；最终状态仍以 events/state 表为准。
 - [x] **DATA-05｜已完成首版：正式存档、权限及部署边界。** 账号/玩家/单位/库存/战斗/回放按 `account_id`/`player_id` 归属，`GET_BATTLE`/`GET_REPLAY` 只返回自己的或已公开记录；网页会话30天不活跃失效，Agent token独立且可重置。新增schema／日历metadata与显式迁移CLI，默认预演，120日换算／500日原样采纳、WAL一致备份、事务回滚、重开幂等与活动门禁有文件级测试；详见[33](docs/33-save-migration.md)。docs/28记录部署边界，数据库选型见docs/29。生产旧档实迁、部署机恢复演练和真实多人长流程另作实际验收。
 
@@ -207,7 +207,7 @@
 
 ## 12. 文档与交付清理
 
-- [x] **DOC-01｜已完成：清理旧状态与新定案冲突。** 06／14 的 `docVersion` 已同步为 2，11／12 加历史记录横幅；补建 `tools/audit/equipment-catalog.py` 并修复 docs/27 的无效可选参数；补齐 `fe-world-m2n` Beads 记录。旧防守/每击耗耐久/精工+5/16+4/年度经验硬上限均标为历史，不再作为目标。
+- [x] **DOC-01｜已完成：清理旧状态与新定案冲突。** 06／14的当前`docVersion`为3，首次清理时为2；11／12 加历史记录横幅；补建 `tools/audit/equipment-catalog.py` 并修复 docs/27 的无效可选参数；补齐 `fe-world-m2n` Beads 记录。旧防守/每击耗耐久/精工+5/16+4/年度经验硬上限均标为历史，不再作为目标。
 - [x] **DOC-02｜已完成首版交付文档：正式交付和完成证据。** [28 首版交付](docs/28-release-readiness.md)列出170项装备／法术、315项战技、60张经典图、正常新档、备份恢复与边界；[32](docs/32-branch-integration.md)记录分支整合，[33](docs/33-save-migration.md)记录迁移工具，[34](docs/34-task-closure.md)核对65项稳定ID和Beads状态。八年自动脚本仅作遭遇采样，BAL-04保留部分完成；真实多人、40–60小时人工和生产实迁分别记入[35](docs/35-release-validation-record.md)，当前均未执行。
 
 ## 已完成或已明确排除的内容
