@@ -132,6 +132,7 @@ test('learned weapon arts are exposed and validated against weapon type', () => 
   const unit = createUnit('victor', 20, 'artist', 0, true, { classId: 'swordsman' });
   unit.weapons = ['iron_sword']; unit.ranks.sword = 'C';
   unit.learnedArts = [WEAPON_ARTS.find(art => art.weapon === 'sword')!.id];
+  unit.equippedArts = [...unit.learnedArts];
   const record = createClassicBattle([unit], { mapId: 'fe1-ch16', seed: 'art', day: 0 });
   const battle = record.state;
   const player = battle.units.find(entry => entry.id === 'artist')!;
@@ -191,6 +192,7 @@ test('replay versions distinguish current, old-rule and old-engine records', () 
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: RULESET_VERSION }).compatible, true);
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v2' }).compatible, false);
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v3' }).compatible, false);
+  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v4' }).compatible, false);
   assert.equal(replayCompatibility({ engineVersion: 0, rulesetVersion: RULESET_VERSION }).compatible, false);
 });
 

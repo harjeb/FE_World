@@ -553,7 +553,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
     hasInheritance: !!unit.inheritance,
     // 身份来源：神主角、固定人物（开局同伴／任务加入，沿用角色表姓名）或随机招募（有自己的姓名）。
     origin: unitOrigin(unit),
-    learnedArts: unit.learnedArts ?? [], equipmentArts: equipmentArts(unit),
+    learnedArts: unit.learnedArts ?? [], equippedArts: unit.equippedArts ?? [], equipmentArts: equipmentArts(unit),
     // 装备资源实例：武器耐久、魔道书／杖次数与职业法术书次数（整备、维修与旅馆用）。
     weaponInstances: unit.weaponInstances ?? [], bookInstances: unit.bookInstances ?? [], spellbooks: unit.spellbooks ?? [],
     // The arena snapshot the browser needs to build AttackPlans and defense previews.
@@ -577,7 +577,7 @@ export function unitDetail(unit: UnitRecord, day = unit.ageEpochDay ?? unit.join
     weaponInstances: unit.weaponInstances ?? [], bookInstances: unit.bookInstances ?? [],
     // 职业法术书（cast 用，每本独立次数；旅馆与食物恢复，见 INN_REST／USE_FOOD 的 spellbook 参数）。
     spellbooks: unit.spellbooks ?? [],
-    arts: [...new Set([...(unit.learnedArts ?? []), ...equipmentArts(unit)])],
+    arts: [...new Set([...(unit.equippedArts ?? []), ...equipmentArts(unit)])],
     equipmentSkills: unit.weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []),
     growthLog: unit.growthLog, drugCounts: unit.drugCounts, joinedDay: unit.joinedDay, promotedFrom: unit.promotedFrom ?? null,
   };

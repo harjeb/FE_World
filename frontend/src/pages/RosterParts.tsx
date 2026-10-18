@@ -57,7 +57,7 @@ export function ProfileTabs({ unit, current }: { unit: ServerUnit; current: Prof
     <nav className="ptabs" aria-label="档案分页">
       {tab('stats', links.roster(unit.id), '属性与装备')}
       {tab('growth', links.roster(unit.id, 'growth'), '成长记录')}
-      {tab('mastery', links.roster(unit.id, 'mastery'), '精通与技能', unit.learnedSkills.length > 0 ? <span className="tag tag-grey">{unit.equippedSkills.length} / {SLOTS}</span> : undefined)}
+      {tab('mastery', links.roster(unit.id, 'mastery'), '精通与技能', unit.learnedSkills.length + unit.learnedArts.length > 0 ? <span className="tag tag-grey">{unit.equippedSkills.length + unit.equippedArts.length} / {SLOTS}</span> : undefined)}
       {tab('promote', links.promote(unit.id), '转职', canPromote(unit) ? <span className="tag tag-green">可转职</span> : undefined)}
       {tab('classes', links.roster(unit.id, 'classes'), '职业资格')}
       {tab('retire', links.roster(unit.id, 'retire'), '退役与轮回')}
@@ -182,7 +182,7 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
   const items = unit.snapshot.items;
   const free = Math.max(0, SLOTS - items.length);
   const prep = links.prep(unit.id);
-  const arts = [...new Set([...unit.learnedArts, ...unit.equipmentArts])];
+  const arts = [...new Set([...unit.equippedArts, ...unit.equipmentArts])];
   const granted = [...new Set(weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
   const row = (id: WeaponId, i: number, equipped: boolean) => {
     const res = instanceFor(unit, weapons, i);
@@ -193,7 +193,7 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
         <div className="min-w-0">
           <div className="nm">{WEAPONS[id].name}{(id === 'fw_weapon_85' || refinement > 0) && ` +${refinement}`} {equipped && <span className="tag tag-blue">✓ 装备中</span>}{WEAPONS[id].grants?.skill && <span className="tag tag-brass">授予 {skillName(WEAPONS[id].grants!.skill!)}</span>}</div>
           <div className="sp">{weaponSpec(id)}</div>
-          {WEAPONS[id].grants?.arts?.map(grant => <div className="sp" key={grant.art}>装备授予：{artName(grant.art)}{grant.minimumRefinement > 0 && ` · 精炼 +${grant.minimumRefinement} 起`}{refinement < grant.minimumRefinement ? '（未激活）' : '（已激活）'}</div>)}
+          {WEAPONS[id].grants?.arts?.map(grant => <div className="sp" key={grant.art}>装备授予：{artName(grant.art)}{grant.minimumRefinement > 0 && ` · 精炼 +${grant.minimumRefinement} 起`}{unit.equipmentArts.includes(grant.art) ? '（已激活）' : '（未激活）'}</div>)}
           {res && <ResourceBar {...res} />}
         </div>
         {equipped ? <span /> : <button type="button" className="btn btn-sm" onClick={() => onEquip(id)}>装备</button>}
@@ -375,21 +375,31 @@ export function GrowthPanels({ unit }: { unit: ServerUnit }) {
 // 精通与技能 (GET_MASTERY / EQUIP_SKILLS): class mastery by class, the nodes, and the five shared slots.
 export function MasteryPanel({ unit }: { unit: ServerUnit }) {
   const { data, error } = useServerData(() => session.mastery(unit.id), [unit.id]);
-  const [picked, setPicked] = useState<string[] | null>(null);
+  const version = useSession().state?.version;
+  const [picked, setPicked] = useState<{ skills: string[]; arts: string[] } | null>(null);
+  useEffect(() => { setPicked(null); setMessage(null); }, [unit.id, version, data]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   if (!data) return <section className="panel"><p className="sys-note">{error ? `读不到精通：${error}` : '读取职业精通…'}</p></section>;
-  const equipped = picked ?? data.equippedSkills;
+  if (data.unit !== unit.id) return <section className="panel"><p className="sys-note">读取职业精通…</p></section>;
+  const equipped = picked?.skills ?? data.equippedSkills;
+  const arts = picked?.arts ?? data.equippedArts;
+  const count = equipped.length + arts.length;
   const current = data.progress.find(p => p.classId === data.classId) ?? data.progress.find(p => p.name === unit.className);
   const others = data.progress.filter(p => p !== current && p.mastery > 0);
   const anchorSkill = CHARACTERS[unit.character]?.skill;
   const granted = [...new Set((unit.snapshot.weapons as WeaponId[]).flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
-  const toggle = (skill: string) => setPicked(equipped.includes(skill) ? equipped.filter(s => s !== skill) : equipped.length < data.slots ? [...equipped, skill] : equipped);
-  const dirty = picked !== null && (picked.length !== data.equippedSkills.length || picked.some(s => !data.equippedSkills.includes(s)));
+  const toggle = (id: string, art = false) => {
+    const list = art ? arts : equipped;
+    const next = list.includes(id) ? list.filter(s => s !== id) : count < data.slots ? [...list, id] : list;
+    setPicked({ skills: art ? equipped : next, arts: art ? next : arts });
+  };
+  const changed = (a: string[], b: string[]) => a.length !== b.length || a.some(id => !b.includes(id));
+  const dirty = picked !== null && (changed(equipped, data.equippedSkills) || changed(arts, data.equippedArts));
   const save = async () => {
     setBusy(true);
     setMessage(null);
-    try { await session.run(OP.EQUIP_SKILLS, { unitId: unit.id, skills: equipped }); setPicked(null); setMessage('技能格已保存'); }
+    try { await session.run(OP.EQUIP_SKILLS, { unitId: unit.id, skills: equipped, arts }); setPicked(null); setMessage('技能格已保存'); }
     catch (e) { setMessage(`保存失败：${e instanceof Error ? e.message : String(e)}`); }
     finally { setBusy(false); }
   };
@@ -424,18 +434,19 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
         </>}
       </section>
       <section className="panel" aria-labelledby="sk-h">
-        <div className="ph"><h2 id="sk-h">技能格 <span style={{ fontWeight: 500, color: '#6A6256' }}>{equipped.length} / {data.slots}</span></h2><span style={{ fontSize: 12, color: '#6A6256' }}>已学技能可跨职业自由装备</span></div>
+        <div className="ph"><h2 id="sk-h">技能格 <span style={{ fontWeight: 500, color: '#6A6256' }}>{count} / {data.slots}</span></h2><span style={{ fontSize: 12, color: '#6A6256' }}>被动技能与已学战技共用</span></div>
         <div className="skill-slots">
           {Array.from({ length: data.slots }, (_, i) => {
             const skill = equipped[i];
-            return <span key={i} className={`sslot${skill ? '' : ' empty'}`}>{skill ? <><b>{skillName(skill)}</b><small>{SKILLS[skill as SkillId]?.text}</small></> : '空格'}</span>;
+            const art = arts[i - equipped.length];
+            return <span key={i} className={`sslot${skill || art ? '' : ' empty'}`}>{skill ? <><b>{skillName(skill)}</b><small>{SKILLS[skill as SkillId]?.text}</small></> : art ? <><b>{artName(art)}</b><small>{WEAPON_ART_BY_ID.get(art)?.effect}</small></> : '空格'}</span>;
           })}
         </div>
         <div className="grp">已学会 · 点选装上或卸下</div>
         <div className="chips-list">
           {data.learnedSkills.map(skill => (
-            <button key={skill} type="button" className="chip" aria-pressed={equipped.includes(skill)} disabled={!equipped.includes(skill) && equipped.length >= data.slots} onClick={() => toggle(skill)} title={SKILLS[skill as SkillId]?.text}>
-              {skillName(skill)}
+            <button key={skill} type="button" className="chip" aria-pressed={equipped.includes(skill)} disabled={busy || (!equipped.includes(skill) && count >= data.slots)} onClick={() => toggle(skill)} title={SKILLS[skill as SkillId]?.text}>
+              {skillName(skill)} · {SKILLS[skill as SkillId]?.text}
             </button>
           ))}
           {data.learnedSkills.length === 0 && <span className="muted" style={{ fontSize: 13 }}>还没有学会技能：职业精通达到门槛后学会。</span>}
@@ -444,10 +455,11 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
         <ul className="roster-mini">
           {data.learnedArts.map(id => {
             const art = WEAPON_ART_BY_ID.get(id);
-            return <li key={id}><span className="min-w-0"><b>{art?.name ?? id}</b><span className="rm-sub">{art ? `${art.effect} · ${art.weaponCompatibility.map(type => WEAPON_TYPE_NAMES[type]).join('／')}${art.rank ? ` ${art.rank}` : ''} · 耐久 ${art.cost}` : ''}</span></span></li>;
+            return <li key={id}><button type="button" className="chip" aria-pressed={arts.includes(id)} disabled={busy || !art || art.unlock.kind === 'equipment_grant' || (!arts.includes(id) && count >= data.slots)} onClick={() => toggle(id, true)}>{arts.includes(id) ? '卸下' : '装上'}</button><span className="min-w-0"><b>{art?.name ?? id}</b><span className="rm-sub">{art ? `${art.unlock.kind === 'art_training' ? '战技研习' : '职业精通'} · ${art.effect} · ${art.weaponCompatibility.map(type => WEAPON_TYPE_NAMES[type]).join('／')}${art.rank ? ` ${art.rank}` : ''} · 耐久 ${art.cost}` : ''}</span></span></li>;
           })}
         </ul>
         {data.learnedArts.length === 0 && <p className="sys-note">职业精通达到战技节点后学会；切换职业不会直接领取战技。</p>}
+        <p className="sys-note">学会战技只加入永久库，不会自动装上。选中后仍须满足当前职业、兼容武器、熟练度与耐久／次数要求；基础战技与升级战技各占一格。装备授予战技、个人与职业固有能力不占格。</p>
         <dl className="facts">
           <dt>个人技能</dt><dd>{anchorSkill ? `${SKILLS[anchorSkill].name}：${SKILLS[anchorSkill].text}` : '无'}（不占格）</dd>
           <dt>装备授予</dt><dd>{granted.length > 0 ? granted.map(id => SKILLS[id].name).join('、') : '无'}（卸下即失效，不占格）</dd>

@@ -28,6 +28,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   PREVIEW_COMBAT: { required: ['attackerId', 'from', 'targetId'], properties: { attackerId: { type: 'string' }, from: { type: 'array' }, targetId: { type: 'string' }, weapon: { type: 'string' }, art: { type: 'string' }, allyId: { type: 'string' }, secondaryId: { type: 'string' }, spell: { type: 'string' } } },
   INN_REST: { required: ['unitId', 'book'], properties: { unitId: { type: 'string' }, book: { type: 'string' }, spellbook: { type: 'boolean' } } },
   USE_FOOD: { required: ['unitId', 'book', 'item'], properties: { unitId: { type: 'string' }, book: { type: 'string' }, spellbook: { type: 'boolean' }, item: { type: 'string', enum: ['ether_ration', 'full_meal'] } } },
+  EQUIP_SKILLS: { required: ['unitId', 'skills'], properties: { unitId: { type: 'string' }, skills: { type: 'array', items: { type: 'string' } }, arts: { type: 'array', items: { type: 'string' } } } },
   GET_ART_TRAINING: { required: ['unitId'], properties: { unitId: { type: 'string' } } },
   TRAIN_ART: { required: ['unitId', 'art'], properties: { unitId: { type: 'string' }, art: { type: 'string' } } },
   START_ANNUAL_MATCH: { properties: {} },

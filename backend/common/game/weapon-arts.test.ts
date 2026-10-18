@@ -23,7 +23,8 @@ function setup(weapon: WeaponId, refinement = 0) {
     { id: weapon, durability: 40, maxDurability: 50, refinement },
     { id: weapon, durability: 20, maxDurability: 40 },
   ];
-  record.equippedSkills = ['keen', 'opening', 'steadfast', 'nimble', 'lethal'];
+  record.learnedSkills = ['keen', 'opening', 'steadfast', 'nimble', 'grit'];
+  record.equippedSkills = [...record.learnedSkills];
   const state = createPinepassBattle('equipment-arts');
   state.kind = 'arena'; state.goal = { kind: 'rout' }; state.objects = []; state.scenario = undefined;
   state.map = { width: 8, height: 5, tiles: Array.from({ length: 5 }, () => Array.from({ length: 8 }, () => 'plain' as const)) };

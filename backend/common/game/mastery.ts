@@ -1,6 +1,7 @@
 import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
 import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classChangeReason } from '../data/classes.ts';
 import type { CatalogClassId, ClassId, ClassRoute } from '../data/classes.ts';
+import { SKILLS } from '../data/skills.ts';
 import type { SkillId } from '../data/skills.ts';
 import { CLASS_ART_MASTERY, WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import type { UnitRecord } from './model.ts';
@@ -94,19 +95,35 @@ export function gainMastery(unit: UnitRecord, amount: number, classId: ClassId =
     if (node.skill) {
       if (!unit.learnedSkills.includes(node.skill)) unit.learnedSkills.push(node.skill);
       // 有空位就自动装上，之后可在 5 格内自由调整。
-      if (unit.equippedSkills.length < SKILL_SLOTS && !unit.equippedSkills.includes(node.skill)) unit.equippedSkills.push(node.skill);
+      if (unit.equippedSkills.length + (unit.equippedArts?.length ?? 0) < SKILL_SLOTS && !unit.equippedSkills.includes(node.skill)) unit.equippedSkills.push(node.skill);
     }
     unlocked.push(node);
   }
   return unlocked;
 }
 
-// 跨职业自由装备已学技能，共用 5 格；未学过的不能装备。
-export function setEquippedSkills(unit: UnitRecord, skills: SkillId[]): string | null {
+function hasLearnedArt(unit: UnitRecord, id: string): boolean {
+  const art = WEAPON_ART_BY_ID.get(id);
+  return !!art && art.unlock.kind !== 'equipment_grant' && !!unit.learnedArts?.includes(id);
+}
+
+// 旧存档保留被动优先，再用旧习得库填空格；显式空选择不再次自动装备。
+export function normalizeLoadout(unit: UnitRecord): void {
+  unit.equippedSkills = [...new Set(unit.equippedSkills ?? [])]
+    .filter(id => Object.hasOwn(SKILLS, id) && unit.learnedSkills?.includes(id)).slice(0, SKILL_SLOTS);
+  unit.equippedArts = [...new Set(unit.equippedArts ?? unit.learnedArts ?? [])]
+    .filter(id => hasLearnedArt(unit, id)).slice(0, SKILL_SLOTS - unit.equippedSkills.length);
+}
+
+// 习得技能与战技共用五格；省略 arts 的旧调用保留当前战技选择。
+export function setEquippedSkills(unit: UnitRecord, skills: SkillId[], arts: string[] = unit.equippedArts ?? []): string | null {
   const unique = [...new Set(skills)];
-  if (unique.length > SKILL_SLOTS) return `最多装备 ${SKILL_SLOTS} 个已学技能`;
-  for (const skill of unique) if (!(unit.learnedSkills ?? []).includes(skill)) return `尚未学会技能 ${skill}`;
+  const selectedArts = [...new Set(arts)];
+  if (unique.length + selectedArts.length > SKILL_SLOTS) return `最多装备 ${SKILL_SLOTS} 个已学技能／战技`;
+  for (const skill of unique) if (!Object.hasOwn(SKILLS, skill) || !(unit.learnedSkills ?? []).includes(skill)) return `尚未学会技能 ${skill}`;
+  for (const art of selectedArts) if (!hasLearnedArt(unit, art)) return `尚未学会可装备战技 ${art}`;
   unit.equippedSkills = unique;
+  unit.equippedArts = selectedArts;
   return null;
 }
 

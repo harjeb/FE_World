@@ -60,7 +60,7 @@ test('UNIT_ACT runs a learned weapon art and spends its durability', () => {
   const { store, accountId, player } = setup('ui-art');
   const ctx = ctxFor(store, accountId, player);
   const victor = store.unit(player.id, 'u_victor')!;
-  victor.learnedArts = ['fw_art_36'];
+  victor.learnedArts = ['fw_art_36']; victor.equippedArts = ['fw_art_36'];
   store.saveUnit(victor, player.id);
   const record = battleWith(store, player, [victor]);
   const state = structuredClone(record.state);
@@ -306,7 +306,7 @@ test('original art API exposes legal allies, persists swaps, and retries never p
   const { store, accountId, player } = setup('ui-original');
   const ctx = ctxFor(store, accountId, player);
   const victor = store.unit(player.id, 'u_victor')!, erin = store.unit(player.id, 'u_erin')!;
-  victor.learnedArts = ['fe_art_cover_exchange']; victor.ranks.sword = 'A'; store.saveUnit(victor, player.id);
+  victor.learnedArts = ['fe_art_cover_exchange']; victor.equippedArts = ['fe_art_cover_exchange']; victor.ranks.sword = 'A'; store.saveUnit(victor, player.id);
   const record = battleWith(store, player, [victor, erin]);
   const state = structuredClone(record.state);
   state.map.tiles = state.map.tiles.map(row => row.map(() => 'plain')); state.objects = []; state.scenario = undefined;

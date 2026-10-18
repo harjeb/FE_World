@@ -62,6 +62,7 @@ export interface ServerUnit {
   learnedSkills: string[];
   equippedSkills: string[];
   learnedArts: string[];
+  equippedArts: string[];
   equipmentArts: string[];
   lifespanYears: number;
   lifespanEndDay: number | null;
@@ -309,7 +310,7 @@ export interface ArtTrainingResult {
 export interface ServerMastery {
   unit: string; classId: string; cycle: number; slots: number;
   progress: { classId: string; name: string; route: string; routeName: string; stage: number; mastery: number; nodes: { id: string; threshold: number; skill?: string; art?: string; name: string; referenceIds: string[]; unlocked: boolean }[] }[];
-  learnedSkills: string[]; learnedArts: string[]; equippedSkills: string[]; qualifications: string[];
+  learnedSkills: string[]; learnedArts: string[]; equippedSkills: string[]; equippedArts: string[]; qualifications: string[];
 }
 
 // GET_DISPATCHES: background exploration / class training (docs/00 §9.1.1).

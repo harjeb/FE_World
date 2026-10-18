@@ -986,7 +986,7 @@ const handlers: Record<number, Handler> = {
         stage: CLASSES[id].stage, mastery: classMasteryOf(unit, id),
         nodes: masteryNodesFor(id).map(node => ({ id: node.id, threshold: node.threshold, skill: node.skill, art: node.art, name: node.name, referenceIds: node.referenceIds ?? [], unlocked: unlockedNodes(unit, id).includes(node.id) })),
       })),
-      learnedSkills: unit.learnedSkills ?? [], learnedArts: unit.learnedArts ?? [], equippedSkills: unit.equippedSkills ?? [],
+      learnedSkills: unit.learnedSkills ?? [], learnedArts: unit.learnedArts ?? [], equippedSkills: unit.equippedSkills ?? [], equippedArts: unit.equippedArts ?? [],
       qualifications: unit.classQualifications ?? [],
     };
   },
@@ -1044,12 +1044,16 @@ const handlers: Record<number, Handler> = {
 
   [OP.EQUIP_SKILLS]: (ctx, data) => {
     const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
-    const skills = Array.isArray(data.skills) ? data.skills as never[] : [];
-    const problem = setEquippedSkills(unit, skills);
+    if (unit.status !== 'active') throw new OpError('FORBIDDEN', '该单位不在现役名册');
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能调整技能格');
+    if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能调整技能格');
+    if (!Array.isArray(data.skills) || data.skills.some(id => typeof id !== 'string')) throw new OpError('BAD_REQUEST', 'skills 需要字符串数组');
+    if (data.arts !== undefined && (!Array.isArray(data.arts) || data.arts.some(id => typeof id !== 'string'))) throw new OpError('BAD_REQUEST', 'arts 需要字符串数组');
+    const problem = setEquippedSkills(unit, data.skills as never[], data.arts as string[] | undefined);
     if (problem) throw new OpError('FORBIDDEN', problem);
     ctx.store.saveUnit(unit, ctx.player.id);
     ctx.push(OP.STATE_CHANGED, { reason: 'equip-skills' });
-    return { unit: unit.id, equippedSkills: unit.equippedSkills, slots: SKILL_SLOTS };
+    return { unit: unit.id, equippedSkills: unit.equippedSkills, equippedArts: unit.equippedArts, slots: SKILL_SLOTS };
   },
 
   // ---- dungeon runs (docs/00 §8.1.3, docs/13 §4.3) ---------------------

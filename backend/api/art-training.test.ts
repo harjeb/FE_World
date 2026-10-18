@@ -83,6 +83,7 @@ test('training quotes, command receipts and reloads pay and learn once, without 
   assert.equal(saved.exp, unit.exp);
   assert.equal(saved.level, unit.level);
   assert.deepEqual(saved.classMastery, unit.classMastery);
+  assert.deepEqual(saved.equippedArts, unit.equippedArts, 'paid training expands the library, not the selected loadout');
   switchClass(saved, 'commoner');
   ctx.store.saveUnit(saved, ctx.player.id);
   const reloaded = ctx.store.unit(ctx.player.id, unit.id)!;

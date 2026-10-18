@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CATALOG_CLASS_IDS } from '../data/classes.ts';
-import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
-import { createUnit, growthRates, normalizeUnit, toBattleUnit } from './model.ts';
+import { WEAPON_ARTS, WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
+import { createUnit, equipmentArts, growthRates, normalizeUnit, toBattleUnit, toSnapshot } from './model.ts';
 import { classMasteryOf, gainMastery, masteryNodesFor, setEquippedSkills, SKILL_SLOTS, switchClass, unlockedNodes } from './mastery.ts';
 
 test('mastery unlocks class nodes by threshold, not by total level', () => {
@@ -70,7 +70,9 @@ test('different teachers share one learned art, switching preserves it, and batt
   assert.ok(learned.some(node => node.art === 'fw_art_27'));
   assert.equal(unit.learnedArts!.filter(id => id === 'fw_art_27').length, 1);
   assert.ok(before.every(id => unit.learnedArts!.includes(id)));
-  assert.ok(toBattleUnit(unit, 'player', unit.id, [0, 0]).arts?.includes('fw_art_27'));
+  assert.deepEqual(toBattleUnit(unit, 'player', unit.id, [0, 0]).arts, [], 'learning adds only to the permanent library');
+  assert.equal(setEquippedSkills(unit, unit.equippedSkills, ['fw_art_27']), null);
+  assert.deepEqual(toBattleUnit(unit, 'player', unit.id, [0, 0]).arts, ['fw_art_27']);
 });
 
 test('loading an old mastery save reconciles new nodes without adding points or losing prior learning', () => {
@@ -115,4 +117,73 @@ test('switching class keeps mastery and learned skills but recomputes the class 
   assert.equal(classMasteryOf(unit, 'gladiator'), 20, 'old class mastery is kept');
   assert.ok(unit.learnedSkills.includes('opening'));
   assert.notDeepEqual(growthRates(unit), before, 'changing class must recompute the full growth vector even when strength matches');
+});
+
+test('learned passives, basic arts and trained upgrades share five slots, with atomic validation', () => {
+  const unit = createUnit('erin', 20, 'mixed-slots', 0);
+  unit.learnedSkills = ['opening', 'keen', 'nimble', 'hawkeye', 'focus', 'charge'];
+  unit.learnedArts = WEAPON_ARTS.map(art => art.id);
+  for (const art of WEAPON_ARTS) {
+    const problem = setEquippedSkills(unit, [], [art.id]);
+    if (art.unlock.kind === 'equipment_grant') assert.match(problem ?? '', /尚未学会/, art.id);
+    else { assert.equal(problem, null, art.id); assert.deepEqual(unit.equippedArts, [art.id]); }
+  }
+  const arts = ['fw_art_29', 'fw_art_224'];
+  assert.equal(WEAPON_ART_BY_ID.get(arts[1])!.unlock.kind, 'art_training');
+  assert.equal(setEquippedSkills(unit, ['opening', 'keen', 'nimble', 'opening'], [...arts, arts[0]]), null);
+  assert.equal(unit.equippedSkills.length + unit.equippedArts!.length, 5);
+  const before = structuredClone(unit);
+  for (const [skills, selected] of [
+    [['opening', 'keen', 'nimble', 'focus'], arts],
+    [['opening'], ['missing-art']], [['opening'], ['fw_art_23']], [['missing-skill'], arts],
+  ] as const) {
+    assert.ok(setEquippedSkills(unit, [...skills] as never[], [...selected]));
+    assert.deepEqual(unit, before, 'a failed selection never partially updates either array');
+  }
+  assert.equal(setEquippedSkills(unit, ['opening']), null);
+  assert.deepEqual(unit.equippedArts, arts, 'old skill-only callers preserve the current arts');
+  assert.equal(setEquippedSkills(unit, [], []), null);
+  normalizeUnit(unit);
+  assert.deepEqual(unit.equippedArts, [], 'an explicit empty loadout stays empty on reload');
+  assert.equal(unit.learnedArts.length, 315, 'slot choices never delete the library');
+});
+
+test('old loadouts retain valid passives first, fill existing arts once and keep all learning', () => {
+  const unit = createUnit('erin', 20, 'old-slots', 0);
+  unit.learnedSkills = ['opening', 'keen', 'nimble'];
+  unit.equippedSkills = ['opening', 'opening', 'keen'];
+  unit.learnedArts = ['fw_art_29', 'fw_art_224', 'fe_art_gap_stab', 'chariot_line', 'missing-art', 'fw_art_23'];
+  delete unit.equippedArts;
+  const library = [...unit.learnedArts];
+  normalizeUnit(unit);
+  assert.deepEqual(unit.equippedSkills, ['opening', 'keen']);
+  assert.deepEqual(unit.equippedArts, library.slice(0, 3));
+  assert.deepEqual(unit.learnedArts, library);
+  assert.deepEqual(normalizeUnit(JSON.parse(JSON.stringify(unit))), unit);
+  unit.equippedArts = [];
+  normalizeUnit(unit);
+  assert.deepEqual(unit.equippedArts, []);
+});
+
+test('new mastery cannot overflow a full mixed loadout and snapshots contain selected arts only', () => {
+  const unit = createUnit('erin', 20, 'full-slots', 0);
+  unit.learnedArts = ['fw_art_29', 'fw_art_224', 'fe_art_gap_stab', 'chariot_line', 'fw_art_52'];
+  assert.equal(setEquippedSkills(unit, [], unit.learnedArts), null);
+  gainMastery(unit, 100, 'commoner');
+  assert.ok(unit.learnedSkills.includes('opening'));
+  assert.deepEqual(unit.equippedSkills, [], 'passive autoequip also counts equipped arts');
+  assert.equal(unit.equippedArts!.length, 5);
+  assert.equal(setEquippedSkills(unit, [], ['fw_art_29']), null);
+  const selected = [...unit.equippedArts!];
+  switchClass(unit, 'swordsman');
+  assert.deepEqual(unit.equippedArts, selected);
+  assert.deepEqual(toBattleUnit(unit, 'player', unit.id, [0, 0]).arts, selected);
+  assert.deepEqual(toSnapshot(unit).arts, selected);
+  const snapshot = toSnapshot(unit);
+  unit.equippedArts!.length = 0;
+  assert.deepEqual(snapshot.arts, selected, 'frozen loadouts do not track later camp changes');
+  unit.weapons = ['killing_edge']; unit.ranks.sword = 'C';
+  unit.weaponInstances = [{ id: 'killing_edge', durability: 40, maxDurability: 40 }];
+  assert.ok(equipmentArts(unit).includes('fw_art_23'));
+  assert.deepEqual(unit.equippedArts, [], 'equipment grants remain outside the selected slots');
 });

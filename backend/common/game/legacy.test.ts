@@ -117,8 +117,9 @@ test('reincarnation resets growth, skills, qualifications and age, once only', (
   unit.classQualifications = ['sword_hero', 'swordmaster'];
   unit.learningProgress = { sword_hero: ['node-a'] };
   unit.learnedSkills = ['opening'];
-  unit.learnedArts = ['wrath_cut'];
+  unit.learnedArts = ['fw_art_29'];
   unit.equippedSkills = ['opening'];
+  unit.equippedArts = ['fw_art_29'];
   unit.weapons = ['killing_edge'];
   unit.ranks = { sword: 'A' };
   unit.drugCounts = { hp: 3 };
@@ -135,6 +136,7 @@ test('reincarnation resets growth, skills, qualifications and age, once only', (
   assert.deepEqual(unit.learnedSkills, []);
   assert.deepEqual(unit.learnedArts, []);
   assert.deepEqual(unit.equippedSkills, []);
+  assert.deepEqual(unit.equippedArts, []);
   assert.deepEqual(unit.growthLog, []);
   assert.deepEqual(unit.drugCounts, {});
   assert.equal(unit.weapons.length, 0);

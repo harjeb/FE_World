@@ -20,7 +20,7 @@ import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from './items.ts';
 import type { ItemKey } from './items.ts';
 import { DAYS_PER_SEASON, DAYS_PER_YEAR } from './calendar.ts';
 import { applyInheritanceFloor } from './legacy.ts';
-import { gainMastery } from './mastery.ts';
+import { gainMastery, normalizeLoadout } from './mastery.ts';
 import type { InheritanceContract } from './legacy.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
 
@@ -83,6 +83,7 @@ export interface UnitRecord {
   learnedSkills: SkillId[];
   learnedArts?: string[];
   equippedSkills: SkillId[];
+  equippedArts?: string[];
   // 传承血缘锁（docs/00 §7.3）：接收过遗产的 B 为 1，永不再接或再产。
   lineageDepth: 0 | 1;
   receivedLegacyId: string | null;
@@ -150,6 +151,7 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   unit.learnedSkills ??= [];
   unit.learnedArts ??= [];
   unit.equippedSkills ??= [];
+  normalizeLoadout(unit);
   // 新增节点按已赚取的精通补领；加载不增加精通，也不重复发放。
   for (const classId of Object.keys(unit.classMastery) as ClassId[]) {
     if (Object.hasOwn(CLASSES, classId)) gainMastery(unit, 0, classId);
@@ -221,7 +223,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
-    learnedSkills: [], learnedArts: [], equippedSkills: [],
+    learnedSkills: [], learnedArts: [], equippedSkills: [], equippedArts: [],
     spellbooks: (Object.keys(cls.weapons) as WeaponType[]).some(type => type === 'tome' || type === 'staff') ? SPELLBOOKS.filter(book => book.role === 'attack' || book.role === 'heal').slice(0, 4).map(book => ({ id: book.id, charges: book.maxCharges, maxCharges: book.maxCharges })) : [],
     lineageDepth: 0, receivedLegacyId: null,
   };
@@ -371,7 +373,7 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
     bookInstances: unit.bookInstances?.map(row => ({ ...row })),
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),
     skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])],
-    arts: [...new Set(unit.learnedArts ?? [])],
+    arts: [...new Set(unit.equippedArts ?? [])],
   };
 }
 
@@ -400,7 +402,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     personalGrowth: unit.personalGrowth ? { ...unit.personalGrowth } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
     inheritance: unit.inheritance ? structuredClone(unit.inheritance) : undefined,
-    skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])], classSkills: [...(CLASS_ABILITY_BY_ID.get(unit.classId as never)?.inherentIds ?? [])], arts: [...new Set(unit.learnedArts ?? [])],
+    skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])], classSkills: [...(CLASS_ABILITY_BY_ID.get(unit.classId as never)?.inherentIds ?? [])], arts: [...new Set(unit.equippedArts ?? [])],
     weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
     bookInstances: unit.bookInstances?.map(row => ({ ...row })),
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),

@@ -53,7 +53,7 @@ export const OPS: readonly OpDef[] = [
   { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族、金币与月额度，兽／龙不能跳阶或降阶。轮回清除资格。' },
   { op: 84, name: 'GET_MASTERY', group: '名册', agentNote: '读取角色各职业的精通点、技能／战技奖励及阈值、已解锁节点和习得库；参战与派遣返程达到阈值后学会，换职保留，人物等级不直接发奖。' },
   { op: 85, name: 'SWITCH_CLASS', group: '名册', agentNote: '营地凭资格免费换职，不占购买额度并保留学习成果；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。' },
-  { op: 86, name: 'EQUIP_SKILLS', group: '名册', agentNote: '在最多 5 个格子里装备已学会的技能（跨职业自由装备）；未学会的技能会被拒绝。' },
+  { op: 86, name: 'EQUIP_SKILLS', group: '名册', agentNote: '营地用skills与arts数组一次调整已学技能和战技，共用最多5格；省略arts保留当前战技选择，空数组卸下。未学会／装备专属战技不可装入；个人／职业自带与装备授予不占格。战斗或角色远征／派遣／年度赛事忙碌时拒绝，换职保留选择。' },
   { op: 87, name: 'GET_ART_TRAINING', group: '名册', agentNote: '读取角色的103项强化战技研修：基础技前提、金币、工期、已学状态和阻挡原因；学习不要求原教学职业或使用武器等级。' },
   { op: 88, name: 'TRAIN_ART', group: '名册', agentNote: '营地研修一项已学基础技对应的独立强化战技，传unitId与art；扣金币并推进工期，重复已学会被拒；commandId重试不重复支付，可先用PREVIEW_ACTION的art_training报价。' },
   { op: 89, name: 'REFINE_WEAPON', group: '整备', agentNote: '营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n矿石，不耗天数、不修耐久、不加属性；commandId重试只支付一次。' },
