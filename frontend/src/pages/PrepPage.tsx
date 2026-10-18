@@ -60,7 +60,8 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
       acts.push(<button key="use" type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined}
         onClick={() => void runOp<{ stat: keyof typeof STAT_NAMES; amount: number }>(OP.USE_ITEM, { unitId: unit.id, item: key }, r => `${unit.name}的${STAT_NAMES[r.stat]} +${r.amount}`)}>{unit.name}使用</button>);
     }
-    acts.push(<button key="sell" type="button" className="btn btn-sm btn-ghost" onClick={() => void sell(1)}>卖 +{half(key)}</button>);
+    const bound = item?.bound === true;
+    acts.push(<button key="sell" type="button" className="btn btn-sm btn-ghost" disabled={bound} title={bound ? '唯一武器已绑定，不能出售' : undefined} onClick={() => void sell(1)}>卖 +{half(key)}</button>);
     if (item?.kind === 'material' && count > 1) {
       acts.push(<button key="sellAll" type="button" className="btn btn-sm btn-ghost" onClick={() => void sell(count)}>全卖 +{half(key) * count}</button>);
     }
@@ -97,7 +98,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
                   <li key={`${r.item}:${r.uses}`}>
                     <img className="px" src={itemIcon(r.item)} width={32} height={32} alt="" />
                     <div className="min-w-0">
-                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{item?.kind === 'consumable' && <span className="tag tag-grey">剩 {r.uses} 次</span>}{perfect > 0 && <span className="tag tag-brass" title="交给角色时消耗一张，生成耐久 +10 的实例">完美锻造 ×{perfect}</span>}</div>
+                      <div className="nm">{r.name} <span className="cnt">×{r.count}</span>{item?.kind === 'consumable' && <span className="tag tag-grey">剩 {r.uses} 次</span>}{item?.bound && <span className="tag tag-red" title="唯一武器已绑定，不能出售">绑定</span>}{perfect > 0 && <span className="tag tag-brass" title="交给角色时消耗一张，生成耐久 +10 的实例">完美锻造 ×{perfect}</span>}</div>
                       <div className="sp">{itemSpec(r.item)}</div>
                       {wield && <div className="why">{unit!.name}现在用不了：{wield}（仍可携带）</div>}
                     </div>

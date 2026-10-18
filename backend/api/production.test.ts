@@ -74,6 +74,23 @@ test('brewing consumes herbs on start and yields a vulnerary once mature', () =>
   assert.equal(store.countInventory(player.id, 'vulnerary'), vulneraries + 1);
 });
 
+test('silver and brave weapons are ordinary smithy recipes', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  store.addInventory(player.id, 'ore', 0, 100);
+  store.addInventory(player.id, 'wood', 0, 100);
+  player.flags.regionReputation = { 9: 250 };
+  store.savePlayer(player);
+  const recipes = (dispatch(ctx, OP.GET_PRODUCTION, {}) as { recipes: { id: string; unlocked: boolean }[] }).recipes;
+  for (const id of ['forge_silver_sword', 'forge_silver_bow', 'forge_brave_lance', 'forge_brave_bow']) {
+    assert.equal(recipes.find(r => r.id === id)?.unlocked, true, id);
+  }
+  const started = dispatch(ctx, OP.START_PRODUCTION, { recipeId: 'forge_silver_sword' }) as { order: { id: string; readyDay: number } };
+  player.day = started.order.readyDay;
+  dispatch(ctx, OP.COLLECT_PRODUCTION, { orderId: started.order.id });
+  assert.equal(store.countInventory(player.id, 'silver_sword'), 1);
+});
+
 test('reputation recipes stay locked until the region reputation is high enough', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);

@@ -1,6 +1,6 @@
 # 未完成需求总表
 
-更新日期：2026-10-18。核对基线：`eb0cd7e`（`main`，含 item 6 战技机制实现）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
+更新日期：2026-10-18。核对基线：`0779e66`（`main`，含装备获取审计）。本表汇总当前仓库设计、实现记录、代码和 Beads 中尚未完成的需求；后续新增需求也在此维护。
 
 玩法以 [00 游戏设计](docs/00-game-design.md) 为主，日期经验和地区任务按较新的 [19](docs/19-experience-time-balance.md)、[20](docs/20-region-quests-reputation.md) 修订；职业目录与数值以 [15](docs/15-class-catalog.md)、[17](docs/17-class-growth-review.md) 为准；技能和装备扩充见 [25](docs/25-fortunes-weave-skills.md)、[26](docs/26-weapon-art-catalog.md)、[27](docs/27-fortunes-weave-equipment-magic.md)；经典关卡接入见 [24](docs/24-classic-scenarios-integration-todo.md)。[12](docs/12-implementation-gap-checklist.md)、[13](docs/13-backend-target-design.md)、[14](docs/14-integration-handoff.md) 含多轮历史记录，不能直接把其中的旧“未实现”全部复制为新任务。最近一次已完成修复见 [21](docs/21-code-design-audit.md)。
 
@@ -107,7 +107,7 @@
 - [x] **ITEM-04｜已完成：每人1枚稀缺不朽盾及完整禁疗。** `toBattleUnit` 将盾上限裁到 1，整备搬运拒绝第二枚；盾有重量与限量来源；石化单位禁止杖/药/地形回复，旧存档按上限读取。吸血/再生尚未有独立运行时，但不会被误当成可治疗路径。
 - [x] **ITEM-05｜已完成首版：特殊装备授予技能／成长、专属绑定及来源冻结。** `Weapon.grants.skill/growth` 在 `equipmentSkills`/`growthRates` 中实时计算，卸下即撤销且不占五格；王权剑/神授枪/必杀刃/风刃已配置授予。地区任务 `exclusive` 以实物入库并在 `GET_QUESTS` 预览，不进普通商店；成长遗产冻结仍只保存永久来源，装备成长不写成永久属性。
 - [ ] **ITEM-06｜部分实现：170项首版装备／法术目录与投放。**170个设计ID已逐项补齐，另保留旧兼容项，共137条`WEAPONS`＋50条`SPELLBOOKS`；36种战技授予实物有挑战塔首通／旧档补领路径，其余模板的逐项投放与特殊装备效果仍须验收，不能凭数量认定完成。新增基础表中反噬、逆克制、魔法弓、毒短刀、吸血书仍明确标注效果未实现；盾/药/食物在`GAME_ITEMS`，数值为本作首稿。
-- [ ] **ITEM-07｜待确认：武器与道具获取分层、限量和唯一绑定。**当前没有任意随机武器掉落或自由锻造，但有三处过宽：地区声望商店不限购、必杀／破甲进阶配方可无限重复制造、挑战塔每层首通一次发放 12 件（三层共 36 件，含 12 件 A 级）。唯一任务武器当前也可被 `SELL` 出售。建议方案、当前渠道审计和待确认项见 [22 §2.1](docs/22-equipment-catalog.md)；确认后再改 `quest-shop.ts`／`production.ts`／`challenges.ts`／`handlers.ts` 的库存、限购和绑定规则。验收应覆盖重复购买、重复制造、重复领取、唯一武器出售和经典宝箱银武。
+- [x] **ITEM-07｜已完成本轮确认：银系／勇者进普通生产，唯一武器绑定。** 新增 11 条铁匠铺配方（银系 7、勇者 4，地区 9 声望 100／250）；`BOUND_WEAPONS` 覆盖王权剑、神授枪、统率枪和挑战塔 A 级以上 12 件签名武器，`SELL` 拒绝出售并在整备页禁用按钮。地区声望商店不限购、挑战塔每层整组装备、经典宝箱银武按“其他不变”保持现状；获取与限量审计见 [22 §2.1](docs/22-equipment-catalog.md)。验收：`production.test.ts` 银／勇者配方、`equipment-acquisition.test.ts` 绑定拦截与普通银武可售。
 
 ## 4. 地区任务、地图与敌军
 

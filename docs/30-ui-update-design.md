@@ -115,4 +115,4 @@ node frontend/test/systems.e2e.mjs
 - 页面与规则：完成并验证普通竞技场跨日结算、同形象限制、随机招募 `personalGrowth` 持久化、舞蹈相邻距离、轮回清空已学战技和挑战塔终层显示名更新。
 - 文档：本页与 [00](00-game-design.md)、[02](02-units-classes-growth.md)、[03](03-combat.md)、[05](05-arena.md)、[06](06-agent-api.md)、[08](08-ui-design-prompts.md)、[09](09-permanent-progression-legacy-draft.md)、[11](11-battle-engine-and-page.md)、[12](12-implementation-gap-checklist.md)、[14](14-integration-handoff.md)、[24](24-classic-scenarios-integration-todo.md)、[28](28-release-readiness.md) 同步；001–05 中保留的历史内容已加历史说明。
 - TODO：UI-01～04 标为完成，新增“2026-10-18 界面更新与规则修复”记录；Beads 的 `fe-world-ilq` 关闭，`fe-world-z2w`、`fe-world-8n4`、`fe-world-bwo`、`fe-world-mze` 补充当前范围与遗留边界。
-- 验证：后端 666 项测试、前端 typecheck／build、三个浏览器 e2e（30／8／32 项检查）和设计一致性审计（15 probes／0 mismatches）通过；本轮代码提交 `deccf43`，随后远端合入 `eb0cd7e` 战技机制实现。文档同步提交见仓库历史。
+- 验证：后端 669 项测试、前端 typecheck／build、三个浏览器 e2e（30／8／32 项检查）和设计一致性审计（15 probes／0 mismatches）通过；本轮代码提交 `deccf43`，随后远端合入 `eb0cd7e` 战技机制实现。文档同步提交见仓库历史。
