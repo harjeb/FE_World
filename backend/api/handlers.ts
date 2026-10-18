@@ -1408,7 +1408,7 @@ const handlers: Record<number, Handler> = {
     }
     const defenderUnit = unitById(record.state, target);
     const run = () => art ? artForecast(record.state, attackerUnit, from, weapon, art, defenderUnit, data.secondaryId === undefined ? undefined : asString(data.secondaryId, 'secondaryId'), data.allyId === undefined ? undefined : asString(data.allyId, 'allyId'))
-      : forecast(record.state, attacker, from, weapon, target);
+      : forecast(record.state, attacker, from, weapon, target, undefined, book?.role === 'attack');
     const f = book ? withSpellWeapon(book, run) : run();
     return {
       attacker: f.attacker, defender: f.defender, order: f.order, onHit: forecastOnHit(f),

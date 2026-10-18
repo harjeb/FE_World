@@ -117,6 +117,8 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         {d.backlash > 0 && d.canAttack && <span className="tag tag-blue">对方反击反噬 {d.backlash}%</span>}
         {a.afflicts.length > 0 && <span className="tag tag-brass">命中附加：{a.afflicts.map(s => AILMENT[s]).join('、')}{a.locks ? '（对方不能追击）' : ''}</span>}
         {d.afflicts.length > 0 && d.canAttack && <span className="tag tag-red">对方命中附加：{d.afflicts.map(s => AILMENT[s]).join('、')}</span>}
+        {a.charges !== null && <span className="tag tag-grey">本书剩 {a.charges} 次{a.doubles ? '，追击另扣 1 次' : a.charges < 2 ? '，次数不足以追击' : ''}</span>}
+        {d.charges !== null && d.canAttack && <span className="tag tag-grey">对方书剩 {d.charges} 次</span>}
       </div>
       <div className="fc-sum">
         <div>

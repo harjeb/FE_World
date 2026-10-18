@@ -136,6 +136,11 @@ export function tickStatuses(unit: UnitState): ('silence' | 'berserk')[] {
   return expired;
 }
 
+// 按次数结算的资源：施法读职业法术书，魔道书／杖读随身书杖实例。
+export function chargeRow(unit: Pick<UnitState, 'bookInstances' | 'spellbooks'>, id: WeaponId, spell: boolean): { charges: number; maxCharges: number } | undefined {
+  return spell ? unit.spellbooks?.find(row => row.id === id) : unit.bookInstances?.find(row => row.id === id);
+}
+
 function hasCharge(unit: Pick<UnitState, 'bookInstances'>, id: WeaponId): boolean {
   if (!unit.bookInstances) return true;
   const row = unit.bookInstances.find(entry => entry.id === id);

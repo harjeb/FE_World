@@ -189,3 +189,20 @@ test('the Dagda club only lends its own art, and the Sol lance heals 100% with S
   assert.equal(artCombatOptions(state, me, me.pos, 'fw_weapon_228', sol, foe).drain, 1);
   assert.equal(artCombatOptions(state, me, me.pos, 'iron_lance', sol, foe).drain, 0.5);
 });
+
+test('tome charges pay per cast: follow-ups and counters each spend one, and run dry instead of refilling', () => {
+  const { state, me, foe } = duel('fire', 'thunder');
+  me.stats.spd = 40; foe.stats.spd = 0; me.stats.skl = 200; foe.stats.skl = 200; foe.stats.hp = 500; foe.hp = 500;
+  me.bookInstances = [{ id: 'fire', charges: 1, maxCharges: 20 }];
+  foe.bookInstances = [{ id: 'thunder', charges: 5, maxCharges: 20 }];
+  let f = forecast(state, me.id, me.pos, 'fire', foe.id);
+  assert.equal(f.attacker.charges, 1); assert.equal(f.attacker.doubles, false, 'one charge left: no second cast');
+  me.bookInstances[0].charges = 3;
+  f = forecast(state, me.id, me.pos, 'fire', foe.id);
+  assert.equal(f.attacker.doubles, true); assert.equal(f.defender.charges, 5);
+  runCombat(state, me, foe, 'fire', []);
+  assert.equal(me.bookInstances[0].charges, 1, 'opening and follow-up each cost a charge');
+  assert.equal(foe.bookInstances[0].charges, 4, 'the counter costs the defender one charge');
+  foe.bookInstances[0].charges = 0;
+  assert.equal(forecast(state, me.id, me.pos, 'fire', foe.id).defender.canAttack, false, 'an empty tome cannot counter');
+});

@@ -79,7 +79,7 @@ export function commandForecast(state: BattleState, mode: CommandMode): (Forecas
   if (mode.kind === 'cast' && mode.spell) {
     const book = spellInfo(mode.spell);
     if (!book || !isHostileSpell(book) || book.role !== 'attack') return null;
-    return withSpellWeapon(book, () => forecast(state, mode.unit, mode.to, book.id as WeaponId, mode.target!));
+    return withSpellWeapon(book, () => forecast(state, mode.unit, mode.to, book.id as WeaponId, mode.target!, undefined, true));
   }
   return null;
 }

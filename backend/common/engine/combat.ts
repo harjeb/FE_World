@@ -8,7 +8,7 @@ import type { Fighter } from './skills.ts';
 import type { WeaponArt } from '../data/weapon-arts.ts';
 import { artVictims, validateArt, walkedCells } from './arts.ts';
 import { artBonus, artStats } from './art-effects.ts';
-import { classOf, distance, equipped, inRange, living, samePoint, unitById } from './units.ts';
+import { chargeRow, classOf, distance, equipped, inRange, living, samePoint, unitById } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 
 // Formulas from docs/03-combat.md. Art percentages are applied before protection and crit.
@@ -21,6 +21,8 @@ export interface SideForecast {
   terrain: TerrainBonus; barrier: number; protected: boolean; netherProtected: boolean; silenceable: boolean;
   // 武器自身的普通攻击效果（战技另按战技规则）：反噬概率、命中附加状态。
   backlash: number; afflicts: WeaponAilment[]; locks: boolean;
+  // 法术书／魔道书本次可用的施放次数；null 表示不是按次数结算的武器。
+  charges: number | null;
 }
 export interface StrikeSpec { side: 'attacker' | 'defender'; followUp: boolean; chance?: number }
 export interface Forecast {
@@ -193,7 +195,8 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
     netherProtected: !!me.unit.tags?.includes('nether_protection') && artBonus(me.unit, 'protection') >= 0 && !fw?.purify,
     silenceable: w?.type === 'tome' || w?.type === 'staff',
     backlash: weaponRules && w?.backlash ? clamp(31 - s.lck) : 0,
-    afflicts, locks: afflicts.some(status => status === 'poison' || status === 'confusion') && !foe.unit.immunities?.includes('follow_up_lock') };
+    afflicts, locks: afflicts.some(status => status === 'poison' || status === 'confusion') && !foe.unit.immunities?.includes('follow_up_lock'),
+    charges: null };
 }
 const TRUE_HIT = Array.from({ length: 101 }, (_, h) => {
   let pairs = 0; for (let s = 0; s < 2 * h && s <= 198; s++) pairs += s <= 99 ? s + 1 : 199 - s;
@@ -215,17 +218,22 @@ export function strikeOrder(a: SideForecast, d: SideForecast, braveA: boolean, b
   if (art?.sequence === 'follow_up_before_counter') return [...opening, ...follow, ...counter, ...dFollow];
   return [...opening, ...counter, ...follow, ...dFollow];
 }
-export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: CombatArt): Forecast {
+// `cast` marks an attack spell from the unit's spellbooks (its charges live there, not in bookInstances).
+export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: CombatArt, cast = false): Forecast {
   const au = unitById(state, attackerId), du = unitById(state, defenderId), counter = equipped(du);
   const a: Fighter = { unit: au, pos: from, weapon: WEAPONS[weaponId], moved: !samePoint(from, au.pos) || au.movedTurn === state.turn };
   const d: Fighter = { unit: du, pos: du.pos, weapon: counter ? WEAPONS[counter] : null, moved: du.movedTurn === state.turn };
   const attacker = sideVs(state, a, weaponId, d, counter, 'attacker', art), defender = sideVs(state, d, counter, a, weaponId, 'defender', undefined, art);
+  attacker.charges = chargeRow(au, weaponId, cast)?.charges ?? null;
+  defender.charges = counter ? chargeRow(du, counter, false)?.charges ?? null : null;
   attacker.canAttack = true;
   defender.canAttack = !art?.noCounter && !du.petrified && counter !== null && inRange(du, counter, du.pos, from);
   const blocked = (u: UnitState) => !u.immunities?.includes('follow_up_lock') && u.artEffects?.statuses?.some(s => s === 'poison' || s === 'confusion');
   const single = art?.single || art?.sequence === 'single' || art?.sequence === 'no_speed_follow_up' || art?.hits !== undefined || art?.sequence?.startsWith('fixed_');
-  attacker.doubles = !single && !blocked(au) && (attacker.attackSpeed - defender.attackSpeed >= 4 || art?.sequence === 'forced_follow_up');
-  defender.doubles = defender.canAttack && !blocked(du) && !(art?.sealFollowUp && !art.sealOnHit) && defender.attackSpeed - attacker.attackSpeed >= 4;
+  // 速度追击是下一次施放：书／杖次数不足以再付一次时不追击（反击方同理）。
+  const repeatable = (charges: number | null) => charges === null || charges >= 2;
+  attacker.doubles = !single && !blocked(au) && repeatable(attacker.charges) && (attacker.attackSpeed - defender.attackSpeed >= 4 || art?.sequence === 'forced_follow_up');
+  defender.doubles = defender.canAttack && !blocked(du) && repeatable(defender.charges) && !(art?.sealFollowUp && !art.sealOnHit) && defender.attackSpeed - attacker.attackSpeed >= 4;
   if (art?.sequence === 'steal_foe_follow_up' && defender.doubles && !blocked(au)) { attacker.doubles = true; defender.doubles = false; }
   if (blocked(au) && art?.forceProbability) art = { ...art, forceProbability: 0 };
   if (art?.foeHitZeroThreshold !== undefined && defender.hit <= art.foeHitZeroThreshold) defender.hit = 0;

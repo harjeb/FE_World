@@ -7,15 +7,19 @@ import { artState, clearArtEffects } from './arts.ts';
 import { addArtBuff, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
-import { cureStatuses, living, wake } from './units.ts';
+import { chargeRow, cureStatuses, living, wake } from './units.ts';
 import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.ts';
 
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
-export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: CombatArt): Strike[] {
-  const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art);
+// `cast` marks an attack spell paid from the caster's spellbooks.
+export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: CombatArt, cast = false): Strike[] {
+  const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art, cast);
   const progress = combatProgress(f), oldBuffs = [attacker, defender].map(u => [...(u.artEffects?.buffs ?? [])]);
   const strikes: Strike[] = [];
   const dealt = { attacker: false, defender: false };
+  // 法术书／魔道书的开场与速度追击各是一次施放、各扣 1 次（未命中也扣）；次数用尽的那次不发生。
+  const books = { attacker: chargeRow(attacker, weaponId, cast), defender: f.defender.canAttack && f.defender.weapon ? chargeRow(defender, f.defender.weapon, false) : undefined };
+  const paid = new Set<string>();
   const chance = (percent: number) => percent >= 100 || percent > 0 && roll100(state.rng) < percent;
   for (const spec of f.order) {
     if (attacker.petrified || defender.petrified || progress.stopped) break;
@@ -23,6 +27,11 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
     if (spec.chance !== undefined) {
       if (progress.forced < 0) progress.forced = chance(spec.chance) ? 1 : 0;
       if (!progress.forced) continue;
+    }
+    const book = books[spec.side], use = `${spec.side}:${spec.followUp}`;
+    if (book && !paid.has(use)) {
+      if (book.charges <= 0) continue;
+      book.charges -= 1; paid.add(use);
     }
     const [me, foe] = spec.side === 'attacker' ? [attacker, defender] : [defender, attacker];
     const rates = strikeRates(f, spec, progress), proc = chance(rates.proc);

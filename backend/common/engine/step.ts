@@ -168,7 +168,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
   if (action.act === 'attack' && target) {
     // Attacking equips the weapon, so it is also the one used to counter later.
     equipWeapon(unit, action.weapon);
-    spendCharge(unit, action.weapon);
+    // 魔道书的开场与追击次数由 runCombat 逐次扣除。
     runCombat(state, unit, target, action.weapon, events);
   } else if (action.act === 'art' && art) {
     equipWeapon(unit, action.weapon);
@@ -260,7 +260,8 @@ function performSupport(state: BattleState, unit: UnitState, action: ActAction, 
     } else runHeal(state, unit, target, action.weapon, events);
   } else if (action.act === 'cast') {
     const book = SPELLBOOK_BY_ID.get(action.spell)!, instance = unit.spellbooks!.find(row => row.id === action.spell)!;
-    instance.charges = Math.max(0, instance.charges - 1);
+    // 攻击法术的开场与速度追击各扣一次，由 runCombat 逐次支付；其余法术施放即扣 1 次。
+    if (book.role !== 'attack') instance.charges = Math.max(0, instance.charges - 1);
     events.push({ t: 'cast', unit: unit.id, target: target.id, spell: book.id });
     if (book.id === 'fw_spell_9') {
       const dest = action.dest!;
@@ -275,7 +276,7 @@ function performSupport(state: BattleState, unit: UnitState, action: ActAction, 
     } else if (book.id === 'fw_spell_22') {
       for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
     } else withSpellWeapon(book, () => {
-      if (isHostileSpell(book)) runCombat(state, unit, target, book.id as WeaponId, events);
+      if (isHostileSpell(book)) runCombat(state, unit, target, book.id as WeaponId, events, undefined, book.role === 'attack');
       else runHeal(state, unit, target, book.id as WeaponId, events);
     });
   }
