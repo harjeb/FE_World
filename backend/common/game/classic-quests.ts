@@ -46,7 +46,8 @@ function soloQuests(): Quest[] {
         tier: 'standard',
         turnLimit: map.turnLimit,
         requires: index > 0 ? { quest: `cl-${maps[index - 1].id}` } : undefined,
-        reward: { gold: 900 + index * 120, reputation: 15 + index * 3 },
+        // 经典内容的金币、战利品独立于十二地声望路线，避免三地靠额外地图提前满声望。
+        reward: { gold: 900 + index * 120, reputation: 0 },
         scenarioId: map.id,
         classic: { game, mapName: map.name, stageCount: 1, adapted: map.adapted },
       });
@@ -83,7 +84,7 @@ function dungeonQuests(): Quest[] {
         tier: 'region',
         turnLimit: Math.max(...group.map(map => map.turnLimit)),
         requires: { quest: `cl-${last.id}` },
-        reward: { gold: 2_500 + index * 800, reputation: 60 + index * 15 },
+        reward: { gold: 2_500 + index * 800, reputation: 0 },
         scenarioIds: group.map(map => map.id),
         costDays: group.length * 2,
         stageDays: 2,

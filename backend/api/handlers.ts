@@ -239,7 +239,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
   const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
   const annualOutcome = handleAnnualOutcome(ctx.store, ctx.player, record);
   // 地区任务胜利即标记完成；奖励用 CLAIM_QUEST_REWARD 另领（docs/20 §7）。
-  if (record.questId && record.state.result?.winner === 'player') {
+  if (record.questId && !record.runId && record.state.result?.winner === 'player') {
     ctx.player.flags.questsDone ??= [];
     if (!ctx.player.flags.questsDone.includes(record.questId)) {
       ctx.player.flags.questsDone.push(record.questId);
@@ -1183,7 +1183,7 @@ const handlers: Record<number, Handler> = {
     const record = run.scenarioIds?.length
       ? createClassicBattle(units, { mapId: run.scenarioIds[run.stageIndex], seed, quest: run.questId ? questById(run.questId) : undefined,
           stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day })
-      : createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry });
+      : createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest });
     record.playerId = ctx.player.id;
     run.state = 'battle';
     run.battleId = record.id;
@@ -2128,7 +2128,7 @@ const handlers: Record<number, Handler> = {
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += stageDays;
       syncPlayer(ctx.store, ctx.player);
-      const record = createFieldBattle(ready, { region: quest.region, cleared: run.clearedAtStart, seed, level, stageIndex: 0, runId: run.id });
+      const record = createFieldBattle(ready, { region: quest.region, cleared: run.clearedAtStart, seed, level, stageIndex: 0, runId: run.id, quest });
       record.playerId = ctx.player.id;
       run.battleId = record.id;
       ctx.store.saveRun(run);
@@ -2162,7 +2162,7 @@ const handlers: Record<number, Handler> = {
       if (!owned && active >= ROSTER_LIMIT) throw new OpError('ROSTER_FULL', '名册已满，腾出位置后再领取（人物不会丢失）');
     }
     ctx.player.flags.questRewardsClaimed.push(quest.id);
-    if (quest.id.endsWith('9') && quest.tier === 'region') ctx.player.flags.legacyUnlocked = true;
+    if (quest.unlocksLegacy) ctx.player.flags.legacyUnlocked = true;
     ctx.player.gold += quest.reward.gold;
     const items: [ItemKey, number][] = [...(quest.reward.items ?? [])];
     if (quest.exclusive) items.push([quest.exclusive, 1]);

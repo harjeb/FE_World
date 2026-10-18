@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BASE_QUESTS, QUEST_DAY_COST, QUEST_REGIONS, QUESTS, questAvailable, questById, questsForRegion } from './quests.ts';
-import { REPUTATION_TIERS, REPEAT_REPUTATION_CAP, reputationTier } from './reputation.ts';
+import { ALL_QUESTS, BASE_QUESTS, QUEST_DAY_COST, QUEST_REGIONS, QUESTS, questAvailable, questById, questsForRegion } from './quests.ts';
+import { REPUTATION_TIERS, reputationTier } from './reputation.ts';
+import { regionShop } from './quest-shop.ts';
 
 test('quest ids are unique and every prerequisite exists in the same region and comes first', () => {
   const ids = new Set<string>();
@@ -18,15 +19,36 @@ test('quest ids are unique and every prerequisite exists in the same region and 
   }
 });
 
-test('the three launch regions each have nine base quests summing to 500 reputation', () => {
-  for (const region of [2, 3, 5]) {
+test('all twelve regions reach every reputation tier in the same minimum action days', () => {
+  for (const region of QUEST_REGIONS) {
     const quests = BASE_QUESTS.filter(q => q.region === region);
-    assert.equal(quests.length, 9, `region ${region} has ${quests.length} quests`);
-    const total = quests.reduce((sum, q) => sum + q.reward.reputation, 0);
-    assert.equal(total, 500, `region ${region} reputation sums to ${total}`);
-    // 短+标准+区域三档耗日都在配置里，且远征恰好一个。
-    assert.ok(quests.filter(q => q.tier === 'region').length >= 1);
-    for (const q of quests) assert.ok(QUEST_DAY_COST[q.tier] > 0);
+    assert.equal(quests.length, 9, `region ${region}`);
+    assert.equal(quests.reduce((sum, q) => sum + q.reward.reputation, 0), 500);
+    // 穷举合法已完成集合，允许任意支线顺序；不只核对配置总数，防止前置／声望门槛暗中拖慢某地。
+    const reachable = new Set([0]);
+    const fastest = new Map(REPUTATION_TIERS.slice(1).map(tier => [tier.at, Infinity]));
+    for (let mask = 0; mask < 1 << quests.length; mask++) {
+      if (!reachable.has(mask)) continue;
+      const completed = quests.filter((_, i) => mask & (1 << i));
+      const reputation = completed.reduce((sum, q) => sum + q.reward.reputation, 0);
+      const days = completed.reduce((sum, q) => sum + (q.costDays ?? QUEST_DAY_COST[q.tier]), 0);
+      const done = new Set(completed.map(q => q.id));
+      for (const [tier, best] of fastest) if (reputation >= tier) fastest.set(tier, Math.min(best, days));
+      quests.forEach((quest, i) => { if (questAvailable(quest, { done, reputation })) reachable.add(mask | (1 << i)); });
+    }
+    assert.ok(reachable.has((1 << quests.length) - 1), `region ${region} has a deadlock`);
+    assert.deepEqual([...fastest], [[100, 5], [250, 14], [500, 32]], `region ${region}`);
+    assert.equal(quests.reduce((maps, q) => maps + (q.tier === 'region' ? 3 : 1), 0), 17);
+    for (const item of regionShop(region, Infinity)) assert.ok(item.reputation <= 500, `${region}:${item.item}`);
+  }
+});
+
+test('classic content cannot accelerate three regions and regional endings keep rare rewards limited', () => {
+  for (const quest of ALL_QUESTS.filter(q => q.classic)) assert.equal(quest.reward.reputation, 0, quest.id);
+  assert.deepEqual(BASE_QUESTS.filter(q => q.unlocksLegacy).map(q => q.id), ['gw9', 'ih9', 'wl9']);
+  const rare = new Set(['legacy_stone_growth', 'legacy_stone_numeric', 'reincarnation_core', 'immortal_shield']);
+  for (const quest of BASE_QUESTS.filter(q => q.id.startsWith('r'))) {
+    assert.ok(!(quest.reward.items ?? []).some(([item]) => rare.has(item)), quest.id);
   }
 });
 
@@ -51,7 +73,6 @@ test('reputation tiers sit at the four documented thresholds', () => {
   assert.equal(reputationTier(250).name, '信任');
   assert.equal(reputationTier(500).name, '盟友');
   assert.equal(reputationTier(500).next, null);
-  assert.equal(REPEAT_REPUTATION_CAP, 250);
 });
 
 test('every regional quest chain can be finished without a reputation deadlock', () => {

@@ -8,8 +8,7 @@ export const REPUTATION_TIERS: readonly ReputationTier[] = [
   { at: 500, name: '盟友' },
 ];
 
-// 重复委托只在声望低于 250 时加声望，封顶 250；500 档必须靠一次性核心任务（docs/20 §4）。
-export const REPEAT_REPUTATION_CAP = 250;
+// 声望永久保存；全部来源均为一次性地区任务，不提供重复委托。
 
 export function reputationTier(reputation: number): { index: number; at: number; name: string; next: number | null } {
   let index = 0;

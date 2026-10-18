@@ -41,7 +41,7 @@ const SHOPS: Record<number, ShopEntry[]> = {
 };
 
 // 装备与法术书的地区资格（docs/27「地区商店资格……按阶级开放」，本作首稿）：按地区特色分配，
-// 声望门槛随武器／书的级别升高。三地核心链可到 500 声望；其余地区三项任务共 160 声望，门槛不超过它。
+// 声望门槛随武器／书的级别升高。十二地均可到 500；旧地区资格门槛保留，避免旧档已购资格倒退。
 const CORE_REGIONS = [2, 3, 5];
 const RANK_REPUTATION: Record<'core' | 'local', Record<Rank, number>> = {
   core: { E: 0, D: 0, C: 100, B: 250, A: 500, S: 500, SS: 500, SSS: 500 },

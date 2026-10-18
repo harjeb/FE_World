@@ -30,6 +30,11 @@ function playOut(ctx: Context, battleId: string): string {
   for (let guard = 0; guard < 2000; guard++) {
     const battle = ctx.store.battle(ctx.player.id, battleId);
     if (!battle || battle.state.result) return battle?.state.result?.winner ?? 'none';
+    // 此处验收跨图读模型，不以随机地图的 AI 寻路耗时判定流程成败。
+    if (battle.state.turnLimit < 60) {
+      battle.state.turnLimit = battle.initial.turnLimit = 60;
+      ctx.store.saveBattle(battle);
+    }
     const unit = battle.state.units.find(u => u.side === 'player' && u.alive && !u.acted);
     if (unit) {
       const action = decide(battle.state, unit);

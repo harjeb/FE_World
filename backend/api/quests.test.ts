@@ -11,6 +11,7 @@ import { OP } from '../common/protocol/ops.ts';
 import { decide } from '../common/engine/index.ts';
 import { stats } from '../common/data/types.ts';
 import { createUnit, ROSTER_LIMIT } from '../common/game/model.ts';
+import { questById } from '../common/game/quests.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import type { Player } from './store.ts';
 
@@ -29,8 +30,11 @@ function playOut(ctx: Context, battleId: string): string {
   for (let guard = 0; guard < 2000; guard++) {
     const battle = ctx.store.battle(ctx.player.id, battleId);
     if (!battle || battle.state.result) return battle?.state.result?.winner ?? 'none';
-    // 这个测试验证流程，不验证 20 回合限制；大地图走到王座需要更多回合。
-    battle.state.turnLimit = Math.max(battle.state.turnLimit, 60);
+    // 这个测试验证流程，不验证随机地图上 AI 的寻路耗时；须持久化后再由 handler 读取。
+    if (battle.state.turnLimit < 60) {
+      battle.state.turnLimit = battle.initial.turnLimit = 60;
+      ctx.store.saveBattle(battle);
+    }
     const unit = battle.state.units.find(u => u.side === 'player' && u.alive && !u.acted);
     if (unit) {
       const action = decide(battle.state, unit);
@@ -223,4 +227,70 @@ test('a region expedition runs three maps and only marks the quest done at the e
   assert.equal(store.battle(player.id, third.battleId)!.state.goal.kind, 'boss', 'map 3 首领战 = boss');
   assert.equal(playOut(ctx, third.battleId), 'player');
   assert.ok(player.flags.questsDone!.includes('gw6'), 'finishing all three maps completes the quest');
+});
+
+test('an old three-quest region can finish its new branches and claim the ending exactly once', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  player.flags.questsDone = ['r9-1', 'r9-2', 'r9-3'];
+  player.flags.questRewardsClaimed = [...player.flags.questsDone];
+  player.flags.regionReputation = { 9: 160 };
+  store.savePlayer(player);
+  assert.ok(questView(ctx, 9).quests.find(q => q.id === 'r9-4')!.available);
+  assert.equal(questView(ctx, 9).quests.find(q => q.id === 'r9-7')!.available, false);
+  for (const id of ['r9-4', 'r9-5', 'r9-6', 'r9-7', 'r9-8', 'r9-9']) {
+    assert.ok(questView(ctx, 9).quests.find(q => q.id === id)!.available, id);
+    // 已有引擎胜利与三图流程测试；此处只注入完成事实，检验旧进度的解锁、持久化与领奖幂等。
+    player.flags.questsDone!.push(id);
+    store.savePlayer(player);
+    const gold = player.gold;
+    const payload = { questId: id, commandId: `claim-${id}` };
+    const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, payload);
+    assert.deepEqual(dispatch(ctx, OP.CLAIM_QUEST_REWARD, payload), reward);
+    assert.equal(player.gold, gold + questById(id)!.reward.gold);
+    assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: id }), /已经领取过/);
+  }
+  assert.equal(store.getPlayer(player.id)!.flags.regionReputation![9], 500);
+  assert.equal(player.flags.legacyUnlocked, undefined, 'new endings do not expand the legacy unlock sources');
+  assert.equal(store.countInventory(player.id, 'royal_sword'), 0, 'old exclusive rewards are not issued again');
+});
+
+test('new core expeditions use their configured goals and cannot pay reputation after only one map', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'];
+  empower(store, player, ids);
+  player.flags.questsDone = ['r9-1', 'r9-2', 'r9-3', 'r9-4', 'r9-5', 'r9-6'];
+  player.flags.regionReputation = { 9: 260 };
+  store.savePlayer(player);
+  const day = player.day;
+  let started = dispatch(ctx, OP.START_QUEST, { questId: 'r9-7', unitIds: ids }) as { battleId: string };
+  for (const [stage, kind] of ['rout', 'seize', 'boss'].entries()) {
+    const battle = store.battle(player.id, started.battleId)!;
+    assert.equal(battle.questId, 'r9-7');
+    assert.equal(battle.state.goal.kind, kind);
+    assert.equal(battle.costDays, 2);
+    assert.equal(player.day, day + (stage + 1) * 2);
+    assert.equal(playOut(ctx, started.battleId), 'player');
+    if (stage < 2) {
+      assert.ok(!player.flags.questsDone!.includes('r9-7'));
+      assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'r9-7' }), /尚未完成/);
+      started = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
+    }
+  }
+  const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'r9-7' }) as { reputation: { after: number } };
+  assert.equal(reward.reputation.after, 340);
+});
+
+test('new classic rewards preserve already earned reputation and still issue gold and loot', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  player.flags.regionReputation = { 2: 620 };
+  player.flags.questsDone = ['cl-fe1-ch16'];
+  store.savePlayer(player);
+  const gold = player.gold;
+  const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'cl-fe1-ch16' }) as { gold: number; reputation: { after: number } };
+  assert.ok(reward.gold > 0);
+  assert.equal(player.gold, gold + reward.gold);
+  assert.equal(reward.reputation.after, 620);
 });

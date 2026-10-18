@@ -119,7 +119,7 @@
 
 来源：[20 地区任务与声望](docs/20-region-quests-reputation.md)、[24 经典关卡接入](docs/24-classic-scenarios-integration-todo.md)、[00 §6、§8](docs/00-game-design.md)、[10 地图工具](docs/10-random-map-generator.md)。代码：[quests.ts](backend/common/game/quests.ts)、[classic-quests.ts](backend/common/game/classic-quests.ts)、[battles.ts](backend/common/game/battles.ts)、[generate.ts](backend/common/maps/generate.ts)。
 
-- [x] **QUEST-01｜已完成首版：十二地区差异化任务内容。** 12 个地区都有本地三任务链（前置、战术目标、区域资源/装备奖励），希尔瓦林地/托尔加丘陵/莱斯米尔湖镇另有 500 声望核心链；每个任务带 `event` 简报和地区 `regionReputation`，不需刷满 12 地区即可推进主线；固定人物见闻由 `CHARACTER_STORIES`/`GET_UNIT.story` 提供。已定不做可重复委托。（2026-10-18补正：其余九地区远征门槛由100改为60，消除前置只给60声望的锁死。）
+- [x] **QUEST-01｜已完成首版：十二地区差异化任务内容与同速声望。** 12地区各九项一次性本地任务，均可最快5／14／32行动日达到100／250／500声望，共108本地任务；新增54项保留旧ID／奖励与原三任务远征门槛60。经典地图保留金币／战利品，新领取不再加地区声望，旧档已获声望保留。任务带`event`简报和地区`regionReputation`，不需刷满12地推进主线；原三地人物与稀缺资源来源保持。证据：`quests.test.ts`穷举各地合法完成集合、`api/quests.test.ts`旧进度续做／领奖幂等与逐图目标／2日费用。设计见[20](docs/20-region-quests-reputation.md)。
 - [x] **QUEST-02｜已完成：500 声望档核心任务与奖励。** 三地各补 7/8/9 三个一次性核心任务，总声望 260→500；前置无循环，奖励含传承石／轮回核心／限量盾，仍走唯一奖励键，购买不扣声望。
 - [x] **QUEST-03｜已完成：NPC 固定路线与下一步预告。** `Quest.npcRoute`／`nextObjective` 写入 `BattleState` 并随战斗保存；护送 NPC 优先沿固定路线点推进，`battleView` 暴露路线与下一步，重连/回放从保存状态重建。
 - [x] **QUEST-04｜已完成：三图远征各地目标与图间收益。** 地区远征记录 `stageGoals`（偶数/奇数地区采用不同的占领/全灭/首领顺序）与 `betweenMapHeal:25`，`createFieldBattle` 逐图读取目标，`CONTINUE_DUNGEON` 只在图间回复 25% 最大 HP，不无条件满血；跨图携带 HP/物品/武器、固定名单和唯一奖励沿用 `RunRecord`。分队/多方向目标留作后续内容，不在首版阻塞。

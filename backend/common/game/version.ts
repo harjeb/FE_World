@@ -7,7 +7,8 @@ export const RULESET_VERSION = 'rules-v7';
 // effects (defense stat, fixed hits, drain, status hit rolls, buffs, area heals) and spellbook items.
 // v16 / rules-v6: explicit classic-art mechanics, shared probabilistic forecast and strike resolution.
 // Finish active runs/battles before deployment; prior replays remain frozen only.
-export const CATALOG_VERSION = 17;
+// v18: twelve equal-budget regional reputation routes; classic rewards no longer add regional reputation.
+export const CATALOG_VERSION = 18;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

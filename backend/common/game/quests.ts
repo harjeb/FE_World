@@ -5,7 +5,7 @@ import { regionById } from './calendar.ts';
 
 const regionName = (id: number) => regionById(id).name;
 
-// 地区任务（docs/20「地区任务、战斗目标与声望」）。完整核心链三地：希尔瓦林地(2)、托尔加丘陵(3)、莱斯米尔湖镇(5)。
+// 地区任务（docs/20「地区任务、战斗目标与声望」）。十二地均有九项一次性任务、500 声望与 32 日预算。
 //
 // 目标类型：讨伐(rout)、占领(seize)、坚守(defend)、撤离(escape)、抢物资(gather)、护送(escort)。
 export type QuestKind = 'rout' | 'seize' | 'defend' | 'escape' | 'gather' | 'escort';
@@ -31,6 +31,8 @@ export interface Quest {
   reward: QuestReward;
   // 固定人物加入（docs/20 §5）：领取奖励时加入名册；已拥有则跳过（唯一性）。
   recruit?: CharacterId;
+  // 仅原三地核心任务开放账号传承；新增地区终章不增加稀缺资源来源。
+  unlocksLegacy?: boolean;
   // 经典地图任务：单图 scenarioId，或连续副本 scenarioIds（按顺序逐图创建战斗）。
   scenarioId?: string;
   scenarioIds?: string[];
@@ -60,8 +62,8 @@ const standard = (id: string, region: number, name: string, objective: string, k
   ({ id, region, name, objective, kind, tier: 'standard', turnLimit: 20, need, requires, reward: { gold: 1_600, reputation: 40 } });
 const region6 = (id: string, region: number, name: string, objective: string, items: [ItemKey, number][], requires: Quest['requires'], recruit?: CharacterId): Quest =>
   ({ id, region, name, objective, kind: 'rout', tier: 'region', turnLimit: 24, requires, recruit, stageGoals: region % 2 === 0 ? ['seize', 'rout', 'boss'] : ['rout', 'seize', 'boss'], betweenMapHeal: 25, reward: { gold: 4_000, reputation: 100, items } });
-const core = (id: string, region: number, name: string, objective: string, items: [ItemKey, number][], requires: Quest['requires']): Quest =>
-  ({ ...region6(id, region, name, objective, items, requires), reward: { gold: 5_000, reputation: 80, items } });
+const core = (id: string, region: number, name: string, objective: string, items: [ItemKey, number][], requires: Quest['requires'], unlocksLegacy = false): Quest =>
+  ({ ...region6(id, region, name, objective, items, requires), unlocksLegacy, reward: { gold: 5_000, reputation: 80, items } });
 
 export const QUESTS: Quest[] = [
   // 希尔瓦林地：木、弓、轻装（docs/20 §6）。
@@ -73,7 +75,7 @@ export const QUESTS: Quest[] = [
   region6('gw6', 2, '林间远征', '清剿林中据点', [['killer_bow', 1], ['wood', 8]], { quest: 'gw5', reputation: 100 }, 'ren'),
   core('gw7', 2, '古林界标', '夺回被侵蚀的界标', [], { quest: 'gw6', reputation: 250 }),
   core('gw8', 2, '林心守夜', '守住林心祭坛', [], { quest: 'gw7', reputation: 250 }),
-  core('gw9', 2, `${regionName(2)}·核心`, '击败侵蚀守林者', [['legacy_stone_growth', 1], ['immortal_shield', 1]], { quest: 'gw8', reputation: 250 }),
+  core('gw9', 2, `${regionName(2)}·核心`, '击败侵蚀守林者', [['legacy_stone_growth', 1], ['immortal_shield', 1]], { quest: 'gw8', reputation: 250 }, true),
   // 托尔加丘陵：矿、重甲、破甲（docs/20 §6）。
   short('ih1', 3, '矿道清障', '讨伐矿道敌兵', 'rout'),
   standard('ih2', 3, '占领矿道入口', '压制入口', 'seize', { quest: 'ih1' }),
@@ -83,7 +85,7 @@ export const QUESTS: Quest[] = [
   region6('ih6', 3, '矿区远征', '清剿矿场守军', [['killer_lance', 1], ['ore', 8]], { quest: 'ih5', reputation: 100 }, 'ig'),
   core('ih7', 3, '深井回声', '压制深井入口', [], { quest: 'ih6', reputation: 250 }),
   core('ih8', 3, '熔炉守卫', '守住熔炉', [], { quest: 'ih7', reputation: 250 }),
-  core('ih9', 3, `${regionName(3)}·核心`, '击败熔炉巨像', [['legacy_stone_numeric', 1], ['immortal_shield', 1]], { quest: 'ih8', reputation: 250 }),
+  core('ih9', 3, `${regionName(3)}·核心`, '击败熔炉巨像', [['legacy_stone_numeric', 1], ['immortal_shield', 1]], { quest: 'ih8', reputation: 250 }, true),
   // 莱斯米尔湖镇：药草、恢复、治疗（docs/20 §6）。
   short('wl1', 5, '渡口求援', '全队抵达撤离点', 'escape'),
   standard('wl2', 5, '护送伤员撤离', '护送伤员抵达撤离点', 'escort', { quest: 'wl1' }),
@@ -93,7 +95,7 @@ export const QUESTS: Quest[] = [
   region6('wl6', 5, '渡口远征', '清剿渡口守军', [['recover', 1], ['herb', 8]], { quest: 'wl5', reputation: 100 }, 'mira'),
   core('wl7', 5, '潮汐碑文', '夺回潮汐碑', [], { quest: 'wl6', reputation: 250 }),
   core('wl8', 5, '药田长夜', '守住药田', [], { quest: 'wl7', reputation: 250 }),
-  core('wl9', 5, `${regionName(5)}·核心`, '击败潮汐祭司', [['reincarnation_core', 1], ['immortal_shield', 1]], { quest: 'wl8', reputation: 250 }),
+  core('wl9', 5, `${regionName(5)}·核心`, '击败潮汐祭司', [['reincarnation_core', 1], ['immortal_shield', 1]], { quest: 'wl8', reputation: 250 }, true),
 ];
 
 import { CLASSIC_QUESTS } from './classic-quests.ts';
@@ -110,17 +112,34 @@ export function questsForRegion(region: number): Quest[] {
   return ALL_QUESTS.filter(q => q.region === region);
 }
 
-// 十二地区都可接到至少一条本地任务链；地区 2／3／5 另有完整核心链。
+// 旧三任务链的 ID、门槛与实物奖励保留；新增支线允许在远征前达到 100，之后合流到核心链。
 export const QUEST_REGIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-for (const region of [1, 4, 6, 7, 8, 9, 10, 11, 12]) {
+const LOCAL_CHAINS: { region: number; material: ItemKey; escort: string; escape: string; defend: string; cores: [string, string, string] }[] = [
+  { region: 1, material: 'herb', escort: '护送平原商队', escape: '接应边境斥候', defend: '守卫粮仓', cores: ['烽火驿道', '麦田防线', '平原盟约'] },
+  { region: 4, material: 'ore', escort: '护送筑城工匠', escape: '接应城外守军', defend: '坚守城门', cores: ['失落哨堡', '城墙长夜', '要塞盟约'] },
+  { region: 6, material: 'herb', escort: '护送遗迹学者', escape: '撤出古都斥候', defend: '守卫元素工坊', cores: ['沉寂书库', '元素回廊', '古都盟约'] },
+  { region: 7, material: 'wood', escort: '护送山岭族人', escape: '接应山路猎手', defend: '守卫兽族营地', cores: ['祖灵山道', '群峰守夜', '山岭盟约'] },
+  { region: 8, material: 'ore', escort: '护送风崖信使', escape: '接应落单飞骑', defend: '守卫崖顶哨站', cores: ['断翼高地', '风口防线', '风崖盟约'] },
+  { region: 9, material: 'ore', escort: '护送荒原矿队', escape: '接应沙海斥候', defend: '守卫锻造营地', cores: ['旧炉遗址', '荒原烽火', '荒原盟约'] },
+  { region: 10, material: 'ore', escort: '护送龙谷使者', escape: '撤出谷口探队', defend: '守卫龙石祭坛', cores: ['龙脉遗迹', '谷地守夜', '龙谷盟约'] },
+  { region: 11, material: 'herb', escort: '护送王陵祭司', escape: '接应墓道探队', defend: '守卫仪式营地', cores: ['封印墓道', '王陵长夜', '王陵盟约'] },
+  { region: 12, material: 'seed', escort: '护送神殿学徒', escape: '撤出门前哨兵', defend: '守卫轮回碑', cores: ['星门回廊', '黎明守望', '星门盟约'] },
+];
+for (const { region, material, escort, escape, defend, cores } of LOCAL_CHAINS) {
   const prefix = `r${region}`;
   const name = regionName(region);
   QUESTS.push(
     short(`${prefix}-1`, region, `${name}·边境巡逻`, '击败当地威胁', 'rout'),
     standard(`${prefix}-2`, region, `${name}·据点压制`, '压制当地据点', 'seize', { quest: `${prefix}-1` }),
-    // 前两项共 20+40 声望，远征门槛与之对齐，避免前置锁死（docs/20 §6）。
+    // 保留旧远征前置，已完成旧三项的玩家可以直接补支线。
     region6(`${prefix}-3`, region, `${name}·地区远征`, '清剿地区守军', [['ore', 6], ['herb', 6]], { quest: `${prefix}-2`, reputation: 60 }),
+    standard(`${prefix}-4`, region, escort, '护送当地盟友抵达撤离点', 'escort', { quest: `${prefix}-2` }),
+    short(`${prefix}-5`, region, escape, '全队抵达撤离点', 'escape', { quest: `${prefix}-4`, reputation: 100 }, 1),
+    standard(`${prefix}-6`, region, defend, '坚守当地设施', 'defend', { quest: `${prefix}-5`, reputation: 100 }),
+    core(`${prefix}-7`, region, cores[0], '夺回地区遗址', [[material, 6]], { quest: `${prefix}-3`, reputation: 250 }),
+    core(`${prefix}-8`, region, cores[1], '守住地区防线', [[material, 8]], { quest: `${prefix}-7`, reputation: 250 }),
+    core(`${prefix}-9`, region, cores[2], '击败侵蚀守将，缔结当地盟约', [[material, 10]], { quest: `${prefix}-8`, reputation: 250 }),
   );
 }
 ALL_QUESTS.push(...QUESTS.filter(q => !ALL_QUESTS.includes(q)));

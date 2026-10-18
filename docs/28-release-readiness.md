@@ -11,7 +11,7 @@
 | 装备／法术目录 | 170 | 170个设计ID逐项齐全且都有取得途径（地区商店资格按级别开放、一次性任务奖励、挑战塔首通；限量书＋教材只经任务发放）；特殊装备效果、40种法术效果与书／杖次数（开场、追击、反击各扣1次）已结算并进入网页／Agent预测，见27 §6；另保留旧武器／书及别名，共187条兼容记录（137武器表＋50书表） | `tools/audit/equipment-catalog.py`、`equipment-effects.test.ts`、`spell-effects.test.ts`、`api/equipment-sources.test.ts` |
 | 武器战技 | 315 | 283参考＋17补充＋15原创；原创逐项结算、目标选择、网页／Agent预测及耐久支付已接；176项精通／408条教学已接入参战、返程和存档；103项营地同步研修已接入（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`，先学基础、付费耗日、重试安全）；36项装备授予已实现（含毒弓＋3强化路径、实例／资源保存，见27及`backend/api/equipment-grants.test.ts`）；共用五格运行时／API／网页已实现（完整库与独立选择、原子提交及旧档一次迁移见28）；既有300项特殊效果已完成首版显式实现（边界见26）；CLASS-02首版可确认主动战技与12被动已实现，DESIGN-04及ITEM-06已完成首版（特殊装备、法术与投放见27 §6） | `original-arts.test.ts`、`classic-arts.test.ts`（引擎／API）、`art-effects.test.ts`、`api/ui-protocol.test.ts`、`tools/audit/class-art-learning.py` |
 | 职业目录 | 77 | 运行时可用；舞者/神乐再行动、战车直线攻击已接 | `class-data` 测试 |
-| 地区任务 | 12 地区 | 希尔瓦林地／托尔加丘陵／莱斯米尔湖镇完整 500 声望链；其余地区有基础三任务链（远征门槛60，无声望锁死） | `quests.test.ts` |
+| 地区任务 | 12 地区／108项 | 每地九项一次性任务，最快5／14／32行动日达到100／250／500；旧三任务链可续做，经典地图新奖励不再额外加速三地声望，已获声望保留，见[20](20-region-quests-reputation.md) | `quests.test.ts`、`api/quests.test.ts` |
 | 挑战塔 | 3 层 | 可开战、首通/重复奖励与保存；终层地图显示名为「神蚀纪 · 终焉王座」 | `challenges.ts`、`classic.test.ts`、`api` 测试 |
 | 酒馆 | 第二年季度候选 | 付费雇佣、候选不重掷 | `GET_TAVERN`／`HIRE_TAVERN` |
 
@@ -30,7 +30,7 @@
 - 备份：停写或用 `sqlite3 "$DB_PATH" ".backup 'backup.sqlite'"`；同时保留 `-wal`/`-shm` 或在备份前 `PRAGMA wal_checkpoint(TRUNCATE)`。
 - 恢复：先停服务，替换主库并删除旧 `-wal`/`-shm`，再启动；用 `GET_STATE` 和一次只读回放验证。
 - 迁移：当前通过 `db.ts` 的 schema 初始化和兼容读取完成；正式迁移前先备份。旧 120 日存档的绝对日期、年龄、派遣/生产/年度报名仍需按版本换算，不能直接套新日历。
-- 规则版本：当前采用`rules-v7`／目录17（特殊装备效果、法术效果、书／杖逐次扣次数与法术书物品化改变预测、战斗结算与资源）。旧`rules-v6`／目录16为300项显式战技机制版本，旧回放只展示冻结终局。再早的`rules-v5`／目录15为共用五格版本，与当前不兼容，仅展示保存的冻结终局，不重模拟。此前`rules-v4`／目录14包含实物授予及精炼门槛，`rules-v3`／目录13包含原创效果、精通与强化研修；v4／v3及更早规则回放仅展示已保存冻结终局，不在新规则下重模拟。部署升级前先结束所有进行中的活动／远征及战斗，保留数据库备份。旧档缺失`equippedArts`时只迁移一次：先保留有效已选习得被动，再按原`learnedArts`顺序填剩余格，保留完整库且不增点／收费；后续空选择尊重为空。详见[28](28-class-art-learning.md)。
+- 规则版本：当前采用`rules-v7`／目录18（目录18补齐十二地同预算声望路线，经典任务新奖励不再给地区声望；目录17接入特殊装备效果、法术效果、书／杖逐次扣次数与法术书物品化）。旧`rules-v6`／目录16为300项显式战技机制版本，旧回放只展示冻结终局。再早的`rules-v5`／目录15为共用五格版本，与当前不兼容，仅展示保存的冻结终局，不重模拟。此前`rules-v4`／目录14包含实物授予及精炼门槛，`rules-v3`／目录13包含原创效果、精通与强化研修；v4／v3及更早规则回放仅展示已保存冻结终局，不在新规则下重模拟。部署升级前先结束所有进行中的活动／远征及战斗，保留数据库备份。旧档缺失`equippedArts`时只迁移一次：先保留有效已选习得被动，再按原`learnedArts`顺序填剩余格，保留完整库且不增点／收费；后续空选择尊重为空。详见[28](28-class-art-learning.md)。
 - 生产环境必须设置账号密码、限制数据库文件权限，并只暴露 API 端口；Agent token 与网页 token 不应共享权限。
 
 ## 4. 验证门禁
@@ -68,7 +68,7 @@ node frontend/test/systems.e2e.mjs
 | 经典关卡 | 60 图/18 副本；`classic-scenario.test.ts`、`classic-validation.ts`、逐图 adaptation report |
 | 装备/法术/战技 | `equipment-catalog.py` 170、`weapon-art-catalog.py` 315、`original-arts.test.ts` 原创效果、`feature-completion.test.ts` 目录/次数/装备授予 |
 | 职业/成长 | `class-abilities.ts` 58、`mastery.test.ts`、`growth.test.ts`、`permanent.test.ts` |
-| 任务/地区 | 132 任务/12 地区、`quests.test.ts`、远征 stage goals/供给测试 |
+| 任务/地区 | 186任务／12地区（108本地＋60经典单图＋18经典副本）、`quests.test.ts`、远征stage goals／供给测试 |
 | 竞技场/年度 | 普通竞技场每场 1 日、只进攻、实例 Ban、同形象限制、跨日结算；64 队签表；`arena.test.ts`、`annual.test.ts`、`api.test.ts` |
 | 网页/交互 | 真实服务端名册、战报筛选、历史回放、实时观战只读轮询；`backend-integration.e2e.mjs`、`battle-replay.e2e.mjs`、`systems.e2e.mjs` |
 | Agent/持久化 | 全 op schema、`commandId`、事务/版本、outbox、事件游标测试 |
