@@ -14,6 +14,8 @@ const BASE_BOOKS: SpellbookDef[] = [
   { id: 'light', name: '光术', school: 'white', role: 'attack', might: 4, hit: 95, crit: 0, weight: 3, range: [1, 2], maxCharges: 20, effect: '基础光魔法' },
   { id: 'elfire', name: '烈火', school: 'black', role: 'attack', might: 10, hit: 85, crit: 0, weight: 8, range: [1, 2], maxCharges: 10, effect: '中阶火魔法' },
   { id: 'meteor', name: '陨星', school: 'black', role: 'attack', might: 14, hit: 70, crit: 0, weight: 12, range: [3, 5], maxCharges: 5, effect: '远程火魔法' },
+  { id: 'dark', name: '暗术书', school: 'dark', role: 'attack', might: 9, hit: 70, crit: 0, weight: 9, range: [1, 2], maxCharges: 15, effect: '基础暗魔法' },
+  { id: 'nosferatu', name: '吸血术书', school: 'dark', role: 'attack', might: 6, hit: 70, crit: 0, weight: 10, range: [1, 2], maxCharges: 10, effect: '吸血50%尚待实现，当前仅基础数值' },
 ];
 
 export const SPELLBOOKS: readonly SpellbookDef[] = [

@@ -1,8 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v3';
-export const CATALOG_VERSION = 13;
+export const RULESET_VERSION = 'rules-v4';
+// v14 / rules-v4: instance-bound equipment arts, refinement and complete baseline template IDs.
+// Preserve historical snapshots/replays; do not silently re-simulate with new grants.
+export const CATALOG_VERSION = 14;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

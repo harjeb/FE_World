@@ -1,8 +1,10 @@
 import type { MoveType, Rank, Stats, WeaponType } from './types.ts';
 import type { SkillId } from './skills.ts';
-import { EXPANDED_WEAPONS } from './expanded-weapons.ts';
+import { EQUIPMENT_ART_LINKS, EXPANDED_WEAPONS } from './expanded-weapons.ts';
 
-// docs/03-combat.md「武器（v1）」; v1 weapons have no durability.
+export interface WeaponInstance { id: WeaponId; durability: number; maxDurability: number; refinement?: number }
+
+// Normal physical attacks are free; arts spend the carried weapon instance's durability.
 export interface Weapon {
   name: string;
   type: WeaponType;
@@ -25,12 +27,28 @@ export interface Weapon {
   magRange?: boolean;
   note?: string;
   // 穿戴授予：技能不占五格，成长在升级结算时叠加；卸下即失效。
-  grants?: { skill?: SkillId; growth?: Partial<Stats>; art?: string };
+  grants?: { skill?: SkillId; growth?: Partial<Stats>; arts?: readonly { art: string; minimumRefinement: number }[] };
 }
 
 const FLYING = ['flying'] as const;
 
 const BASE_TABLE = {
+  // docs/22: retain old IDs below as well, so existing saves keep their gear.
+  slim_sword: { name: '细剑', type: 'sword', rank: 'E', might: 3, hit: 100, weight: 2, crit: 5, range: [1, 1], maxDurability: 40 },
+  rapier: { name: '刺剑', type: 'sword', rank: 'D', might: 6, hit: 85, weight: 5, crit: 5, range: [1, 1], maxDurability: 30, effective: ['mounted', 'armored'] },
+  armor_sword: { name: '破甲剑', type: 'sword', rank: 'D', might: 7, hit: 75, weight: 9, crit: 0, range: [1, 1], maxDurability: 30, effective: ['armored'] },
+  wo_dao: { name: '倭刀适配', type: 'sword', rank: 'C', might: 6, hit: 85, weight: 5, crit: 30, range: [1, 1], maxDurability: 20 },
+  devil_sword: { name: '反噬剑', type: 'sword', rank: 'D', might: 16, hit: 85, weight: 10, crit: 0, range: [1, 1], maxDurability: 25, note: '反噬机制尚待实现，当前仅基础数值' },
+  lancereaver: { name: '逆枪剑', type: 'sword', rank: 'C', might: 8, hit: 75, weight: 9, crit: 0, range: [1, 1], maxDurability: 25, note: '反转克制尚待实现，当前仅基础数值' },
+  slim_lance: { name: '细枪', type: 'lance', rank: 'E', might: 4, hit: 95, weight: 5, crit: 5, range: [1, 1], maxDurability: 40 },
+  heavy_spear: { name: '重破甲枪', type: 'lance', rank: 'C', might: 10, hit: 65, weight: 14, crit: 0, range: [1, 1], maxDurability: 25, effective: ['armored'] },
+  poleaxe: { name: '斩马斧', type: 'axe', rank: 'D', might: 9, hit: 65, weight: 13, crit: 0, range: [1, 1], maxDurability: 30, effective: ['mounted'] },
+  tomahawk: { name: '远投战斧', type: 'axe', rank: 'B', might: 12, hit: 60, weight: 15, crit: 0, range: [1, 2], maxDurability: 20 },
+  magic_bow: { name: '魔法弓', type: 'bow', rank: 'B', might: 10, hit: 75, weight: 9, crit: 0, range: [2, 2], maxDurability: 25, note: '魔力伤害转换尚待实现，当前仅基础数值' },
+  poison_dagger: { name: '毒短刀', type: 'dagger', rank: 'C', might: 5, hit: 80, weight: 4, crit: 0, range: [1, 2], maxDurability: 30, note: '命中附毒尚待实现，当前仅基础数值' },
+  silver_dagger: { name: '银短刀', type: 'dagger', rank: 'A', might: 10, hit: 85, weight: 5, crit: 5, range: [1, 2], maxDurability: 20 },
+  steel_gauntlet: { name: '钢拳套', type: 'fist', rank: 'D', might: 6, hit: 80, weight: 6, crit: 0, range: [1, 1], maxDurability: 35, brave: true },
+  killer_gauntlet: { name: '必杀拳套', type: 'fist', rank: 'C', might: 5, hit: 80, weight: 5, crit: 25, range: [1, 1], maxDurability: 25, brave: true },
   beastkiller: { name: '猎兽剑', type: 'sword', rank: 'D', might: 6, hit: 80, weight: 7, crit: 0, range: [1, 1], effectiveRoutes: ['beast'], note: '对兽人特效' },
   dragonslayer: { name: '屠龙剑', type: 'sword', rank: 'D', might: 6, hit: 80, weight: 7, crit: 0, range: [1, 1], effectiveRoutes: ['dragon'], note: '对龙人特效，不针对龙骑士' },
   gauntlet: { name: '铁拳套', type: 'fist', rank: 'E', might: 4, hit: 90, weight: 3, crit: 0, range: [1, 1], brave: true },
@@ -59,16 +77,16 @@ const BASE_TABLE = {
   brave_bow: { name: '勇者之弓', type: 'bow', rank: 'A', might: 10, hit: 75, weight: 8, crit: 0, range: [2, 2], brave: true },
   thunder_fang: { name: '雷牙', type: 'beast', rank: 'B', might: 11, hit: 80, weight: 7, crit: 5, range: [1, 1] },
   ice_breath: { name: '冰息', type: 'dragon', rank: 'B', might: 12, hit: 80, weight: 10, crit: 0, range: [1, 2] },
-  killer_blade: { name: '必杀刃', type: 'sword', rank: 'C', might: 8, hit: 75, weight: 8, crit: 30, range: [1, 1], grants: { skill: 'keen', art: 'fw_art_35' } },
+  killer_blade: { name: '必杀刃', type: 'sword', rank: 'C', might: 8, hit: 75, weight: 8, crit: 30, range: [1, 1], grants: { skill: 'keen' } },
   master_lance: { name: '统率枪', type: 'lance', rank: 'S', might: 16, hit: 80, weight: 11, crit: 5, range: [1, 1] },
-  royal_sword: { name: '王权剑', type: 'sword', rank: 'SS', might: 16, hit: 85, weight: 7, crit: 10, range: [1, 1], note: 'SS 熟练度武器', grants: { skill: 'opening', growth: { spd: 5 }, art: 'fw_art_34' } },
+  royal_sword: { name: '王权剑', type: 'sword', rank: 'SS', might: 16, hit: 85, weight: 7, crit: 10, range: [1, 1], note: 'SS 熟练度武器', grants: { skill: 'opening', growth: { spd: 5 } } },
   iron_lance: { name: '铁枪', type: 'lance', rank: 'E', might: 7, hit: 80, weight: 8, crit: 0, range: [1, 1] },
   steel_lance: { name: '钢枪', type: 'lance', rank: 'D', might: 10, hit: 70, weight: 13, crit: 0, range: [1, 1] },
   javelin: { name: '投枪', type: 'lance', rank: 'D', might: 6, hit: 65, weight: 11, crit: 0, range: [1, 2] },
   armorslayer: { name: '破甲枪', type: 'lance', rank: 'D', might: 7, hit: 70, weight: 12, crit: 0, range: [1, 1], effective: ['armored'], note: '对重甲特效' },
   killer_lance: { name: '杀手枪', type: 'lance', rank: 'C', might: 8, hit: 70, weight: 9, crit: 30, range: [1, 1] },
   silver_lance: { name: '银枪', type: 'lance', rank: 'A', might: 14, hit: 75, weight: 10, crit: 0, range: [1, 1] },
-  divine_lance: { name: '神授枪', type: 'lance', rank: 'SSS', might: 18, hit: 85, weight: 9, crit: 10, range: [1, 2], note: 'SSS 熟练度武器', grants: { skill: 'steadfast', art: 'fw_art_47' } },
+  divine_lance: { name: '神授枪', type: 'lance', rank: 'SSS', might: 18, hit: 85, weight: 9, crit: 10, range: [1, 2], note: 'SSS 熟练度武器', grants: { skill: 'steadfast' } },
   iron_axe: { name: '铁斧', type: 'axe', rank: 'E', might: 8, hit: 75, weight: 10, crit: 0, range: [1, 1] },
   steel_axe: { name: '钢斧', type: 'axe', rank: 'D', might: 11, hit: 65, weight: 15, crit: 0, range: [1, 1] },
   hand_axe: { name: '手斧', type: 'axe', rank: 'D', might: 7, hit: 60, weight: 12, crit: 0, range: [1, 2] },
@@ -97,7 +115,10 @@ const BASE_TABLE = {
 export const TABLE = { ...BASE_TABLE, ...EXPANDED_WEAPONS } satisfies Record<string, Weapon>;
 export type WeaponId = keyof typeof TABLE;
 export const WEAPONS: Record<WeaponId, Weapon> = Object.fromEntries(
-  (Object.entries(TABLE) as [string, Weapon][]).map(([id, w]) => {
+  (Object.entries(TABLE) as [string, Weapon][]).map(([id, base]) => {
+    const arts = EQUIPMENT_ART_LINKS.filter(link => link.projectWeaponId === id)
+      .map(link => ({ art: link.artId, minimumRefinement: link.minimumRefinement }));
+    const w = arts.length ? { ...base, grants: { ...base.grants, arts } } : base;
     if (w.type === 'tome') return [id, { ...w, maxCharges: w.maxCharges ?? 20 }];
     if (w.type === 'staff') return [id, { ...w, maxCharges: w.maxCharges ?? 10 }];
     return [id, { ...w, maxDurability: w.maxDurability ?? 40 }];

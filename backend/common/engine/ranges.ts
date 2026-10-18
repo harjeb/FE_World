@@ -2,7 +2,7 @@ import type { WeaponId } from '../data/weapons.ts';
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
-import { artAllies, artWeapon } from './arts.ts';
+import { artAllies, artWeapon, availableArts } from './arts.ts';
 import { moveRange } from './movement.ts';
 import type { MoveRange } from './movement.ts';
 import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
@@ -53,7 +53,7 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
       .filter(target => target.id !== unit.id && target.acted && !target.petrified && !target.npc && distance(to, target.pos) === 1)
       .map(target => target.id)
     : [];
-  const arts = (unit.arts ?? []).flatMap(art => {
+  const arts = availableArts(unit).flatMap(art => {
     const entry = WEAPON_ART_BY_ID.get(art as never);
     if (!entry) return [];
     return attackWeapons(unit).filter(weapon => artWeapon(unit, weapon, entry)).map(weapon => {

@@ -28,6 +28,11 @@ export interface SnapshotUnit {
   weapons: WeaponId[];
   ranks: Partial<Record<WeaponType, Rank>>;
   items: ItemStack[];
+  weaponInstances?: UnitState['weaponInstances'];
+  bookInstances?: UnitState['bookInstances'];
+  spellbooks?: UnitState['spellbooks'];
+  skills?: UnitState['skills'];
+  arts?: UnitState['arts'];
 }
 
 export interface DefenseSlot { unit: SnapshotUnit; pos: Point; behavior: Behavior }
@@ -151,6 +156,10 @@ function fromSnapshot(snap: SnapshotUnit, side: Side, id: string, pos: Point, ex
     id, name: snap.name ?? character.name, side, character: snap.character, portrait: snap.portrait, classId: snap.classId,
     level: snap.level, exp: 0, stats: withCharm(snap.stats), con: snap.con, hp: snap.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...snap.weapons], items: snap.items.map(i => ({ ...i })), ranks: { ...snap.ranks },
+    weaponInstances: snap.weaponInstances?.map(row => ({ ...row })),
+    bookInstances: snap.bookInstances?.map(row => ({ ...row })),
+    spellbooks: snap.spellbooks?.map(row => ({ ...row })),
+    skills: snap.skills ? [...snap.skills] : undefined, arts: snap.arts ? [...snap.arts] : undefined,
     skill: character.skill, acted: false, alive: true, ...extra,
   };
 }

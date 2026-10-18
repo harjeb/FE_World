@@ -1,4 +1,5 @@
 import { rankAtLeast } from '../data/types.ts';
+import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import type { WeaponArt } from '../data/weapon-arts.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
@@ -11,10 +12,26 @@ import type { ActAction, BattleEvent, BattleState, Point, UnitState } from './ty
 
 export type ArtAction = Extract<ActAction, { act: 'art' }>;
 
-export function artWeapon(unit: UnitState, weapon: WeaponId, art: WeaponArt): boolean {
-  return attackWeapons(unit).includes(weapon)
-    && (art.weaponCompatibility ?? [art.weapon]).includes(WEAPONS[weapon].type)
-    && (!art.rank || rankAtLeast(unit.ranks[WEAPONS[weapon].type], art.rank));
+type ArtUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'weaponInstances' | 'statuses' | 'bookInstances'>;
+
+export function artWeapon(unit: ArtUser, weapon: WeaponId, art: WeaponArt): boolean {
+  if (!attackWeapons(unit).includes(weapon)
+    || !art.weaponCompatibility.includes(WEAPONS[weapon].type)
+    || (art.rank && !rankAtLeast(unit.ranks[WEAPONS[weapon].type], art.rank))) return false;
+  if (art.unlock.kind !== 'equipment_grant') return true;
+  const instance = unit.weaponInstances?.find(row => row.id === weapon);
+  return !!instance && instance.durability >= art.cost
+    && !!WEAPONS[weapon].grants?.arts?.some(link => link.art === art.id
+      && (instance.refinement ?? 0) >= link.minimumRefinement);
+}
+
+export function equipmentArtIds(unit: ArtUser): string[] {
+  return [...new Set(unit.weapons.flatMap(weapon => (WEAPONS[weapon].grants?.arts ?? [])
+    .filter(link => artWeapon(unit, weapon, WEAPON_ART_BY_ID.get(link.art)!)).map(link => link.art)))];
+}
+
+export function availableArts(unit: UnitState): string[] {
+  return [...new Set([...(unit.arts ?? []).filter(id => WEAPON_ART_BY_ID.get(id)?.unlock.kind !== 'equipment_grant'), ...equipmentArtIds(unit)])];
 }
 
 // A supercover ray cannot pass through walls or cut diagonally between blocking cells.
@@ -83,7 +100,7 @@ export function artVictims(state: BattleState, unit: UnitState, to: Point, weapo
 }
 
 export function validateArt(state: BattleState, unit: UnitState, action: ArtAction, art: WeaponArt): UnitState[] {
-  if (!(unit.arts ?? []).includes(art.id)) throw new EngineError('FORBIDDEN', '尚未装备这个战技');
+  if (!availableArts(unit).includes(art.id)) throw new EngineError('FORBIDDEN', '尚未装备这个战技，或授予装备不满足条件');
   if (!artWeapon(unit, action.weapon, art)) throw new EngineError('WEAPON_RANK_TOO_LOW', '战技武器类型、职业权限或熟练度不满足');
   const target = unitById(state, action.target);
   if (!legalArtTarget(state, unit, action.to, action.weapon, art, target)) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不满足战技射程、视线或发动条件');

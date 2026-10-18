@@ -59,16 +59,18 @@ export function effectiveLevel(unit: UnitState): number {
   return unit.level;
 }
 
-export function canWield(unit: UnitState, id: WeaponId): boolean {
+type WeaponUser = Pick<UnitState, 'classId' | 'ranks' | 'weapons' | 'statuses' | 'bookInstances'>;
+
+export function canWield(unit: WeaponUser, id: WeaponId): boolean {
   const w: Weapon = WEAPONS[id];
-  return classOf(unit).weapons[w.type] !== undefined && rankAtLeast(unit.ranks[w.type], w.rank);
+  return CLASSES[unit.classId].weapons[w.type] !== undefined && rankAtLeast(unit.ranks[w.type], w.rank);
 }
 
-export function isAsleep(unit: UnitState): boolean {
+export function isAsleep(unit: Pick<UnitState, 'statuses'>): boolean {
   return !!unit.statuses?.sleep;
 }
 
-export function isSilenced(unit: UnitState): boolean {
+export function isSilenced(unit: Pick<UnitState, 'statuses'>): boolean {
   return (unit.statuses?.silence ?? 0) > 0;
 }
 
@@ -76,8 +78,8 @@ export function isBerserk(unit: UnitState): boolean {
   return (unit.statuses?.berserk ?? 0) > 0;
 }
 
-// 沉默只封法术/杖；物理武器、兽爪、龙石仍可用。战技尚未接入运行时。
-export function canUseWeapon(unit: UnitState, id: WeaponId): boolean {
+// 沉默只封法术/杖；物理武器、兽爪、龙石与对应战技仍可用。
+export function canUseWeapon(unit: WeaponUser, id: WeaponId): boolean {
   if (isAsleep(unit)) return false;
   if (isSilenced(unit) && (WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff')) return false;
   return canWield(unit, id);
@@ -120,18 +122,24 @@ export function tickStatuses(unit: UnitState): ('silence' | 'berserk')[] {
   return expired;
 }
 
-function hasCharge(unit: UnitState, id: WeaponId): boolean {
+function hasCharge(unit: Pick<UnitState, 'bookInstances'>, id: WeaponId): boolean {
   if (!unit.bookInstances) return true;
   const row = unit.bookInstances.find(entry => entry.id === id);
   return !row || row.charges > 0;
 }
 
-export function attackWeapons(unit: UnitState): WeaponId[] {
+export function attackWeapons(unit: WeaponUser): WeaponId[] {
   return unit.weapons.filter(id => WEAPONS[id].type !== 'staff' && canUseWeapon(unit, id) && hasCharge(unit, id));
 }
 
 export function staffWeapons(unit: UnitState): WeaponId[] {
   return unit.weapons.filter(id => WEAPONS[id].type === 'staff' && canUseWeapon(unit, id) && hasCharge(unit, id));
+}
+
+export function equipWeapon(unit: UnitState, id: WeaponId): void {
+  const index = unit.weapons.indexOf(id);
+  if (index >= 0) unit.weapons.splice(index, 1);
+  unit.weapons.unshift(id);
 }
 
 // The equipped weapon decides counterattacks; it is the first usable attack weapon in the list.

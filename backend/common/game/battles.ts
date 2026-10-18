@@ -17,6 +17,7 @@ import { expectedUnit } from '../arena/demo.ts';
 import type { CharacterId } from '../data/characters.ts';
 import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
+import type { RunCarry } from './expedition.ts';
 import { createEnemy, pickClasses } from './enemies.ts';
 import { enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
@@ -83,7 +84,7 @@ export interface FieldBattleOptions {
   // 连续副本的图号与跨图携带状态（HP、物品、武器）。
   stageIndex?: number;
   runId?: string;
-  carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }>;
+  carry?: Record<string, RunCarry>;
   // 地区任务：覆盖目标、回合上限与图名（docs/20）。
   quest?: Quest;
 }
@@ -110,7 +111,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const playerUnits = units.slice(0, count).map((u, i) => {
     const carry = options.carry?.[u.id];
     const extra: Partial<UnitState> = { boss: i === 0 };
-    if (carry) { extra.hp = Math.max(1, carry.hp); extra.items = carry.items.map(it => ({ ...it })); extra.weapons = [...carry.weapons]; }
+    if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
   const classes = pickClasses(`${options.seed}:foes:${stage}`, count, ENEMY_CLASSES);
@@ -173,7 +174,7 @@ export interface ClassicBattleOptions {
   level?: number;
   stageIndex?: number;
   runId?: string;
-  carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }>;
+  carry?: Record<string, RunCarry>;
 }
 
 function classicPassable(map: ReturnType<typeof classicMap>, x: number, y: number): boolean {
@@ -234,11 +235,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const playerUnits = units.slice(0, count).map((unit, index) => {
     const carry = options.carry?.[unit.id];
     const extra: Partial<UnitState> = { boss: index === 0 };
-    if (carry) {
-      extra.hp = Math.max(1, carry.hp);
-      extra.items = carry.items.map(item => ({ ...item }));
-      extra.weapons = [...carry.weapons];
-    }
+    if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(unit, 'player', unit.id, spawns[index], extra);
   });
   const originalLevels = map.enemies.map(enemy => enemy.level).sort((a, b) => a - b);
@@ -299,7 +296,7 @@ export function festivalMapId(round: number, edition = 0): ArenaMapId {
   return (['plains', 'pass', 'woods', 'castle'] as ArenaMapId[])[(tier + offset) % 4];
 }
 
-export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; annualId?: string; edition?: number; carry?: Record<string, { hp: number; items: UnitState['items']; weapons: UnitState['weapons'] }> } = {}): BattleRecord {
+export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; annualId?: string; edition?: number; carry?: Record<string, RunCarry> } = {}): BattleRecord {
   const map = ARENA_MAPS[festivalMapId(round, opts.edition ?? 0)];
   const level = Math.min(99, enemyLevel(opts.day ?? 0) + Math.floor((round - 1) / 2));
   const tiles = tilesFromGlyphs(map.rows);
@@ -307,7 +304,7 @@ export function createFestivalBattle(units: UnitRecord[], round: number, seed: s
   const playerUnits = units.slice(0, count).map((u, i) => {
     const carry = opts.carry?.[u.id];
     const extra: Partial<UnitState> = { boss: i === 0 };
-    if (carry) { extra.hp = Math.max(1, carry.hp); extra.items = carry.items.map(it => ({ ...it })); extra.weapons = [...carry.weapons]; }
+    if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.attackerZone[i], extra);
   });
   const classes = pickClasses(`${seed}:festival`, Math.min(map.deploy, map.defenderZone.length), ENEMY_CLASSES);

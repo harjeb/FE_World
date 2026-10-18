@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
-"""Generate runtime weapon entries from docs/data/fw-equipment-expansion.json."""
+"""Generate runtime weapons and equipment-art links from the audited catalog."""
 import json
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2]
-data=json.loads((ROOT/'docs/data/fw-equipment-expansion.json').read_text(encoding='utf-8'))
-rows=[]
-for w in data['weapons']:
-    p=w['project']
-    rows.append({'id':w['id'],'name':w['name'],'type':w['type'],'rank':p.get('rank','E'),
-      'might':p.get('might',0),'hit':p.get('hit',0),'weight':p.get('weight',0),'crit':p.get('crit',0),
-      'range':p.get('range',[1,1]),'maxDurability':p.get('maxDurability',40),
-      'note':w.get('effectSummary','')})
-lines=['// Generated from docs/data/fw-equipment-expansion.json. Do not hand-edit.','import type { Weapon } from \'./weapons.ts\';','','export const EXPANDED_WEAPONS = {']
-for r in rows:
-    lines.append('  '+repr(r['id'])+': { name: '+repr(r['name'])+', type: '+repr(r['type'])+', rank: '+repr(r['rank'])+', might: '+str(r['might'])+', hit: '+str(r['hit'])+', weight: '+str(r['weight'])+', crit: '+str(r['crit'])+', range: ['+str(r['range'][0])+', '+str(r['range'][1])+'] as const, maxDurability: '+str(r['maxDurability'])+', note: '+repr(r['note'])+' },')
-lines += ['} as const satisfies Record<string, Weapon>;','']
-(ROOT/'backend/common/data/expanded-weapons.ts').write_text('\n'.join(lines),encoding='utf-8')
-print(f'expanded weapons: {len(rows)}')
+
+ROOT = Path(__file__).resolve().parents[2]
+data = json.loads((ROOT / 'docs/data/fw-equipment-expansion.json').read_text(encoding='utf-8'))
+rows = []
+for weapon in data['weapons']:
+    project = weapon['project']
+    rows.append((weapon['id'], {
+        'name': weapon['name'], 'type': weapon['type'], 'rank': project['rank'],
+        **{key: project[key] for key in ['might', 'hit', 'weight', 'crit', 'range', 'maxDurability']},
+        'note': weapon.get('effectSummary', ''),
+    }))
+links = [{key: link[key] for key in ['artId', 'projectWeaponId', 'minimumRefinement']}
+         for link in data['equipmentArtLinks']]
+assert len(links) == len({row['artId'] for row in links}) == 36
+assert all(isinstance(row['minimumRefinement'], int) and row['minimumRefinement'] >= 0 for row in links)
+lines = [
+    '// Generated from docs/data/fw-equipment-expansion.json. Do not hand-edit.',
+    "import type { Weapon } from './weapons.ts';", '',
+    'export const EQUIPMENT_ART_LINKS = ' + json.dumps(links, ensure_ascii=False) + ' as const;', '',
+    'export const EXPANDED_WEAPONS = {',
+]
+lines += ['  ' + json.dumps(identity) + ': ' + json.dumps(row, ensure_ascii=False) + ',' for identity, row in rows]
+lines += ['} as const satisfies Record<string, Weapon>;', '']
+(ROOT / 'backend/common/data/expanded-weapons.ts').write_text('\n'.join(lines), encoding='utf-8')
+print(f'expanded weapons: {len(rows)}, equipment-art grants: {len(links)}')

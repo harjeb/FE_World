@@ -8,8 +8,8 @@
 | --- | ---: | --- | --- |
 | 经典地图 | 60 | 可创建战斗；物件、增援、宝箱/村庄、炮台、状态杖已接 | `classic-validation.ts`、`classic-scenario.test.ts`、`api/classic.test.ts` |
 | 经典单图任务／副本 | 60 / 18 | 入口和结算已接 | `classic-quests.ts`、`api/classic.test.ts` |
-| 装备／法术目录 | 170 | 113 武器/兽龙媒介、48 书、9 主动杖均已进入运行表；书/杖独立次数与武器耐久已接 | `tools/audit/equipment-catalog.py`、`item` 测试 |
-| 武器战技 | 315 | 283参考＋17补充＋15原创；原创逐项结算、目标选择、网页／Agent预测及耐久支付已接；176项精通／408条教学已接入参战、返程和存档；103项营地同步研修已接入（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`，先学基础、付费耗日、重试安全）；36项装备授予、共用五格和既有300项特殊效果继续收口 | `original-arts.test.ts`、`api/ui-protocol.test.ts`、`tools/audit/class-art-learning.py` |
+| 装备／法术目录 | 170 | 170个设计ID逐项齐全；另保留旧武器／书及别名，共187条兼容记录（137武器表＋50书表），不据数量认定特殊效果完成；书/杖独立次数与武器耐久已接 | `tools/audit/equipment-catalog.py`、`item` 测试 |
+| 武器战技 | 315 | 283参考＋17补充＋15原创；原创逐项结算、目标选择、网页／Agent预测及耐久支付已接；176项精通／408条教学已接入参战、返程和存档；103项营地同步研修已接入（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`，先学基础、付费耗日、重试安全）；36项装备授予已实现（含毒弓＋3强化路径、实例／资源保存，见27及`backend/api/equipment-grants.test.ts`）；共用五格和既有300项特殊效果继续收口 | `original-arts.test.ts`、`api/ui-protocol.test.ts`、`tools/audit/class-art-learning.py` |
 | 职业目录 | 77 | 运行时可用；舞者/神乐再行动、战车直线攻击已接 | `class-data` 测试 |
 | 地区任务 | 12 地区 | 希尔瓦林地／托尔加丘陵／莱斯米尔湖镇完整 500 声望链；其余地区有基础三任务链 | `quests.test.ts` |
 | 挑战塔 | 3 层 | 可开战、首通/重复奖励与保存 | `challenges.ts`、`api` 测试 |
@@ -30,7 +30,7 @@
 - 备份：停写或用 `sqlite3 "$DB_PATH" ".backup 'backup.sqlite'"`；同时保留 `-wal`/`-shm` 或在备份前 `PRAGMA wal_checkpoint(TRUNCATE)`。
 - 恢复：先停服务，替换主库并删除旧 `-wal`/`-shm`，再启动；用 `GET_STATE` 和一次只读回放验证。
 - 迁移：当前通过 `db.ts` 的 schema 初始化和兼容读取完成；正式迁移前先备份。旧 120 日存档的绝对日期、年龄、派遣/生产/年度报名仍需按版本换算，不能直接套新日历。
-- 战技版本：新增原创效果与伤害修正采用`rules-v3`／目录13（含103项强化研修成本与学习配置）；`rules-v2`旧回放只展示已保存终局，不在新规则下重模拟。部署升级前先结束进行中的战斗／远征，保留数据库备份。
+- 战技版本：当前采用`rules-v4`／目录14（36项实物授予、精炼门槛及基础目录ID补齐）；此前`rules-v3`／目录13包含原创效果、精通与强化研修。旧规则回放只展示已保存终局，不在新规则下重模拟。部署升级前先结束进行中的战斗／远征，保留数据库备份。
 - 生产环境必须设置账号密码、限制数据库文件权限，并只暴露 API 端口；Agent token 与网页 token 不应共享权限。
 
 ## 4. 验证门禁

@@ -3,7 +3,7 @@ import type { CharacterId } from '../data/characters.ts';
 import type { GrowthType } from '../data/growth-types.ts';
 import type { SkillId } from '../data/skills.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
-import type { ItemId, WeaponId } from '../data/weapons.ts';
+import type { ItemId, WeaponId, WeaponInstance } from '../data/weapons.ts';
 import type { Terrain } from '../maps/map.ts';
 import type { RngState } from './rng.ts';
 import type { InheritanceContract } from '../game/legacy.ts';
@@ -58,7 +58,7 @@ export interface UnitState {
   arts?: string[];
   // 当前职业固有能力的参考资料 ID（sk-*）；精通节点另由 learnedSkills 提供。
   classSkills?: string[];
-  weaponInstances?: { id: WeaponId; durability: number; maxDurability: number }[];
+  weaponInstances?: WeaponInstance[];
   bookInstances?: { id: WeaponId; charges: number; maxCharges: number }[];
   spellbooks?: { id: string; charges: number; maxCharges: number }[];
   // 友方 NPC（护卫对象）：不归玩家操作，每个己方阶段自动向撤离点移动（docs/20 §2）。

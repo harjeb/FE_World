@@ -14,6 +14,10 @@ export function asUnit(s: SnapshotUnit, weapons: WeaponId[] = s.weapons): UnitSt
     id: s.character, name: s.name ?? c.name, side: 'player', character: s.character, portrait: s.portrait ?? undefined, classId: s.classId, level: s.level, exp: 0,
     stats: { ...s.stats }, con: s.con, hp: s.stats.hp, pos: [0, 0], weapons: [...weapons],
     items: s.items.map(i => ({ ...i })), ranks: { ...s.ranks }, skill: c.skill, acted: false, alive: true,
+    weaponInstances: s.weaponInstances?.map(row => ({ ...row })),
+    bookInstances: s.bookInstances?.map(row => ({ ...row })),
+    spellbooks: s.spellbooks?.map(row => ({ ...row })),
+    skills: s.skills ? [...s.skills] : undefined, arts: s.arts ? [...s.arts] : undefined,
   };
 }
 

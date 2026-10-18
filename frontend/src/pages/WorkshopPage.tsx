@@ -20,7 +20,7 @@ const PERFECT_GOLD = 1_500;
 // 生产 (docs/00 §9.2): 种子→药草→伤药，矿石＋木材→铁匠铺→武器. Orders ripen on the personal calendar;
 // collecting never moves the date. Planting spends a day, brewing and forging only hold a slot.
 export function WorkshopPage() {
-  const { production, state } = useSession();
+  const { production, state, today } = useSession();
   const { busy, act } = useAct();
   const [perfect, setPerfect] = useState<Record<string, boolean>>({});
   if (!production || !state) {
@@ -141,6 +141,26 @@ export function WorkshopPage() {
           );
         })}
       </div>
+      <section className="panel" aria-labelledby="refine-h">
+        <div className="ph"><h2 id="refine-h">毒弓精炼</h2><span>不推进日期 · 最高 +3</span></div>
+        <p className="sys-note">仅精炼携带的第一把毒弓；不恢复耐久，不增加属性。+3 解锁装备战技。</p>
+        <ul className="eq">
+          {state.units.filter(u => u.status === 'active' && u.snapshot.weapons.includes('fw_weapon_85')).map(unit => {
+            const level = unit.weaponInstances.find(w => w.id === 'fw_weapon_85')?.refinement ?? 0;
+            const next = level + 1;
+            const key = `refine:${unit.id}`;
+            const locked = !!unit.lockedRunId || !!unit.lockedDispatchId || !!today?.battle;
+            return <li key={unit.id}>
+              <div className="min-w-0"><div className="nm">{unit.name} · {WEAPONS.fw_weapon_85.name} +{level}</div><div className="sp">{locked ? '活动中，暂不可精炼' : level >= 3 ? '已达精炼上限' : `升至 +${next}：${300 * next} 金币 · 矿石 ×${next}`}</div></div>
+              <button type="button" className="btn btn-sm" disabled={busy !== null || locked || level >= 3 || state.gold < 300 * next || have('ore') < next}
+                onClick={() => void act(key, () => session.run(OP.REFINE_WEAPON, { unitId: unit.id, item: 'fw_weapon_85' }), () => `${unit.name}的毒弓已精炼至 +${next}`)}>
+                {busy === key ? '精炼中…' : level >= 3 ? '已满级' : `精炼 +${next}`}
+              </button>
+            </li>;
+          })}
+          {!state.units.some(u => u.status === 'active' && u.snapshot.weapons.includes('fw_weapon_85')) && <li className="empty-row">没有现役角色携带毒弓。</li>}
+        </ul>
+      </section>
       <RepairList />
       <p className="sys-note">产量、周期与工位数量是首版数值；配方按地区声望解锁。物理武器的战技消耗耐久，维修只恢复到它已有的上限；完美锻造的 +10 不会叠第二次。</p>
     </Shell>

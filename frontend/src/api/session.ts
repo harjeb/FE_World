@@ -9,7 +9,7 @@ import type { CharacterId } from '@common/data/characters.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '@common/data/types.ts';
 import { ApiError, call, login as apiLogin, newCommandId, setToken, token } from './client.ts';
 
-export interface WeaponInstance { id: string; durability: number; maxDurability: number }
+export interface WeaponInstance { id: string; durability: number; maxDurability: number; refinement?: number }
 export interface BookInstance { id: string; charges: number; maxCharges: number }
 
 // 身份来源（服务端 unitOrigin）：神主角、固定人物（开局同伴／任务加入）或随机招募。
@@ -62,6 +62,7 @@ export interface ServerUnit {
   learnedSkills: string[];
   equippedSkills: string[];
   learnedArts: string[];
+  equipmentArts: string[];
   lifespanYears: number;
   lifespanEndDay: number | null;
   daysUntilBirthday: number;
@@ -83,7 +84,7 @@ export interface CharacterStory {
 export interface ServerUnitDetail extends ServerUnit {
   stats: Stats; caps: Stats; con: number;
   weapons: { id: string; name: string; type: WeaponType; might: number; hit: number; crit: number; range: [number, number] }[];
-  arts: string[]; equipmentArts: string[]; equipmentSkills: string[];
+  arts: string[]; equipmentSkills: string[];
   promotedFrom: string | null;
   story: CharacterStory | null;
 }
@@ -249,6 +250,7 @@ export interface ServerQuests { regions: QuestRegion[] }
 export interface ChallengeFloor {
   id: string; name: string; mapId: string; mapName: string; level: number; costDays: number; maxUnits: number; risk: 'permadeath';
   first: { gold: number; items: [string, number][] }; repeat: { gold: number; items: [string, number][] };
+  equipment: string[]; claimedEquipment: boolean;
   cleared: boolean; available: boolean; claimedFirst: boolean; claimedRepeat: boolean;
 }
 

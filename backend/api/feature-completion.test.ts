@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 import { loginOrRegister } from './auth.ts';
@@ -109,12 +110,16 @@ test('minigame odds and quarterly quota follow the documented rules', () => {
   assert.equal(player.flags.minigamePlays, 1);
 });
 
-test('first-release catalogs expose 170 equipment items and 315 arts', () => {
+test('first-release catalogs contain all 170 designed templates plus legacy compatibility rows and 315 arts', () => {
   const staves = Object.values(WEAPONS).filter(weapon => weapon.type === 'staff').length;
   assert.equal(staves, 9);
-  assert.equal(Object.keys(WEAPONS).length - staves, 113);
-  assert.equal(SPELLBOOKS.length, 48);
-  assert.equal(Object.keys(WEAPONS).length + SPELLBOOKS.length, 170);
+  assert.equal(Object.keys(WEAPONS).length, 137);
+  assert.equal(SPELLBOOKS.length, 50);
+  const source = JSON.parse(readFileSync(new URL('../../docs/data/fw-equipment-expansion.json', import.meta.url), 'utf8'));
+  const design = [...source.baseline, ...source.weapons, ...source.spells];
+  assert.equal(new Set(design.map(row => row.id)).size, 170);
+  for (const row of design) assert.ok(row.kind === 'spellbook' || row.id.startsWith('fw_spell_')
+    ? SPELLBOOKS.some(book => book.id === row.id) : Object.hasOwn(WEAPONS, row.id), row.id);
   assert.equal(WEAPON_ARTS.length, 315);
   assert.equal(CLASS_ABILITIES.length, 58);
   for (const weapon of Object.values(WEAPONS)) {
@@ -185,6 +190,7 @@ test('stale web sessions expire while agent tokens remain separate', () => {
 test('replay versions distinguish current, old-rule and old-engine records', () => {
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: RULESET_VERSION }).compatible, true);
   assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v2' }).compatible, false);
+  assert.equal(replayCompatibility({ engineVersion: 1, rulesetVersion: 'rules-v3' }).compatible, false);
   assert.equal(replayCompatibility({ engineVersion: 0, rulesetVersion: RULESET_VERSION }).compatible, false);
 });
 

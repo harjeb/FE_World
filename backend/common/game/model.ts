@@ -10,9 +10,10 @@ import { RANKS, STAT_KEYS, withCharm } from '../data/types.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import { SPELLBOOKS } from '../data/spellbooks.ts';
-import type { ItemId, WeaponId } from '../data/weapons.ts';
+import type { ItemId, WeaponId, WeaponInstance } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
 import { nextU32 } from '../engine/rng.ts';
+import { equipmentArtIds } from '../engine/arts.ts';
 import type { RngState } from '../engine/rng.ts';
 import type { ItemStack, Point, Side, UnitState } from '../engine/types.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS } from './items.ts';
@@ -42,7 +43,7 @@ export interface UnitRecord {
   hp: number;
   weapons: WeaponId[];
   // 每件装备的独立资源实例；保留重复模板，旧存档缺省时按满值补齐。
-  weaponInstances?: { id: WeaponId; durability: number; maxDurability: number }[];
+  weaponInstances?: WeaponInstance[];
   bookInstances?: { id: WeaponId; charges: number; maxCharges: number }[];
   spellbooks?: { id: string; charges: number; maxCharges: number }[];
   items: ItemStack[];
@@ -366,12 +367,17 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
     id: unit.id, character: unit.character, classId: unit.classId, level: unit.level, stats: withCharm(unit.stats),
     con: unit.con, weapons: [...unit.weapons], ranks: { ...unit.ranks }, items: unit.items.map(i => ({ ...i })),
     name: unitName(unit), sex: unit.sex, portrait: unit.portrait,
+    weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
+    bookInstances: unit.bookInstances?.map(row => ({ ...row })),
+    spellbooks: unit.spellbooks?.map(row => ({ ...row })),
+    skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])],
+    arts: [...new Set(unit.learnedArts ?? [])],
   };
 }
 
 // 单位显示名：自捏主角用自己的名字，其余角色用预设名。
 export function equipmentArts(unit: UnitRecord): string[] {
-  return [...new Set(unit.weapons.flatMap(id => WEAPONS[id].grants?.art ? [WEAPONS[id].grants!.art!] : []))];
+  return equipmentArtIds(unit);
 }
 
 export function equipmentSkills(unit: UnitRecord): SkillId[] {
@@ -394,7 +400,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     personalGrowth: unit.personalGrowth ? { ...unit.personalGrowth } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
     inheritance: unit.inheritance ? structuredClone(unit.inheritance) : undefined,
-    skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])], classSkills: [...(CLASS_ABILITY_BY_ID.get(unit.classId as never)?.inherentIds ?? [])], arts: [...new Set([...(unit.learnedArts ?? []), ...equipmentArts(unit)])],
+    skills: [...new Set([...(unit.equippedSkills ?? []), ...equipmentSkills(unit)])], classSkills: [...(CLASS_ABILITY_BY_ID.get(unit.classId as never)?.inherentIds ?? [])], arts: [...new Set(unit.learnedArts ?? [])],
     weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
     bookInstances: unit.bookInstances?.map(row => ({ ...row })),
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),

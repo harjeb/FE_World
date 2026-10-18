@@ -1,4 +1,4 @@
-"""Validate the proposed equipment inventory, provenance and resource boundaries."""
+"""Validate historical provenance, current runtime templates and generated grant data (not combat)."""
 
 import argparse
 import collections
@@ -42,7 +42,7 @@ def audit(items_path=None, skills_path=None):
     check((len(baseline), len(weapons), len(spells)) == (69, 61, 40), 'Incorrect baseline or expansion counts')
     ids = [r['id'] for r in baseline + weapons + spells]
     check(len(ids) == len(set(ids)) == 170, 'Duplicate equipment template IDs')
-    check(sum(r['status'] == 'implemented' for r in baseline) == 35, 'Runtime versus proposal boundary changed')
+    check(sum(r['status'] == 'implemented' for r in baseline) == 35, 'Historical baseline status boundary changed')
     check(collections.Counter(w['type'] for w in weapons) == {'sword': 12, 'lance': 15, 'axe': 11, 'bow': 11, 'fist': 12}, 'Incorrect new weapon categories')
     check(collections.Counter(s['school'] for s in spells) == {'black': 13, 'white': 21, 'dark': 6}, 'Incorrect new magic schools')
     counts = collections.Counter(r['kind'] for r in baseline)
@@ -51,6 +51,23 @@ def audit(items_path=None, skills_path=None):
     block = runtime.split('const BASE_TABLE = {')[1].split('} satisfies Record<string, Weapon>')[0]
     runtime_ids = set(re.findall(r'^  ([a-z_]+): \{', block, re.M))
     check({r['id'] for r in baseline if r['status'] == 'implemented'} <= runtime_ids, 'Runtime is missing an implemented baseline ID')
+    expanded = (ROOT / 'backend/common/data/expanded-weapons.ts').read_text(encoding='utf-8')
+    expanded_rows = dict((m[0], json.loads(m[1])) for m in re.findall(r'^  "([^"]+)": (\{.*\}),?$', expanded, re.M))
+    check(set(expanded_rows) == {w['id'] for w in weapons}, 'Generated 61 weapon IDs differ')
+    physical_ids = runtime_ids | set(expanded_rows)
+    planned_physical = {r['id'] for r in baseline if r['kind'] != 'spellbook'} | {w['id'] for w in weapons}
+    check(planned_physical <= physical_ids, 'Runtime is missing planned physical/staff IDs: ' + ', '.join(sorted(planned_physical - physical_ids)))
+    check(len(physical_ids) == 137 and len(physical_ids - planned_physical) == 15, 'Legacy runtime weapon/alias boundary changed')
+    spell_text = (ROOT / 'backend/common/data/spells.ts').read_text(encoding='utf-8')
+    spell_ids = re.findall(r'^  \{"id": "([^"]+)"', spell_text, re.M)
+    books = (ROOT / 'backend/common/data/spellbooks.ts').read_text(encoding='utf-8')
+    base_books = re.findall(r"^  \{ id: '([^']+)'", books, re.M)
+    check('...BASE_BOOKS' in books and '...SPELLS.map' in books, 'Runtime spellbook composition changed')
+    check(len(spell_ids) == 40 and set(spell_ids) == {s['id'] for s in spells}, 'Generated spell IDs differ')
+    planned_books = {r['id'] for r in baseline if r['kind'] == 'spellbook'} | set(spell_ids)
+    check(planned_books <= set(base_books + spell_ids), 'Runtime is missing planned spellbook IDs')
+    check(len(base_books + spell_ids) == len(set(base_books + spell_ids)) == 50, 'Runtime spellbook IDs/count differ')
+    check('...BASE_TABLE, ...EXPANDED_WEAPONS' in runtime, 'Runtime weapon composition changed')
     baseline_ids = {r['id'] for r in baseline}
     for key, expected_count, prefix in [('reusedWeapons', 18, 'wp-'), ('reusedMagic', 4, 'mg-')]:
         check(len(data[key]) == expected_count, 'Wrong number of reused source aliases')
@@ -91,6 +108,13 @@ def audit(items_path=None, skills_path=None):
     grants = {(link['artId'], link['referenceEquipment']) for link in data['equipmentArtLinks']}
     expected = {(a['id'], name) for a in arts for name in a['project']['unlock'].get('referenceEquipment', [])}
     check(grants == expected, 'Equipment-granted art references are missing')
+    generated_links = json.loads(re.search(r'export const EQUIPMENT_ART_LINKS = (\[.*\]) as const;', expanded)[1])
+    expected_links = [{k: link[k] for k in ('artId', 'projectWeaponId', 'minimumRefinement')} for link in data['equipmentArtLinks']]
+    check(generated_links == expected_links and len(generated_links) == 36, 'Generated 36 grants/refinement differ from source')
+    generated_arts_text = (ROOT / 'backend/common/data/weapon-arts.ts').read_text(encoding='utf-8')
+    generated_arts = [json.loads(line.strip().rstrip(',')) for line in generated_arts_text.splitlines() if line.startswith('  {"id":')]
+    grant_ids = {link['artId'] for link in generated_links}
+    check(len(grant_ids) == 36 and grant_ids == {a['id'] for a in arts if a['project']['unlock']['kind'] == 'equipment_grant'} == {a['id'] for a in generated_arts if a['unlock']['kind'] == 'equipment_grant'}, 'Equipment grant art kind sets differ')
     for link in data['equipmentArtLinks']:
         check(link['projectWeaponId'] in set(ids) and link['artId'] in by_art, 'Equipment art link points outside either catalog')
     for w in weapons:
@@ -147,7 +171,7 @@ def audit(items_path=None, skills_path=None):
             for row in entries + reused:
                 check(row['name'] == original_ids[row['sourceId']]['name'] and row['reference'] == reference(original_ids[row['sourceId']]), 'Source values or provenance changed')
             print('PASS: all ' + str(len(original)) + ' source ' + key + ' records accounted for; selected/reused fields match')
-    print('PASS: 69 baseline + 61 weapons + 40 spellbooks = 170 unique templates (35 runtime, 135 proposed)')
+    print('PASS: all 170 design template IDs present; 187 runtime rows include 11 additional old weapons, 2 old spellbooks and 4 legacy tome aliases (effects not certified)')
     print('PASS: short bow, per-book charges, ' + str(len(expected)) + ' equipment/art links, rendered parameters and ' + str(links) + ' local links')
 
 

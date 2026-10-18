@@ -47,7 +47,7 @@ lines = [
     'export interface WeaponArt {',
     '  id: string; name: string; weapon: WeaponType; weaponCompatibility: WeaponType[]; variant: string; original: boolean;',
     '  cost: number; might: number; hit: number; crit: number; range: [number, number]; sequence: string; rank?: Rank;',
-    '  unlock: unknown; overrides: unknown[]; effect: string; sourceId: string | null;',
+    '  unlock: { kind: string; [key: string]: unknown }; overrides: unknown[]; effect: string; sourceId: string | null;',
     '}', '', 'export const WEAPON_ARTS: readonly WeaponArt[] = [',
 ]
 lines += ['  ' + json.dumps(art, ensure_ascii=False) + ',' for art in arts]

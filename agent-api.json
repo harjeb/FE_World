@@ -287,6 +287,13 @@
       "push": false
     },
     {
+      "op": 89,
+      "name": "REFINE_WEAPON",
+      "group": "整备",
+      "agentNote": "营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n矿石，不耗天数、不修耐久、不加属性；commandId重试只支付一次。",
+      "push": false
+    },
+    {
       "op": 90,
       "name": "GET_PRODUCTION",
       "group": "生产",
@@ -507,7 +514,7 @@
       "op": 134,
       "name": "GET_CHALLENGES",
       "group": "任务",
-      "agentNote": "读取挑战塔层、风险、首通/重复奖励与已通层数。",
+      "agentNote": "读取挑战塔层、风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。",
       "push": false
     },
     {
@@ -521,7 +528,7 @@
       "op": 136,
       "name": "CLAIM_CHALLENGE_REWARD",
       "group": "任务",
-      "agentNote": "领取已通关塔层的首通或重复奖励；同一层同一奖励只发一次。",
+      "agentNote": "领取已通关塔层的首通／重复奖励及该层限量equipment实物，每种奖励只发一次；旧档已领完常规奖励仍可只补领装备，不重发金币。",
       "push": false
     },
     {

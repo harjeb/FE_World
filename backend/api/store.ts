@@ -18,7 +18,10 @@ import type { BattleRecord } from '../common/game/battles.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import { isArenaDay } from '../common/game/calendar.ts';
 
+import type { WeaponInstance } from '../common/data/weapons.ts';
+
 export interface PlayerFlags {
+  storedWeapons?: WeaponInstance[];
   clearedRegions: number[];
   // 历史首次通关等级记录；新出征按日期计算，不再用此值锁重打难度。
   firstClearLevel?: Record<number, number>;
@@ -29,7 +32,7 @@ export interface PlayerFlags {
   // 已完成的八章主线（docs/13 §6.3）。
   storyCompleted?: number[];
   // 回收袋（docs/13 §2.3）：活动途中死亡的装备先放这里，活动结束后再入仓库。
-  recoveryBag?: { item: ItemKey; uses: number }[];
+  recoveryBag?: { item: ItemKey; uses: number; weapon?: WeaponInstance }[];
   // 职业市场月度购买计数（docs/13 §5.4）：key 为现实月，值为当月已购买新资格数。
   classPurchases?: Record<string, number>;
   recruitFails?: number;

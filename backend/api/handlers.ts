@@ -6,6 +6,7 @@ import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
 import { actionOptions, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
+import { availableArts } from '../common/engine/arts.ts';
 import { TERRAINS } from '../common/maps/map.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { ART_TRAINING, WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
@@ -191,7 +192,7 @@ function compactUnit(u: BattleState['units'][number]) {
 }
 
 function fullUnit(u: BattleState['units'][number]) {
-  return { ...compactUnit(u), stats: withCharm(u.stats), con: u.con, weapons: u.weapons, ranks: u.ranks, skill: u.skill ?? null, arts: u.arts ?? [], weaponInstances: u.weaponInstances ?? [] };
+  return { ...compactUnit(u), stats: withCharm(u.stats), con: u.con, weapons: u.weapons, ranks: u.ranks, skill: u.skill ?? null, arts: availableArts(u), weaponInstances: u.weaponInstances ?? [] };
 }
 
 // 进行中的战斗不下发随机数状态或敌方 AI 行为 (docs/03「结束前隐藏种子」、docs/05「AI 行为不公开」)。
@@ -621,12 +622,43 @@ const handlers: Record<number, Handler> = {
     return { item, count, price, gold: ctx.player.gold };
   },
 
+  [OP.REFINE_WEAPON]: (ctx, data) => {
+    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
+    const item = asString(data.item, 'item');
+    if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能精炼');
+    if (ctx.store.activeAnnualEntry(ctx.player.id)) throw new OpError('FORBIDDEN', '大竞技场期间不能精炼');
+    if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能精炼');
+    if (item !== 'fw_weapon_85') throw new OpError('BAD_REQUEST', '仅支持 fw_weapon_85 精炼');
+    const instance = unit.weaponInstances?.find(row => row.id === item);
+    if (!unit.weapons.includes(item) || !instance) throw new OpError('NO_SUCH_ITEM', '该单位没有携带这件武器实例');
+    const level = instance.refinement === undefined ? 0 : instance.refinement;
+    if (!Number.isInteger(level) || level < 0 || level >= 3) throw new OpError('BAD_REQUEST', '精炼等级须为0至2，最高3级');
+    const refinement = level + 1;
+    const costGold = 300 * refinement;
+    const costOre = refinement;
+    if (ctx.player.gold < costGold) throw new OpError('NOT_ENOUGH_GOLD', `需要 ${costGold} 金币`);
+    if (ctx.store.countInventory(ctx.player.id, 'ore') < costOre) throw new OpError('NO_SUCH_ITEM', `需要 ${costOre} 矿石`);
+    ctx.store.takeInventory(ctx.player.id, 'ore', costOre);
+    ctx.player.gold -= costGold;
+    instance.refinement = refinement;
+    ctx.store.saveUnit(unit, ctx.player.id);
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'refine-weapon' });
+    return { unit: unit.id, item, refinement, costGold, costOre, gold: ctx.player.gold };
+  },
+
   [OP.SELL]: (ctx, data) => {
     const item = asString(data.item, 'item');
     const count = Math.max(1, typeof data.count === 'number' ? data.count : 1);
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有物品 ${item}`);
     const taken = ctx.store.takeInventory(ctx.player.id, item, count);
     if (taken === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件物品');
+    for (let i = 0; i < taken; i++) {
+      const index = ctx.player.flags.storedWeapons?.findIndex(row => row.id === item) ?? -1;
+      if (index < 0) break;
+      ctx.player.flags.storedWeapons!.splice(index, 1);
+    }
     const gain = Math.floor(GAME_ITEMS[item].price / 2) * taken;
     ctx.player.gold += gain;
     ctx.store.savePlayer(ctx.player);
@@ -648,17 +680,24 @@ const handlers: Record<number, Handler> = {
     const isWeapon = GAME_ITEMS[item].kind === 'weapon';
     if (action === 'equip') {
       if (!unit.weapons.includes(item as never)) throw new OpError('BAD_REQUEST', '该单位没有携带这件武器');
-      unit.weapons = [item as never, ...unit.weapons.filter(w => w !== item)];
+      const index = unit.weapons.indexOf(item as never);
+      unit.weapons.splice(index, 1);
+      unit.weapons.unshift(item as never);
     } else if (action === 'toUnit') {
       if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
       if (isWeapon) {
         if (unit.weapons.length >= 5) throw new OpError('BAD_REQUEST', '武器携带栏已满');
         if (ctx.store.takeInventory(ctx.player.id, item, 1) === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件武器');
-        const perfect = ctx.player.flags.perfectWeapons?.[item] ?? 0;
-        if (perfect > 0) ctx.player.flags.perfectWeapons![item] = perfect - 1;
-        const max = weaponMax(item as never) + (perfect > 0 ? 10 : 0);
+        const storedIndex = ctx.player.flags.storedWeapons?.findIndex(row => row.id === item) ?? -1;
         unit.weaponInstances ??= [];
-        unit.weaponInstances.push({ id: item as never, durability: max, maxDurability: max });
+        if (storedIndex >= 0) {
+          unit.weaponInstances.push(ctx.player.flags.storedWeapons!.splice(storedIndex, 1)[0]);
+        } else {
+          const perfect = ctx.player.flags.perfectWeapons?.[item] ?? 0;
+          if (perfect > 0) ctx.player.flags.perfectWeapons![item] = perfect - 1;
+          const max = weaponMax(item as never) + (perfect > 0 ? 10 : 0);
+          unit.weaponInstances.push({ id: item as never, durability: max, maxDurability: max });
+        }
         unit.weapons.push(item as never);
       } else {
         // 只有武器和战斗道具能带进战斗；材料、转职印、能力药留在仓库 (docs/00 §6「材料不占战斗携带栏」)。
@@ -675,7 +714,10 @@ const handlers: Record<number, Handler> = {
         if (index < 0) throw new OpError('NO_SUCH_ITEM', '该单位没有携带这件武器');
         unit.weapons.splice(index, 1);
         const instanceIndex = unit.weaponInstances?.findIndex(row => row.id === item) ?? -1;
-        if (instanceIndex >= 0) unit.weaponInstances!.splice(instanceIndex, 1);
+        if (instanceIndex >= 0) {
+          ctx.player.flags.storedWeapons ??= [];
+          ctx.player.flags.storedWeapons.push(unit.weaponInstances!.splice(instanceIndex, 1)[0]);
+        }
         ctx.store.addInventory(ctx.player.id, item, 0, 1);
       } else {
         const index = unit.items.findIndex(i => i.id === item);
@@ -1887,6 +1929,7 @@ const handlers: Record<number, Handler> = {
       available: floor.id !== 'tower-3' || (ctx.player.flags.storyCompleted ?? []).includes(8),
       claimedFirst: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`),
       claimedRepeat: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:repeat`),
+      claimedEquipment: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:equipment-v1`),
     })),
   }),
 
@@ -1921,15 +1964,24 @@ const handlers: Record<number, Handler> = {
     if (floor.id === 'tower-3' && !(ctx.player.flags.storyCompleted ?? []).includes(8)) throw new OpError('FORBIDDEN', '完成第八章后才能挑战最终首领');
     if (!(ctx.player.flags.towerCleared ?? []).includes(floor.id)) throw new OpError('FORBIDDEN', '该层尚未通关');
     const first = !(ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`);
-    const key = `${floor.id}:${first ? 'first' : 'repeat'}`;
     ctx.player.flags.challengeRewardsClaimed ??= [];
-    if (ctx.player.flags.challengeRewardsClaimed.includes(key)) throw new OpError('FORBIDDEN', '该层奖励已经领取');
-    const reward = first ? floor.first : floor.repeat;
-    ctx.player.flags.challengeRewardsClaimed.push(key);
+    const claimed = ctx.player.flags.challengeRewardsClaimed;
+    const normalKey = `${floor.id}:${first ? 'first' : 'repeat'}`;
+    const equipmentKey = `${floor.id}:equipment-v1`;
+    const equipment = claimed.includes(equipmentKey) ? [] : floor.equipment;
+    const normal = !claimed.includes(normalKey);
+    if (!normal && !equipment.length) throw new OpError('FORBIDDEN', '该层奖励已经领取');
+    const key = normal ? normalKey : equipmentKey;
+    const reward = normal ? (first ? floor.first : floor.repeat) : { gold: 0, items: [] };
+    if (normal) claimed.push(normalKey);
+    if (equipment.length) {
+      for (const weapon of equipment) ctx.store.addInventory(ctx.player.id, weapon, 0, 1);
+      claimed.push(equipmentKey);
+    }
     ctx.player.gold += reward.gold;
     for (const [item, count] of reward.items) ctx.store.addInventory(ctx.player.id, item, GAME_ITEMS[item].uses ?? 0, count);
     ctx.store.savePlayer(ctx.player);
-    return { floorId: floor.id, key, gold: reward.gold, items: reward.items };
+    return { floorId: floor.id, key, gold: reward.gold, items: reward.items, equipment };
   },
 
   [OP.START_QUEST]: (ctx, data) => {
@@ -2464,7 +2516,7 @@ function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unk
 // 会改变玩家状态的 op：成功后 version +1。
 const WRITE_OPS = new Set<number>([
   OP.SORTIE, OP.SWEEP, OP.TRAIN, OP.TRAIN_ART, OP.REST, OP.RECRUIT, OP.START_MAIN_STAGE, OP.SKIP_MAIN_STAGE,
-  OP.BUY, OP.SELL, OP.TRANSFER_ITEM, OP.USE_ITEM, OP.PROMOTE, OP.ASSIGN_BEXP, OP.DISMISS,
+  OP.BUY, OP.SELL, OP.REFINE_WEAPON, OP.TRANSFER_ITEM, OP.USE_ITEM, OP.PROMOTE, OP.ASSIGN_BEXP, OP.DISMISS,
   OP.SET_DEFENSE, OP.ARENA_REGISTER, OP.ARENA_BAN, OP.ARENA_ATTACK, OP.SURRENDER, OP.START_SPARRING,
   OP.CLAIM_LEGACY, OP.RETIRE_UNIT, OP.REINCARNATE_UNIT, OP.EMERGENCY_RECRUIT, OP.BUY_CLASS_QUALIFICATION,
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,

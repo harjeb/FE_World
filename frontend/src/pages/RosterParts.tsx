@@ -127,7 +127,7 @@ export function personalGrowth(unit: ServerUnit, key: (typeof STAT_KEYS)[number]
 export function StatsPanel({ unit }: { unit: ServerUnit }) {
   const cls = CLASSES[unit.classId as ClassId];
   const stats = unit.snapshot.stats;
-  const line = combatLine(asUnit(unit.snapshot));
+  const line = combatLine({ ...asUnit(unit.snapshot), weaponInstances: unit.weaponInstances.map(w => ({ ...w, id: w.id as WeaponId })), bookInstances: unit.bookInstances.map(b => ({ ...b, id: b.id as WeaponId })), spellbooks: unit.spellbooks });
   return (
     <section className="panel" aria-labelledby="st-h">
       <div className="ph"><h2 id="st-h">属性</h2><span style={{ fontSize: 12, color: '#6A6256' }}>成长率 = 每次升级该项 +1 的概率</span></div>
@@ -182,16 +182,18 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
   const items = unit.snapshot.items;
   const free = Math.max(0, SLOTS - items.length);
   const prep = links.prep(unit.id);
-  const arts = [...new Set([...unit.learnedArts, ...weapons.flatMap(id => WEAPONS[id].grants?.art ? [WEAPONS[id].grants!.art!] : [])])];
+  const arts = [...new Set([...unit.learnedArts, ...unit.equipmentArts])];
   const granted = [...new Set(weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
   const row = (id: WeaponId, i: number, equipped: boolean) => {
     const res = instanceFor(unit, weapons, i);
+    const refinement = unit.weaponInstances.find(w => w.id === id)?.refinement ?? 0;
     return (
       <li key={`${id}${i}`}>
         <img className="px" src={weaponIcon(WEAPONS[id].type)} width={32} height={32} alt="" />
         <div className="min-w-0">
-          <div className="nm">{WEAPONS[id].name} {equipped && <span className="tag tag-blue">✓ 装备中</span>}{WEAPONS[id].grants?.skill && <span className="tag tag-brass">授予 {skillName(WEAPONS[id].grants!.skill!)}</span>}</div>
+          <div className="nm">{WEAPONS[id].name}{(id === 'fw_weapon_85' || refinement > 0) && ` +${refinement}`} {equipped && <span className="tag tag-blue">✓ 装备中</span>}{WEAPONS[id].grants?.skill && <span className="tag tag-brass">授予 {skillName(WEAPONS[id].grants!.skill!)}</span>}</div>
           <div className="sp">{weaponSpec(id)}</div>
+          {WEAPONS[id].grants?.arts?.map(grant => <div className="sp" key={grant.art}>装备授予：{artName(grant.art)}{grant.minimumRefinement > 0 && ` · 精炼 +${grant.minimumRefinement} 起`}{refinement < grant.minimumRefinement ? '（未激活）' : '（已激活）'}</div>)}
           {res && <ResourceBar {...res} />}
         </div>
         {equipped ? <span /> : <button type="button" className="btn btn-sm" onClick={() => onEquip(id)}>装备</button>}

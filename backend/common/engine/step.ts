@@ -8,7 +8,7 @@ import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { artCombatOptions } from './combat.ts';
 import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAction, validateArt } from './arts.ts';
-import { attackWeapons, cellKey, cureStatuses, distance, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
+import { attackWeapons, cellKey, cureStatuses, distance, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
 import { adjacentFree, destinationValid, isHostileSpell, spellDestination, SPECIAL_SUPPORT_SPELLS, staffDestination, withSpellWeapon } from './support.ts';
 import type { DestinationRule } from './support.ts';
 import { EngineError } from './types.ts';
@@ -165,11 +165,11 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
   }
   if (action.act === 'attack' && target) {
     // Attacking equips the weapon, so it is also the one used to counter later.
-    unit.weapons = [action.weapon, ...unit.weapons.filter(w => w !== action.weapon)];
+    equipWeapon(unit, action.weapon);
     spendCharge(unit, action.weapon);
     runCombat(state, unit, target, action.weapon, events);
   } else if (action.act === 'art' && target && art) {
-    unit.weapons = [action.weapon, ...unit.weapons.filter(w => w !== action.weapon)];
+    equipWeapon(unit, action.weapon);
     const instance = unit.weaponInstances?.find(row => row.id === action.weapon);
     if (instance) instance.durability -= art.cost;
     if (art.id === 'fe_art_king_fang' && target.artEffects?.scent) {

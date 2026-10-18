@@ -9,7 +9,7 @@ export const DUNGEON_STAGE_DAYS = 8;
 
 export type RunState = 'battle' | 'between_maps' | 'completed' | 'failed' | 'withdrawn';
 
-export interface RunCarry { hp: number; items: ItemStack[]; weapons: WeaponId[] }
+export interface RunCarry extends Pick<UnitState, 'weaponInstances' | 'bookInstances' | 'spellbooks'> { hp: number; items: ItemStack[]; weapons: WeaponId[] }
 
 export interface RunRecord {
   id: string;
@@ -60,7 +60,12 @@ export function carryFromBattle(state: { units: UnitState[] }, unitIds: string[]
   for (const unit of state.units) {
     if (unit.side !== 'player' || !unitIds.includes(unit.id)) continue;
     if (!unit.alive) continue;
-    carry[unit.id] = { hp: unit.hp, items: unit.items.map(i => ({ ...i })), weapons: [...unit.weapons] };
+    carry[unit.id] = {
+      hp: unit.hp, items: unit.items.map(i => ({ ...i })), weapons: [...unit.weapons],
+      weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
+      bookInstances: unit.bookInstances?.map(row => ({ ...row })),
+      spellbooks: unit.spellbooks?.map(row => ({ ...row })),
+    };
   }
   return carry;
 }

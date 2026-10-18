@@ -1,3 +1,4 @@
+import { WEAPON_ART_BY_ID } from '@common/data/weapon-arts.ts';
 import { SKILLS } from '@common/data/skills.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
@@ -50,7 +51,9 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
     const nth = unit.weapons.slice(0, i).filter(w => w === id).length;
     const book = unit.bookInstances?.filter(b => b.id === id)[nth];
     const inst = unit.weaponInstances?.filter(w => w.id === id)[nth];
-    return `${WEAPONS[id]?.name ?? id}${book ? ` ${book.charges}/${book.maxCharges}次` : inst ? ` ${inst.durability}/${inst.maxDurability}` : ''}`;
+    const refinement = unit.weaponInstances?.find(w => w.id === id)?.refinement ?? 0;
+    const grants = WEAPONS[id]?.grants?.arts?.map(g => `${WEAPON_ART_BY_ID.get(g.art as never)?.name ?? g.art}（装备授予${g.minimumRefinement > 0 ? `，需 +${g.minimumRefinement}` : ''}${refinement < g.minimumRefinement ? '，未激活' : ''}）`).join('、');
+    return `${WEAPONS[id]?.name ?? id}${id === 'fw_weapon_85' || refinement > 0 ? ` +${refinement}` : ''}${grants ? ` · ${grants}` : ''}${book ? ` ${book.charges}/${book.maxCharges}次` : inst ? ` ${inst.durability}/${inst.maxDurability}` : ''}`;
   });
   const base: [string, number | string][] = [
     ['力', unit.stats.str], ['魔', unit.stats.mag], ['技', unit.stats.skl], ['速', unit.stats.spd], ['运', unit.stats.lck],

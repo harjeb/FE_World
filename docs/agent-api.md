@@ -94,6 +94,11 @@ docVersion: 2
 | 86 | EQUIP_SKILLS | 在最多 5 个格子里装备已学会的技能（跨职业自由装备）；未学会的技能会被拒绝。 |
 | 87 | GET_ART_TRAINING | 读取角色的103项强化战技研修：基础技前提、金币、工期、已学状态和阻挡原因；学习不要求原教学职业或使用武器等级。 |
 | 88 | TRAIN_ART | 营地研修一项已学基础技对应的独立强化战技，传unitId与art；扣金币并推进工期，重复已学会被拒；commandId重试不重复支付，可先用PREVIEW_ACTION的art_training报价。 |
+### 整备
+
+| op | 名称 | 说明 |
+| --- | --- | --- |
+| 89 | REFINE_WEAPON | 营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n矿石，不耗天数、不修耐久、不加属性；commandId重试只支付一次。 |
 ### 生产
 
 | op | 名称 | 说明 |
@@ -165,9 +170,9 @@ docVersion: 2
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 134 | GET_CHALLENGES | 读取挑战塔层、风险、首通/重复奖励与已通层数。 |
+| 134 | GET_CHALLENGES | 读取挑战塔层、风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。 |
 | 135 | START_CHALLENGE | 带固定名单挑战塔层；支付层日数并创建经典地图战斗，普通角色真实死亡。 |
-| 136 | CLAIM_CHALLENGE_REWARD | 领取已通关塔层的首通或重复奖励；同一层同一奖励只发一次。 |
+| 136 | CLAIM_CHALLENGE_REWARD | 领取已通关塔层的首通／重复奖励及该层限量equipment实物，每种奖励只发一次；旧档已领完常规奖励仍可只补领装备，不重发金币。 |
 ### 酒馆
 
 | op | 名称 | 说明 |

@@ -5,7 +5,7 @@ import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
-import { addWeaponExp, ageAt, daysUntilBirthday, effectiveCaps, gainExperience, growthRates, lifespanEndDayOf, lifespanWarning, toSnapshot, unitName } from '../common/game/model.ts';
+import { addWeaponExp, ageAt, daysUntilBirthday, effectiveCaps, equipmentArts, gainExperience, growthRates, lifespanEndDayOf, lifespanWarning, toSnapshot, unitName } from '../common/game/model.ts';
 import { gainMastery, MASTERY_PER_BATTLE, MASTERY_PER_TRAIN_DAY, MASTERY_PER_WIN } from '../common/game/mastery.ts';
 import { dispatchMaterials, dispatchWeapons } from '../common/game/dispatch.ts';
 import type { DispatchResult } from '../common/game/dispatch.ts';
@@ -182,15 +182,24 @@ export function recordRetire(store: Store, player: Player, unit: UnitRecord, def
 // 回收真实装备并保留当时耐久／剩余次数，不额外复制新品（docs/00 §7.1）。
 // deferred：活动途中先入回收袋，活动结束后再入仓库（docs/13 §2.3）。
 function recoverEquipment(store: Store, player: Player, unit: UnitRecord, deferred: boolean): void {
-  if (deferred) {
-    player.flags.recoveryBag ??= [];
-    for (const weapon of unit.weapons) player.flags.recoveryBag.push({ item: weapon as ItemKey, uses: 0 });
-    for (const item of unit.items) player.flags.recoveryBag.push({ item: item.id as ItemKey, uses: item.uses });
-  } else {
-    for (const weapon of unit.weapons) store.addInventory(player.id, weapon as ItemKey, 0, 1);
-    for (const item of unit.items) store.addInventory(player.id, item.id as ItemKey, item.uses, 1);
+  const instances = [...(unit.weaponInstances ?? [])];
+  for (const weapon of unit.weapons) {
+    const index = instances.findIndex(row => row.id === weapon);
+    const instance = index >= 0 ? instances.splice(index, 1)[0] : undefined;
+    if (deferred) {
+      player.flags.recoveryBag ??= [];
+      player.flags.recoveryBag.push({ item: weapon, uses: 0, weapon: instance ? { ...instance } : undefined });
+    } else {
+      store.addInventory(player.id, weapon, 0, 1);
+      if (instance) (player.flags.storedWeapons ??= []).push({ ...instance });
+    }
+  }
+  for (const item of unit.items) {
+    if (deferred) (player.flags.recoveryBag ??= []).push({ item: item.id, uses: item.uses });
+    else store.addInventory(player.id, item.id, item.uses, 1);
   }
   unit.weapons = [];
+  unit.weaponInstances = [];
   unit.items = [];
 }
 
@@ -198,7 +207,10 @@ function recoverEquipment(store: Store, player: Player, unit: UnitRecord, deferr
 export function flushRecoveryBag(store: Store, player: Player): number {
   const bag = player.flags.recoveryBag ?? [];
   if (bag.length === 0) return 0;
-  for (const row of bag) store.addInventory(player.id, row.item, row.uses, 1);
+  for (const row of bag) {
+    store.addInventory(player.id, row.item, row.uses, 1);
+    if (row.weapon) (player.flags.storedWeapons ??= []).push({ ...row.weapon });
+  }
   player.flags.recoveryBag = [];
   store.savePlayer(player);
   return bag.length;
@@ -225,9 +237,6 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       unit.level = battleUnit.level;
       unit.exp = battleUnit.exp;
       unit.stats = { ...battleUnit.stats };
-      if (battleUnit.weaponInstances) unit.weaponInstances = battleUnit.weaponInstances.map(row => ({ ...row }));
-      if (battleUnit.bookInstances) unit.bookInstances = battleUnit.bookInstances.map(row => ({ ...row }));
-      if (battleUnit.spellbooks) unit.spellbooks = battleUnit.spellbooks.map(row => ({ ...row }));
       for (const event of record.events) {
         if (event.t !== 'levelUp' || event.unit !== battleUnit.id) continue;
         unit.growthLog.push({ level: event.level, gains: event.gains });
@@ -235,6 +244,9 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       }
     }
     if (lethal) {
+      if (battleUnit.weaponInstances) unit.weaponInstances = battleUnit.weaponInstances.map(row => ({ ...row }));
+      if (battleUnit.bookInstances) unit.bookInstances = battleUnit.bookInstances.map(row => ({ ...row }));
+      if (battleUnit.spellbooks) unit.spellbooks = battleUnit.spellbooks.map(row => ({ ...row }));
       unit.weapons = [...battleUnit.weapons];
       unit.items = battleUnit.items.map(item => ({ ...item }));
       // Older active battles counted consumed shields without removing their stacks.
@@ -391,7 +403,12 @@ export function handleAnnualOutcome(store: Store, player: Player, record: Battle
     if (!unit || unit.status !== 'active') continue;
     const fought = record.state.units.find(u => u.side === 'player' && u.id === id);
     const kept = fought ?? entry.carry[id] ?? unit;
-    carry[id] = { hp: unit.stats.hp, items: kept.items.map(i => ({ ...i })), weapons: [...kept.weapons] };
+    carry[id] = {
+      hp: unit.stats.hp, items: kept.items.map(i => ({ ...i })), weapons: [...kept.weapons],
+      weaponInstances: kept.weaponInstances?.map(row => ({ ...row })),
+      bookInstances: kept.bookInstances?.map(row => ({ ...row })),
+      spellbooks: kept.spellbooks?.map(row => ({ ...row })),
+    };
   }
   entry.carry = carry;
   if (entry.state === 'qualifier') qualifierResult(entry, won);
@@ -536,7 +553,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
     hasInheritance: !!unit.inheritance,
     // 身份来源：神主角、固定人物（开局同伴／任务加入，沿用角色表姓名）或随机招募（有自己的姓名）。
     origin: unitOrigin(unit),
-    learnedArts: unit.learnedArts ?? [],
+    learnedArts: unit.learnedArts ?? [], equipmentArts: equipmentArts(unit),
     // 装备资源实例：武器耐久、魔道书／杖次数与职业法术书次数（整备、维修与旅馆用）。
     weaponInstances: unit.weaponInstances ?? [], bookInstances: unit.bookInstances ?? [], spellbooks: unit.spellbooks ?? [],
     // The arena snapshot the browser needs to build AttackPlans and defense previews.
@@ -560,8 +577,7 @@ export function unitDetail(unit: UnitRecord, day = unit.ageEpochDay ?? unit.join
     weaponInstances: unit.weaponInstances ?? [], bookInstances: unit.bookInstances ?? [],
     // 职业法术书（cast 用，每本独立次数；旅馆与食物恢复，见 INN_REST／USE_FOOD 的 spellbook 参数）。
     spellbooks: unit.spellbooks ?? [],
-    arts: [...new Set([...(unit.learnedArts ?? []), ...unit.weapons.flatMap(id => WEAPONS[id].grants?.art ? [WEAPONS[id].grants!.art!] : [])])],
-    equipmentArts: unit.weapons.flatMap(id => WEAPONS[id].grants?.art ? [WEAPONS[id].grants!.art!] : []),
+    arts: [...new Set([...(unit.learnedArts ?? []), ...equipmentArts(unit)])],
     equipmentSkills: unit.weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []),
     growthLog: unit.growthLog, drugCounts: unit.drugCounts, joinedDay: unit.joinedDay, promotedFrom: unit.promotedFrom ?? null,
   };

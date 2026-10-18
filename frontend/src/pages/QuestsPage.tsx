@@ -236,8 +236,8 @@ function TowerTab() {
     go(links.field);
     return f.name;
   }, name => `进入${name}`);
-  const claim = (f: ChallengeFloor) => act(`c${f.id}`, () => session.run<{ key: string; gold: number; items: [string, number][] }>(OP.CLAIM_CHALLENGE_REWARD, { floorId: f.id }),
-    r => `领取${r.key.endsWith('first') ? '首通' : '重复'}奖励：金币 +${r.gold}${r.items.length ? `、${items(r.items).join('、')}` : ''}`);
+  const claim = (f: ChallengeFloor) => act(`c${f.id}`, () => session.run<{ key: string; gold: number; items: [string, number][]; equipment: string[] }>(OP.CLAIM_CHALLENGE_REWARD, { floorId: f.id }),
+    r => `${r.key.endsWith('equipment-v1') ? '装备补领' : `领取${r.key.endsWith('first') ? '首通' : '重复'}奖励`}：金币 +${r.gold}${r.items.length ? `、${items(r.items).join('、')}` : ''}${r.equipment.length ? `、${r.equipment.map(itemName).join('、')}` : ''}`);
   const top = Math.max(0, ...active.map(u => u.level));
   return (
     <>
@@ -251,7 +251,7 @@ function TowerTab() {
       {error && <p className="sys-strip">{error}</p>}
       <div className="tower">
         {(floors ?? []).map(f => {
-          const claimable = f.cleared && (!f.claimedFirst || !f.claimedRepeat);
+          const claimable = f.available && f.cleared && (!f.claimedFirst || !f.claimedRepeat || !f.claimedEquipment);
           return (
             <section key={f.id} className={`panel floor${f.cleared ? ' cleared' : ''}${!f.available ? ' locked' : ''}`} aria-labelledby={`fl-${f.id}`}>
               <div className="ph">
@@ -263,10 +263,11 @@ function TowerTab() {
                 <dt>出战</dt><dd>最多 {f.maxUnits} 人 · 推进 {f.costDays} 日</dd>
                 <dt>首通</dt><dd>{rewardLine(f.first)}{f.claimedFirst ? '（已领）' : ''}</dd>
                 <dt>重复</dt><dd>{rewardLine(f.repeat)}{f.claimedRepeat ? '（已领）' : f.claimedFirst ? '' : '（首通领取后）'}</dd>
+                <dt>首通装备</dt><dd>{f.equipment.map(itemName).join(' · ')}（{f.claimedEquipment ? '已领' : '未领'}）</dd>
                 <dt>阵亡</dt><dd className="risk">普通角色永久死亡</dd>
               </dl>
               <div className="go-bar">
-                {claimable && <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => void claim(f)}>{busy === `c${f.id}` ? '领取中…' : `领取${f.claimedFirst ? '重复' : '首通'}奖励`}</button>}
+                {claimable && <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => void claim(f)}>{busy === `c${f.id}` ? '领取中…' : f.claimedFirst && f.claimedRepeat ? '装备补领' : `领取${f.claimedFirst ? '重复' : '首通'}奖励`}</button>}
                 <button type="button" className="btn btn-sm" disabled={!f.available || locked} onClick={() => pick(f)}>准备挑战</button>
               </div>
             </section>

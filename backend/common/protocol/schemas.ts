@@ -13,6 +13,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   RECRUIT: { required: ['region'], properties: { region: { type: 'number', minimum: 1, maximum: 12 } } },
   ACCEPT_RECRUIT: { properties: { id: { type: 'string' } } },
   HIRE_TAVERN: { required: ['region', 'id'], properties: { region: { type: 'number', minimum: 1, maximum: 12 }, id: { type: 'string' } } },
+  REFINE_WEAPON: { required: ['unitId', 'item'], properties: { unitId: { type: 'string' }, item: { type: 'string', enum: ['fw_weapon_85'] } } },
   REPAIR_ITEM: { required: ['unitId', 'item'], properties: { unitId: { type: 'string' }, item: { type: 'string' } } },
   PLAY_MINIGAME: { required: ['game', 'bet'], properties: { game: { type: 'string', enum: ['dice', 'frogs'] }, bet: { type: 'number', enum: [20, 50, 100] }, choice: { type: 'string', enum: ['big', 'small'] }, pick: { type: 'number', minimum: 0, maximum: 3 } } },
   START_CHALLENGE: { required: ['floorId', 'unitIds'], properties: { floorId: { type: 'string' }, unitIds: { type: 'array', items: { type: 'string' } } } },
