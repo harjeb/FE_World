@@ -72,9 +72,12 @@ def audit(items_path=None, skills_path=None):
     spell_text = (ROOT / 'backend/common/data/spells.ts').read_text(encoding='utf-8')
     spell_ids = re.findall(r'^  \{"id": "([^"]+)"', spell_text, re.M)
     books = (ROOT / 'backend/common/data/spellbooks.ts').read_text(encoding='utf-8')
-    base_books = re.findall(r"^  \{ id: '([^']+)'", books, re.M)
+    base_books = re.findall(r"^  base\('([^']+)'", books, re.M)
     check('...BASE_BOOKS' in books and '...SPELLS.map' in books, 'Runtime spellbook composition changed')
     check(len(spell_ids) == 40 and set(spell_ids) == {s['id'] for s in spells}, 'Generated spell IDs differ')
+    generated_spells = {r['id']: r for r in (json.loads(line.strip().rstrip(',')) for line in spell_text.splitlines() if line.startswith('  {"id":'))}
+    for row in spells:
+        check(generated_spells[row['id']]['effects'] == row['project'].get('effects', {}), 'Spell effects not wired: ' + row['id'])
     planned_books = {r['id'] for r in baseline if r['kind'] == 'spellbook'} | set(spell_ids)
     check(planned_books <= set(base_books + spell_ids), 'Runtime is missing planned spellbook IDs')
     check(len(base_books + spell_ids) == len(set(base_books + spell_ids)) == 50, 'Runtime spellbook IDs/count differ')
@@ -183,7 +186,7 @@ def audit(items_path=None, skills_path=None):
                 check(row['name'] == original_ids[row['sourceId']]['name'] and row['reference'] == reference(original_ids[row['sourceId']]), 'Source values or provenance changed')
             print('PASS: all ' + str(len(original)) + ' source ' + key + ' records accounted for; selected/reused fields match')
     print('PASS: all 170 design template IDs present; 187 runtime rows include 11 additional old weapons, 2 old spellbooks and 4 legacy tome aliases')
-    print('PASS: 61 weapon effect fields wired into the runtime table (combat behaviour is covered by engine tests, balance is not certified)')
+    print('PASS: 61 weapon and 40 spell effect fields wired into the runtime tables (combat behaviour is covered by engine tests, balance is not certified)')
     print('PASS: short bow, per-book charges, ' + str(len(expected)) + ' equipment/art links, rendered parameters and ' + str(links) + ' local links')
 
 

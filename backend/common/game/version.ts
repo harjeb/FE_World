@@ -3,7 +3,8 @@
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v7';
 // v17 / rules-v7: special equipment effects (magic weapons, poison, backlash, reaver, purify, guard and
-// avoid/res bonuses, multi-rank requirements) and per-cast book charges for follow-ups and counters.
+// avoid/res bonuses, multi-rank requirements), per-cast book charges for follow-ups and counters and spell
+// effects (defense stat, fixed hits, drain, status hit rolls, buffs, area heals).
 // v16 / rules-v6: explicit classic-art mechanics, shared probabilistic forecast and strike resolution.
 // Finish active runs/battles before deployment; prior replays remain frozen only.
 export const CATALOG_VERSION = 17;

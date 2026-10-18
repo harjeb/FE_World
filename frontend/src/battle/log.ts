@@ -89,6 +89,11 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       case 'cast':
         push(`${name(e.unit)} 对 ${name(e.target)} 施放「${spellInfo(e.spell)?.name ?? e.spell}」。`, mark(e.unit));
         break;
+      case 'statusRoll': {
+        const label = { sleep: '睡眠', silence: '沉默', root: '定身' }[e.status];
+        push(`${name(e.unit)} 对 ${name(e.target)} 的${label}判定（命中 ${e.chance}%）：${e.landed ? '生效' : '未生效'}。`, mark(e.unit));
+        break;
+      }
       case 'dance':
         push(`${name(e.unit)} 为 ${name(e.target)} 起舞，${name(e.target)} 可以再行动一次。`, mark(e.unit));
         break;

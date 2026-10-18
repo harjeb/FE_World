@@ -91,12 +91,20 @@ export function hasCurableStatus(unit: UnitState): boolean {
   return !!unit.statuses?.sleep || (unit.statuses?.silence ?? 0) > 0 || (unit.statuses?.berserk ?? 0) > 0 || !!unit.artEffects?.statuses?.length || !!unit.artEffects?.buffs?.some(b => b.amount < 0);
 }
 
-// 受到伤害即醒；返回是否真的叫醒了。
+// 受到伤害即醒（剧情与睡眠杖相同）；返回是否真的叫醒了。
 export function wake(unit: UnitState): boolean {
   if (!unit.statuses?.sleep) return false;
   delete unit.statuses.sleep;
+  delete unit.statuses.sleepPhases;
   if (Object.keys(unit.statuses).length === 0) delete unit.statuses;
   return true;
+}
+
+// 睡眠杖的睡眠只覆盖目标自己的下 1 个阶段：该阶段结束时醒来。剧情状态杖的睡眠不计期限。
+export function endPhaseSleep(unit: UnitState): boolean {
+  if (!unit.statuses?.sleep || unit.statuses.sleepPhases === undefined) return false;
+  unit.statuses.sleepPhases -= 1;
+  return unit.statuses.sleepPhases <= 0 && wake(unit);
 }
 
 export function cureStatuses(unit: UnitState, events: BattleEvent[] = []): ('sleep' | 'silence' | 'berserk')[] {
@@ -106,6 +114,7 @@ export function cureStatuses(unit: UnitState, events: BattleEvent[] = []): ('sle
   if ((unit.statuses?.berserk ?? 0) > 0) cured.push('berserk');
   if (unit.statuses) {
     delete unit.statuses.sleep;
+    delete unit.statuses.sleepPhases;
     delete unit.statuses.silence;
     delete unit.statuses.berserk;
     if (Object.keys(unit.statuses).length === 0) delete unit.statuses;

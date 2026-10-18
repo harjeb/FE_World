@@ -26,7 +26,7 @@ export interface Recording {
 // The unit an event starts acting with, if it is an action event.
 function actorOf(e: BattleEvent): string | null {
   switch (e.t) {
-    case 'move': case 'wait': case 'seize': case 'spawn': case 'dance': case 'cast': return e.unit;
+    case 'move': case 'wait': case 'seize': case 'spawn': case 'dance': case 'cast': case 'statusRoll': return e.unit;
     case 'object': return e.by;
     case 'treasure': case 'hazard': case 'status': return e.unit;
     case 'combat': return e.attacker;

@@ -577,7 +577,7 @@
       "op": 52,
       "name": "PREVIEW_COMBAT",
       "group": "战斗",
-      "agentNote": "从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数与击杀概率；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。",
+      "agentNote": "从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。",
       "push": false
     },
     {

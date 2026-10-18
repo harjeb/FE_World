@@ -6,14 +6,16 @@ import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { decide } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
-import { runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
+import { runAreaHeal, runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { artCombatOptions } from './combat.ts';
-import { afterClassicArt, artStats, expireArtPhase } from './art-effects.ts';
+import { addArtBuff, afterClassicArt, artStats, expireArtPhase, inflictArtStatus } from './art-effects.ts';
 import { artObjects, artPostMoves, artSupportOptions, objectArtDamage, sameArtSupport } from './art-options.ts';
 import { roll100 } from './rng.ts';
 import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAction, validateArt } from './arts.ts';
-import { attackWeapons, cellKey, cureStatuses, distance, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
-import { adjacentFree, destinationValid, isHostileSpell, spellDestination, SPECIAL_SUPPORT_SPELLS, staffDestination, withSpellWeapon } from './support.ts';
+import { attackWeapons, cellKey, cureStatuses, distance, endPhaseSleep, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
+import { adjacentFree, destinationValid, isHostileSpell, spellBlock, spellDestination, spellKind, spellTargets, staffDestination, staffTargets, withSpellWeapon } from './support.ts';
+import { statusChance } from './magic.ts';
+import type { ControlStatus } from './magic.ts';
 import type { DestinationRule } from './support.ts';
 import { EngineError } from './types.ts';
 import { damageObject, interactionOptions, interactObject, runScenarioEvents } from './scenario.ts';
@@ -60,7 +62,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
       const target = foeOrAlly(action.target);
       if (target.side !== unit.side || target.id === unit.id) throw new EngineError('TARGET_OUT_OF_RANGE', '只能治疗其他友军');
       if (target.petrified || target.immunities?.includes('healing')) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 当前不能治疗`);
-      if (!staffWeapons(unit).includes(action.weapon)) throw new EngineError('WEAPON_RANK_TOO_LOW', `${unit.name} 不能使用这根杖`);
+      if (!staffWeapons(unit).includes(action.weapon) || !WEAPONS[action.weapon].heal) throw new EngineError('WEAPON_RANK_TOO_LOW', `${unit.name} 不能用这根杖治疗`);
       if (!inRange(unit, action.weapon, action.to, target.pos)) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在杖的射程内');
       if (target.hp >= target.stats.hp && !(WEAPONS[action.weapon].cure && hasCurableStatus(target))) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 没有受伤或异常`);
       return target;
@@ -92,6 +94,7 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
       if (hostile ? target.side === unit.side : target.side !== unit.side || target.id === unit.id) throw new EngineError('TARGET_OUT_OF_RANGE', hostile ? '状态杖目标必须是敌军' : '只能对友军使用这根杖');
       if (action.weapon === 'restore' && !hasCurableStatus(target)) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 没有可解除的异常`);
       if (!hostile && action.weapon !== 'restore' && action.weapon !== 'warp_staff' && action.weapon !== 'rescue_staff' && (target.petrified || target.hp >= target.stats.hp)) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 不能接受这根杖`);
+      if (!staffTargets(state, unit, action.to, action.weapon).some(entry => entry.id === target.id)) throw new EngineError('TARGET_OUT_OF_RANGE', '目标免疫、已处于该状态，或不能被传送／救援');
       const rule = staffDestination(action.weapon);
       if (rule && !destinationOk(state, unit, action, rule)) throw new EngineError('UNREACHABLE', '传送落点不合法');
       return target;
@@ -102,11 +105,15 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
       const instance = unit.spellbooks?.find(row => row.id === action.spell);
       if (!book || !instance || instance.charges <= 0) throw new EngineError('NO_SUCH_ITEM', '没有可施放的法术书次数');
       if (isSilenced(unit)) throw new EngineError('FORBIDDEN', `${unit.name} 沉默中，不能施法`);
+      const blocked = spellBlock(unit, book);
+      if (blocked) throw new EngineError('FORBIDDEN', `${unit.name} 不能施放${book.name}：${blocked}`);
       const hostile = isHostileSpell(book);
       if (hostile ? target.side === unit.side : target.side !== unit.side) throw new EngineError('TARGET_OUT_OF_RANGE', hostile ? '法术目标必须是敌军' : '法术目标必须是友军');
       const d = Math.abs(target.pos[0] - action.to[0]) + Math.abs(target.pos[1] - action.to[1]);
       if (d < book.range[0] || d > book.range[1]) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在法术射程内');
-      if (!hostile && (target.petrified || target.hp >= target.stats.hp) && !SPECIAL_SUPPORT_SPELLS.includes(book.id)) throw new EngineError('NOTHING_TO_HEAL', `${target.name} 不能接受这个法术`);
+      if (!spellTargets(state, unit, action.to, book.id).some(entry => entry.id === target.id)) {
+        throw new EngineError(spellKind(book) === 'heal' ? 'NOTHING_TO_HEAL' : 'TARGET_OUT_OF_RANGE', `${target.name} 不能接受这个法术`);
+      }
       const rule = spellDestination(book.id);
       if (rule && !destinationOk(state, unit, action, rule)) throw new EngineError('UNREACHABLE', book.id === 'fw_spell_9' ? '临时墙落点不合法' : '传送落点不合法');
       return target;
@@ -210,7 +217,8 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     }
   } else if (action.act === 'heal' && target) {
     spendCharge(unit, action.weapon);
-    runHeal(state, unit, target, action.weapon, events);
+    if (WEAPONS[action.weapon].area) runAreaHeal(state, unit, action.weapon, events);
+    else runHeal(state, unit, target, action.weapon, events);
   } else if ((action.act === 'staff' || action.act === 'cast') && target) {
     performSupport(state, unit, action, target, events);
   } else if (action.act === 'item') {
@@ -246,40 +254,65 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
 function performSupport(state: BattleState, unit: UnitState, action: ActAction, target: UnitState, events: BattleEvent[]): void {
   if (action.act === 'staff') {
     spendCharge(unit, action.weapon);
+    const w = WEAPONS[action.weapon];
     if (action.weapon === 'warp_staff' || action.weapon === 'rescue_staff') {
       const dest = action.dest ?? adjacentFree(state, unit);
       if (dest) { const from = [...target.pos] as Point; target.pos = [...dest]; events.push({ t: 'move', unit: target.id, path: [from, [...dest]] }); displace(target, events); }
-    } else if (action.weapon === 'sleep_staff') {
-      target.statuses = { ...target.statuses, sleep: true };
-      events.push({ t: 'status', unit: target.id, status: 'sleep', active: true });
-    } else if (action.weapon === 'silence_staff') {
-      target.statuses = { ...target.statuses, silence: 3 };
-      events.push({ t: 'status', unit: target.id, status: 'silence', active: true });
+    } else if (w.status) {
+      if (rollStatus(state, unit, target, w.status.kind, w.status.hit, events)) {
+        if (w.status.kind === 'sleep') target.statuses = { ...target.statuses, sleep: true, sleepPhases: 1 };
+        else target.statuses = { ...target.statuses, silence: 3 };
+        // turns 与剧情状态杖一致，记录沉默计数（开始自己的阶段时减 1，3 即覆盖目标接下来 2 个阶段）。
+        events.push({ t: 'status', unit: target.id, status: w.status.kind, active: true, ...(w.status.kind === 'silence' ? { turns: 3 } : {}) });
+      }
     } else if (action.weapon === 'restore') {
       for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
-    } else runHeal(state, unit, target, action.weapon, events);
+    } else if (w.area) runAreaHeal(state, unit, action.weapon, events);
+    else runHeal(state, unit, target, action.weapon, events);
   } else if (action.act === 'cast') {
     const book = SPELLBOOK_BY_ID.get(action.spell)!, instance = unit.spellbooks!.find(row => row.id === action.spell)!;
-    // 攻击法术的开场与速度追击各扣一次，由 runCombat 逐次支付；其余法术施放即扣 1 次。
-    if (book.role !== 'attack') instance.charges = Math.max(0, instance.charges - 1);
+    const kind = spellKind(book);
     events.push({ t: 'cast', unit: unit.id, target: target.id, spell: book.id });
-    if (book.id === 'fw_spell_9') {
+    // 攻击法术的开场与速度追击各扣一次，由 runCombat 逐次支付；其余法术施放即扣 1 次。
+    if (kind === 'attack') {
+      withSpellWeapon(book, () => runCombat(state, unit, target, book.id as WeaponId, events, undefined, true));
+      return;
+    }
+    instance.charges = Math.max(0, instance.charges - 1);
+    if (kind === 'wall') {
       const dest = action.dest!;
       state.objects ??= [];
-      state.objects.push({ id: `spell-wall-${state.turn}-${dest[0]}-${dest[1]}`, kind: 'wall', pos: [...dest], state: 'intact', hp: 15, maxHp: 15, label: '临时墙', expiresTurn: state.turn + 2 });
-    } else if (['fw_spell_49', 'fw_spell_56', 'fw_spell_57'].includes(book.id)) {
+      state.objects.push({ id: `spell-wall-${state.turn}-${dest[0]}-${dest[1]}`, kind: 'wall', pos: [...dest], state: 'intact', hp: 15, maxHp: 15, label: '临时墙', expiresTurn: state.turn + 2, owner: unit.id });
+    } else if (kind === 'warp' || kind === 'rescue') {
       const dest = action.dest ?? adjacentFree(state, unit);
       if (dest) { const from = [...target.pos] as Point; target.pos = [...dest]; events.push({ t: 'move', unit: target.id, path: [from, [...dest]] }); displace(target, events); }
-    } else if (book.id === 'fw_spell_58') {
+    } else if (kind === 'regen') {
       target.statuses = { ...target.statuses, regen: 5 };
       events.push({ t: 'status', unit: target.id, status: 'regen', active: true });
-    } else if (book.id === 'fw_spell_22') {
+    } else if (kind === 'cure') {
       for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
+    } else if (kind === 'status') {
+      const status = book.effects.status!;
+      if (rollStatus(state, unit, target, status, book.hit, events)) inflictArtStatus(target, status, events);
+    } else if (kind === 'buff') {
+      const buff = book.effects.buff!;
+      addArtBuff(state, target, book.id, buff.stat, buff.amount, 'next_phase', events);
     } else withSpellWeapon(book, () => {
-      if (isHostileSpell(book)) runCombat(state, unit, target, book.id as WeaponId, events, undefined, book.role === 'attack');
-      else runHeal(state, unit, target, book.id as WeaponId, events);
+      if (book.effects.area) { runAreaHeal(state, unit, book.id as WeaponId, events); return; }
+      // 圣治：同一次施放只判一次额外回复。
+      const bonus = book.effects.bonusHeal;
+      const extra = bonus && bonus.chance > 0 && roll100(state.rng) < bonus.chance ? bonus.amount : 0;
+      runHeal(state, unit, target, book.id as WeaponId, events, extra);
     });
   }
+}
+
+// 状态杖与敌方控场法术：按 statusChance 的显示命中掷 2RN，结果写入事件供回放与战报。
+function rollStatus(state: BattleState, unit: UnitState, target: UnitState, status: ControlStatus, base: number, events: BattleEvent[]): boolean {
+  const { chance } = statusChance(state, unit, target, status, base);
+  const landed = chance > 0 && roll100(state.rng) + roll100(state.rng) < 2 * chance;
+  events.push({ t: 'statusRoll', unit: unit.id, target: target.id, status, chance, landed });
+  return landed;
 }
 
 function spendCharge(unit: UnitState, weapon: WeaponId): void {
@@ -372,6 +405,11 @@ function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void
   if (!state.result) checkResult(state, events);
 }
 
+// 睡眠杖的睡眠在被睡方自己的阶段结束时醒来。
+function endSleep(state: BattleState, side: Side, events: BattleEvent[]): void {
+  for (const unit of living(state, side)) if (endPhaseSleep(unit)) events.push({ t: 'status', unit: unit.id, status: 'sleep', active: false });
+}
+
 // Remaining player units wait, the rule AI plays the enemy phase, then the next turn starts.
 function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
   // 混乱的我方单位在玩家阶段结束前由规则 AI 行动，不能由玩家直接操作。
@@ -385,6 +423,7 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     }
     unit.acted = true;
   }
+  endSleep(state, 'player', events);
   expireArtPhase(state, 'player', 'end', events);
   startPhase(state, 'enemy', events);
   for (const enemy of living(state, 'enemy')) {
@@ -394,6 +433,7 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     if (enemy.petrified || isAsleep(enemy)) { enemy.acted = true; continue; }
     applyAct(state, decide(state, enemy), events);
   }
+  endSleep(state, 'enemy', events);
   expireArtPhase(state, 'enemy', 'end', events);
   if (state.result) return;
   if (state.turn >= state.turnLimit) {

@@ -7,7 +7,7 @@ import { artState, clearArtEffects } from './arts.ts';
 import { addArtBuff, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
-import { chargeRow, cureStatuses, living, wake } from './units.ts';
+import { chargeRow, cureStatuses, distance, living, wake, weaponRange } from './units.ts';
 import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.ts';
 
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
@@ -60,14 +60,23 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
       if (art.onHit.stripProtection) addArtBuff(state, foe, art.id, 'protection', -1, 'exchange', events);
     }
     if (resolved.inflicted) {
-      // 武器的命中附加（毒等），持续到受害方自己的阶段结束。
+      // 武器／法术的命中附加：毒、定身、降速，持续到受害方自己的阶段结束。
+      const source = spec.side === 'attacker' ? weaponId : f.defender.weapon!;
       for (const status of f[spec.side].afflicts) inflictArtStatus(foe, status, events);
+      const debuff = WEAPONS[source].onHit?.debuff;
+      if (debuff && f[spec.side].slows > 0) addArtBuff(state, foe, source, debuff.stat, debuff.amount, 'phase', events);
     }
     if (resolved.damage > 0 && !resolved.backlash) dealt[spec.side] = true;
     strikes.push({ by: me.id, target: foe.id, hit, crit, damage: resolved.damage, hpAfter: foe.hp,
       ...(resolved.heal || resolved.backlash ? { byHpAfter: me.hp } : {}), ...(proc ? { proc: true } : {}), ...(resolved.backlash ? { backlash: true } : {}) });
   }
   [attacker, defender].forEach((u, index) => consumeArtExchange(u, oldBuffs[index], events));
+  // 屏障只挡一次交战。
+  for (const unit of [attacker, defender]) {
+    if (!unit.artEffects?.buffs?.some(b => b.stat === 'ward')) continue;
+    unit.artEffects = { ...unit.artEffects, buffs: unit.artEffects.buffs.filter(b => b.stat !== 'ward') };
+    artState(unit, events);
+  }
   events.push({
     t: 'combat', attacker: attacker.id, defender: defender.id,
     weapons: [weaponId, f.defender.canAttack ? f.defender.weapon : null], strikes,
@@ -94,21 +103,41 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   return strikes;
 }
 
-// Staff healing: 魔 + 10 (祈愿 +5) or full, never above max HP.
+// Staff and spell healing: 魔 + 基值（缺省 10；祈愿／职业固有各 +5）or full, never above max HP.
 export function healAmount(healer: UnitState, target: UnitState, weaponId: WeaponId): number {
   if (!target.alive || target.petrified || target.hp <= 0 || target.immunities?.includes('healing')) return 0;
   const missing = target.stats.hp - target.hp;
-  if (WEAPONS[weaponId].heal === 'full') return missing;
+  const w = WEAPONS[weaponId];
+  if (w.heal === 'full') return missing;
   const classHeal = (healer.classSkills ?? []).includes('sk-93') ? 5 : 0;
-  return Math.min(missing, healer.stats.mag + 10 + (healer.skill === 'prayer' ? 5 : 0) + classHeal);
+  return Math.min(missing, healer.stats.mag + (w.healBase ?? 10) + (healer.skill === 'prayer' ? 5 : 0) + classHeal);
 }
 
-export function runHeal(state: BattleState, healer: UnitState, target: UnitState, weaponId: WeaponId, events: BattleEvent[]): void {
-  const amount = healAmount(healer, target, weaponId);
+// `extra` adds a separately rolled bonus (圣治 +100); it still never heals past max HP or a petrified unit.
+export function runHeal(state: BattleState, healer: UnitState, target: UnitState, weaponId: WeaponId, events: BattleEvent[], extra = 0): void {
+  const base = healAmount(healer, target, weaponId);
+  const amount = base > 0 ? Math.min(target.stats.hp - target.hp, base + extra) : 0;
   target.hp += amount;
   if (healer.skill === 'shelter') target.shelteredTurn = state.turn;
   events.push({ t: 'heal', by: healer.id, target: target.id, amount, hpAfter: target.hp, source: 'staff' });
   if (WEAPONS[weaponId].cure) for (const status of cureStatuses(target, events)) events.push({ t: 'status', unit: target.id, status, active: false });
+  if (healer.side === 'player') gainExp(state, healer, staffExp(healer), events);
+}
+
+// 范围治疗（群疗杖、群体圣疗）：施法者所在格射程内的每名受伤友军各结算一次，不含施法者本人。
+export function areaHealTargets(state: BattleState, healer: UnitState, weaponId: WeaponId, at = healer.pos): UnitState[] {
+  const [min, max] = weaponRange(healer, weaponId);
+  return living(state, healer.side).filter(ally => ally.id !== healer.id && !ally.npc && healAmount(healer, ally, weaponId) > 0
+    && distance(at, ally.pos) >= min && distance(at, ally.pos) <= max);
+}
+
+export function runAreaHeal(state: BattleState, healer: UnitState, weaponId: WeaponId, events: BattleEvent[]): void {
+  for (const ally of areaHealTargets(state, healer, weaponId)) {
+    const amount = healAmount(healer, ally, weaponId);
+    ally.hp += amount;
+    if (healer.skill === 'shelter') ally.shelteredTurn = state.turn;
+    events.push({ t: 'heal', by: healer.id, target: ally.id, amount, hpAfter: ally.hp, source: 'staff' });
+  }
   if (healer.side === 'player') gainExp(state, healer, staffExp(healer), events);
 }
 

@@ -4,7 +4,7 @@ import { OP, OP_BY_NUMBER } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
-import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, step, threatMap, unitById, withSpellWeapon } from '../common/engine/index.ts';
+import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, spellForecast, spellKind, statusChance, step, threatMap, unitById } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
 import { validateArt, availableArts } from '../common/engine/arts.ts';
 import { TERRAINS } from '../common/maps/map.ts';
@@ -1407,9 +1407,13 @@ const handlers: Record<number, Handler> = {
       if (record.state.objects?.some(object => object.id === target)) return { art: art.id, ...artObjectForecast(record.state, attackerUnit, from, weapon, art, target) };
     }
     const defenderUnit = unitById(record.state, target);
-    const run = () => art ? artForecast(record.state, attackerUnit, from, weapon, art, defenderUnit, data.secondaryId === undefined ? undefined : asString(data.secondaryId, 'secondaryId'), data.allyId === undefined ? undefined : asString(data.allyId, 'allyId'))
-      : forecast(record.state, attacker, from, weapon, target, undefined, book?.role === 'attack');
-    const f = book ? withSpellWeapon(book, run) : run();
+    // 状态杖与敌方控场法术不进交战：只预测命中率（首领减半、免疫为 0）。
+    const status = book && spellKind(book) === 'status' ? { kind: book.effects.status!, hit: book.hit } : !book ? WEAPONS[weapon as WeaponId]?.status : undefined;
+    if (status) return { attackerId: attacker, targetId: target, ...(book ? { spell: book.id } : { weapon }), status: statusChance(record.state, attackerUnit, defenderUnit, status.kind, status.hit) };
+    if (book && spellKind(book) !== 'attack') throw new OpError('BAD_REQUEST', '只有攻击法术与控场法术可以预测；治疗与辅助法术直接看效果说明');
+    const f = book ? spellForecast(record.state, attacker, from, book.id, target)
+      : art ? artForecast(record.state, attackerUnit, from, weapon, art, defenderUnit, data.secondaryId === undefined ? undefined : asString(data.secondaryId, 'secondaryId'), data.allyId === undefined ? undefined : asString(data.allyId, 'allyId'))
+        : forecast(record.state, attacker, from, weapon, target);
     return {
       attacker: f.attacker, defender: f.defender, order: f.order, onHit: forecastOnHit(f),
       ...('art' in f ? { art: f.art } : {}),

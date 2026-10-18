@@ -4,8 +4,8 @@ import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
 import { WEAPON_ART_BY_ID } from '@common/data/weapon-arts.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
-import { actionOptions, artForecast, destinationCells, forecast, healAmount, isHostileSpell, unitById, withSpellWeapon } from '@common/engine/index.ts';
-import type { ActAction, BattleState, DestinationRule, Point, UnitState } from '@common/engine/index.ts';
+import { actionOptions, areaHealTargets, artForecast, destinationCells, healAmount, spellForecast, spellKind, statusChance, unitById, withSpellWeapon } from '@common/engine/index.ts';
+import type { ActAction, BattleState, DestinationRule, Point, StatusChance, UnitState } from '@common/engine/index.ts';
 import type { Forecast } from '@common/engine/index.ts';
 import type { Mode } from './selection.ts';
 
@@ -78,19 +78,40 @@ export function commandForecast(state: BattleState, mode: CommandMode): (Forecas
   }
   if (mode.kind === 'cast' && mode.spell) {
     const book = spellInfo(mode.spell);
-    if (!book || !isHostileSpell(book) || book.role !== 'attack') return null;
-    return withSpellWeapon(book, () => forecast(state, mode.unit, mode.to, book.id as WeaponId, mode.target!, undefined, true));
+    if (!book || spellKind(book) !== 'attack') return null;
+    // 与服务端同一预测：本书剩余次数决定能否追击。
+    return spellForecast(state, mode.unit, mode.to, book.id, mode.target);
   }
   return null;
 }
 
-// HP a healing spell restores (support spells resolve as 魔 + 10 heals in the current runtime).
+// 状态杖与敌方控场法术的命中率（首领减半、免疫为 0），与服务端掷骰同一公式。
+export function commandStatus(state: BattleState, mode: CommandMode): StatusChance | null {
+  if (!mode.target || (mode.kind !== 'cast' && mode.kind !== 'staff')) return null;
+  const caster = unitById(state, mode.unit), target = unitById(state, mode.target);
+  if (mode.kind === 'cast' && mode.spell) {
+    const book = spellInfo(mode.spell);
+    return book && spellKind(book) === 'status' ? statusChance(state, caster, target, book.effects.status!, book.hit) : null;
+  }
+  const status = mode.kind === 'staff' && mode.weapon ? WEAPONS[mode.weapon].status : undefined;
+  return status ? statusChance(state, caster, target, status.kind, status.hit) : null;
+}
+
+// HP a healing spell restores: 魔 + 本书的回复基值（圣治另有 10% 额外回复，不计入预览）。
 export function spellHeal(state: BattleState, mode: CommandMode): number | null {
   if (mode.kind !== 'cast' || !mode.spell || !mode.target) return null;
   const book = spellInfo(mode.spell);
-  if (!book || isHostileSpell(book) || ['fw_spell_9', 'fw_spell_22', 'fw_spell_49', 'fw_spell_56', 'fw_spell_57', 'fw_spell_58'].includes(book.id)) return null;
+  if (!book || spellKind(book) !== 'heal' || book.effects.area) return null;
   const healer = unitById(state, mode.unit), target = unitById(state, mode.target);
   return withSpellWeapon(book, () => healAmount({ ...healer, pos: mode.to }, target, book.id as WeaponId));
+}
+
+// 范围治疗（群体圣疗、群疗杖）：落点射程内每名受伤友军各回复多少。
+export function areaHeals(state: BattleState, unitId: string, to: Point, weapon: WeaponId, spell?: string): { unit: UnitState; amount: number }[] {
+  const healer = { ...unitById(state, unitId), pos: to };
+  const run = () => areaHealTargets(state, healer, weapon, to).map(unit => ({ unit, amount: healAmount(healer, unit, weapon) }));
+  const book = spell ? spellInfo(spell) : undefined;
+  return book ? withSpellWeapon(book, run) : run();
 }
 
 // Names for combat events whose "weapon" is a spellbook (only registered while the spell resolves).

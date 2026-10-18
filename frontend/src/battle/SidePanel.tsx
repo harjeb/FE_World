@@ -64,7 +64,7 @@ export function SidePanel({ snap, ctl }: { snap: Snapshot; ctl: BattleController
         <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon} targetId={mode.target} />
       )}
       {mode.kind === 'heal' && mode.target && (
-        <HealPreview state={state} unitId={mode.unit} targetId={mode.target} weapon={mode.weapon} />
+        <HealPreview state={state} unitId={mode.unit} targetId={mode.target} weapon={mode.weapon} to={mode.to} />
       )}
       {(mode.kind === 'attack' || mode.kind === 'heal') && mode.target && (
         <ConfirmPanel state={state} to={mode.to} kind={mode.kind} onConfirm={() => ctl.confirm()} onCancel={() => ctl.cancel()} />

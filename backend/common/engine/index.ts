@@ -11,7 +11,9 @@ export type { MoveRange } from './movement.ts';
 export { actionOptions, canFinishGather, canSeize, reachCells, targetsFrom, threatMap } from './ranges.ts';
 export type { ActionOptions } from './ranges.ts';
 export { expPreview, growthRates } from './growth.ts';
-export { healAmount } from './resolve.ts';
+export { areaHealTargets, healAmount } from './resolve.ts';
+export { spellForecast, statusChance } from './magic.ts';
+export type { ControlStatus, StatusChance } from './magic.ts';
 export { seedRng } from './rng.ts';
 export {
   attackWeapons, cellKey, classOf, distance, equipped, hasCurableStatus, isAsleep, isBerserk, isSilenced, inBounds, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,
@@ -19,5 +21,5 @@ export {
 export { EngineError } from './types.ts';
 export type { Action, ActAction, BattleEvent, BattleObject, BattleObjectState, BattleState, Behavior, Point, ScenarioEvent, Side, Strike, UnitState } from './types.ts';
 export { interactionOptions, objectAt, objectBlocks, runScenarioEvents, scenarioLoot } from './scenario.ts';
-export { artTargets, defaultDestination, destinationCells, destinationValid, freeCell, isHostileSpell, spellDestination, spellTargets, spellWeapon, staffDestination, staffEffect, staffTargets, withSpellWeapon } from './support.ts';
-export type { DestinationRule, StaffEffect } from './support.ts';
+export { artTargets, defaultDestination, destinationCells, destinationValid, freeCell, isHostileSpell, spellBlock, spellDestination, spellKind, spellTargets, spellWeapon, staffDestination, staffEffect, staffTargets, withSpellWeapon } from './support.ts';
+export type { DestinationRule, SpellKind, StaffEffect } from './support.ts';

@@ -102,6 +102,9 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       case 'treasure':
       case 'scenario':
         break;
+      case 'statusRoll':
+        if (!e.landed) ctl.float(unitIn(view, e.target).pos, 'MISS', 'miss');
+        break;
       case 'hazard':
         edit(d => {
           const u = unitIn(d, e.unit);

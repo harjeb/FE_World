@@ -32,8 +32,19 @@ export interface Weapon {
   // 只有 artHit／artDrain 明确作用于战技。
   // 魔力伤害：普通攻击／反击按 魔 对 魔防（龙石类型本身就是魔力）。
   magic?: boolean;
-  // 命中且目标存活时的附加状态（毒等），按目标免疫过滤。
-  onHit?: { statuses?: readonly WeaponAilment[] };
+  // 伤害结算的防御属性；缺省时魔力对魔防、物理对防。玻璃车轮等魔法以魔力对物防。
+  defense?: 'def' | 'res';
+  // 特效标签：flying/mounted/armored 走 effective，beast/dragon 走 effectiveRoutes，demon 为明确魔物标签。
+  effectiveTags?: readonly 'demon'[];
+  // 固定段数：一次施放打 hits 段，不再速度追击或勇者连击；noFollowUp 只禁速度追击。
+  hits?: number;
+  noFollowUp?: boolean;
+  // 命中且目标存活时的附加效果（毒／定身／速度降低），按目标免疫过滤。
+  onHit?: { statuses?: readonly WeaponAilment[]; debuff?: { stat: 'spd'; amount: number } };
+  // 按本击实际扣血回复的比例；石化或禁疗时为 0。
+  drain?: number;
+  // 本击忽略目标魔防数值（地形、技能与不朽盾照常）。
+  ignoreRes?: boolean;
   // 反噬：普通攻击／反击命中时有（31 − 幸运）% 改由出手者自己承受这次伤害。
   backlash?: boolean;
   // 逆克制：本次交战的剑枪斧克制反转（双方都持有时互相抵消）。
@@ -52,6 +63,11 @@ export interface Weapon {
   exclusiveArts?: readonly string[];
   // 以这把武器发动指定战技时的吸血比例（替换战技原比例，不相加）。
   artDrain?: Readonly<Record<string, number>>;
+  // 治疗基值（回复 魔 + healBase）；area 时回复射程内全部受伤友军。
+  healBase?: number;
+  area?: boolean;
+  // 状态杖：基础命中与施加的状态。
+  status?: { kind: 'sleep' | 'silence'; hit: number };
 }
 
 export type WeaponAilment = 'poison' | 'root' | 'silence' | 'confusion';
@@ -124,17 +140,17 @@ const BASE_TABLE = {
   longbow: { name: '长弓', type: 'bow', rank: 'B', might: 5, hit: 65, weight: 10, crit: 0, range: [2, 3], effective: FLYING },
   silver_bow: { name: '银弓', type: 'bow', rank: 'A', might: 13, hit: 75, weight: 6, crit: 0, range: [2, 2], effective: FLYING },
   fire: { name: '火焰', type: 'tome', rank: 'E', might: 5, hit: 90, weight: 4, crit: 0, range: [1, 2] },
-  thunder: { name: '雷霆', type: 'tome', rank: 'D', might: 8, hit: 80, weight: 6, crit: 5, range: [1, 2] },
-  wind: { name: '风刃', type: 'tome', rank: 'C', might: 6, hit: 85, weight: 3, crit: 0, range: [1, 2], effective: FLYING, note: '对飞行特效', grants: { skill: 'nimble' } },
+  thunder: { name: '雷霆', type: 'tome', rank: 'D', might: 8, hit: 80, weight: 6, crit: 5, range: [1, 2], maxCharges: 15 },
+  wind: { name: '风刃', type: 'tome', rank: 'C', might: 6, hit: 85, weight: 3, crit: 0, range: [1, 2], maxCharges: 15, effective: FLYING, note: '对飞行特效', grants: { skill: 'nimble' } },
   flame_lance: { name: '炎枪', type: 'tome', rank: 'B', might: 12, hit: 75, weight: 10, crit: 0, range: [1, 2] },
   heal: { name: '治疗杖', type: 'staff', rank: 'E', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'mag10', note: '回复 魔 + 10' },
   recover: { name: '恢复杖', type: 'staff', rank: 'C', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'full', note: '回复全部 HP' },
   restore: { name: '复原杖', type: 'staff', rank: 'C', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'mag10', cure: true, note: '解除睡眠/沉默/混乱' },
-  fortify: { name: '群疗杖', type: 'staff', rank: 'A', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 3], heal: 'mag10', magRange: true, note: '范围回复（首版按单目标）' },
-  rescue_staff: { name: '救援杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：救援' },
-  warp_staff: { name: '传送杖', type: 'staff', rank: 'A', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：传送' },
-  silence_staff: { name: '沉默杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：沉默' },
-  sleep_staff: { name: '睡眠杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], note: '功能杖：睡眠' },
+  fortify: { name: '群疗杖', type: 'staff', rank: 'A', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 3], maxCharges: 5, heal: 'mag10', healBase: 5, area: true, note: '1–3 格内受伤友军各回复 魔 + 5' },
+  rescue_staff: { name: '救援杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], maxCharges: 5, note: '把 1–4 格内友军拉到施法者相邻空格' },
+  warp_staff: { name: '传送杖', type: 'staff', rank: 'A', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], maxCharges: 3, note: '把相邻友军送到施法者 4 格内的空格；不刷新目标行动' },
+  silence_staff: { name: '沉默杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], maxCharges: 5, status: { kind: 'silence', hit: 60 }, note: '命中后 2 个目标阶段不能施法／用杖；首领命中减半' },
+  sleep_staff: { name: '睡眠杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 4], maxCharges: 5, status: { kind: 'sleep', hit: 60 }, note: '命中后睡过目标的下 1 个阶段，受伤即醒；首领命中减半' },
   physic: { name: '远疗杖', type: 'staff', rank: 'B', might: 0, hit: 0, weight: 0, crit: 0, range: [1, 1], heal: 'mag10', magRange: true, note: '射程 1–魔÷2，回复 魔 + 10' },
 } satisfies Record<string, Weapon>;
 

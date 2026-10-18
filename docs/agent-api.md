@@ -191,7 +191,7 @@ docVersion: 2
 | --- | --- | --- |
 | 50 | GET_BATTLE | 读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。 |
 | 51 | GET_REACHABLE | 某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。 |
-| 52 | PREVIEW_COMBAT | 从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数与击杀概率；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。 |
+| 52 | PREVIEW_COMBAT | 从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。 |
 | 53 | GET_THREAT_MAP | 敌方下个阶段所有单位能攻击到的格子与每格威胁数。 |
 | 54 | UNIT_ACT | 原子提交「移动 + 行动」，action 取 attack／heal／item／seize／escape／interact／wait／dance／art／cast／staff；传送与临时墙带 dest；战技可带 allyId 选友军、secondaryId 选分流次目标，postTo 选战后移动；support 为一次自付资源的非敌对追加 {target, spell 或 weapon, dest?}（target 不是 targetId，禁止嵌套 action/art）。先查 GET_REACHABLE。确认后不能悔棋，先查询再提交。 |
 | 55 | END_PHASE | 结束己方阶段；未行动单位待机，随后敌方规则 AI 行动。 |

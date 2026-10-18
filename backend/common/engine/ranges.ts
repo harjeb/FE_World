@@ -10,11 +10,13 @@ import type { MoveRange } from './movement.ts';
 import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 import { interactionOptions } from './scenario.ts';
-import { artTargets, spellDestination, spellTargets, staffDestination, staffEffect, staffTargets } from './support.ts';
+import { artTargets, spellBlock, spellDestination, spellTargets, staffDestination, staffEffect, staffTargets } from './support.ts';
 import type { DestinationRule, StaffEffect } from './support.ts';
 
-// Foes a weapon can hit from a cell, or injured allies a staff can reach.
+// Foes a weapon can hit from a cell, or injured allies a healing staff can reach (status and
+// transport staves only appear under actionOptions.staff).
 export function targetsFrom(state: BattleState, unit: UnitState, from: Point, weaponId: WeaponId, kind: 'attack' | 'heal', anySide = false): UnitState[] {
+  if (kind === 'heal' && !WEAPONS[weaponId].heal) return [];
   const pool = kind === 'attack'
     ? living(state).filter(u => anySide ? u.id !== unit.id : u.side !== unit.side)
     : living(state, unit.side).filter(u => u.id !== unit.id
@@ -69,7 +71,9 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
     });
   });
   const staffActions = staffWeapons(unit).map(weapon => ({ weapon, effect: staffEffect(weapon), targets: staffTargets(state, unit, to, weapon), dest: staffDestination(weapon) }));
-  const casts = isSilenced(unit) ? [] : (unit.spellbooks ?? []).filter(book => book.charges > 0).map(book => ({
+  // 只列现职业权限、熟练度与教材都满足的书（不满足的原因在整备页逐本显示）。
+  const casts = isSilenced(unit) ? [] : (unit.spellbooks ?? []).filter(book => book.charges > 0)
+    .filter(book => { const def = SPELLBOOK_BY_ID.get(book.id); return !!def && spellBlock(unit, def) === null; }).map(book => ({
     spell: book.id, role: SPELLBOOK_BY_ID.get(book.id)?.role ?? 'attack', charges: book.charges, maxCharges: book.maxCharges,
     targets: spellTargets(state, unit, to, book.id), dest: spellDestination(book.id),
   }));

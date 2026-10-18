@@ -4,7 +4,7 @@ import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
 import { artObjectForecast, expPreview, forecast, forecastOnHit, healAmount, terrainAt, unitById } from '@common/engine/index.ts';
 import type { BattleState, Forecast, Point, SideForecast, UnitState } from '@common/engine/index.ts';
-import { artInfo, commandAction, commandForecast, isCommand, spellHeal, spellInfo, STAFF_EFFECT_TEXT, weaponLabel } from './commands.ts';
+import { areaHeals, artInfo, commandAction, commandForecast, commandStatus, isCommand, spellHeal, spellInfo, STAFF_EFFECT_TEXT, weaponLabel } from './commands.ts';
 import type { CommandMode } from './commands.ts';
 import type { Mode } from './selection.ts';
 import { TERRAINS } from '@common/maps/map.ts';
@@ -117,8 +117,12 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         {d.backlash > 0 && d.canAttack && <span className="tag tag-blue">对方反击反噬 {d.backlash}%</span>}
         {a.afflicts.length > 0 && <span className="tag tag-brass">命中附加：{a.afflicts.map(s => AILMENT[s]).join('、')}{a.locks ? '（对方不能追击）' : ''}</span>}
         {d.afflicts.length > 0 && d.canAttack && <span className="tag tag-red">对方命中附加：{d.afflicts.map(s => AILMENT[s]).join('、')}</span>}
+        {a.slows > 0 && <span className="tag tag-brass">命中后对方速度 −{a.slows}</span>}
+        {a.drain > 0 && <span className="tag tag-green">吸血：回复实际伤害的 {Math.round(a.drain * 100)}%</span>}
         {a.charges !== null && <span className="tag tag-grey">本书剩 {a.charges} 次{a.doubles ? '，追击另扣 1 次' : a.charges < 2 ? '，次数不足以追击' : ''}</span>}
         {d.charges !== null && d.canAttack && <span className="tag tag-grey">对方书剩 {d.charges} 次</span>}
+        {d.ward > 0 && <span className="tag tag-blue">对方屏障：受到伤害 −{d.ward}%</span>}
+        {a.ward > 0 && <span className="tag tag-blue">我方屏障：受到伤害 −{a.ward}%</span>}
       </div>
       <div className="fc-sum">
         <div>
@@ -138,10 +142,11 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
   );
 }
 
-export function HealPreview({ state, unitId, targetId, weapon }: { state: BattleState; unitId: string; targetId: string; weapon: WeaponId }) {
+export function HealPreview({ state, unitId, targetId, weapon, to }: { state: BattleState; unitId: string; targetId: string; weapon: WeaponId; to?: Point }) {
   const healer = unitById(state, unitId), target = unitById(state, targetId);
   const staff = WEAPONS[weapon];
   const amount = healAmount(healer, target, weapon);
+  if (staff.area) return <AreaHealPreview state={state} title={`范围治疗 · ${staff.name}`} heals={areaHeals(state, unitId, to ?? healer.pos, weapon)} />;
   return (
     <section className="panel" aria-labelledby="heal-h">
       <div className="ph"><h2 id="heal-h">治疗预览</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{staff.name}：{staff.note}</span></div>
@@ -152,6 +157,41 @@ export function HealPreview({ state, unitId, targetId, weapon }: { state: Battle
           <div className="num" style={{ fontSize: 15 }}>HP {target.hp} → <b>{target.hp + amount}</b> / {target.stats.hp}（+{amount}）</div>
           {healer.skill === 'shelter' && <div style={{ fontSize: 13, color: '#4E473D' }}>庇护：{target.name} 本回合防 +2</div>}
           {state.kind === 'field' && <div style={{ fontSize: 13, color: '#6A6256' }}>可获经验 +12</div>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AreaHealPreview({ state, title, heals }: { state: BattleState; title: string; heals: { unit: UnitState; amount: number }[] }) {
+  return (
+    <section className="panel" aria-labelledby="area-h">
+      <div className="ph"><h2 id="area-h">{title}</h2><span style={{ fontSize: 12, color: '#6A6256' }}>射程内每名受伤友军各回复一次</span></div>
+      <ul className="eq">
+        {heals.map(({ unit, amount }) => (
+          <li key={unit.id}><Portrait unit={unit} /><div className="min-w-0"><div className="nm">{displayName(state, unit.id)}</div>
+            <div className="sp num">HP {unit.hp} → {unit.hp + amount} / {unit.stats.hp}（+{amount}）</div></div></li>
+        ))}
+        {heals.length === 0 && <li className="empty-row">射程内没有受伤的友军</li>}
+      </ul>
+    </section>
+  );
+}
+
+// 状态杖与控场法术：显示命中率；命中后施加状态，不进入交战、目标不反击。
+function StatusPreview({ state, targetId, chance, effect }: { state: BattleState; targetId: string; chance: ReturnType<typeof commandStatus> & object; effect: string }) {
+  const target = unitById(state, targetId);
+  const label = { sleep: '睡眠', silence: '沉默', root: '定身' }[chance.status];
+  return (
+    <section className="panel" aria-labelledby="status-h">
+      <div className="ph"><h2 id="status-h">状态命中预览</h2><span style={{ fontSize: 12, color: '#6A6256' }}>不进入交战，目标不能反击</span></div>
+      <div className="ucard">
+        <Portrait unit={target} flip={target.side === 'enemy'} />
+        <div className="flex-1">
+          <div className="uname">{target.name}</div>
+          <div className="num" style={{ fontSize: 15 }}>{label}命中 <b>{chance.chance}%</b>{chance.boss ? '（首领减半）' : ''}{chance.immune ? '（免疫）' : ''}</div>
+          <div style={{ fontSize: 13, color: '#4E473D' }}>{effect}</div>
+          <div style={{ fontSize: 12, color: '#6A6256' }}>命中 = 基础命中 + 技×2 + 运÷2 − 目标回避；与普通攻击一样取两个随机数的平均值判定。</div>
         </div>
       </div>
     </section>
@@ -200,6 +240,10 @@ export function CommandPreview({ state, mode }: { state: BattleState; mode: Comm
   if (f && mode.kind === 'cast' && mode.spell) {
     return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.spell as WeaponId} targetId={mode.target} given={f} title={`法术预测 · ${spellInfo(mode.spell)?.name ?? mode.spell}`} weaponName={spellInfo(mode.spell)?.name} />;
   }
+  const status = commandStatus(state, mode);
+  const book = mode.kind === 'cast' ? spellInfo(mode.spell ?? '') : undefined;
+  if (status) return <StatusPreview state={state} targetId={mode.target} chance={status} effect={book?.effect ?? (mode.kind === 'staff' && mode.weapon ? WEAPONS[mode.weapon].note ?? '' : '')} />;
+  if (book?.effects.area) return <AreaHealPreview state={state} title={`范围治疗 · ${book.name}`} heals={areaHeals(state, mode.unit, mode.to, book.id as WeaponId, book.id)} />;
   const heal = spellHeal(state, mode);
   const effect = mode.kind === 'cast' ? spellInfo(mode.spell ?? '')?.effect
     : mode.kind === 'staff' && mode.weapon ? `${STAFF_EFFECT_TEXT[mode.weapon === 'sleep_staff' ? 'sleep' : mode.weapon === 'silence_staff' ? 'silence' : mode.weapon === 'warp_staff' ? 'warp' : 'rescue']}：${WEAPONS[mode.weapon].note ?? ''}`

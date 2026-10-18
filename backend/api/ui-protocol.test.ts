@@ -109,11 +109,35 @@ test('UNIT_ACT casts a spellbook, previews it, and silence blocks casting', () =
   assert.throws(() => step(silenced, { type: 'act', unit: 'u_sera', to: caster.pos, act: 'cast', target: target.id, spell: 'fire' }), /沉默/);
 });
 
+test('PREVIEW_COMBAT gives status spells and staves a hit chance and attack spells their remaining charges', () => {
+  const { store, accountId, player } = setup('ui-status-preview');
+  const ctx = ctxFor(store, accountId, player);
+  const sera = store.unit(player.id, 'u_sera')!;
+  sera.ranks.staff = 'A';
+  sera.spellbooks = [{ id: 'fw_spell_40', charges: 2, maxCharges: 2 }, { id: 'fire', charges: 1, maxCharges: 20 }];
+  sera.weapons = ['silence_staff']; sera.bookInstances = [{ id: 'silence_staff', charges: 5, maxCharges: 5 }];
+  const record = battleWith(store, player, [sera]);
+  const state = structuredClone(record.state);
+  const me = state.units.find(u => u.id === 'u_sera')!;
+  // 单人出击只有一名敌方主将：首领的状态命中减半。
+  const foe = state.units.find(u => u.side === 'enemy')!;
+  placeNextTo(state, foe, me);
+  save(store, record, state);
+  const spell = dispatch(ctx, OP.PREVIEW_COMBAT, { attackerId: 'u_sera', from: me.pos, spell: 'fw_spell_40', targetId: foe.id }) as { status: { status: string; chance: number; boss: boolean }; attacker?: unknown };
+  assert.equal(spell.status.status, 'silence'); assert.equal(spell.status.boss, true); assert.ok(spell.status.chance >= 0 && spell.status.chance <= 50); assert.equal(spell.attacker, undefined);
+  const staff = dispatch(ctx, OP.PREVIEW_COMBAT, { attackerId: 'u_sera', from: me.pos, weapon: 'silence_staff', targetId: foe.id }) as { status: { status: string } };
+  assert.equal(staff.status.status, 'silence');
+  const fire = dispatch(ctx, OP.PREVIEW_COMBAT, { attackerId: 'u_sera', from: me.pos, spell: 'fire', targetId: foe.id }) as { attacker: { charges: number; doubles: boolean } };
+  assert.equal(fire.attacker.charges, 1); assert.equal(fire.attacker.doubles, false);
+});
+
 test('the wall spell places exactly one wall and never on the caster’s landing cell', () => {
   const { store, player } = setup('ui-wall');
   const sera = store.unit(player.id, 'u_sera')!;
   const noah = store.unit(player.id, 'u_noah')!;
   sera.spellbooks = [{ id: 'fw_spell_9', charges: 5, maxCharges: 5 }];
+  // 彷徨之壁是 B 级白魔法：现职业要有杖权限且杖熟练度达到 B。
+  sera.ranks.staff = 'B';
   const record = battleWith(store, player, [sera, noah]);
   const state = structuredClone(record.state);
   const me = state.units.find(u => u.id === 'u_sera')!;
@@ -121,7 +145,7 @@ test('the wall spell places exactly one wall and never on the caster’s landing
   placeNextTo(state, ally, me);
   const option = actionOptions(state, me, me.pos).casts.find(c => c.spell === 'fw_spell_9')!;
   assert.ok(option.targets.some(t => t.id === ally.id));
-  assert.deepEqual(option.dest, { from: 'stand', max: 3, required: true });
+  assert.deepEqual(option.dest, { from: 'stand', max: 3, required: true, wall: true });
   const cells = destinationCells(state, me, me.pos, option.dest!);
   assert.ok(cells.length > 0);
   assert.ok(!cells.some(c => c[0] === me.pos[0] && c[1] === me.pos[1]));
@@ -144,7 +168,9 @@ test('UNIT_ACT uses a status staff and a dancer can refresh an ally', () => {
   const record = battleWith(store, player, [noah, dancer, erin]);
   const state = structuredClone(record.state);
   const me = state.units.find(u => u.id === 'u_noah')!;
-  const foe = state.units.find(u => u.side === 'enemy')!;
+  const foe = state.units.find(u => u.side === 'enemy' && !u.boss)!;
+  // 状态杖按命中判定；把技巧拉满，使这次命中为 100%。
+  me.stats.skl = 200;
   placeNextTo(state, foe, me, 2);
   save(store, record, state);
   const reach = dispatch(ctx, OP.GET_REACHABLE, { unitId: 'u_noah' }) as { stops: { pos: Point; staves: { weapon: string; effect: string; targets: string[] }[] }[] };

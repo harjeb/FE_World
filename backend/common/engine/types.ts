@@ -16,7 +16,8 @@ export type Behavior = 'aggressive' | 'opportunist' | 'hold' | 'guard' | 'healer
 
 export interface ItemStack { id: ItemId; uses: number }
 
-export type ArtStat = 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'attack' | 'hit' | 'crit' | 'avoid' | 'dodge' | 'as' | 'protection' | 'move';
+// ward: 屏障，按百分比减少本单位下一次交战受到的伤害。
+export type ArtStat = 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'attack' | 'hit' | 'crit' | 'avoid' | 'dodge' | 'as' | 'protection' | 'move' | 'ward';
 export type ArtAilment = 'poison' | 'root' | 'silence' | 'confusion';
 export interface ArtBuff { source: string; stat: ArtStat; amount: number; duration: 'map' | 'next_phase' | 'phase' | 'exchange'; turn: number }
 
@@ -55,13 +56,15 @@ export interface UnitState {
   shields?: number;
   shieldsUsed?: number;
   petrified?: boolean;
-  // 睡眠：无法行动，受击或复原杖解除；沉默/混乱按己方阶段计数。
-  statuses?: { sleep?: boolean; silence?: number; berserk?: number; regen?: number };
+  // 睡眠：无法行动，受击或复原杖解除；睡眠杖另记 sleepPhases，睡过目标自己的阶段数后醒。沉默/混乱按己方阶段计数。
+  statuses?: { sleep?: boolean; sleepPhases?: number; silence?: number; berserk?: number; regen?: number };
   artEffects?: { movementPenalty?: number; scent?: Side[]; barrier?: { amount: number; by: string }; displaced?: boolean; buffs?: ArtBuff[]; statuses?: ArtAilment[] };
-  immunities?: ('movement_debuff' | 'follow_up_lock' | 'defense_pierce' | 'poison' | 'root' | 'silence' | 'confusion' | 'debuff' | 'healing')[];
+  immunities?: ('movement_debuff' | 'follow_up_lock' | 'defense_pierce' | 'poison' | 'root' | 'silence' | 'confusion' | 'debuff' | 'healing' | 'sleep')[];
   tags?: ('large' | 'demon' | 'nether_protection')[];
   // 已学习的主动战技稳定 ID（最多五格；具体学习由成长系统写入）。
   arts?: string[];
+  // 用限量教材学会的法术（芬布尔之夜等）；施放这类法术还要持有对应的书。
+  learnedSpells?: string[];
   // 当前职业固有能力的参考资料 ID（sk-*）；精通节点另由 learnedSkills 提供。
   classSkills?: string[];
   weaponInstances?: WeaponInstance[];
@@ -114,6 +117,8 @@ export interface BattleObject {
   change?: string;
   // 临时墙等法术物件在指定回合后消失。
   expiresTurn?: number;
+  // 法术物件的施法者（彷徨之壁每人最多同时 2 面）。
+  owner?: string;
 }
 
 export interface ScenarioMapChange { id: string; position: Point; terrain: (Terrain | null)[][] }
@@ -214,6 +219,8 @@ export type BattleEvent =
   | { t: 'artState'; unit: string; effects: UnitState['artEffects'] }
   | { t: 'embers'; cells: BattleState['embers'] }
   | { t: 'cast'; unit: string; target: string; spell: string }
+  // 状态杖／状态法术的命中判定：chance 为显示命中，landed 为是否生效。
+  | { t: 'statusRoll'; unit: string; target: string; status: 'sleep' | 'silence' | 'root'; chance: number; landed: boolean }
   | { t: 'loot'; unit: string; boxes: number }
   | { t: 'drop'; unit: string; boxes: number; at: Point }
   | { t: 'escape'; unit: string }

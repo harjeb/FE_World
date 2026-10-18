@@ -12,9 +12,11 @@ for s in d['spells']:
       'hit':p.get('hit',0),'crit':p.get('crit',0),'weight':p.get('weight',0),'range':p.get('range',[1,1]),
       'maxCharges':p.get('maxCharges',6),'damageDefense':p.get('damageDefense','res'),
       'fixedHits':p.get('fixedHits',1),'allowSpeedFollowUp':p.get('allowSpeedFollowUp',True),
-      'requiredStudy':p.get('requiredStudy'),'effect':s.get('effectSummary','')})
-lines=['// Generated from docs/data/fw-equipment-expansion.json by tools/build/spells.py. Do not hand-edit.','export interface SpellDef { id: string; name: string; school: string; role: string; rank: string; might: number; healingBase: number | null; hit: number; crit: number; weight: number; range: [number, number]; maxCharges: number; damageDefense: string; fixedHits: number; allowSpeedFollowUp: boolean; requiredStudy: string | null; effect: string }','','export const SPELLS = [']
+      'requiredStudy':p.get('requiredStudy'),'effects':p.get('effects',{}),'effect':s.get('effectSummary','')})
+lines=['// Generated from docs/data/fw-equipment-expansion.json by tools/build/spells.py. Do not hand-edit.',
+  "import type { Rank } from './types.ts';", "import type { SpellEffects } from './spellbooks.ts';",'',
+  "export interface SpellDef { id: string; name: string; school: 'black' | 'white' | 'dark'; role: 'attack' | 'heal' | 'support' | 'hostile_support'; rank: Rank; might: number | null; healingBase: number | null; hit: number | null; crit: number | null; weight: number; range: readonly [number, number]; maxCharges: number; damageDefense: 'def' | 'res' | null; fixedHits: number; allowSpeedFollowUp: boolean; requiredStudy: 'blackMagic' | 'whiteMagic'; effects: SpellEffects; effect: string }",'','export const SPELLS = [']
 for r in rows: lines.append('  '+json.dumps(r, ensure_ascii=False)+',')
-lines += ['] as const;','','export type SpellId = (typeof SPELLS)[number][\'id\'];','export const SPELL_BY_ID = new Map(SPELLS.map(spell => [spell.id, spell]));','']
+lines += ['] as const satisfies readonly SpellDef[];','','export type SpellId = (typeof SPELLS)[number][\'id\'];','export const SPELL_BY_ID = new Map(SPELLS.map(spell => [spell.id, spell]));','']
 (ROOT/'backend/common/data/spells.ts').write_text('\n'.join(lines),encoding='utf-8')
 print(f'spells: {len(rows)}')
