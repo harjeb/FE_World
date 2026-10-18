@@ -46,7 +46,10 @@
 | [20 地区任务与声望](docs/20-region-quests-reputation.md) | 三地首次任务、战斗目标、声望商店及固定人物的首版规则与后续内容 |
 | [21 设计一致性检查与修复](docs/21-code-design-audit.md) | 原始审计、修复状态、回归和浏览器验证命令 |
 | [22 装备属性与首版适配](docs/22-equipment-catalog.md) | 当前35武器／杖、其他道具及跨平台新增装备、耐久、每书次数、旅馆食物恢复 |
-| [23 技能效果与首版适配](docs/23-skill-catalog.md) | 当前12技能、GBA／NDS／3DS／NS参考的被动／触发、主动战技、支援指令与Agent对等 |
+| [23 技能效果与首版适配](docs/23-skill-catalog.md) | 当前12技能、首版300项主动武器战技的共用规则与配置示例、支援指令与Agent对等 |
+| [24 经典关卡接入](docs/24-classic-scenarios-integration-todo.md) | 60张经典地图转成任务/副本；目录、地形/职业适配、路线分组、验证与事件待办 |
+| [25《万缕千丝》技能与职业对应](docs/25-fortunes-weave-skills.md) | 58项现用参考职业的固有／精通关联、96项技能与10项战技／指令效果、个人技能参考和适配边界 |
+| [26 首版主动武器战技完整目录](docs/26-weapon-art-catalog.md) | 283项《万缕千丝》武器战技＋17项既有补充，逐项效果／数值／学习来源、强化前提和可复核数据 |
 
 ## 服务端（API · Worker · Agent 协议）
 
