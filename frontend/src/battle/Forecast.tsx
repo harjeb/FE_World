@@ -67,18 +67,13 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
   const dealt = aHits.reduce((sum, s) => sum + s.damage, 0), taken = dHits.reduce((sum, s) => sum + s.damage, 0);
   const dLoss = Math.min(defender.hp - (d.protected ? 1 : 0), dealt);
   const aLoss = Math.min(attacker.hp - (a.protected ? 1 : 0), taken);
-  const killNote = '阴影仅为全部命中、无必杀／攻击触发的伤害示意；非最终 HP（吸血可回复）';
   const damageText = (s: (typeof onHit)[number]) => `${s.damage === s.maxDamage ? s.damage : `${s.damage}–${s.maxDamage}`}${s.chance !== undefined ? `（出手 ${s.chance}%）` : ''}`;
   const exp = attacker.side === 'player' && state.kind === 'field' ? expPreview(attacker, defender) : null;
   const tri = d.weapon && WEAPONS[weapon] ? `${WEAPON_TYPE_NAMES[WEAPONS[weapon].type]}${a.triangle > 0 ? '克' : '被'}${WEAPON_TYPE_NAMES[WEAPONS[d.weapon].type]}${a.triangle > 0 ? '' : '克'}` : '';
   const dash = '—';
   return (
     <section className="panel" aria-labelledby={heading}>
-      <div className="ph">
-        <h2 id={heading}>{title}</h2>
-        <span style={{ fontSize: 12, color: '#6A6256' }}>命中与必杀为概率，实际结果以判定为准</span>
-      </div>
-      {f.assumption && <p className="pfoot">后段按发动前状态独立预测，不是整次范围行动的联合概率；前段反击、屏障消耗与升级可能改变实际结果。</p>}
+      <div className="ph"><h2 id={heading}>{title}</h2></div>
       <div className="fc-sides">
         <Fighter unit={attacker} label={displayName(state, attacker.id)} weapon={weapon} side={a} weaponName={weaponName} />
         <span className="fc-vs" aria-hidden="true">VS</span>
@@ -86,9 +81,8 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
       </div>
       <div className="fc-hps">
         <HpBox unit={attacker} loss={aLoss} color="#4A7FA6"
-          note={dHits.length ? `反击伤害示意 ${aLoss}；${killNote}` : d.canAttack ? '首击失手仍可能被反击' : '对方无法反击'} />
-        <HpBox unit={defender} loss={dLoss} color="#B8574A" right
-          note={`伤害示意 ${dLoss}；${killNote}`} />
+          note={dHits.length ? `反击伤害 ${aLoss}` : d.canAttack ? '可能受到反击' : '对方无法反击'} />
+        <HpBox unit={defender} loss={dLoss} color="#B8574A" right note={`预计伤害 ${dLoss}`} />
       </div>
       <table className="fc-tbl">
         <caption className="sr-only">双方数值对比：左为{attacker.name}，右为{defender.name}</caption>
@@ -104,8 +98,8 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         </tbody>
       </table>
       <div className="fc-adv">
-        {f.art?.procChance !== undefined && <span className="tag tag-brass">战技触发 {f.art.procChance}%（非必定；伤害区间含攻击触发）</span>}
-        {!!f.art?.forceProbability && <span className="tag tag-brass">额外追击概率 {f.art.forceProbability}%（非保证出手）</span>}
+        {f.art?.procChance !== undefined && <span className="tag tag-brass">战技触发 {f.art.procChance}%</span>}
+        {!!f.art?.forceProbability && <span className="tag tag-brass">额外追击概率 {f.art.forceProbability}%</span>}
         {a.triangle > 0 && <span className="tag tag-green">▲ 武器克制：{tri} · 命中 +15 伤害 +1</span>}
         {a.triangle < 0 && <span className="tag tag-red">▼ 被克制：{tri} · 命中 −15 伤害 −1</span>}
         {a.effective && <span className="tag tag-brass">特效：威力 ×3</span>}
@@ -130,7 +124,6 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
           <span className="muted">击败概率</span> <b style={{ fontSize: 16 }}>{pct(f.defenderDies)}</b>
           <span className="muted"> · 被击败风险 </span><b>{pct(f.attackerDies)}</b>
         </div>
-        <div className="muted" style={{ fontSize: 12 }}>概率按实际判定计算：命中取两个随机数的平均值，必杀取一个随机数。</div>
         {exp && (
           <div>
             <span className="muted">可获经验</span> 交战 +{exp.fight} · 击败 +{exp.kill}
