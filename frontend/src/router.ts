@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 
 // Hash routes, so the static build works from any server path:
 //   #/camp                   军营 (default)
+//   #/world                   世界地图：选择讨伐路线、查看已开通地区
 //   #/roster[/<id>[/tab]]    名册: 属性与装备 / 成长记录 / 精通与技能 / 职业资格 / 退役与轮回
 //   #/roster/<id>/promote    转职
 //   #/arena                  today's arena: attacks, the real-month table and rewards
@@ -29,6 +30,7 @@ export type FieldTab = 'field' | 'dungeon' | 'dispatch';
 
 export type Route =
   | { page: 'camp' }
+  | { page: 'world' }
   | { page: 'roster'; unit: string | null; tab: RosterTab }
   | { page: 'promote'; unit: string }
   | { page: 'arena' }
@@ -51,11 +53,20 @@ export type Route =
 
 const ROSTER_TABS: RosterTab[] = ['growth', 'mastery', 'classes', 'retire'];
 
+export function regionInHash(hash: string): number | null {
+  const query = hash.indexOf('?');
+  if (query < 0) return null;
+  const raw = new URLSearchParams(hash.slice(query + 1)).get('region');
+  const region = raw === null ? NaN : Number(raw);
+  return Number.isInteger(region) && region >= 1 && region <= 12 ? region : null;
+}
+
 export function parseRoute(hash: string): Route {
   const [first, second, third] = hash.replace(/^#\/?/, '').split('?')[0].split('/').filter(Boolean);
   switch (first) {
     case 'field':
       return second === 'dungeon' ? { page: 'dungeon' } : second === 'dispatch' ? { page: 'dispatch' } : { page: 'field' };
+    case 'world': return { page: 'world' };
     case 'workshop': return { page: 'workshop' };
     case 'tavern': return { page: 'tavern' };
     case 'story': return { page: 'story' };
@@ -82,6 +93,7 @@ export function parseRoute(hash: string): Route {
 
 export const links = {
   camp: '#/camp',
+  world: '#/world',
   roster: (id?: string, tab: RosterTab = 'stats') => (id ? `#/roster/${id}${tab === 'stats' ? '' : `/${tab}`}` : '#/roster'),
   promote: (id: string) => `#/roster/${id}/promote`,
   arena: '#/arena',

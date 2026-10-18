@@ -61,7 +61,7 @@ export function LegacyPage() {
           可兑现 <b className="num">{available.length}</b> 份 · 已兑现 <b className="num">{list.length - available.length}</b> 份
         </div>
       </div>
-      {!state.legacyUnlocked && <p className="sys-strip" role="status">传承尚未解锁：完成任一地区的核心任务（地区远征最后一档）并领奖后，账号永久开放兑现。遗产会一直保留。</p>}
+      {!state.legacyUnlocked && <p className="sys-strip" role="status">传承尚未解锁：完成林地、丘陵或湖镇的核心终章并领奖后，账号永久开放兑现。遗产会一直保留。</p>}
 
       <div className="sys-cols">
         <div className="colstack">
@@ -101,7 +101,7 @@ export function LegacyPage() {
           )}
           <section className="panel" aria-labelledby="emg-h">
             <div className="ph"><h2 id="emg-h">严重损失</h2></div>
-            <p className="sys-note">真实伤亡让现役存活降到 {memorial?.emergency.threshold ?? 2} 人及以下时，可以在<a href={links.tavern}>酒馆</a>免费补员 {memorial?.emergency.units ?? 2} 人{memorial ? `（现在：${memorial.emergency.available ? '可以领取' : memorial.emergency.blocker ?? '未开放'}）` : ''}。</p>
+            <p className="sys-note">真实伤亡让现役存活降到 {memorial?.emergency.threshold ?? 2} 人及以下时，可以在{state.features?.tavern ? <a href={links.tavern}>酒馆</a> : '酒馆'}免费补员 {memorial?.emergency.units ?? 2} 人{memorial ? `（现在：${memorial.emergency.available ? '可以领取' : memorial.emergency.blocker ?? '未开放'}）` : ''}。</p>
           </section>
         </div>
       </div>
@@ -213,7 +213,7 @@ function ClaimPanel({ legacy }: { legacy: ServerLegacy }) {
         )}
 
         <Checks items={[
-          [state.legacyUnlocked, state.legacyUnlocked ? '传承已解锁' : '传承尚未解锁：完成任一地区核心任务并领奖'],
+          [state.legacyUnlocked, state.legacyUnlocked ? '传承已解锁' : '传承尚未解锁：完成林地、丘陵或湖镇的核心终章并领奖'],
           [!!heir, heir ? `继承者：${heir.name}（1 级、没接受过遗产）` : '需要一名符合条件的继承者'],
           [stones > 0, stones > 0 ? `${itemName(STONE[mode])}：仓库 ${stones} 枚` : `缺少${itemName(STONE[mode])}：${mode === 'growth' ? `${regionById(2).name}的核心任务或${regionById(12).name}的声望商店（盟友档）` : `${regionById(3).name}的核心任务或挑战塔第二层首通`}可以获得`],
           ...(mode === 'numeric' ? [[weighted, weighted ? '补点权重已设置' : '至少给一项属性设置权重'] as [boolean, string]] : []),

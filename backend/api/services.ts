@@ -17,8 +17,9 @@ import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
 import { carryFromBattle, DUNGEON_STAGES, stageCount, stageLoot } from '../common/game/expedition.ts';
 import type { RunCarry, RunRecord } from '../common/game/expedition.ts';
-import { advanceBracket, knockoutResult, nextAnnualWindowStart, qualifierResult } from '../common/game/annual.ts';
+import { advanceBracket, knockoutResult, nextAnnualWindowStart, qualifierResult, annualWindowOpen } from '../common/game/annual.ts';
 import type { AnnualEntry } from '../common/game/annual.ts';
+import type { Quest } from '../common/game/quests.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, enemyLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
@@ -26,7 +27,11 @@ import { summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
-import { QUEST_RECRUITS } from '../common/game/quests.ts';
+import { QUEST_RECRUITS, questById } from '../common/game/quests.ts';
+import { chapterAvailable, STORY_CHAPTERS } from '../common/game/story.ts';
+import { normalizeRegions, worldMap, unlockedRegions as unionRegions } from '../common/game/region-map.ts';
+import type { FeatureAccess, RegionProgress } from '../common/game/region-map.ts';
+import type { FacilityId } from '../common/game/production.ts';
 import { recruitLevel, recruitPortrait } from '../common/game/random-recruit.ts';
 import type { Defense, SnapshotUnit } from '../common/arena/rules.ts';
 import type { Store, Player, SnapshotData } from './store.ts';
@@ -42,7 +47,7 @@ export function snapshotData(store: Store, player: Player): SnapshotData {
   const roster = active.map(toSnapshot);
   // 快照里的防守必须来自真实名册，不能用客户端提交的属性 (docs/00 §10.1)。
   const defense = player.defense ? bindDefense(active, player.defense, false) : null;
-  return { roster, defense, label: `第 ${player.day} 日快照` };
+  return { roster, defense, label: `${dateOf(player.day).label}快照` };
 }
 
 // 用服务器当前名册重建防守单位，属性/装备只取服务器数据，杜绝伪造。
@@ -70,13 +75,113 @@ export function ensureArenaDay(store: Store, player: Player): void {
   store.saveArenaDay(day);
 }
 
+// ---- 世界地图开荒与特性门（region-map 契约的服务器侧应用） ----------------
+
+// 实际可用地区 = 显式解锁 ∪ 已讨伐（clearedRegions 永不重置，见 region-map.ts）。
+export function playerRegions(player: Player): number[] {
+  return unionRegions({ unlockedRegions: player.flags.unlockedRegions ?? [], clearedRegions: player.flags.clearedRegions });
+}
+
+// 旧档地区认领的真实证据：已讨伐、已获得的地区声望、任务完成，以及既有战斗／远征／派遣的
+// 所属地区（含进行中的战斗，保证正在打第 8 天存档的玩家继续可玩）。绝不开「整图 12 地区」。
+export function regionEvidence(store: Store, player: Player): number[] {
+  const evidence = new Set<number>(player.flags.clearedRegions);
+  for (const [region, reputation] of Object.entries(player.flags.regionReputation ?? {})) {
+    if ((reputation ?? 0) > 0) evidence.add(Number(region));
+  }
+  if (player.flags.pendingRecruit) evidence.add(player.flags.pendingRecruit.region);
+  for (const [region, failures] of Object.entries(player.flags.recruitFailsByRegion ?? {})) if (failures > 0) evidence.add(Number(region));
+  for (const questId of player.flags.questsDone ?? []) {
+    const quest = questById(questId);
+    if (quest) evidence.add(quest.region);
+  }
+  for (const battle of store.battles(player.id)) if (battle.region) evidence.add(battle.region);
+  for (const run of store.runs(player.id)) evidence.add(run.region);
+  for (const dispatch of store.dispatches(player.id)) evidence.add(dispatch.region);
+  return normalizeRegions([...evidence]);
+}
+
+// 旧档懒认领：首次读到未初始化的 flags.unlockedRegions 时按证据落账一次；此后该字段即 canonical，
+// 后续活动都在已解锁地区内进行，无需重扫。返回值始终含 clearedRegions。
+export function adoptRegions(store: Store, player: Player): number[] {
+  if (player.flags.unlockedRegions !== undefined) return playerRegions(player);
+  const merged = regionEvidence(store, player);
+  player.flags.unlockedRegions = merged;
+  store.savePlayer(player);
+  return merged;
+}
+
+// 副本／派遣／竞技场／挑战塔的开关：首次讨伐之后开放；旧档按既有活动或多个已解锁地区放行，
+// registered 默认值不代表已解锁，竞技场日的懒生成也必须先过这道门。
+export function combatFeaturesOpen(store: Store, player: Player, unlocked: number[]): boolean {
+  if (player.flags.clearedRegions.length > 0) return true;
+  if (unlocked.length >= 2) return true;
+  return !!store.activeRun(player.id)
+    || store.dispatches(player.id).length > 0
+    || !!store.activeAnnualEntry(player.id) || !!store.latestArenaDay(player.id);
+}
+
+// 酒馆：第二年开放；出现新的真实伤亡（应急补员资格尚未用掉）时提前开放。
+export function tavernOpen(store: Store, player: Player): boolean {
+  if (dateOf(player.day).year >= 2) return true;
+  const deaths = store.memorials(player.id).filter(row => row.data.cause === 'death').length;
+  const survivors = store.units(player.id).filter(unit => unit.status === 'active').length;
+  return deaths > (player.flags.emergencyClaimed ?? 0) && survivors <= 2;
+}
+
+// 工坊设施按地区开放：药草田←地区2(希尔瓦林地)、铁匠铺←地区3(托尔加丘陵)、炼药所←地区5(莱斯米尔湖镇)；
+// 有订单历史的设施保留可用，避免旧档设施在最后一次领取后被重新锁住。
+const FACILITY_REGION: Record<FacilityId, number> = { garden: 2, smithy: 3, apothecary: 5 };
+export function workshopFacilities(store: Store, player: Player, unlocked: number[]): Record<FacilityId, boolean> {
+  const orders = store.productionOrders(player.id);
+  return Object.fromEntries((Object.keys(FACILITY_REGION) as FacilityId[]).map(id => {
+    const open = unlocked.includes(FACILITY_REGION[id]) || orders.some(order => order.facility === id);
+    return [id, open];
+  })) as Record<FacilityId, boolean>;
+}
+
+// 前端特性开关（FeatureAccess，region-map.ts 契约）：控制页面显隐与安全空读，
+// 对应的新写操作在 handlers 里按同一策略拦截。
+export function featureAccess(store: Store, player: Player, unlocked: number[]): FeatureAccess {
+  const combat = combatFeaturesOpen(store, player, unlocked);
+  const workshop = workshopFacilities(store, player, unlocked);
+  const reports = store.hasOwnReplays(player.id);
+  return {
+    field: unlocked.length > 0,
+    quests: unlocked.length > 0,
+    dungeon: combat,
+    dispatch: combat,
+    arena: combat,
+    tower: combat,
+    workshop: workshop.garden || workshop.smithy || workshop.apothecary,
+    tavern: tavernOpen(store, player),
+    story: Array.from({ length: STORY_CHAPTERS }, (_, i) => i + 1).some(chapter => chapterAvailable(chapter, player.day))
+      || (player.flags.storyCompleted?.length ?? 0) > 0,
+    legacy: !!player.flags.legacyUnlocked || store.legacies(player.id).length > 0,
+    reports,
+    annual: annualWindowOpen(player.day) || !!store.latestAnnualEntry(player.id),
+    spectate: reports || !!store.activeBattle(player.id),
+  };
+}
+
+// 世界地图视图（WorldMapView，region-map.ts 契约）：含锁定节点与当前可选路线。
+export function worldProgress(player: Player): RegionProgress {
+  return { unlockedRegions: player.flags.unlockedRegions ?? [], clearedRegions: player.flags.clearedRegions };
+}
+
 export function syncPlayer(store: Store, player: Player): Player {
+  // 旧档地区认领（一次性，见 adoptRegions）：后续的竞技场日懒生成也要按解锁进度放行。
+  const unlocked = adoptRegions(store, player);
   const month = Math.floor(player.day / DAYS_PER_SEASON);
   if (player.flags.shopMonth !== month) {
     store.refillShop(player.id, month);
     player.flags.shopMonth = month;
+  } else {
+    // 同季度老存档：只补插当前商店新增行，不重置已消耗库存。
+    store.ensureShopRows(player.id);
   }
-  if (player.registered && isArenaDay(player.day) && !store.arenaDay(player.id, player.day)) {
+  if (player.registered && isArenaDay(player.day) && !store.arenaDay(player.id, player.day)
+    && combatFeaturesOpen(store, player, unlocked)) {
     const snapshot = snapshotData(store, player);
     store.saveSnapshot(player.id, player.day, snapshot);
     const day = createArenaDay(player.id, player.day, matchedOpponents(store, player), null);
@@ -617,6 +722,8 @@ export function stateView(store: Store, player: Player) {
   const active = units.filter(u => u.status === 'active');
   const date = dateOf(player.day);
   const cleared = player.flags.clearedRegions;
+  const unlocked = adoptRegions(store, player);
+  const progress = worldProgress(player);
   return {
     player: { id: player.id, name: player.name, legion: player.legion, protagonist: player.protagonist },
     version: player.version ?? 0,
@@ -637,7 +744,11 @@ export function stateView(store: Store, player: Player) {
     units: units.map(unit => publicUnitSummary(unit, player.day)),
     inventory: store.inventory(player.id).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, uses: row.uses, count: row.count, bound: GAME_ITEMS[row.item].bound === true })),
     recoveryBag: (player.flags.recoveryBag ?? []).map(row => ({ item: row.item, name: GAME_ITEMS[row.item]?.name ?? row.item, uses: row.uses, bound: GAME_ITEMS[row.item]?.bound === true })),
-    regions: REGIONS.map(region => ({ ...region, cleared: cleared.includes(region.id) })),
+    // 已解锁地区列表（GET_STATE.regions 只发已解锁；完整地图走 world，含锁定节点）。
+    regions: REGIONS.filter(region => unlocked.includes(region.id)).map(region => ({ ...region, cleared: cleared.includes(region.id) })),
+    // 世界地图开荒视图与前端特性开关（region-map.ts 契约）。
+    world: worldMap(progress),
+    features: featureAccess(store, player, unlocked),
     progress: { cleared: cleared.length, baseLevel: enemyLevel(player.day) },
     festival: { round: player.flags.festivalRound, year: player.flags.festivalYear, nextDay: nextAnnualWindowStart(player.day) },
     agentPlan: store.notes(player.id, 'plan')[0]?.text ?? null,

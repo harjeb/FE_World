@@ -7,6 +7,7 @@ import { session, useSession } from '../api/session.ts';
 import type { ServerUnit } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
 import { annualLive, canPromote, LIFESPAN_TEXT, rosterOrder, STATUS_TAG, STATUS_TEXT, unitStatus } from '../model/roster.ts';
+import { featuresOf } from '../model/access.ts';
 import { links } from '../router.ts';
 import { agentOnline, Shell } from '../shell/Shell.tsx';
 import { AnvilIcon, CandleIcon, CompassIcon, LockIcon, QuestIcon, RosterIcon, ScrollIcon } from '../ui/icons.tsx';
@@ -42,10 +43,21 @@ export function CampPage() {
   const promotable = active.filter(canPromote);
   const aging = active.filter(u => u.lifespanWarning !== 'none');
   const cleared = state.progress.cleared;
+  const world = state.world ?? null;
+  const features = featuresOf(state);
   const seasonLeft = DAYS_PER_SEASON - date.dayOfSeason;
-  const summary = `名册 ${active.length} / ${state.rosterLimit} 人 · 可出战 ${ready.length} 人 · 已讨伐 ${cleared} / ${state.regions.length} 个地区`;
+  const summary = `名册 ${active.length} / ${state.rosterLimit} 人 · 可出战 ${ready.length} 人 · 已开通 ${state.regions.length} 个地区（讨伐 ${cleared}）`;
 
   const tasks: Task[] = [];
+  // 第一步永远是选择讨伐路线：还有可选路线时，置顶的世界地图入口不依赖任何功能旗标。
+  if (world && world.selectableRegions.length > 0) {
+    tasks.push({
+      key: 'world', icon: <CompassIcon />, title: world.unlockedRegions.length === 0 ? '第一步 · 选择首条讨伐路线' : '新的讨伐路线可选',
+      tag: [`${world.selectableRegions.length} 条可选`, 'tag-brass'],
+      desc: '在世界地图上开通下一个地区，不消耗行动日；开通后即可出击、做任务与派遣。',
+      action: { label: '打开世界地图', href: links.world, primary: true },
+    });
+  }
   if (battle) {
     const inRun = battle.kind === 'field' && run?.battleId === battle.id;
     const href = battle.mode === 'festival' ? links.annual : inRun ? links.dungeon : battle.kind === 'field' ? links.field
@@ -75,25 +87,25 @@ export function CampPage() {
     });
   }
   const annualEntry = annual?.entry && annual.entry.annualIndex === annual.annualIndex ? annual.entry : null;
-  if (annual && annualLive(annual) && battle?.mode !== 'festival') {
+  if (annual && features.annual && annualLive(annual) && battle?.mode !== 'festival') {
     tasks.push({
       key: 'annual', icon: icon(ICONS.medal, 24), title: `第 ${annual.annualIndex} 届大竞技场 · 下一场`, tag: [annualEntry?.state === 'qualifier' ? `海选 ${annualEntry.qualifierWins} 胜 ${annualEntry.qualifierCount - annualEntry.qualifierWins} 负` : '正赛', 'tag-blue'],
       desc: `每场推进 ${annual.costDays} 日，真实死亡；局间只恢复存活者的 HP。赛事期间其他行动暂停。`, action: { label: '去赛程', href: links.annual, primary: true },
     });
-  } else if (annual && !annualEntry && annual.windowOpen) {
+  } else if (annual && features.annual && !annualEntry && annual.windowOpen) {
     tasks.push({
       key: 'annual', icon: icon(ICONS.medal, 24), title: `第 ${annual.annualIndex} 届大竞技场报名中`, tag: ['报名窗口', 'tag-brass'],
       desc: '报名锁定名单与快照；海选 3 场至少 2 胜进正赛。名次不影响主线章节。', action: { label: '报名', href: links.annual },
     });
   }
-  const chapter = story?.chapters.find(c => c.available && (!c.completed || !c.claimed));
+  const chapter = story && features.story ? story.chapters.find(c => c.available && (!c.completed || !c.claimed)) : undefined;
   if (story && chapter) {
     tasks.push({
       key: 'story', icon: <ScrollIcon />, title: `主线第 ${chapter.chapter} 章「${chapter.title}」`, tag: chapter.completed ? ['奖励待领取', 'tag-green'] : ['可完成', 'tag-blue'],
       desc: chapter.completed ? `已完成，可以领取团队公共经验 ${story.bexp}。` : '章节事件已开放，名次和地区进度都不挡章节。', action: { label: '去主线', href: links.story },
     });
   }
-  const claimable = quests?.regions.flatMap(r => r.quests.filter(q => q.done && !q.claimed).map(q => ({ ...q, regionName: r.name }))) ?? [];
+  const claimable = features.quests ? quests?.regions.flatMap(r => r.quests.filter(q => q.done && !q.claimed).map(q => ({ ...q, regionName: r.name }))) ?? [] : [];
   if (claimable.length > 0) {
     tasks.push({
       key: 'quests', icon: <QuestIcon />, title: `地区任务 · ${claimable.length} 份奖励待领取`, tag: ['奖励待领取', 'tag-green'],
@@ -101,15 +113,15 @@ export function CampPage() {
       action: { label: '去领取', href: links.quests },
     });
   }
-  const ripe = production?.ready.length ?? 0;
+  const ripe = features.workshop ? production?.ready.length ?? 0 : 0;
   if (ripe > 0) {
     tasks.push({ key: 'craft', icon: <AnvilIcon />, title: `生产 · ${ripe} 件已成熟`, desc: '领取不推进日期；领取后工位空出来，可以开下一单。', action: { label: '去领取', href: links.workshop } });
   }
-  const heirs = legacies?.legacies.filter(l => l.state === 'available').length ?? 0;
+  const heirs = features.legacy ? legacies?.legacies.filter(l => l.state === 'available').length ?? 0 : 0;
   if (heirs > 0) {
     tasks.push({
       key: 'legacy', icon: <CandleIcon />, title: `传承 · ${heirs} 份遗产待兑现`,
-      desc: state.legacyUnlocked ? '遗产可以交给一名 1 级新角色，选择成长传承或数值传承。' : '传承尚未解锁：完成任一地区的核心任务并领奖后开放。',
+      desc: state.legacyUnlocked ? '遗产可以交给一名 1 级新角色，选择成长传承或数值传承。' : '传承尚未解锁：完成林地、丘陵或湖镇的核心终章并领奖后开放。',
       action: { label: '查看遗产', href: links.legacy },
     });
   }
@@ -121,7 +133,9 @@ export function CampPage() {
       action: { label: '查看', href: links.roster(urgent[0].id, 'retire') },
     });
   }
-  if (!state.arena.registered) {
+  if (!features.arena) {
+    // 竞技场被锁：不显示报名、进攻或下一个竞技场日。
+  } else if (!state.arena.registered) {
     tasks.push({
       key: 'arena', icon: icon(ICONS.medal, 24), title: '普通竞技场 · 未报名', desc: '报名后当天就会生成 3 个对手；每场进攻推进 1 日，只打进攻，没有防守。',
       action: {
@@ -141,7 +155,7 @@ export function CampPage() {
       desc: `${plainDate(state.arena.nextArenaDay)}：已报名的军团到达当天会生成对手；只打进攻，不需要编防守队。`, action: { label: '竞技场', href: links.arena },
     });
   }
-  if (results?.settled && results.day !== null) {
+  if (features.arena && results?.settled && results.day !== null) {
     const wins = results.attacks.filter(a => a.status === 'won').length;
     tasks.push({
       key: 'last', icon: <LockIcon />, title: `上次竞技场 · ${plainDate(results.day)}`,
@@ -149,7 +163,7 @@ export function CampPage() {
     });
   }
 
-  const nextChapter = story?.chapters.find(c => !c.available);
+  const nextChapter = features.story ? story?.chapters.find(c => !c.available) : undefined;
   const nextCrop = production?.orders.filter(o => o.state === 'growing').sort((a, b) => a.readyDay - b.readyDay)[0];
   const returns = (dispatches?.running ?? []).sort((a, b) => a.returnDay - b.returnDay);
   const dates = ([
@@ -272,7 +286,7 @@ export function CampPage() {
             </>}
             <div className="flex flex-wrap items-center gap-2.5" style={{ padding: '0 16px 14px' }}>
               <span style={{ fontSize: 13, color: '#4E473D' }}>{battle ? `进行中：${battle.name}，第 ${battle.turn} 回合` : '现在没有进行中的战斗。'}</span>
-              <a className="btn btn-sm ml-auto" href={links.spectate}><CompassIcon />{battle ? '实时观战' : '观战'}</a>
+              {features.spectate && <a className="btn btn-sm ml-auto" href={links.spectate}><CompassIcon />{battle ? '实时观战' : '观战'}</a>}
             </div>
           </section>
         </div>

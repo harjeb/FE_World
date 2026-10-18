@@ -146,7 +146,7 @@ try {
     await page.click('button[type=submit]');
     await page.open(`${BASE}/#/camp`, '.topbar');
     const nav = await page.evaluate(`document.querySelector('.rail nav').innerText.replace(/\\s+/g, ' ')`);
-    check('navigation lists the new pages', ['生产', '主线', '传承'].every(n => nav.includes(n)), nav);
+    check('navigation shows earned pages and hides unopened legacy and reports', ['世界', '生产', '主线'].every(n => nav.includes(n)) && !nav.includes('传承') && !nav.includes('战报'), nav);
 
     // 年度大竞技场: register, preview the server quote, play into the match, then read the result.
     await page.open(`${BASE}/#/arena/annual`, '#br-h');
@@ -174,7 +174,11 @@ try {
     // 主线: complete the open chapter, then claim its shared experience once.
     await page.open(`${BASE}/#/story`, '#ch-h');
     const story0 = await page.text();
-    check('story shows the open chapters and keeps later ones hidden', story0.includes('盛会') && story0.includes('裂痕') && story0.includes('可完成') && story0.includes('尚未开放'), story0.slice(0, 160));
+    const openChapters = (await api(page, OP.GET_STORY)).chapters;
+    const shownChapters = await page.evaluate(`document.querySelectorAll('.chap').length`);
+    check('story shows only open chapters and keeps later ones hidden',
+      openChapters.length === shownChapters && openChapters.length > 0 && openChapters.every(chapter => chapter.available || chapter.completed)
+        && story0.includes('盛会') && story0.includes('裂痕') && story0.includes('可完成') && !story0.includes('尚未开放') && !story0.includes('第 3 章'), story0.slice(0, 160));
     const bexp0 = (await api(page, OP.GET_STATE)).bexp;
     await press(page, '.chap', '盛会', '完成本章事件');
     check('completing the chapter is stored', await until(async () => (await api(page, OP.GET_STORY)).chapters[0].completed), 'chapter 1');

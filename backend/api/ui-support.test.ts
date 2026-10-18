@@ -61,12 +61,12 @@ test('story chapters show a title once open and what was learned once completed'
   const story = () => dispatch(ctx, OP.GET_STORY, {}) as { bexp: number; chapters: Chapter[] };
   const first = story();
   assert.ok(first.bexp > 0);
-  const [one, two] = first.chapters;
+  // 未开放且未完成的章节整行隐藏；第 499 日只有第 1 章开放。
+  assert.equal(first.chapters.length, 1);
+  const one = first.chapters[0];
   assert.equal(one.available, true, 'the seeded day is past day 120');
   assert.equal(one.title, '盛会');
   assert.equal(one.learned, null, 'nothing is spoiled before the chapter is completed');
-  assert.equal(two.available, false);
-  assert.equal(two.title, null, 'a locked chapter has no title yet');
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
   const done = story().chapters[0];
   assert.equal(done.completed, true);

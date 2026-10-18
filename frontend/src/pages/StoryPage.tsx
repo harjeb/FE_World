@@ -25,9 +25,11 @@ export function StoryPage() {
   if (!story) {
     return <Shell current="story"><p style={{ color: '#4E473D' }}>暂时读不到主线进度（GET_STORY），刷新页面再试。</p></Shell>;
   }
-  const done = story.chapters.filter(c => c.completed).length;
-  const claimed = story.chapters.filter(c => c.claimed).length;
-  const next = story.chapters.find(c => !c.available);
+  // 防御性过滤：GET_STORY 已只返回已开放或已完成的章节，这里再过一次，不显示未开放章节。
+  const chapters = story.chapters.filter(c => c.available || c.completed);
+  const done = chapters.filter(c => c.completed).length;
+  const claimed = chapters.filter(c => c.claimed).length;
+  const next = chapters.find(c => !c.available);
   const entry = annual?.entry && annual.entry.annualIndex === annual.annualIndex ? annual.entry : null;
 
   return (
@@ -39,9 +41,9 @@ export function StoryPage() {
           <p style={{ fontSize: 14, color: '#4E473D' }}>每年开放一章。比赛名次、海选和地区进度都不会挡住章节；完成本章事件后，可以领一次团队公共经验 {story.bexp}。</p>
         </div>
         <div style={{ textAlign: 'right', fontSize: 13, color: '#4E473D' }}>
-          已完成 <b className="num">{done}</b> / {story.chapters.length} 章 · 已领奖 <b className="num">{claimed}</b> 章
+          已完成 <b className="num">{done}</b> / {chapters.length} 章 · 已领奖 <b className="num">{claimed}</b> 章
           <div className="seasons" aria-hidden="true">
-            {story.chapters.map(c => <i key={c.chapter} className={c.completed ? 'past' : c.available ? 'cur' : ''} />)}
+            {chapters.map(c => <i key={c.chapter} className={c.completed ? 'past' : c.available ? 'cur' : ''} />)}
           </div>
         </div>
       </div>
@@ -50,7 +52,7 @@ export function StoryPage() {
         <section className="panel" aria-labelledby="ch-h">
           <div className="ph"><h2 id="ch-h">章节</h2><span style={{ fontSize: 12, color: '#6A6256' }}>完成后可回看本章事件、认识与发现</span></div>
           <ol className="chapters">
-            {story.chapters.map(c => {
+            {chapters.map(c => {
               const phase = phaseOf(c);
               const [label, tag] = PHASE_TAG[phase];
               return (

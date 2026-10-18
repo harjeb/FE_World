@@ -2,10 +2,14 @@
 // server agree. Actual dates render in the 星辉历 era (星辉历 1001年1月1日); the internal relative
 // year/season stay logic-only and are not shown on real dates.
 // Actions show where they move the date and which arena days they pass (docs/00 §2「跨多日行动」、§11).
-import { DAYS_PER_SEASON, dateOf, formatEraDate, nextArenaDay } from '@common/game/calendar.ts';
+import { DAYS_PER_SEASON, dateOf, ERA_BASE_YEAR, ERA_NAME, formatEraDate, nextArenaDay } from '@common/game/calendar.ts';
 import { session } from '../api/session.ts';
 
 export const dateLabel = (day: number): string => dateOf(day).label;
+
+// 内部相对年份的星辉历显示（第 1 年 = 星辉历 1001 年）：职业开放年份、资格市场标题等只写年份的地方
+// 也用这个换算，不出现内部相对年份。
+export const eraYear = (year: number): string => `${ERA_NAME} ${year + ERA_BASE_YEAR - 1} 年`;
 
 // Actual date without the arena-day suffix: 星辉历 1001年1月1日.
 export function plainDate(day: number): string {

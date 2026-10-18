@@ -22,14 +22,21 @@ import { QuestsPage } from './pages/QuestsPage.tsx';
 import { TavernPage } from './pages/TavernPage.tsx';
 import { WorkshopPage } from './pages/WorkshopPage.tsx';
 import { useRoute } from './router.ts';
+import { activityOf, featuresOf, isRouteAllowed } from './model/access.ts';
+import { WorldPage } from './pages/WorldPage.tsx';
 import { Toasts } from './ui/toast.tsx';
 import { ReplayPage } from './watch/ReplayPage.tsx';
 import { ReportsPage } from './watch/ReportsPage.tsx';
 import { SpectatePage } from './watch/SpectatePage.tsx';
 
-// Every designed screen, now reading live server state. 军营 is home.
+// Every designed screen, now reading live server state. 军营 is home. 被旗标锁住的直达路由改渲染
+// 世界地图（不挂载被锁页面，避免它的取数与写入）；进行中的战斗与竞技场活动路由不被弹走。
 function Page() {
   const route = useRoute();
+  const { state, today, run, annual } = useSession();
+  if (state && !isRouteAllowed(route, featuresOf(state), activityOf({ state, today, run, annual }))) {
+    return <WorldPage />;
+  }
   switch (route.page) {
     case 'roster': return <RosterPage unit={route.unit} tab={route.tab} />;
     case 'promote': return <PromotePage key={route.unit} unit={route.unit} />;
@@ -52,6 +59,7 @@ function Page() {
     case 'ban': return <BanPage key={route.opponent} id={route.opponent} />;
     case 'deploy': return <DeployPage key={route.opponent} id={route.opponent} />;
     case 'arena-battle': return <ArenaBattle key={route.opponent} id={route.opponent} />;
+    case 'world': return <WorldPage />;
     default: return <CampPage />;
   }
 }

@@ -9,7 +9,10 @@ export const RULESET_VERSION = 'rules-v7';
 // Finish active runs/battles before deployment; prior replays remain frozen only.
 // v18: twelve equal-budget regional reputation routes; classic rewards no longer add regional reputation.
 // v19: direct protagonist allocation, fixed commoner/growth and modest production starting kits.
-export const CATALOG_VERSION = 19;
+// v20: world-map pioneering (GET_WORLD_MAP/CHOOSE_ROUTE): regions unlock along chosen routes only;
+// the central shop narrows to rank-E basics plus usual consumables, advanced weapons move to the
+// regional reputation shops.
+export const CATALOG_VERSION = 20;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

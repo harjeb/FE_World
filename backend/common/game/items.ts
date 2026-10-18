@@ -113,18 +113,14 @@ export function stockUses(item: ItemKey): number {
 export const DRUG_LIMIT_PER_STAT = 5;
 export const DRUG_LIMIT_TOTAL = 20;
 
-// The shop's standing stock. Materials and cheap weapons are always there; seals and 能力药 are the
-// limited, expensive rows. Stock refills each game month (docs/09.1).
+// 王都只卖E级基础装备和常用补给；进阶武器由沿途地区武器店提供。
+// 仍保留每季限量的不朽盾与能力药，库存规则不因武器迁店改变。
 export const SHOP_STOCK: { item: ItemKey; stock: number }[] = [
-  { item: 'beastkiller', stock: 4 }, { item: 'dragonslayer', stock: 4 },
-  { item: 'gauntlet', stock: 8 }, { item: 'dagger', stock: 8 }, { item: 'beast_claw', stock: 8 }, { item: 'dragonstone', stock: 8 },
-  { item: 'iron_sword', stock: 5 }, { item: 'iron_lance', stock: 5 }, { item: 'iron_axe', stock: 5 },
-  { item: 'iron_bow', stock: 5 }, { item: 'fire', stock: 4 }, { item: 'heal', stock: 4 },
-  { item: 'steel_sword', stock: 3 }, { item: 'steel_lance', stock: 3 }, { item: 'steel_axe', stock: 3 },
-  { item: 'steel_bow', stock: 3 }, { item: 'thunder', stock: 3 }, { item: 'recover', stock: 2 },
-  { item: 'javelin', stock: 3 }, { item: 'hand_axe', stock: 3 }, { item: 'restore', stock: 2 },
-  { item: 'killing_edge', stock: 1 }, { item: 'killer_lance', stock: 1 }, { item: 'killer_axe', stock: 1 },
-  { item: 'killer_bow', stock: 1 }, { item: 'wind', stock: 1 },
+  { item: 'fw_weapon_1', stock: 8 }, { item: 'fw_weapon_24', stock: 8 }, { item: 'fw_weapon_52', stock: 8 },
+  { item: 'fw_weapon_72', stock: 8 }, { item: 'fw_weapon_89', stock: 8 },
+  { item: 'dagger', stock: 4 }, { item: 'beast_claw', stock: 4 }, { item: 'dragonstone', stock: 4 },
+  { item: 'fire', stock: 4 }, { item: 'heal', stock: 4 },
+  { item: 'spellbook:fire', stock: 4 }, { item: 'spellbook:fw_spell_12', stock: 4 },
   { item: 'vulnerary', stock: 9 }, { item: 'immortal_shield', stock: 1 },
   { item: 'seal_promote', stock: 2 },
   { item: 'energy_drop', stock: 1 }, { item: 'secret_book', stock: 1 }, { item: 'speedwing', stock: 1 },
@@ -132,3 +128,6 @@ export const SHOP_STOCK: { item: ItemKey; stock: number }[] = [
   { item: 'herb', stock: 10 }, { item: 'ore', stock: 10 }, { item: 'wood', stock: 10 }, { item: 'seed', stock: 10 },
   { item: 'ether_ration', stock: 6 }, { item: 'full_meal', stock: 2 },
 ];
+
+const CENTRAL_SHOP_ITEMS = new Set<string>(SHOP_STOCK.map(row => row.item));
+export const isCentralShopItem = (item: string): boolean => CENTRAL_SHOP_ITEMS.has(item);

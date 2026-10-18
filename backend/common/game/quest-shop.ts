@@ -50,25 +50,26 @@ const RANK_REPUTATION: Record<'core' | 'local', Record<Rank, number>> = {
 const book = (id: string) => spellbookItem(id);
 const EQUIPMENT_SHOPS: Record<number, ItemKey[]> = {
   // 奥伦平原：步兵与训练用基础武器。
-  1: ['fw_weapon_1', 'fw_weapon_2', 'fw_weapon_24', 'fw_weapon_25', 'fw_weapon_52', 'fw_weapon_53', 'fw_weapon_89', 'fw_weapon_90',
+  1: ['iron_sword', 'iron_lance', 'iron_axe', 'steel_sword', 'steel_lance', 'steel_axe',
+    'fw_weapon_1', 'fw_weapon_2', 'fw_weapon_24', 'fw_weapon_25', 'fw_weapon_52', 'fw_weapon_53', 'fw_weapon_89', 'fw_weapon_90',
     'slim_sword', 'slim_lance', 'fw_weapon_66', 'fw_weapon_10', 'short_spear', 'steel_gauntlet'],
   // 希尔瓦林地：弓与轻装；短弓另由林道侦察首次奖励发放。
-  2: ['fw_weapon_72', 'fw_weapon_73', 'short_bow', 'fw_weapon_79', 'fw_weapon_85', 'fw_weapon_159', 'fw_weapon_15', 'magic_bow', 'longbow', 'silver_bow', 'brave_bow'],
+  2: ['iron_bow', 'fw_weapon_72', 'fw_weapon_73', 'short_bow', 'fw_weapon_79', 'fw_weapon_85', 'fw_weapon_159', 'fw_weapon_15', 'magic_bow', 'longbow', 'silver_bow', 'brave_bow'],
   // 托尔加丘陵：重甲、破甲与达·米纳工坊锻造品。
-  3: ['armor_sword', 'hammer', 'heavy_spear', 'fw_weapon_61', 'fw_weapon_65', 'fw_weapon_57', 'fw_weapon_7', 'fw_weapon_31', 'fw_weapon_60', 'fw_weapon_83', 'fw_weapon_156',
+  3: ['killer_axe', 'hand_axe', 'armor_sword', 'hammer', 'heavy_spear', 'fw_weapon_61', 'fw_weapon_65', 'fw_weapon_57', 'fw_weapon_7', 'fw_weapon_31', 'fw_weapon_60', 'fw_weapon_83', 'fw_weapon_156',
     'tomahawk', 'fw_weapon_41', 'silver_lance', 'silver_axe', 'brave_lance', 'brave_axe'],
   // 瓦恩要塞：骑乘与特效配方。
-  4: ['horseslayer', 'poleaxe', 'rapier', 'fw_weapon_40', 'fw_weapon_32', 'fw_weapon_80'],
+  4: ['beastkiller', 'dragonslayer', 'killing_edge', 'javelin', 'horseslayer', 'poleaxe', 'rapier', 'fw_weapon_40', 'fw_weapon_32', 'fw_weapon_80'],
   // 莱斯米尔湖镇：治疗杖与白魔法治疗书。
   5: ['physic', 'fortify', book('fw_spell_12'), book('fw_spell_24'), book('fw_spell_25'), book('fw_spell_22'), book('fw_spell_26'), book('fw_spell_58'), book('fw_spell_50')],
   // 泽拉斯古都：魔法工坊的黑魔法书、魔道书与雷电剑。
-  6: ['flame_lance', 'levin_sword', book('fire'), book('fw_spell_4'), book('thunder'), book('fw_spell_6'), book('wind'), book('elfire'), book('fw_spell_7'), book('fw_spell_20'),
+  6: ['thunder', 'wind', 'flame_lance', 'levin_sword', book('fire'), book('fw_spell_4'), book('thunder'), book('fw_spell_6'), book('wind'), book('elfire'), book('fw_spell_7'), book('fw_spell_20'),
     book('flame_lance'), book('fw_spell_3'), book('fw_spell_8'), book('fw_spell_42'), book('fw_spell_34'), book('fw_spell_36'), book('fw_spell_52'),
     book('bolting'), book('meteor'), book('fw_spell_37')],
   // 巴尔格山岭：兽人媒介。
   7: ['beaststone_plus'],
   // 斯凯恩风崖：轻金属拳套、短刀与毒剑。
-  8: ['fw_weapon_18', 'fw_weapon_157', 'fw_weapon_93', 'fw_weapon_94', 'fw_weapon_99', 'killer_gauntlet', 'poison_dagger', 'wo_dao', 'silver_dagger', 'silver_gauntlet'],
+  8: ['gauntlet', 'fw_weapon_18', 'fw_weapon_157', 'fw_weapon_93', 'fw_weapon_94', 'fw_weapon_99', 'killer_gauntlet', 'poison_dagger', 'wo_dao', 'silver_dagger', 'silver_gauntlet'],
   // 萨鲁恩荒原：商旅带来的特殊剑。
   9: ['devil_sword', 'lancereaver', 'silver_sword', 'brave_sword'],
   // 德拉克莫龙谷：龙人媒介。
@@ -96,7 +97,10 @@ export function rankReputation(region: number, rank: Rank): number {
 export const EQUIPMENT_QUALIFICATIONS: readonly { region: number; item: ItemKey; reputation: number }[] = Object.entries(EQUIPMENT_SHOPS)
   .flatMap(([region, items]) => items.map(item => ({ region: Number(region), item, reputation: rankReputation(Number(region), itemRank(item)) })));
 
-for (const row of EQUIPMENT_QUALIFICATIONS) SHOPS[row.region].push({ item: row.item, price: 0, reputation: row.reputation });
+for (const row of EQUIPMENT_QUALIFICATIONS) {
+  // 既有显式条目保留原资格，避免迁店或补目录时给同一商品展示两行。
+  if (!SHOPS[row.region].some(entry => entry.item === row.item)) SHOPS[row.region].push({ item: row.item, price: 0, reputation: row.reputation });
+}
 
 // 价格未单独定价时按商品目录价。
 const priceOf = (entry: ShopEntry) => entry.price || GAME_ITEMS[entry.item].price;

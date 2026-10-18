@@ -109,9 +109,12 @@ test('tome and staff charges stay with the item when it moves between units', ()
 test('limited manuals teach their spell once, need the school, and reincarnation clears them and returns the books', () => {
   const { store, accountId, player } = setup('manuals');
   const ctx = ctxFor(store, accountId, player);
+  // GET_QUESTS 只展示可接或已完成的任务：先标记 wl7 完成让专属武器预览可见。
+  player.flags.questsDone = ['wl7'];
+  store.savePlayer(player);
   const quests = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; quests: { id: string; exclusive: { item: string } | null }[] }[] };
   assert.equal(quests.regions.find(r => r.region === 5)!.quests.find(q => q.id === 'wl7')!.exclusive!.item, 'fw_weapon_8');
-  player.flags.questsDone = ['wl8']; store.savePlayer(player);
+  player.flags.questsDone = ['wl7', 'wl8']; store.savePlayer(player);
   const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'wl8' }) as { items: [string, number][] };
   assert.deepEqual(reward.items.map(([item]) => item), [spellbookItem('fw_spell_60'), manualItem('fw_spell_60')]);
   assert.ok(store.inventory(player.id).some(row => row.item === spellbookItem('fw_spell_60') && row.uses === 1));

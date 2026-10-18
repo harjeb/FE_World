@@ -16,7 +16,7 @@ import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonica
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, CHARACTER_IDS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
-import { GAME_ITEMS, isBoundWeapon, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
+import { GAME_ITEMS, isBoundWeapon, isCentralShopItem, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
@@ -38,7 +38,7 @@ import { MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/g
 import type { Stats } from '../common/data/types.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, setupNeeded, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, recipeUnlocked, slotsUsed } from '../common/game/production.ts';
@@ -55,6 +55,8 @@ import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, frogPayout, FROG_NAMES, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
+import { normalizeRegions, routeCandidates, worldMap } from '../common/game/region-map.ts';
+import { adoptRegions, combatFeaturesOpen, playerRegions, tavernOpen, workshopFacilities } from './services.ts';
 import { reputationTier } from '../common/game/reputation.ts';
 
 export class OpError extends Error {
@@ -325,7 +327,7 @@ function lifespanBlockers(ctx: Context, toDay: number): string[] {
   return ctx.store.units(ctx.player.id).filter(unit => unit.status === 'active')
     .flatMap(unit => {
       const end = nextLifespanEventDay(unit, ctx.player.day, toDay);
-      return end === null ? [] : [`${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`];
+      return end === null ? [] : [`${unitName(unit)} 将在 ${dateOf(end).label} 寿终；请先安排传承／退役或缩短行动`];
     });
 }
 
@@ -386,6 +388,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.GET_TODAY]: ctx => {
     const cleared = ctx.player.flags.clearedRegions;
+    const unlocked = adoptRegions(ctx.store, ctx.player);
     const date = dateOf(ctx.player.day);
     const current = ctx.store.activeBattle(ctx.player.id);
     const fighting = !!current;
@@ -397,14 +400,15 @@ const handlers: Record<number, Handler> = {
       day: ctx.player.day,
       date,
       actions: [
-        { key: 'sortie', name: '出击', costDays: ACTION_DAYS.sortie, available: !fighting, note: fighting ? '已有进行中的战斗，打完再出击' : '手动打一场野外战斗，经验与掉落最多',
+        { key: 'sortie', name: '出击', costDays: ACTION_DAYS.sortie, available: !fighting && unlocked.length > 0, note: fighting ? '已有进行中的战斗，打完再出击' : unlocked.length === 0 ? '先在世界地图选择行军路线' : '手动打一场野外战斗，经验与掉落最多',
           maxUnits: FIELD_BATTLE.maxUnits, turnLimit: FIELD_BATTLE.turnLimit, goalText: FIELD_BATTLE.goalText, lethal: true },
         { key: 'sweep', name: '扫荡', costDays: ACTION_DAYS.sweep, available: cleared.length > 0, note: cleared.length > 0 ? '自动结算已讨伐地区' : '先讨伐至少一个地区' },
         { key: 'train', name: '训练', costDays: ACTION_DAYS.train, costGold: TRAIN_GOLD, available: true, note: '补武器熟练度，暂不发等级经验' },
         { key: 'rest', name: '休整', costDays: 1, available: true, note: '自选日数推进日期' },
         { key: 'recruit', name: '游历招募', costDays: ACTION_DAYS.recruit, available: recruitBlock === null, note: recruitBlock ?? '只花行动日，按地区概率遇到新人；遇到后可接受或拒绝' },
       ],
-      sortieRegions: REGIONS.map(region => ({
+      // 只有已解锁地区可出击；完整地图（含锁定节点与可选路线）走 GET_WORLD_MAP / state.world。
+      sortieRegions: REGIONS.filter(region => unlocked.includes(region.id)).map(region => ({
         id: region.id, name: region.name, resource: region.resource,
         cleared: cleared.includes(region.id), level: enemyLevel(ctx.player.day, region.offset),
       })),
@@ -416,10 +420,36 @@ const handlers: Record<number, Handler> = {
     };
   },
 
+  // ---- 世界地图开荒（region-map.ts 契约） ----------------------------------
+
+  [OP.GET_WORLD_MAP]: ctx => {
+    const unlocked = adoptRegions(ctx.store, ctx.player);
+    return worldMap({ unlockedRegions: unlocked, clearedRegions: ctx.player.flags.clearedRegions });
+  },
+
+  // 选择一条可选路线解锁相邻地区：0 日、互不排斥；不能跳过相邻关系，需先完成开局。
+  [OP.CHOOSE_ROUTE]: (ctx, data) => {
+    if (setupNeeded(ctx.player, ctx.store.units(ctx.player.id).filter(unit => unit.status === 'active').length)) throw new OpError('FORBIDDEN', '先完成开局自捏，再选择行军路线');
+    const region = asNumber(data.region, 'region');
+    if (!Number.isInteger(region) || region < 1 || region > 12) throw new OpError('BAD_REQUEST', '地区编号需为 1–12 的整数');
+    const unlocked = adoptRegions(ctx.store, ctx.player);
+    const selectable = routeCandidates({ unlockedRegions: unlocked, clearedRegions: ctx.player.flags.clearedRegions });
+    if (!selectable.includes(region)) {
+      throw new OpError('FORBIDDEN', '只能选择世界地图上的可选路线：开局为 1–4 四条起步路线，此后需先清剿当前地区，相邻路线才会可选');
+    }
+    const next = normalizeRegions([...unlocked, region]);
+    ctx.player.flags.unlockedRegions = next;
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'world', `军队开进 ${regionById(region).name}，解锁新地区。`, { region });
+    ctx.push(OP.STATE_CHANGED, { reason: 'choose-route' });
+    return { region, unlockedRegions: next, selectableRegions: routeCandidates({ unlockedRegions: next, clearedRegions: ctx.player.flags.clearedRegions }), world: worldMap({ unlockedRegions: next, clearedRegions: ctx.player.flags.clearedRegions }) };
+  },
+
   [OP.SORTIE]: (ctx, data) => {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const region = asNumber(data.region, 'region');
+    if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const units = ids.length > 0
       ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
@@ -485,9 +515,10 @@ const handlers: Record<number, Handler> = {
 
   [OP.RECRUIT]: (ctx, data) => {
     const region = asNumber(data.region, 'region');
+    if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     const pending = ctx.player.flags.pendingRecruit;
     if (pending) throw new OpError('FORBIDDEN', '已有待确认的游历候选，先接受或拒绝');
-    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `需要到第二年（D${RECRUIT_UNLOCK_DAY}）才能游历招募`);
+    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `需要到${dateOf(RECRUIT_UNLOCK_DAY).label}才能游历招募`);
     if (ctx.store.units(ctx.player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT) throw new OpError('BAD_REQUEST', '名册已满');
     const fails = ctx.player.flags.recruitFailsByRegion?.[region] ?? ctx.player.flags.recruitFails ?? 0;
     const roll = seedRng(`recruit:${ctx.player.id}:${ctx.player.day}:${region}`)[0] % 100;
@@ -537,8 +568,9 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.GET_TAVERN]: (ctx, data) => {
-    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `酒馆招募在第二年（D${RECRUIT_UNLOCK_DAY}）开放`);
     const quarter = Math.floor(ctx.player.day / DAYS_PER_SEASON);
+    // 安全空读：酒馆未开放时返回空列表，不报错（会话引导会在锁定时拉取）。
+    if (!tavernOpen(ctx.store, ctx.player)) return { quarter, regions: [] };
     if (ctx.player.flags.tavernQuarter !== quarter) {
       ctx.player.flags.tavernQuarter = quarter;
       ctx.player.flags.tavernCandidates = {};
@@ -565,8 +597,9 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.HIRE_TAVERN]: (ctx, data) => {
-    if (ctx.player.day < RECRUIT_UNLOCK_DAY) throw new OpError('FORBIDDEN', `酒馆招募在第二年（D${RECRUIT_UNLOCK_DAY}）开放`);
+    if (!tavernOpen(ctx.store, ctx.player)) throw new OpError('FORBIDDEN', `酒馆招募在${dateOf(RECRUIT_UNLOCK_DAY).label}开放`);
     const region = asNumber(data.region, 'region');
+    if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     const id = asString(data.id, 'id');
     const quarter = Math.floor(ctx.player.day / DAYS_PER_SEASON);
     const row = ctx.player.flags.tavernCandidates?.[region]?.find(entry => entry.id === id);
@@ -619,13 +652,16 @@ const handlers: Record<number, Handler> = {
 
   [OP.GET_SHOP]: ctx => ({
     season: dateOf(ctx.player.day).season,
-    items: ctx.store.shop(ctx.player.id).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, price: GAME_ITEMS[row.item].price, stock: row.stock, kind: GAME_ITEMS[row.item].kind })),
+    // 旧档 shop 表可能还存着已迁往地区商店的旧行：只展示当前王都商店在售商品。
+    items: ctx.store.shop(ctx.player.id).filter(row => isCentralShopItem(row.item)).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, price: GAME_ITEMS[row.item].price, stock: row.stock, kind: GAME_ITEMS[row.item].kind })),
   }),
 
   [OP.BUY]: (ctx, data) => {
     const item = asString(data.item, 'item');
     const count = Math.max(1, Math.min(10, typeof data.count === 'number' ? data.count : 1));
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有商品 ${item}`);
+    // 已迁往地区声望商店的旧商品即使残留在旧档 SQLite 行里也不能再买。
+    if (!isCentralShopItem(item)) throw new OpError('NOT_FOUND', '王都不再出售这件物品；进阶武器请到对应地区的声望商店购买');
     const stockRow = ctx.store.shop(ctx.player.id).find(s => s.item === item);
     if (!stockRow || stockRow.stock < count) throw new OpError('BAD_REQUEST', '库存不足');
     const price = GAME_ITEMS[item].price * count;
@@ -1019,7 +1055,7 @@ const handlers: Record<number, Handler> = {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能购买资格');
     if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能购买资格');
     const year = dateOf(ctx.player.day).year;
-    if (year < classOpenYear(classId)) throw new OpError('FORBIDDEN', `${CLASSES[classId].name} 要到第 ${classOpenYear(classId)} 年才开放`);
+    if (year < classOpenYear(classId)) throw new OpError('FORBIDDEN', `${CLASSES[classId].name} 要到${dateOf((classOpenYear(classId) - 1) * DAYS_PER_YEAR).label}才开放`);
     const eligibility = classChangeReason(unit, classId);
     if (eligibility) throw new OpError('FORBIDDEN', eligibility);
     if (hasClassQualification(unit.classQualifications ?? [], classId)) throw new OpError('FORBIDDEN', '已经拥有该职业资格');
@@ -1135,6 +1171,8 @@ const handlers: Record<number, Handler> = {
     if (lifeBlock.length) throw new OpError('FORBIDDEN', lifeBlock.join('；'));
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '已有进行中的远征');
     const region = asNumber(data.region, 'region');
+    if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
+    if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放大副本');
     const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const units = ids.length > 0
       ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
@@ -1224,6 +1262,8 @@ const handlers: Record<number, Handler> = {
 
   [OP.START_DISPATCH]: (ctx, data) => {
     const region = asNumber(data.region, 'region');
+    if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
+    if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放派遣');
     regionById(region);
     const days = Math.floor(asNumber(data.durationDays, 'durationDays'));
     if (days < DISPATCH_MIN_DAYS || days > DISPATCH_MAX_DAYS) throw new OpError('BAD_REQUEST', `派遣天数需在 ${DISPATCH_MIN_DAYS}–${DISPATCH_MAX_DAYS} 之间`);
@@ -1267,10 +1307,13 @@ const handlers: Record<number, Handler> = {
     for (const order of orders) ctx.store.saveProductionOrder(order);
     const open = orders.filter(o => o.state !== 'collected');
     const reputation = ctx.player.flags.regionReputation ?? {};
+    // 工坊设施按地区解锁（药草田←地区2、铁匠铺←地区3、炼药所←地区5）；已有订单的设施保留。
+    const facilities = workshopFacilities(ctx.store, ctx.player, playerRegions(ctx.player));
     return {
       day: ctx.player.day,
-      facilities: FACILITIES.map(f => ({ ...f, used: slotsUsed(open, f.id) })),
-      recipes: RECIPES.map(r => ({ id: r.id, name: r.name, facility: r.facility, days: r.days, input: r.input, output: r.output, kind: r.kind, requires: r.requires ?? null, unlocked: recipeUnlocked(r, reputation) })),
+      facilities: FACILITIES.filter(f => facilities[f.id]).map(f => ({ ...f, used: slotsUsed(open, f.id) })),
+      recipes: RECIPES.filter(r => facilities[r.facility]).map(r => ({ id: r.id, name: r.name, facility: r.facility, days: r.days, input: r.input, output: r.output, kind: r.kind, requires: r.requires ?? null, unlocked: recipeUnlocked(r, reputation) })),
+      // 已有订单（含其它设施的历史单）始终可见，避免旧档内容被锁死。
       orders: open.map(o => ({ id: o.id, recipeId: o.recipeId, facilityId: o.facility, ...describeOrder(o), startedDay: o.startedDay, quality: o.quality })),
       ready: open.filter(o => o.state === 'ready').map(o => o.id),
     };
@@ -1278,6 +1321,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.PLANT]: ctx => {
     const recipe = recipeById('plant_herb')!;
+    if (!workshopFacilities(ctx.store, ctx.player, playerRegions(ctx.player)).garden) throw new OpError('FORBIDDEN', '解锁希尔瓦林地（地区2）后才能开辟药草田');
     if (!canStart(ctx.store.productionOrders(ctx.player.id), recipe)) throw new OpError('FORBIDDEN', '药草田工位已满');
     if (ctx.store.countInventory(ctx.player.id, 'seed') < 1) throw new OpError('NO_SUCH_ITEM', '没有种子');
     ctx.store.takeInventory(ctx.player.id, 'seed', 1);
@@ -1293,6 +1337,9 @@ const handlers: Record<number, Handler> = {
   [OP.START_PRODUCTION]: (ctx, data) => {
     const recipe = recipeById(asString(data.recipeId, 'recipeId'));
     if (!recipe) throw new OpError('NOT_FOUND', '没有这个配方');
+    if (!workshopFacilities(ctx.store, ctx.player, playerRegions(ctx.player))[recipe.facility]) {
+      throw new OpError('FORBIDDEN', `${facilityById(recipe.facility).name}尚未解锁：先在世界地图解锁对应地区`);
+    }
     if (!recipeUnlocked(recipe, ctx.player.flags.regionReputation ?? {})) {
       const req = recipe.requires!;
       throw new OpError('FORBIDDEN', `需要 ${regionById(req.region).name} 声望 ${req.reputation} 才能开工`);
@@ -1572,6 +1619,7 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.ARENA_REGISTER]: ctx => {
+    if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放竞技场');
     ctx.player.registered = true;
     ctx.store.saveSnapshot(ctx.player.id, ctx.player.day, snapshotData(ctx.store, ctx.player));
     ensureArenaDay(ctx.store, ctx.player);
@@ -1861,10 +1909,12 @@ const handlers: Record<number, Handler> = {
     return {
     bexp: CHAPTER_BEXP,
     annualSummary: annualEvent ? { text: annualEvent.text, data: annualEvent.data } : { text: '本届大竞技场未参赛。', data: null },
+    // 只下发已开放或已完成的章节：未开放的章节不提前剧透，也不出现在列表里。
     chapters: Array.from({ length: STORY_CHAPTERS }, (_, i) => {
       const chapter = i + 1;
       const available = chapterAvailable(chapter, ctx.player.day);
       const completed = (ctx.player.flags.storyCompleted ?? []).includes(chapter);
+      if (!available && !completed) return null;
       return {
         chapter, openDay: chapterOpenDay(chapter), available, completed,
         claimed: ctx.player.flags.chapterExpClaimed.includes(chapter),
@@ -1875,7 +1925,7 @@ const handlers: Record<number, Handler> = {
         finalBoss: chapter === 8 ? { floorId: 'tower-3', available: completed, defeated: (ctx.player.flags.towerCleared ?? []).includes('tower-3') } : null,
         discoveries: completed ? CHAPTERS[i].discoveries : [],
       };
-    }),
+    }).filter((row): row is NonNullable<typeof row> => row !== null),
   };
   },
 
@@ -1908,11 +1958,16 @@ const handlers: Record<number, Handler> = {
   // ---- 地区任务与声望（docs/20） ------------------------------------------
 
   [OP.GET_QUESTS]: ctx => {
+    const unlocked = adoptRegions(ctx.store, ctx.player);
     const done = new Set(ctx.player.flags.questsDone ?? []);
     const claimed = new Set(ctx.player.flags.questRewardsClaimed ?? []);
     const reputation = ctx.player.flags.regionReputation ?? {};
+    // 进行中的任务（活动远征或战斗）即使暂不满足可接条件也保留显示。
+    const ongoing = new Set([ctx.store.activeRun(ctx.player.id)?.questId, ctx.store.activeBattle(ctx.player.id)?.questId]
+      .filter((id): id is string => typeof id === 'string'));
     return {
-      regions: QUEST_REGIONS.map(region => {
+      // 只下发已解锁地区；可接或已完成的任务保留，进行中／可领奖的也不丢。
+      regions: QUEST_REGIONS.filter(region => unlocked.includes(region)).map(region => {
         const rep = reputation[region] ?? 0;
         return {
           region, name: regionById(region).name, reputation: rep, tier: reputationTier(rep),
@@ -1928,9 +1983,9 @@ const handlers: Record<number, Handler> = {
             requires: q.requires ?? null,
             // 固定专属实物：领取前预览（docs/27「确认领取前预览绑定」）。
             exclusive: q.exclusive ? { item: q.exclusive, name: GAME_ITEMS[q.exclusive].name } : null,
-            done: done.has(q.id), claimed: claimed.has(q.id),
+            done: done.has(q.id), claimed: claimed.has(q.id), inProgress: ongoing.has(q.id),
             available: questAvailable(q, { done, reputation: rep }),
-          })),
+          })).filter(row => row.available || row.done || ongoing.has(row.id)),
         };
       }),
     };
@@ -2001,22 +2056,30 @@ const handlers: Record<number, Handler> = {
     return { ...result as Record<string, unknown>, bet, net: payout - bet, remaining: MINIGAME_PLAYS_PER_QUARTER - ctx.player.flags.minigamePlays, day: ctx.player.day };
   },
 
-  [OP.GET_CHALLENGES]: ctx => ({
-    floors: CHALLENGE_FLOORS.map(floor => ({
+  [OP.GET_CHALLENGES]: ctx => {
+    const towerOpen = combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player));
+    const cleared = ctx.player.flags.towerCleared ?? [];
+    const storyDone = ctx.player.flags.storyCompleted ?? [];
+    const opened = (floor: (typeof CHALLENGE_FLOORS)[number]) => floor.id !== 'tower-3' || storyDone.includes(8);
+    return {
+      // 只显示已开放或已通关的塔层；特性未开时列表为空（挑战塔随首次讨伐开放）。
+      floors: CHALLENGE_FLOORS.filter(floor => (towerOpen && opened(floor)) || cleared.includes(floor.id)).map(floor => ({
       ...floor,
       mapName: classicMap(floor.mapId).name,
       maxUnits: classicAdaptation(floor.mapId).deployment.max,
-      cleared: (ctx.player.flags.towerCleared ?? []).includes(floor.id),
-      available: floor.id !== 'tower-3' || (ctx.player.flags.storyCompleted ?? []).includes(8),
+      cleared: cleared.includes(floor.id),
+      available: opened(floor),
       claimedFirst: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`),
       claimedRepeat: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:repeat`),
       claimedEquipment: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:equipment-v1`),
     })),
-  }),
+    };
+  },
 
   [OP.START_CHALLENGE]: (ctx, data) => {
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中');
+    if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放挑战塔');
     const floor = challengeById(asString(data.floorId, 'floorId'));
     if (!floor) throw new OpError('NOT_FOUND', '没有这个塔层');
     if (floor.id === 'tower-3' && !(ctx.player.flags.storyCompleted ?? []).includes(8)) throw new OpError('FORBIDDEN', '完成第八章后才能挑战最终首领');
@@ -2075,6 +2138,7 @@ const handlers: Record<number, Handler> = {
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const quest = questById(asString(data.questId, 'questId'));
     if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
+    if (!playerRegions(ctx.player).includes(quest.region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(quest.region).name}；先在世界地图选择行军路线`);
     const done = new Set(ctx.player.flags.questsDone ?? []);
     if (!questAvailable(quest, { done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0 })) {
       throw new OpError('FORBIDDEN', '任务尚未解锁或已完成');
@@ -2192,6 +2256,7 @@ const handlers: Record<number, Handler> = {
 
   [OP.BUY_QUEST_ITEM]: (ctx, data) => {
     const region = asNumber(data.region, 'region');
+    if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     const item = asString(data.item, 'item');
     const found = shopEntry(region, item);
     if (!found) throw new OpError('NOT_FOUND', '该地区不出售这件物品');
@@ -2350,6 +2415,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       payload = { region, unitIds: data.unitIds };
       if (fighting) blockers.push('已有进行中的战斗');
       if (isActiveRun(run)) blockers.push('远征进行中');
+      if (!playerRegions(player).includes(region)) blockers.push(`尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
       break;
     }
     case 'sweep': {
@@ -2389,7 +2455,9 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
     case 'recruit': {
       op = OP.RECRUIT;
       costDays = ACTION_DAYS.recruit;
-      payload = { region: data.region };
+      const region = asNumber(data.region, 'region');
+      payload = { region };
+      if (!playerRegions(player).includes(region)) blockers.push(`尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
       if (ctx.store.units(player.id).filter(u => u.status === 'active').length >= ROSTER_LIMIT) blockers.push('名册已满');
       break;
     }
@@ -2397,9 +2465,12 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       op = OP.START_DUNGEON;
       costDays = DUNGEON_STAGE_DAYS;
       risk = 'permadeath';
-      payload = { region: data.region, unitIds: data.unitIds };
+      const region = asNumber(data.region, 'region');
+      payload = { region, unitIds: data.unitIds };
       if (fighting) blockers.push('已有进行中的战斗');
       if (isActiveRun(run)) blockers.push('已有进行中的远征');
+      if (!playerRegions(player).includes(region)) blockers.push(`尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
+      if (!combatFeaturesOpen(ctx.store, player, playerRegions(player))) blockers.push('完成一次地区讨伐后开放大副本');
       break;
     }
     case 'annual': {
@@ -2417,7 +2488,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
   const toDay = player.day + costDays;
   for (const unit of ctx.store.units(player.id).filter(unit => unit.status === 'active')) {
     const end = nextLifespanEventDay(unit, player.day, toDay);
-    const message = `${unitName(unit)} 将在 D${end} 寿终；请先安排传承／退役或缩短行动`;
+    const message = end === null ? '' : `${unitName(unit)} 将在 ${dateOf(end).label} 寿终；请先安排传承／退役或缩短行动`;
     if (end !== null && !blockers.includes(message)) blockers.push(message);
   }
   return { op, action, payload, costDays, costGold, fromDay: player.day, toDay, date: dateOf(toDay), risk, events: dateEventsBetween(player.day, toDay), blockers };
@@ -2604,7 +2675,7 @@ const WRITE_OPS = new Set<number>([
   OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
   OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.WITHDRAW_ANNUAL, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
-  OP.CLAIM_CONTROL, OP.RELEASE_CONTROL,
+  OP.CLAIM_CONTROL, OP.RELEASE_CONTROL, OP.CHOOSE_ROUTE,
   OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP, OP.START_CHALLENGE, OP.CLAIM_CHALLENGE_REWARD, OP.PLAY_MINIGAME, OP.ACCEPT_RECRUIT, OP.DECLINE_RECRUIT, OP.HIRE_TAVERN, OP.INN_REST, OP.USE_FOOD,
   OP.EXECUTE_ACTION,
   OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,

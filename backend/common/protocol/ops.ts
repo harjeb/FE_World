@@ -103,6 +103,9 @@ export const OPS: readonly OpDef[] = [
   { op: 139, name: 'CLAIM_CONTROL', group: 'Agent', agentNote: '取得短期控制租约；同一账号的其它写操作在租约期内被拒绝。' },
   { op: 140, name: 'RELEASE_CONTROL', group: 'Agent', agentNote: '释放自己持有的控制租约；人工接管前先释放。' },
 
+  { op: 141, name: 'GET_WORLD_MAP', group: '地图', agentNote: '读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions；开荒从 1–4 四条起步路线开始，不选路线不能出击。' },
+  { op: 142, name: 'CHOOSE_ROUTE', group: '地图', agentNote: '把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次选择后要先清剿当前地区，相邻路线才会再次可选；需先完成开局自捏。' },
+
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
   { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。' },
@@ -145,7 +148,7 @@ export const OP = Object.fromEntries(OPS.map(def => [def.name, def.op])) as Reco
 export const OP_BY_NUMBER = new Map(OPS.map(def => [def.op, def]));
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 3;
+export const DOC_VERSION = 4;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

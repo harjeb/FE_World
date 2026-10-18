@@ -4,23 +4,13 @@ import type { WeaponId } from '@common/data/weapons.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ShopRow } from '../api/session.ts';
+import { filterCounts, ITEM_FILTERS, kindOrder, matchItemFilter } from '../model/item-filter.ts';
+import type { ItemFilter } from '../model/item-filter.ts';
 import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { BexpPanel, CARRY, CarriedPanel, cannotCast, cannotLearn, cannotWield, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
 
-type Filter = 'all' | 'weapon' | 'book' | 'item' | 'food' | 'stat' | 'material';
-const FILTERS: [Filter, string][] = [['all', '全部'], ['weapon', '武器'], ['book', '法术书'], ['item', '道具'], ['food', '食物'], ['stat', '能力药'], ['material', '材料']];
-const ORDER = ['weapon', 'spellbook', 'manual', 'consumable', 'food', 'stat', 'seal', 'material'];
-
-function inFilter(key: string, filter: Filter): boolean {
-  const kind = itemOf(key)?.kind;
-  if (filter === 'all') return true;
-  if (filter === 'item') return kind === 'consumable' || kind === 'seal';
-  if (filter === 'book') return kind === 'spellbook' || kind === 'manual';
-  return kind === filter;
-}
-const byKind = (a: string, b: string) => ORDER.indexOf(itemOf(a)?.kind ?? '') - ORDER.indexOf(itemOf(b)?.kind ?? '');
 const half = (key: string) => Math.floor((itemOf(key)?.price ?? 0) / 2);
 
 // 整备 (docs/00 §9: 整理、买卖、装备、维修、分配公共经验都不耗日；旅馆休息耗 1 日). Warehouse and shop on
@@ -28,7 +18,7 @@ const half = (key: string) => Math.floor((itemOf(key)?.price ?? 0) / 2);
 // (TRANSFER_ITEM, USE_ITEM, BUY, SELL, REPAIR_ITEM, INN_REST, USE_FOOD, ASSIGN_BEXP) followed by a refresh.
 export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const { state } = useSession();
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<ItemFilter>('all');
   const [shop, setShop] = useState<ShopRow[] | null>(null);
   const loadShop = () => session.shop().then(setShop).catch(() => setShop([]));
   useEffect(() => { void loadShop(); }, []);
@@ -39,8 +29,11 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const gold = state?.gold ?? 0;
   const day = state?.day ?? 0;
   const nextSeason = state?.nextMonthStart ?? day;
-  const stock = (state?.inventory ?? []).filter(r => inFilter(r.item, filter)).sort((a, b) => byKind(a.item, b.item) || b.uses - a.uses);
-  const wares = (shop ?? []).filter(r => inFilter(r.item, filter)).sort((a, b) => byKind(a.item, b.item));
+  // 分类过滤共用 helper（model/item-filter.ts）：武器按十类细分，计数覆盖仓库与商店。
+  const allKeys = [...(state?.inventory ?? []).map(r => r.item), ...(shop ?? []).map(r => r.item)];
+  const counts = filterCounts(allKeys);
+  const stock = (state?.inventory ?? []).filter(r => matchItemFilter(r.item, filter)).sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || b.uses - a.uses);
+  const wares = (shop ?? []).filter(r => matchItemFilter(r.item, filter)).sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || a.price - b.price);
 
   function warehouseActions(key: string, uses: number, count: number) {
     const item = itemOf(key);
@@ -94,7 +87,11 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
       </div>
 
       <div className="chips" role="group" aria-label="物品分类">
-        {FILTERS.map(([f, label]) => <button key={f} type="button" className="chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>{label}</button>)}
+        {ITEM_FILTERS.map(([f, label]) => (
+          <button key={f} type="button" className="chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+            {label}{counts[f] ? <span className="cnt"> {counts[f]}</span> : null}
+          </button>
+        ))}
       </div>
 
       <div className="gear-cols">

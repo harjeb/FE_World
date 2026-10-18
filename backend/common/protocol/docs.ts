@@ -57,6 +57,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 1, text: 'v1: 首次发布。' },
     { version: 2, text: 'v2: 新增 WITHDRAW_ANNUAL(113)；年度赛事锁定报名培养和物资；START_MAIN_STAGE兼容入口也要求年度报名；任务预览补齐敌军等级、日期、风险及额外物资。' },
     { version: 3, text: 'v3: COMPLETE_SETUP改为神主角完整属性分配：固定平民与成长型，60点直接填写九属性，倾向自动推导；setup.protagonist返回固定配置与逐属性上下限，初始三人使用E级基础装备。' },
+    { version: 4, text: 'v4: 新增世界地图开荒：GET_WORLD_MAP(141) 与 CHOOSE_ROUTE(142)；开局不再默认全地区可出击，先选起步路线（1–4，不耗日）、清剿后再解锁相邻地区；GET_TODAY.sortieRegions、任务、剧情、挑战塔与工坊设施按解锁进度过滤，出击／副本／派遣／招募／声望商店按地区拦截；王都商店收缩为 E 级基础装备与常用补给，进阶武器迁往地区声望商店；旧存档按讨伐、声望、任务与既有战斗／远征／派遣自动认领地区，不重置任何养成数据。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

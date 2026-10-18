@@ -43,6 +43,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   GET_ART_TRAINING: { required: ['unitId'], properties: { unitId: { type: 'string' } } },
   TRAIN_ART: { required: ['unitId', 'art'], properties: { unitId: { type: 'string' }, art: { type: 'string' } } },
   START_ANNUAL_MATCH: { properties: {} },
+  CHOOSE_ROUTE: { required: ['region'], properties: { region: { type: 'number', minimum: 1, maximum: 12, description: '必须是世界地图 selectableRegions 中的地区 id；跳过相邻路线会被拒绝' } } },
   COMPLETE_SETUP: { required: ['protagonist', 'companions'], properties: {
     protagonist: { type: 'object', required: ['name', 'sex', 'portrait', 'allocation'], additionalProperties: false, properties: {
       name: { type: 'string' }, sex: { type: 'string', enum: ['male', 'female'] }, portrait: { type: 'string' },

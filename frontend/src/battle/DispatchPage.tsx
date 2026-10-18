@@ -4,13 +4,14 @@ import { CLASSES, canonicalClassId, classChangeReason, classUnavailableReason } 
 import type { ClassId } from '@common/data/classes.ts';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
-import { regionById, REGIONS } from '@common/game/calendar.ts';
+import { regionById } from '@common/game/calendar.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { DispatchView, ServerUnit } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
 import { annualLive, busyReason } from '../model/roster.ts';
 import { itemName, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
+import { links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { FieldTabs } from './SortiePrep.tsx';
@@ -19,7 +20,7 @@ import { FieldTabs } from './SortiePrep.tsx';
 // (handlers.ts START_DISPATCH checks the same for each unit).
 function sharedClasses(units: ServerUnit[]): ClassId[] {
   if (units.length === 0) return [];
-  const own = (u: ServerUnit) => new Set([canonicalClassId(u.classId as ClassId), canonicalClassId(CHARACTERS[u.character].classId), ...u.classQualifications.map(c => canonicalClassId(c as ClassId))]);
+  const own = (u: ServerUnit) => new Set([canonicalClassId(u.classId as ClassId), canonicalClassId((u.homeClassId ?? CHARACTERS[u.character].classId) as ClassId), ...u.classQualifications.map(c => canonicalClassId(c as ClassId))]);
   const [first, ...rest] = units.map(own);
   return [...first].filter(id => rest.every(set => set.has(id)) && !classUnavailableReason(id)
     && units.every(u => !classChangeReason({ classId: u.classId as ClassId, species: u.species, isProtagonist: u.isProtagonist }, id)));
@@ -56,7 +57,7 @@ export function DispatchPage() {
   const { state, annual } = useSession();
   const { data, error } = useServerData(() => session.dispatches(), []);
   const { busy, act } = useAct();
-  const [region, setRegion] = useState(1);
+  const [region, setRegion] = useState<number | null>(() => regionInHash(window.location.hash));
   const [days, setDays] = useState(10);
   const [team, setTeam] = useState<string[]>([]);
   const [classId, setClassId] = useState<ClassId | ''>('');
@@ -70,6 +71,9 @@ export function DispatchPage() {
   const chosenWeapon = weapon && weapons.includes(weapon) ? weapon : weapons[0] ?? null;
   const limits = data?.limits ?? { minDays: 1, maxDays: 30, maxUnits: 6 };
   const locked = annualLive(annual);
+  // 只能派往已开通的地区（state.regions 就是已开通清单）；没有已开通地区时提示先开路线。
+  const openRegions = state.regions;
+  const regionId = openRegions.some(r => r.id === region) ? region : openRegions[0]?.id ?? null;
 
   return (
     <Shell current="field">
@@ -100,9 +104,11 @@ export function DispatchPage() {
             <div className="ph"><h2 id="dpn-h">安排派遣 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {limits.maxUnits}</span></h2></div>
             <div className="a-opts" style={{ padding: '10px 14px 0' }}>
               <label className="inline-flex items-center gap-1.5" style={{ fontSize: 13 }}>地区
-                <select value={region} onChange={e => setRegion(Number(e.target.value))} aria-label="派遣地区">
-                  {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}（{r.resource}）</option>)}
-                </select>
+                {openRegions.length === 0 ? <a href={links.world}>先在世界地图开通地区</a> : (
+                  <select value={regionId ?? ''} onChange={e => setRegion(Number(e.target.value))} aria-label="派遣地区">
+                    {openRegions.map(r => <option key={r.id} value={r.id}>{r.name}（{r.resource}）</option>)}
+                  </select>
+                )}
               </label>
               <label className="inline-flex items-center gap-1.5" style={{ fontSize: 13 }}>天数
                 <input type="number" min={limits.minDays} max={limits.maxDays} value={days} aria-label="派遣天数"
@@ -132,9 +138,9 @@ export function DispatchPage() {
             </dl>
             <div className="go-bar">
               <div className="flex flex-wrap gap-1.5" style={{ marginRight: 'auto' }}>{picked.map(u => <UnitFace key={u.id} unit={u} size={28} />)}</div>
-              <button type="button" className="btn btn-primary" disabled={busy !== null || picked.length === 0 || !chosenClass || !chosenWeapon || locked}
-                onClick={() => void act('start', () => session.run(OP.START_DISPATCH, { region, durationDays: days, unitIds: team, classId: chosenClass, weaponType: chosenWeapon }),
-                  () => `派出 ${picked.length} 人前往${regionById(region).name}，${days} 日后返程`).then(ok => { if (ok) setTeam([]); })}>
+              <button type="button" className="btn btn-primary" disabled={busy !== null || picked.length === 0 || !chosenClass || !chosenWeapon || locked || regionId === null}
+                onClick={() => void act('start', () => session.run(OP.START_DISPATCH, { region: regionId, durationDays: days, unitIds: team, classId: chosenClass, weaponType: chosenWeapon }),
+                  () => `派出 ${picked.length} 人前往${regionById(regionId!).name}，${days} 日后返程`).then(ok => { if (ok) setTeam([]); })}>
                 {busy === 'start' ? '出发中…' : `派遣 ${picked.length} 人 · ${days} 日`}
               </button>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { regionById, REGIONS } from '@common/game/calendar.ts';
+import { regionById } from '@common/game/calendar.ts';
 import { RECRUIT_UNLOCK_DAY } from '@common/game/random-recruit.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
@@ -14,8 +14,6 @@ import { Checks, Face, useAct } from './SystemParts.tsx';
 const SPECIES = { human: '人类', beast: '兽人', dragon: '龙人' } as const;
 // 返还倍率与判定（common/game/minigames.ts，docs/18）：押中总返还含本金。
 const DICE_RETURN = 2;
-// GET_TAVERN without a region lists these three (handlers.ts).
-const DEFAULT_TAVERNS = [2, 3, 5];
 const FROG_RETURN = 3.8;
 
 // 酒馆 (docs/18, TODO SETUP-04): from the second year, three paid candidates per region each season, the
@@ -61,22 +59,27 @@ function HirePanel() {
   const { state, annual } = useSession();
   const { busy, act } = useAct();
   const [region, setRegion] = useState<number | null>(null);
-  const { data, error } = useServerData(() => session.tavern(region ?? undefined), [region]);
+  // 只列已开通的地区（state.regions 就是已开通清单）；默认第一个已开通地区。
+  const openRegions = state?.regions ?? [];
+  const regionId = openRegions.some(r => r.id === region) ? region : openRegions[0]?.id ?? null;
+  const { data, error } = useServerData(() => session.tavern(regionId ?? undefined), [regionId]);
   if (!state) return null;
   const full = state.rosterCount >= state.rosterLimit;
   const locked = annualLive(annual);
+  const openIds = new Set(openRegions.map(r => r.id));
   const groups = new Map<number, TavernRow[]>();
-  for (const row of data?.regions ?? []) groups.set(row.region, [...(groups.get(row.region) ?? []), row]);
+  for (const row of data?.regions ?? []) if (openIds.has(row.region)) groups.set(row.region, [...(groups.get(row.region) ?? []), row]);
   return (
     <section className="panel" aria-labelledby="tv-h">
       <div className="ph">
         <h2 id="tv-h">本季候选</h2>
         <label className="inline-flex items-center gap-1.5" style={{ fontSize: 13 }}>
           地区
-          <select value={region ?? ''} onChange={e => setRegion(e.target.value ? Number(e.target.value) : null)} aria-label="酒馆地区">
-            <option value="">{DEFAULT_TAVERNS.map(id => regionById(id).name).join(' · ')}</option>
-            {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
+          {openRegions.length === 0 ? <a href={links.world}>先在世界地图开通地区</a> : (
+            <select value={regionId ?? ''} onChange={e => setRegion(e.target.value ? Number(e.target.value) : null)} aria-label="酒馆地区">
+              {openRegions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+          )}
         </label>
       </div>
       {error && <p className="sys-note">{error}</p>}

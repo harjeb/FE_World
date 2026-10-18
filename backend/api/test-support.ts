@@ -9,6 +9,9 @@ export function seedFullRoster(store: Store, player: Player): void {
   // 测试夹具继续使用旧演示日，保证年度／剧情用例稳定；正式新档仍从 D0 开始。
   player.day = SEED_DAY;
   player.bexp = SEED_BEXP;
+  // 夹具显式全解锁 12 地区（历史行为兼容），但不授予任何讨伐记录：副本／派遣／竞技场等
+  // 首讨门槛由 combatFeaturesOpen 另行判定；需要真实门槛的用例请用独立的显式夹具。
+  player.flags.unlockedRegions = Array.from({ length: 12 }, (_, i) => i + 1);
   store.savePlayer(player);
   const owned = new Set(store.units(player.id).map(u => u.character));
   for (const [character, level] of Object.entries(DEMO_LEVEL)) {

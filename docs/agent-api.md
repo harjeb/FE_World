@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 3
+docVersion: 4
 
 本文件由 `backend/common/protocol/ops.ts` 生成，不要手改。
 
@@ -185,6 +185,12 @@ docVersion: 3
 | --- | --- | --- |
 | 139 | CLAIM_CONTROL | 取得短期控制租约；同一账号的其它写操作在租约期内被拒绝。 |
 | 140 | RELEASE_CONTROL | 释放自己持有的控制租约；人工接管前先释放。 |
+### 地图
+
+| op | 名称 | 说明 |
+| --- | --- | --- |
+| 141 | GET_WORLD_MAP | 读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions；开荒从 1–4 四条起步路线开始，不选路线不能出击。 |
+| 142 | CHOOSE_ROUTE | 把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次选择后要先清剿当前地区，相邻路线才会再次可选；需先完成开局自捏。 |
 ### 战斗
 
 | op | 名称 | 说明 |

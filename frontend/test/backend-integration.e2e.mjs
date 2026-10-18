@@ -5,7 +5,7 @@
 // Usage (from frontend/): npm run build && node test/backend-integration.e2e.mjs
 // Needs Node.js 22.18+ and Chromium (CHROME_BIN overrides the binary name).
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
@@ -52,6 +52,13 @@ async function openPage(profile) {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
   return {
     errors, evaluate,
+    async capture(path, width = 1440, height = 1000) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+      await sleep(150);
+      const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+      writeFileSync(path, Buffer.from(shot.data, 'base64'));
+      await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+    },
     close: async () => { ws.close(); await stopProcess(chrome); },
     async open(url, selector) {
       await send('Page.navigate', { url });
@@ -134,10 +141,48 @@ try {
     let repeated = false;
     try { await api(page, 127, {}); } catch { repeated = true; }
     check('setup cannot be repeated', repeated, 'second completion rejected');
-    await page.open(`http://127.0.0.1:${API_PORT}/#/quests`, '.ch-acts button');
+    const beforeRoute = await api(page, 10);
+    check('unopened pages stay out of navigation',
+      await page.evaluate(`!document.querySelector('.rail a[href="#/field"], .rail a[href="#/quests"], .rail a[href="#/arena"], .rail a[href="#/story"], .rail a[href="#/workshop"], .rail a[href="#/tavern"], .rail a[href="#/legacy"], .rail a[href="#/replay"]')`), 'only base pages and the world map');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/settings`, '#ag-h');
+    check('settings keeps unopened report and spectate links hidden',
+      await page.evaluate(`!document.querySelector('a[href="#/replay"], a[href="#/spectate"]')`), 'no future-page shortcuts');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/rules`, '.rules-grid');
+    check('the rules manual only links to currently open pages',
+      await page.evaluate(`!document.querySelector('.rules-grid a[href="#/arena"], .rules-grid a[href="#/arena/annual"], .rules-grid a[href="#/quests"], .rules-grid a[href="#/workshop"], .rules-grid a[href="#/field"]')`), 'base rules remain readable');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/story`, '.world-map');
+    check('locked direct pages render the world map', await page.evaluate(`!!document.querySelector('.world-map') && !document.querySelector('.story-cols')`), 'no locked story component');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/world`, '.world-map');
+    check('the world map starts with four selectable routes and eight locked regions',
+      await page.evaluate(`document.querySelectorAll('.world-node.available').length === 4 && document.querySelectorAll('.world-node:disabled').length === 8`), '4 / 8');
+    if (process.env.E2E_ARTIFACT_DIR) {
+      mkdirSync(process.env.E2E_ARTIFACT_DIR, { recursive: true });
+      await page.capture(join(process.env.E2E_ARTIFACT_DIR, 'world-desktop.png'));
+      await page.capture(join(process.env.E2E_ARTIFACT_DIR, 'world-mobile.png'), 390, 1100);
+    }
+    let lockedRegion = false;
+    try { await api(page, 31, { region: 12 }); } catch (error) { lockedRegion = error.message.includes('尚未解锁'); }
+    check('direct API calls cannot skip route unlocks', lockedRegion && (await api(page, 10)).day === beforeRoute.day, 'blocked without spending days');
+    await page.click('.world-node[data-region="2"]');
+    await page.evaluate(`[...document.querySelectorAll('.go-bar button')].find(button => button.innerText.includes('选择此路线')).click()`);
+    check('choosing the forest opens exactly one region without spending days',
+      await until(() => page.evaluate(`document.querySelectorAll('.world-node.unlocked').length === 1`))
+      && JSON.stringify((await api(page, 10)).world.unlockedRegions) === '[2]'
+      && (await api(page, 10)).day === beforeRoute.day, 'region 2 at the same date');
+    check('route choice reveals field and quest pages while advanced combat stays hidden',
+      await page.evaluate(`!!document.querySelector('.rail a[href="#/field"]') && !!document.querySelector('.rail a[href="#/quests"]') && !document.querySelector('.rail a[href="#/arena"]')`), 'progressive navigation');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/world`, '.world-map');
+    check('the chosen route survives a browser reload', await page.evaluate(`document.querySelector('.world-node[data-region="2"]').classList.contains('unlocked') && document.querySelectorAll('.world-node.available').length === 0`), 'forest retained');
+    await page.click('.world-node[data-region="2"]');
+    await page.evaluate(`[...document.querySelectorAll('.go-bar a')].find(link => link.innerText === '前往任务').click()`);
+    check('map links carry the selected region', await until(() => page.evaluate(`location.hash === '#/quests?region=2' && !!document.querySelector('[aria-labelledby="rg-2"]')`)), 'forest quest page');
     const quests = await api(page, 123);
-    const kinds = [...new Set(quests.regions.flatMap(region => region.quests.map(q => q.kind)))];
-    check('quest data covers all six objective kinds', ['rout', 'seize', 'defend', 'escape', 'gather', 'escort'].every(kind => kinds.includes(kind)), kinds.join(', '));
+    check('quest data only contains opened content',
+      quests.regions.length === 1 && quests.regions[0].region === 2
+      && quests.regions[0].quests.every(quest => quest.available || quest.done || quest.inProgress), 'unopened regions and prerequisites hidden');
+    await page.evaluate(`[...document.querySelectorAll('[aria-label="希尔瓦林地商店分类"] button')].find(button => button.innerText.startsWith('弓')).click()`);
+    const regionalWares = await page.evaluate(`document.querySelector('[aria-labelledby="rg-2"] ul.eq').innerText`);
+    check('regional shops filter by weapon type', regionalWares.includes('木制弓') && !regionalWares.includes('疾风剑'), regionalWares.slice(0, 90));
     await page.click('.ch-acts button');
     check('quest preparation shows team selection, date, enemy level and permanent-death risk',
       await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');
@@ -155,7 +200,7 @@ try {
     check('agent chip follows the heartbeat', topbar.includes('Agent 离线') && !topbar.includes('Agent 在线'), topbar.slice(-40));
     const acts = await page.evaluate(`[...document.querySelectorAll('.act')].map(li => li.innerText.replace(/\\s+/g, ' ')).join(' | ')`);
     check('camp actions show the GET_TODAY costs',
-      ['出击', '扫荡', '训练', '休整', '游历招募'].every(n => acts.includes(n)) && ['8 日 →', '5 日 →', '3 日 →', '1 日 →', '4 日 →'].every(c => acts.includes(c)) && !acts.includes('1 行动日'),
+      ['出击', '训练', '休整', '游历招募'].every(n => acts.includes(n)) && ['8 日 →', '3 日 →', '1 日 →', '4 日 →'].every(c => acts.includes(c)) && !acts.includes('扫荡') && !acts.includes('1 行动日'),
       acts.slice(0, 160));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/arena`, '.panel');
@@ -191,6 +236,12 @@ try {
     const dayBefore = (await api(page, 30)).day;
     const owen0 = await owen();
     await page.open(`http://127.0.0.1:${API_PORT}/#/prep/u_owen`, '.gear-shop li .btn');
+    await page.evaluate(`[...document.querySelectorAll('.chips button')].find(button => button.innerText.startsWith('剑')).click()`);
+    const centralWares = await page.evaluate(`document.querySelector('.gear-shop').innerText`);
+    check('the central shop filters basic weapons and preserves the selected unit',
+      centralWares.includes('木制剑') && !centralWares.includes('木制枪') && !centralWares.includes('铁剑')
+      && await page.evaluate(`location.hash === '#/prep/u_owen'`), centralWares.slice(0, 90));
+    await page.evaluate(`[...document.querySelectorAll('.chips button')].find(button => button.innerText.startsWith('全部')).click()`);
     await press(page, '.gear-list li', '伤药', '交给欧文');
     check('prep gives a 伤药 to the selected unit', await until(async () => (await owen()).snapshot.items.length === owen0.snapshot.items.length + 1),
       JSON.stringify((await owen()).snapshot.items));

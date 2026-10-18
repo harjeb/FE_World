@@ -25,6 +25,9 @@ export interface PlayerFlags {
   // 放回仓库的魔道书／杖剩余次数（与 storedWeapons 一样按先进先出对应仓库里的同名实物）。
   storedBooks?: { id: WeaponId; charges: number; maxCharges: number }[];
   clearedRegions: number[];
+  // 世界地图开荒：玩家显式选择的已解锁地区（canonical 列表，含旧档认领结果；clearedRegions 永不重置，
+  // 实际可用地区 = unlockedRegions ∪ clearedRegions，见 common/game/region-map.ts）。
+  unlockedRegions?: number[];
   // 历史首次通关等级记录；新出征按日期计算，不再用此值锁重打难度。
   firstClearLevel?: Record<number, number>;
   shopMonth: number;
@@ -338,6 +341,13 @@ export class Store {
     for (const row of SHOP_STOCK) this.setShopStock(playerId, row.item, row.stock);
   }
 
+  // 旧档商店升级：同季度老存档的 shop 表只有旧库存行，缺当前商店新增行；
+  // 只用 INSERT OR IGNORE 补插缺失行，不清空、不补满已消耗的库存。
+  ensureShopRows(playerId: string): void {
+    const insert = this.db.prepare('INSERT OR IGNORE INTO shop (player_id, item, stock) VALUES (?, ?, ?)');
+    for (const row of SHOP_STOCK) insert.run(playerId, row.item, row.stock);
+  }
+
   // ---- events, notes -----------------------------------------------------
 
   addEvent(playerId: string, kind: string, text: string, data: unknown): number {
@@ -410,6 +420,12 @@ export class Store {
       if (!record.state.result) return record;
     }
     return null;
+  }
+
+  // 全部战斗记录（含已结束与进行中）：旧档地区认领按真实证据扫描。
+  battles(playerId: string): BattleRecord[] {
+    return (this.db.prepare('SELECT data FROM battles WHERE player_id = ?').all(playerId) as { data: string }[])
+      .map(row => JSON.parse(row.data) as BattleRecord);
   }
 
   // ---- arena days --------------------------------------------------------
@@ -506,6 +522,11 @@ export class Store {
       .map(r => ({ id: r.id, playerId: r.player_id, data: JSON.parse(r.data), publicAt: r.public_at, createdAt: r.created_at }));
   }
 
+  // 本人是否留有战报：战报页在首场战斗前保持隐藏（reports 特性门）。
+  hasOwnReplays(playerId: string): boolean {
+    return !!this.db.prepare('SELECT 1 FROM replays WHERE player_id = ? LIMIT 1').get(playerId);
+  }
+
   // ---- idempotent command receipts (docs/13 §1.4、§2.1) -------------------
 
   receipt(playerId: string, commandId: string): CommandReceipt | null {
@@ -595,6 +616,12 @@ export class Store {
   latestRun(playerId: string): RunRecord | null {
     const row = this.db.prepare('SELECT data FROM runs WHERE player_id = ? ORDER BY updated_at DESC LIMIT 1').get(playerId) as { data: string } | undefined;
     return row ? JSON.parse(row.data) as RunRecord : null;
+  }
+
+  // 全部远征记录：旧档地区认领按真实证据扫描。
+  runs(playerId: string): RunRecord[] {
+    return (this.db.prepare('SELECT data FROM runs WHERE player_id = ?').all(playerId) as { data: string }[])
+      .map(row => JSON.parse(row.data) as RunRecord);
   }
 
   // ---- annual arena entries (docs/13 §2.5) ------------------------------

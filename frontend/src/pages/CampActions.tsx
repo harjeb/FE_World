@@ -4,6 +4,7 @@ import type { ClassId } from '@common/data/classes.ts';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
+import { DAYS_PER_YEAR } from '@common/game/calendar.ts';
 import { GAME_ITEMS } from '@common/game/items.ts';
 import type { ItemKey } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
@@ -11,6 +12,7 @@ import { ICONS } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import type { PendingRecruit, ServerToday, ServerUnit, TodayAction } from '../api/session.ts';
 import { annualLive, busyReason } from '../model/roster.ts';
+import { featuresOf } from '../model/access.ts';
 import { links } from '../router.ts';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
 import { toast } from '../ui/toast.tsx';
@@ -65,7 +67,7 @@ export function CampActions() {
   const [unitId, setUnitId] = useState('');
   const [weapon, setWeapon] = useState<WeaponType | null>(null);
   const [restDays, setRestDays] = useState(1);
-  const [travelRegion, setTravelRegion] = useState(1);
+  const [travelRegion, setTravelRegion] = useState<number | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,8 +81,15 @@ export function CampActions() {
   }
 
   const regions = today.sortieRegions;
+  const features = featuresOf(state);
+  // 只显示仍开放的功能：出击入口（features.field）与后台派遣（features.dispatch）。
+  const visible = today.actions.filter(a => a.key === 'sortie' ? features.field
+    : a.key === 'sweep' ? regions.some(region => region.cleared)
+      : a.key === 'recruit' ? state.day >= DAYS_PER_YEAR && regions.length > 0 : true);
   const cleared = regions.filter(r => r.cleared);
   const sweepId = cleared.some(r => r.id === sweepRegion) ? sweepRegion : cleared[0]?.id ?? null;
+  // 游历地区只在已开通的地区里选；默认第一个已开通地区。
+  const travel = regions.some(r => r.id === travelRegion) ? travelRegion : regions[0]?.id ?? null;
   // 派遣中的角色不能参加武器专项训练（TRAIN）。
   const trainees = state.units.filter(u => u.status === 'active' && !u.lockedDispatchId);
   const trainee = trainees.find(u => u.id === unitId) ?? trainees[0];
@@ -138,7 +147,7 @@ export function CampActions() {
           </label>
         );
       case 'recruit':
-        return !state!.pendingRecruit && regionSelect('游历地区', travelRegion, regions, setTravelRegion);
+        return !state!.pendingRecruit && regions.length > 0 && regionSelect('游历地区', travel, regions, setTravelRegion);
       default:
         return null;
     }
@@ -161,8 +170,8 @@ export function CampActions() {
         return <button type="button" className="btn btn-sm" disabled={off}
           onClick={() => act<RestResult>('rest', OP.REST, { days: restDays }, r => `休整了 ${r.days} 日`)}>休整</button>;
       case 'recruit':
-        return <button type="button" className="btn btn-sm" disabled={off}
-          onClick={() => act<RecruitResult>('recruit', OP.RECRUIT, { region: travelRegion },
+        return <button type="button" className="btn btn-sm" disabled={off || travel === null}
+          onClick={() => act<RecruitResult>('recruit', OP.RECRUIT, { region: travel },
             r => (r.success && r.pending ? `遇到了${r.pending.candidate.name}（Lv ${r.pending.level}），请决定是否接受` : `这次没有遇到新人（本地区已连续 ${r.fails ?? 1} 次）`))}>游历</button>;
     }
   }
@@ -176,7 +185,7 @@ export function CampActions() {
       {locked && <p className="a-warn" role="note">大竞技场进行中，日历行动暂停；打完或退出本届后恢复。</p>}
       {!locked && warning && <p className="a-warn" role="note">{warning}</p>}
       <ul>
-        {today.actions.map(a => {
+        {visible.map(a => {
           const to = advance(today.day, spend(a));
           const poor = a.key === 'train' && state.gold < (a.costGold ?? 0);
           const pending = a.key === 'recruit' ? state.pendingRecruit : null;
@@ -210,13 +219,13 @@ export function CampActions() {
           </div>
           {trainee && <a className="btn btn-sm" href={links.roster(trainee.id, 'mastery')}>查看研修</a>}
         </li>
-        <li className="act" data-action="dispatch">
+        {features.dispatch && <li className="act" data-action="dispatch">
           <img className="px" src={ICONS.travel} width={32} height={32} alt="" />
           <div className="min-w-0">
             <div><span className="a-name">后台派遣</span><span className="a-desc">自动探索／职业训练：不推进日期，按返程日一次结算；派出期间这些人不能参加其他战斗</span></div>
           </div>
           <a className="btn btn-sm" href={links.dispatch}>安排派遣</a>
-        </li>
+        </li>}
       </ul>
       {error && <p role="alert" style={{ padding: '0 14px 10px', fontSize: 13, color: '#93392F' }}>{error}</p>}
     </section>

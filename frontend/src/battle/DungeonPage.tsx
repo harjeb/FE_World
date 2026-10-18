@@ -5,7 +5,7 @@ import { DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ActionQuote, ServerRun } from '../api/session.ts';
-import { links } from '../router.ts';
+import { links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
 import { itemName, QuoteBox, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
@@ -186,7 +186,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const { busy, act } = useAct();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const max = today?.actions.find(a => a.key === 'sortie')?.maxUnits ?? 6;
-  const [region, setRegion] = useState(1);
+  const [region, setRegion] = useState<number | null>(() => regionInHash(window.location.hash));
   // Same default as 出征准备: the first six, never more than the field allows.
   const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(6, max)).map(u => u.id));
   const [quote, setQuote] = useState<ActionQuote | null>(null);
@@ -197,7 +197,22 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   if (!today || !state) {
     return <Shell current="field"><p style={{ color: '#4E473D' }}>暂时读不到出击信息（GET_TODAY），刷新页面再试。</p></Shell>;
   }
+  // 只在已开通的地区里选；没有可选地区时回世界地图开新路线。
   const target = today.sortieRegions.find(r => r.id === region) ?? today.sortieRegions[0];
+  if (!target) {
+    return (
+      <Shell current="field">
+        <div className="prep">
+          <FieldTabs current="dungeon" />
+          <section className="panel" style={{ padding: 16 }}>
+            <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
+            <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>先在世界地图上选择一条讨伐路线，开通后即可远征。</p>
+            <a className="btn btn-primary" href={links.world}>打开世界地图</a>
+          </section>
+        </div>
+      </Shell>
+    );
+  }
   const picked = active.filter(u => team.includes(u.id));
   const top = Math.max(0, ...picked.map(u => u.level));
   const total = advance(today.day, DUNGEON_STAGE_DAYS * DUNGEON_STAGES);

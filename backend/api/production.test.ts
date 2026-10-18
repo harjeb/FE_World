@@ -98,7 +98,9 @@ test('reputation recipes stay locked until the region reputation is high enough'
   store.addInventory(player.id, 'wood', 0, 20);
   const view = dispatch(ctx, OP.GET_PRODUCTION, {}) as { recipes: { id: string; unlocked: boolean; requires: { region: number; reputation: number } | null }[] };
   const locked = view.recipes.find(r => r.id === 'forge_killer_bow')!;
+  // 声望配方保持列出但未解锁；设施本身随地区 2 解锁（夹具全解锁）。
   assert.equal(locked.unlocked, false);
+  assert.equal(locked.requires?.region, 2);
   assert.equal(locked.requires?.reputation, 100);
   assert.throws(() => dispatch(ctx, OP.START_PRODUCTION, { recipeId: 'forge_killer_bow' }), /声望/);
   player.flags.regionReputation = { 2: 100 };

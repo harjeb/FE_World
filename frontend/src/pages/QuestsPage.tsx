@@ -5,17 +5,20 @@ import { session, useSession } from '../api/session.ts';
 import type { ChallengeFloor, QuestRegion, QuestView } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
 import { annualLive, busyReason } from '../model/roster.ts';
-import { go, links } from '../router.ts';
+import { featuresOf } from '../model/access.ts';
+import { filterCounts, ITEM_FILTERS, kindOrder, matchItemFilter } from '../model/item-filter.ts';
+import type { ItemFilter } from '../model/item-filter.ts';
+import { go, links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { LockIcon } from '../ui/icons.tsx';
 import { advance, dateLabel } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 import { itemSpec } from './PrepParts.tsx';
 
-type Phase = 'locked' | 'available' | 'done' | 'claimed';
-const phaseOf = (q: QuestView): Phase => (!q.available && !q.done ? 'locked' : !q.done ? 'available' : !q.claimed ? 'done' : 'claimed');
+type Phase = 'locked' | 'ongoing' | 'available' | 'done' | 'claimed';
+const phaseOf = (q: QuestView): Phase => (q.inProgress ? 'ongoing' : !q.available && !q.done ? 'locked' : !q.done ? 'available' : !q.claimed ? 'done' : 'claimed');
 const PHASE_TAG: Record<Phase, [string, string]> = {
-  locked: ['未解锁', 'tag-grey'], available: ['可接取', 'tag-blue'], done: ['奖励待领取', 'tag-green'], claimed: ['已完成', 'tag-brass'],
+  ongoing: ['进行中', 'tag-brass'], locked: ['未解锁', 'tag-grey'], available: ['可接取', 'tag-blue'], done: ['奖励待领取', 'tag-green'], claimed: ['已完成', 'tag-brass'],
 };
 const KIND_TEXT: Record<QuestView['kind'], string> = { rout: '讨伐', seize: '占领/抵达', defend: '坚守', escape: '撤离', gather: '抢物资', escort: '护送' };
 const TIER_TEXT: Record<QuestView['tier'], string> = { short: '短任务', standard: '标准任务', region: '地区远征' };
@@ -24,10 +27,12 @@ const items = (list: [string, number][] | undefined) => (list ?? []).map(([item,
 const rewardText = (q: QuestView) => [`${q.reward.gold.toLocaleString()} 金币`, `${q.reward.reputation} 声望`, ...items(q.reward.items), ...(q.exclusive ? [`专属实物：${q.exclusive.name}`] : [])].join(' · ');
 
 function Tabs({ current }: { current: 'regions' | 'tower' }) {
+  const { state } = useSession();
+  const tower = featuresOf(state).tower;
   return (
     <nav className="ptabs field-tabs" aria-label="任务分类">
       <a className="ptab" href={links.quests} aria-current={current === 'regions' ? 'page' : undefined}>地区任务 <span className="tag tag-grey">声望与固定人物</span></a>
-      <a className="ptab" href={links.tower} aria-current={current === 'tower' ? 'page' : undefined}>挑战塔 <span className="tag tag-grey">通关后内容</span></a>
+      {tower && <a className="ptab" href={links.tower} aria-current={current === 'tower' ? 'page' : undefined}>挑战塔 <span className="tag tag-grey">通关后内容</span></a>}
     </nav>
   );
 }
@@ -49,18 +54,34 @@ export function QuestsPage({ tab }: { tab: 'regions' | 'tower' }) {
 function RegionsTab() {
   const { quests, state, annual } = useSession();
   const { busy, act } = useAct();
-  const [regionId, setRegionId] = useState<number | null>(null);
+  const [regionId, setRegionId] = useState<number | null>(() => regionInHash(window.location.hash));
   const [selected, setSelected] = useState<string | null>(null);
   const [team, setTeam] = useState<string[]>([]);
   const prepRef = useRef<HTMLElement>(null);
   useEffect(() => { if (selected) prepRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [selected]);
   if (!quests || !state) return <p style={{ color: '#4E473D' }}>暂时读不到地区任务（GET_QUESTS），刷新页面再试。</p>;
-  const region = quests.regions.find(r => r.region === regionId)
-    ?? quests.regions.find(r => r.quests.some(q => phaseOf(q) === 'done'))
-    ?? quests.regions.find(r => r.quests.some(q => phaseOf(q) === 'available'))
-    ?? quests.regions[0];
+  // 防御性过滤：GET_QUESTS 已只返回已开通地区，这里再按 state.regions 过一次，避免显示未开通地区。
+  const openIds = new Set(state.regions.map(r => r.id));
+  const openRegions = quests.regions.filter(r => openIds.has(r.region))
+    .map(r => ({ ...r, quests: r.quests.filter(q => q.available || q.done || q.claimed || q.inProgress) }));
+  if (openRegions.length === 0) {
+    return (
+      <div className="prep">
+        <Tabs current="regions" />
+        <section className="panel" style={{ padding: 16 }}>
+          <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
+          <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>地区任务随讨伐路线逐区开放；先在世界地图上选择一条路线。</p>
+          <a className="btn btn-primary" href={links.world}>打开世界地图</a>
+        </section>
+      </div>
+    );
+  }
+  const region = openRegions.find(r => r.region === regionId)
+    ?? openRegions.find(r => r.quests.some(q => phaseOf(q) === 'done'))
+    ?? openRegions.find(r => r.quests.some(q => phaseOf(q) === 'available'))
+    ?? openRegions[0];
   const quest = region.quests.find(q => q.id === selected) ?? null;
-  const allQuests = quests.regions.flatMap(r => r.quests);
+  const allQuests = openRegions.flatMap(r => r.quests);
   const questName = (id: string) => allQuests.find(q => q.id === id)?.name ?? id;
   const active = state.units.filter(u => u.status === 'active');
   const locked = annualLive(annual);
@@ -94,9 +115,9 @@ function RegionsTab() {
 
       <div className="quest-cols">
         <section className="panel" aria-labelledby="rgl-h">
-          <div className="ph"><h2 id="rgl-h">地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{quests.regions.length} 个</span></div>
+          <div className="ph"><h2 id="rgl-h">地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{openRegions.length} 个已开通</span></div>
           <ul className="region-list">
-            {quests.regions.map(r => <RegionRow key={r.region} region={r} current={r.region === region.region} onPick={() => { setRegionId(r.region); setSelected(null); }} />)}
+            {openRegions.map(r => <RegionRow key={r.region} region={r} current={r.region === region.region} onPick={() => { setRegionId(r.region); setSelected(null); }} />)}
           </ul>
         </section>
 
@@ -155,6 +176,13 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
   onStart: (q: QuestView) => void; onClaim: (q: QuestView) => void; onBuy: (region: number, item: string) => void;
 }) {
   const next = region.tier.next;
+  const [shopFilter, setShopFilter] = useState<ItemFilter>('all');
+  // 声望商店按物品分类过滤（武器按剑/枪/斧/弓/拳/短刀/兽/龙/魔道书/杖细分），芯片带数量。
+  const shopKeys = region.shop.map(s => s.item);
+  const counts = filterCounts(shopKeys);
+  const wares = region.shop
+    .filter(s => matchItemFilter(s.item, shopFilter))
+    .sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || a.price - b.price);
   return (
     <section className="panel" aria-labelledby={`rg-${region.region}`}>
       <div className="ph">
@@ -183,6 +211,7 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
                 )}
               </div>
               <div className="ch-acts">
+                {phase === 'ongoing' && <a className="btn btn-sm btn-primary" href={q.tier === 'region' ? links.dungeon : links.field}>继续任务</a>}
                 {phase === 'available' && (
                   <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => onStart(q)}>准备出征</button>
                 )}
@@ -198,8 +227,14 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
       </ol>
       {region.shop.length > 0 && <>
         <div className="grp">声望商店 · 达到档位才能买，购买不扣声望</div>
+        <div className="chips" role="group" aria-label={`${region.name}商店分类`} style={{ padding: '0 14px' }}>
+          {ITEM_FILTERS.map(([f, label]) => (
+            <button key={f} type="button" className="chip" aria-pressed={shopFilter === f}
+              onClick={() => setShopFilter(f)}>{label}{counts[f] ? ` ${counts[f]}` : ''}</button>
+          ))}
+        </div>
         <ul className="eq">
-          {region.shop.map(s => (
+          {wares.map(s => (
             <li key={s.item}>
               <span className="slot-free" aria-hidden="true" />
               <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span></div><div className="sp">需要声望 {s.reputation} · {itemSpec(s.item)}</div></div>
@@ -208,6 +243,7 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
                 : <span className="tag tag-grey">声望不足</span>}
             </li>
           ))}
+          {wares.length === 0 && <li className="empty-row">这个分类下没有在售的物品</li>}
         </ul>
       </>}
     </section>

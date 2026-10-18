@@ -75,7 +75,8 @@ test('a quest pays its days once, marks done on a win, and its first reward is c
 
   const before = questView(ctx, 2);
   assert.ok(before.quests.find(q => q.id === 'gw1')!.available, 'gw1 is open from the start');
-  assert.ok(!before.quests.find(q => q.id === 'gw2')!.available, 'gw2 waits for gw1');
+  // 前置未满足的任务整行隐藏：gw2 等 gw1 完成后才出现在列表里。
+  assert.equal(before.quests.some(q => q.id === 'gw2'), false, 'gw2 waits for gw1');
 
   const day = player.day;
   const started = dispatch(ctx, OP.START_QUEST, { questId: 'gw1', unitIds: ids }) as { battleId: string; goalText: string };
@@ -237,7 +238,8 @@ test('an old three-quest region can finish its new branches and claim the ending
   player.flags.regionReputation = { 9: 160 };
   store.savePlayer(player);
   assert.ok(questView(ctx, 9).quests.find(q => q.id === 'r9-4')!.available);
-  assert.equal(questView(ctx, 9).quests.find(q => q.id === 'r9-7')!.available, false);
+  // 声望门槛未达时整行隐藏，而不是展示一个不可接的任务。
+  assert.equal(questView(ctx, 9).quests.some(q => q.id === 'r9-7'), false, 'r9-7 stays hidden until reputation 250');
   for (const id of ['r9-4', 'r9-5', 'r9-6', 'r9-7', 'r9-8', 'r9-9']) {
     assert.ok(questView(ctx, 9).quests.find(q => q.id === id)!.available, id);
     // 已有引擎胜利与三图流程测试；此处只注入完成事实，检验旧进度的解锁、持久化与领奖幂等。

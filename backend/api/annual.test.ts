@@ -89,10 +89,11 @@ test('story chapters open on the personal calendar and pay once', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   const story = dispatch(ctx, OP.GET_STORY, {}) as { chapters: { chapter: number; available: boolean; completed: boolean; claimed: boolean }[] };
-  assert.equal(story.chapters.length, 8);
+  // GET_STORY 只下发已开放或已完成的章节：第 999 日开放第 1–2 章，第 3 章整行隐藏。
+  assert.deepEqual(story.chapters.map(c => c.chapter), [1, 2]);
   assert.equal(story.chapters[0].available, true, 'chapter 1 is open at day 999');
   assert.equal(story.chapters[1].available, true, 'chapter 2 opens at day 982');
-  assert.equal(story.chapters[2].available, false, 'chapter 3 opens at day 1482');
+  assert.equal(story.chapters.some(c => c.chapter === 3), false, 'chapter 3 opens at day 1482 and stays hidden');
   assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 3 }), /尚未开放/);
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
   const bexp = player.bexp;

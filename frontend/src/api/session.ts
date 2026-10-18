@@ -7,6 +7,7 @@ import type { Action, BattleEvent, BattleState, Point } from '@common/engine/ind
 import type { SnapshotUnit } from '@common/arena/rules.ts';
 import type { CharacterId } from '@common/data/characters.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '@common/data/types.ts';
+import type { FeatureAccess, WorldMapView } from '@common/game/region-map.ts';
 import { ApiError, call, login as apiLogin, newCommandId, setToken, token } from './client.ts';
 
 export interface WeaponInstance { id: string; durability: number; maxDurability: number; refinement?: number }
@@ -125,6 +126,10 @@ export interface ServerState {
   legacyUnlocked: boolean;
   control: { owner: string; expiresAt: number } | null;
   perfectWeapons: Record<string, number>;
+  // 世界地图视图（GET_STATE 内嵌，@common/game/region-map.ts WorldMapView）：节点状态、路线与可选地区。
+  world: WorldMapView;
+  // 功能旗标（FeatureAccess）：未开放的模块不进导航、直达路由回落到世界地图。
+  features: FeatureAccess;
   // 开局自选同伴：新账号只发主角，needed 为 true 时要先选两名同伴（docs/20 §5.1）。
   setup: {
     needed: boolean;
@@ -250,7 +255,7 @@ export interface QuestView {
   requires: { quest?: string; reputation?: number } | null;
   // 固定专属实物（首次领奖时入库）。
   exclusive: { item: string; name: string } | null;
-  done: boolean; claimed: boolean; available: boolean;
+  done: boolean; claimed: boolean; available: boolean; inProgress?: boolean;
   classic?: { game: string; mapName: string; stageCount: number; adapted?: boolean } | null;
 }
 export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean }[]; quests: QuestView[] }
@@ -550,6 +555,11 @@ class SessionStore {
     name: string; sex: 'male' | 'female'; portrait: string; allocation: Record<string, number>;
   }, companions: string[]): Promise<{ companions: string[] }> {
     return this.run<{ companions: string[] }>(OP.COMPLETE_SETUP, { protagonist, companions });
+  }
+
+  // 选择世界路线（CHOOSE_ROUTE）：开通 region 地区，不消耗行动日；随后统一 refresh。
+  async chooseRoute(region: number): Promise<{ region: number }> {
+    return this.run<{ region: number }>(OP.CHOOSE_ROUTE, { region });
   }
 
   // ---- reports and live battles -----------------------------------------

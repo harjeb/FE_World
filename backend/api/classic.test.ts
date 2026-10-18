@@ -12,6 +12,7 @@ import { decide } from '../common/engine/index.ts';
 import { stats } from '../common/data/types.ts';
 import type { Player } from './store.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
+import { ALL_QUESTS } from '../common/game/quests.ts';
 import { createClassicBattle } from '../common/game/battles.ts';
 
 function setup() {
@@ -156,6 +157,9 @@ test('an adapted FE2 map quest starts with its generated garrison and is marked 
 test('GET_QUESTS exposes all 78 classic entries with per-game dungeon metadata', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
+  // 任务页只展示可接或已完成的项目；用“全部标记完成”的显式夹具让 78 个经典条目全部可见。
+  player.flags.questsDone = ALL_QUESTS.filter(quest => quest.classic).map(quest => quest.id);
+  store.savePlayer(player);
   const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { quests: { id: string; classic: { game: string; stageCount: number } | null }[] }[] };
   const classic = view.regions.flatMap(region => region.quests).filter(quest => quest.classic);
   assert.equal(classic.length, 78, '60 单图 + 18 副本');

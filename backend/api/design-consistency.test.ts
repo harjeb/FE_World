@@ -24,6 +24,8 @@ function withContext(run: (ctx: Context) => void): void {
     player.registered = false;
     player.flags.legacyUnlocked = true;
     player.day = 499;
+    // 世界地图开荒后，地区相关读写需要显式解锁夹具；全解锁不授予任何讨伐记录。
+    player.flags.unlockedRegions = Array.from({ length: 12 }, (_, i) => i + 1);
     run({ store, player, accountId, agentModel: null, push: () => {} });
   } finally { store.db.close(); }
 }
@@ -114,6 +116,9 @@ test('reincarnated ages stay at the new epoch across reloads and birthdays', () 
 }));
 
 test('quest previews expose current enemy levels, dates and optional rewards; extra boxes pay once', () => withContext(ctx => {
+  // gw3 要求 gw2 先完成；任务页只展示可接或已完成项，先给显式完成夹具。
+  ctx.player.flags.questsDone = ['gw2'];
+  ctx.store.savePlayer(ctx.player);
   const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { quests: { id: string; enemyLevel: number; toDay: number; risk: string; optionalReward: unknown }[] }[] };
   const quest = view.regions.flatMap(region => region.quests).find(quest => quest.id === 'gw3')!;
   assert.equal(quest.enemyLevel, 19);

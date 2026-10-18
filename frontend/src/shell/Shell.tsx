@@ -4,10 +4,11 @@ import { links } from '../router.ts';
 import { useSession } from '../api/session.ts';
 import type { ServerState } from '../api/session.ts';
 import { annualLive, canPromote } from '../model/roster.ts';
-import { AnvilIcon, AttackIcon, BookIcon, CampIcon, CandleIcon, ChestIcon, FlagIcon, MugIcon, QuestIcon, ReportIcon, RosterIcon, ScrollIcon, SlidersIcon } from '../ui/icons.tsx';
+import { featuresOf } from '../model/access.ts';
+import { AnvilIcon, AttackIcon, BookIcon, CampIcon, CandleIcon, CompassIcon, ChestIcon, FlagIcon, MugIcon, QuestIcon, ReportIcon, RosterIcon, ScrollIcon, SlidersIcon } from '../ui/icons.tsx';
 import { clockTime, plainDate } from '../ui/calendar.ts';
 
-export type ShellPage = 'camp' | 'roster' | 'field' | 'prep' | 'workshop' | 'tavern' | 'arena' | 'story' | 'quests' | 'legacy' | 'reports' | 'rules' | 'settings';
+export type ShellPage = 'camp' | 'world' | 'roster' | 'field' | 'prep' | 'workshop' | 'tavern' | 'arena' | 'story' | 'quests' | 'legacy' | 'reports' | 'rules' | 'settings';
 
 function Stat({ icon, label, children }: { icon?: string; label: string; children: ReactNode }) {
   return (
@@ -30,6 +31,8 @@ function TopBar() {
   const toArena = state.arena.nextArenaDay - state.day;
   const online = agentOnline(state);
   const lease = state.control;
+  const spectate = featuresOf(state).spectate;
+  const AgentStatus = spectate ? 'a' : 'span';
   return (
     <header className="topbar" aria-label="状态栏">
       <a className="tb-brand" href={links.camp} aria-label={`AgentTactics · ${state.player.legion} 军营`}>
@@ -53,10 +56,10 @@ function TopBar() {
       </Stat>
       <div className="tb-end">
         {lease && <span className="tb-chip" title={`控制租约至 ${clockTime(lease.expiresAt)}`}>{lease.owner === 'agent' ? 'Agent 控制中' : '网页控制中'}</span>}
-        <a className="tb-chip" href={links.spectate} title={online ? '观看 Agent 正在进行的战斗' : '5 分钟内没有收到 Agent 的请求'}>
+        <AgentStatus className="tb-chip" href={spectate ? links.spectate : undefined} title={online ? 'Agent 已连接' : '5 分钟内没有收到 Agent 的请求'}>
           <span className="dot" style={{ background: online ? '#9BD08A' : '#9A9184' }} />
           {online ? `Agent 在线${state.agentPlan ? ' · 已上报计划' : ''}` : 'Agent 离线'}
-        </a>
+        </AgentStatus>
         <a className="tb-icon" href={links.settings} aria-label="设置" title="设置：账号、Agent 接入与控制权"><SlidersIcon /></a>
       </div>
     </header>
@@ -81,6 +84,8 @@ export function Shell({ current, children }: { current: ShellPage; children: Rea
   const chapterDue = story?.chapters.some(c => c.available && (!c.completed || !c.claimed)) ?? false;
   const heirs = state?.legacyUnlocked ? legacies?.legacies.filter(l => l.state === 'available').length ?? 0 : 0;
   const claimable = quests?.regions.reduce((n, r) => n + r.quests.filter(q => q.done && !q.claimed).length, 0) ?? 0;
+  const world = state?.world ?? null;
+  const f = featuresOf(state);
   const live = annualLive(annual);
   return (
     <div className="app-bg">
@@ -89,16 +94,17 @@ export function Shell({ current, children }: { current: ShellPage; children: Rea
         <aside className="rail">
           <nav aria-label="主导航" className="flex flex-col gap-1">
             <NavLink page="camp" current={current} href={links.camp} icon={<CampIcon />} badge={state?.pendingRecruit ? '候选' : undefined}>军营</NavLink>
+            <NavLink page="world" current={current} href={links.world} icon={<CompassIcon />} badge={world && world.selectableRegions.length > 0 ? '可选路线' : undefined}>世界</NavLink>
             <NavLink page="roster" current={current} href={links.roster()} icon={<RosterIcon />} badge={promotable > 0 ? `可转职 ${promotable}` : undefined}>名册</NavLink>
-            <NavLink page="field" current={current} href={links.field} icon={<FlagIcon />} badge={today?.battle?.kind === 'field' ? '战斗中' : undefined}>出击</NavLink>
-            <NavLink page="quests" current={current} href={links.quests} icon={<QuestIcon />} badge={claimable > 0 ? `待领 ${claimable}` : undefined}>任务</NavLink>
+            {f.field && <NavLink page="field" current={current} href={links.field} icon={<FlagIcon />} badge={today?.battle?.kind === 'field' ? '战斗中' : undefined}>出击</NavLink>}
+            {f.quests && <NavLink page="quests" current={current} href={links.quests} icon={<QuestIcon />} badge={claimable > 0 ? `待领 ${claimable}` : undefined}>任务</NavLink>}
             <NavLink page="prep" current={current} href={links.prep()} icon={<ChestIcon />}>整备</NavLink>
-            <NavLink page="workshop" current={current} href={links.workshop} icon={<AnvilIcon />} badge={ripe > 0 ? `可领取 ${ripe}` : undefined}>生产</NavLink>
-            <NavLink page="tavern" current={current} href={links.tavern} icon={<MugIcon />}>酒馆</NavLink>
-            <NavLink page="arena" current={current} href={links.arena} icon={<AttackIcon />} badge={live ? '赛事中' : state?.arena.isArenaDay ? '今日' : undefined}>竞技场</NavLink>
-            <NavLink page="story" current={current} href={links.story} icon={<ScrollIcon />} badge={chapterDue ? '待处理' : undefined}>主线</NavLink>
-            <NavLink page="legacy" current={current} href={links.legacy} icon={<CandleIcon />} badge={heirs > 0 ? `遗产 ${heirs}` : undefined}>传承</NavLink>
-            <NavLink page="reports" current={current} href={links.reports} icon={<ReportIcon />}>战报</NavLink>
+            {f.workshop && <NavLink page="workshop" current={current} href={links.workshop} icon={<AnvilIcon />} badge={ripe > 0 ? `可领取 ${ripe}` : undefined}>生产</NavLink>}
+            {f.tavern && <NavLink page="tavern" current={current} href={links.tavern} icon={<MugIcon />}>酒馆</NavLink>}
+            {f.arena && <NavLink page="arena" current={current} href={links.arena} icon={<AttackIcon />} badge={live ? '赛事中' : state?.arena.isArenaDay ? '今日' : undefined}>竞技场</NavLink>}
+            {f.story && <NavLink page="story" current={current} href={links.story} icon={<ScrollIcon />} badge={chapterDue ? '待处理' : undefined}>主线</NavLink>}
+            {f.legacy && <NavLink page="legacy" current={current} href={links.legacy} icon={<CandleIcon />} badge={heirs > 0 ? `遗产 ${heirs}` : undefined}>传承</NavLink>}
+            {f.reports && <NavLink page="reports" current={current} href={links.reports} icon={<ReportIcon />}>战报</NavLink>}
           </nav>
           <div className="rail-foot">
             <NavLink page="rules" current={current} href={links.rules} icon={<BookIcon />}>规则手册</NavLink>

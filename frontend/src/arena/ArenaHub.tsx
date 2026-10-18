@@ -71,7 +71,7 @@ export function ArenaHub() {
         </div>
         <div className="flex flex-wrap items-center gap-3" style={{ fontSize: 14, color: '#4E473D' }}>
           <span>{state.arena.isArenaDay ? '今天是竞技场日' : <>下一个竞技场日：{plainDate(state.arena.nextArenaDay)}（<b className="num">{toArena}</b> 日后）</>}</span>
-          <a className="btn btn-sm" href={links.annual}>年度大竞技场{annual ? ` · 第 ${live || annual.windowOpen || annual.nextOpenDay >= 4000 ? annual.annualIndex : annualIndexFor(annual.nextOpenDay)} 届` : ''}{live ? ' · 进行中' : annual?.windowOpen && !(annual.entry && annual.entry.annualIndex === annual.annualIndex) ? ' · 报名中' : ''} ›</a>
+          {state.features?.annual && <a className="btn btn-sm" href={links.annual}>年度大竞技场{annual ? ` · 第 ${live || annual.windowOpen || annual.nextOpenDay >= 4000 ? annual.annualIndex : annualIndexFor(annual.nextOpenDay)} 届` : ''}{live ? ' · 进行中' : annual?.windowOpen && !(annual.entry && annual.entry.annualIndex === annual.annualIndex) ? ' · 报名中' : ''} ›</a>}
         </div>
       </div>
 

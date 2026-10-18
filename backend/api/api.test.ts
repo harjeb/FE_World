@@ -446,12 +446,12 @@ test('shop buy/sell and item transfer work', () => {
   const shop = dispatch(ctx, OP.GET_SHOP, {}) as { items: { item: string; price: number }[] };
   assert.ok(shop.items.length > 0);
   const goldBefore = ctx.player.gold;
-  dispatch(ctx, OP.BUY, { item: 'iron_sword', count: 1 });
-  assert.equal(ctx.player.gold, goldBefore - shop.items.find(i => i.item === 'iron_sword')!.price);
-  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_erin', item: 'iron_sword', action: 'toUnit' });
-  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_erin', item: 'iron_sword', action: 'equip' });
+  dispatch(ctx, OP.BUY, { item: 'fw_weapon_1', count: 1 });
+  assert.equal(ctx.player.gold, goldBefore - shop.items.find(i => i.item === 'fw_weapon_1')!.price);
+  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_erin', item: 'fw_weapon_1', action: 'toUnit' });
+  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_erin', item: 'fw_weapon_1', action: 'equip' });
   const unit = dispatch(ctx, OP.GET_UNIT, { unitId: 'u_erin' }) as { weapons: { id: string }[] };
-  assert.equal(unit.weapons[0].id, 'iron_sword');
+  assert.equal(unit.weapons[0].id, 'fw_weapon_1');
   dispatch(ctx, OP.SELL, { item: 'herb', count: 2 });
 });
 

@@ -4,7 +4,8 @@ import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { portraitFor, spriteFor } from '../assets.ts';
 import { useSession } from '../api/session.ts';
 import type { ServerUnit } from '../api/session.ts';
-import { links } from '../router.ts';
+import { featuresOf } from '../model/access.ts';
+import { links, regionInHash } from '../router.ts';
 import type { FieldTab } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
@@ -31,12 +32,15 @@ function UnitRow({ unit, picked, locked, protagonist, why, onToggle }: { unit: S
 }
 
 // The ways out of camp: one field battle, a three-map dungeon with a fixed team, or a background dispatch.
+// 被旗标锁住的方式不显示；页面本身已在 App 层按旗标门禁。
 export function FieldTabs({ current }: { current: FieldTab }) {
+  const { state } = useSession();
+  const f = featuresOf(state);
   return (
     <nav className="ptabs field-tabs" aria-label="出击方式">
       <a className="ptab" href={links.field} aria-current={current === 'field' ? 'page' : undefined}>野外遭遇战 <span className="tag tag-grey">单场</span></a>
-      <a className="ptab" href={links.dungeon} aria-current={current === 'dungeon' ? 'page' : undefined}>三图大副本 <span className="tag tag-grey">连续 3 图</span></a>
-      <a className="ptab" href={links.dispatch} aria-current={current === 'dispatch' ? 'page' : undefined}>后台派遣 <span className="tag tag-grey">不耗日</span></a>
+      {f.dungeon && <a className="ptab" href={links.dungeon} aria-current={current === 'dungeon' ? 'page' : undefined}>三图大副本 <span className="tag tag-grey">连续 3 图</span></a>}
+      {f.dispatch && <a className="ptab" href={links.dispatch} aria-current={current === 'dispatch' ? 'page' : undefined}>后台派遣 <span className="tag tag-grey">不耗日</span></a>}
     </nav>
   );
 }
@@ -48,7 +52,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const sortie = today?.actions.find(a => a.key === 'sortie');
   const max = sortie?.maxUnits ?? DEFAULT_TEAM;
-  const [region, setRegion] = useState(1);
+  const [regionId, setRegionId] = useState<number | null>(() => regionInHash(window.location.hash));
   const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(DEFAULT_TEAM, max)).map(u => u.id));
 
   if (!today || !state || !sortie) {
@@ -62,7 +66,22 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
     );
   }
 
-  const target = today.sortieRegions.find(r => r.id === region) ?? today.sortieRegions[0];
+  // 只在已开通的地区里选（today.sortieRegions 就是已开通清单）；没有可选地区时回世界地图开新路线。
+  const target = today.sortieRegions.find(r => r.id === regionId) ?? today.sortieRegions[0];
+  if (!target) {
+    return (
+      <Shell current="field">
+        <div className="prep">
+          <FieldTabs current="field" />
+          <section className="panel" style={{ padding: 16 }}>
+            <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
+            <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>先在世界地图上选择一条讨伐路线，开通后即可出击。</p>
+            <a className="btn btn-primary" href={links.world}>打开世界地图</a>
+          </section>
+        </div>
+      </Shell>
+    );
+  }
   const picked = active.filter(u => team.includes(u.id));
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
   const top = Math.max(0, ...picked.map(u => u.level));
@@ -89,10 +108,10 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
 
         <div className="prep-cols">
           <section className="panel" aria-labelledby="rg-h">
-            <div className="ph"><h2 id="rg-h">选择地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>已讨伐 {cleared} / {today.sortieRegions.length}</span></div>
+            <div className="ph"><h2 id="rg-h">选择地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>已讨伐 {cleared} · 已开通 {today.sortieRegions.length} 个地区</span></div>
             <div className="regions" role="radiogroup" aria-label="出征地区">
               {today.sortieRegions.map(r => (
-                <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" onClick={() => setRegion(r.id)}>
+                <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" onClick={() => setRegionId(r.id)}>
                   <span className="rg-n">{r.name}</span>
                   <span className="rg-l">敌 Lv {r.level}</span>
                   <span className="rg-r">{r.resource}</span>
@@ -100,7 +119,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
                 </button>
               ))}
             </div>
-            <p className="pfoot">首次获胜解锁地区。敌军按出发日期成长，前期快、后期慢：第一年结束约20级；同一场战斗内等级不变。</p>
+            <p className="pfoot">首次获胜解锁地区。敌军按出发日期成长，前期快、后期慢：第一年结束约20级；同一场战斗内等级不变。要开通更多地区，去<a href={links.world}>世界地图</a>选择路线。</p>
           </section>
 
           <section className="panel" aria-labelledby="tm-h">

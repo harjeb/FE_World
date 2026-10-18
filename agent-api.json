@@ -1,5 +1,5 @@
 {
-  "docVersion": 3,
+  "docVersion": 4,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -557,6 +557,20 @@
       "name": "RELEASE_CONTROL",
       "group": "Agent",
       "agentNote": "释放自己持有的控制租约；人工接管前先释放。",
+      "push": false
+    },
+    {
+      "op": 141,
+      "name": "GET_WORLD_MAP",
+      "group": "地图",
+      "agentNote": "读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions；开荒从 1–4 四条起步路线开始，不选路线不能出击。",
+      "push": false
+    },
+    {
+      "op": 142,
+      "name": "CHOOSE_ROUTE",
+      "group": "地图",
+      "agentNote": "把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次选择后要先清剿当前地区，相邻路线才会再次可选；需先完成开局自捏。",
       "push": false
     },
     {

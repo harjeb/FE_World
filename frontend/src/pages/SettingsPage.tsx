@@ -119,7 +119,10 @@ export function SettingsPage() {
               <dt>培养计划</dt><dd>{info?.plan ?? '还没有上报（AGENT_REPORT_PLAN）'}</dd>
               <dt>离线日报</dt><dd>{info?.dailyReport ?? '还没有日报（AGENT_DAILY_REPORT）'}</dd>
             </dl>
-            <div className="go-bar"><a className="btn btn-sm" href={links.spectate}>实时观战</a><a className="btn btn-sm btn-ghost" href={links.reports}>战报</a></div>
+            {(state.features?.spectate || state.features?.reports) && <div className="go-bar">
+              {state.features.spectate && <a className="btn btn-sm" href={links.spectate}>实时观战</a>}
+              {state.features.reports && <a className="btn btn-sm btn-ghost" href={links.reports}>战报</a>}
+            </div>}
           </section>
 
           <section className="panel" aria-labelledby="ac-h">

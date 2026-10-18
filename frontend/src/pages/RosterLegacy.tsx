@@ -12,6 +12,7 @@ import type { ClassMarketRow, ServerUnit } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
 import { busyReason } from '../model/roster.ts';
 import { go, links } from '../router.ts';
+import { eraYear } from '../ui/calendar.ts';
 import { personalGrowth } from './RosterParts.tsx';
 import { Checks, stock, useAct } from './SystemParts.tsx';
 
@@ -48,7 +49,7 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
     const state = free(c) ? 'owned' : c.eligibilityReason && !c.unavailableReason ? 'locked' : !c.open ? 'locked' : '';
     return (
       <button key={c.id} type="button" className={`mk-cls ${state}`} aria-pressed={pick === c.id} onClick={() => setPick(c.id)}
-        title={c.unavailableReason ?? c.eligibilityReason ?? (c.open ? undefined : `第 ${c.openYear} 年开放`)}>
+        title={c.unavailableReason ?? c.eligibilityReason ?? (c.open ? undefined : `${eraYear(c.openYear)}开放`)}>
         {free(c) && '✓ '}{c.name}{isCurrent && <i>当前</i>}{c.unavailableReason && <i>待实现</i>}
       </button>
     );
@@ -56,13 +57,13 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
 
   return (
     <section className="panel" aria-labelledby="mk-h">
-      <div className="ph"><h2 id="mk-h">职业资格 · 第 {data.year} 年</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{unit.name}已拥有 {owned.length} 项 · 本月还能买 {Math.max(0, quotaLeft)} / {data.monthLimit} 项 · 金币 {gold.toLocaleString()}</span></div>
+      <div className="ph"><h2 id="mk-h">职业资格 · {eraYear(data.year)}</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{unit.name}已拥有 {owned.length} 项 · 本月还能买 {Math.max(0, quotaLeft)} / {data.monthLimit} 项 · 金币 {gold.toLocaleString()}</span></div>
       <div className="tbl-scroll">
         <table className="mk-table">
           <thead>
             <tr>
               <th scope="col">路线</th>
-              {head.map((c, i) => <th key={STAGES[i]} scope="col">{STAGE_NAMES[i]}{c && <small>{c.open ? '已开放' : `第 ${c.openYear} 年开放`} · {c.price.toLocaleString()} 金</small>}</th>)}
+              {head.map((c, i) => <th key={STAGES[i]} scope="col">{STAGE_NAMES[i]}{c && <small>{c.open ? '已开放' : `${eraYear(c.openYear)}开放`} · {c.price.toLocaleString()} 金</small>}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -100,7 +101,7 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
               </button>}
           </div>
           {(chosen.eligibilityReason || chosen.unavailableReason || !chosen.open || away) && (
-            <p className="pfoot why">{chosen.unavailableReason ?? chosen.eligibilityReason ?? (away ? `${unit.name}${away}，不能换职或购买资格` : `第 ${chosen.openYear} 年开放`)}</p>
+            <p className="pfoot why">{chosen.unavailableReason ?? chosen.eligibilityReason ?? (away ? `${unit.name}${away}，不能换职或购买资格` : `${eraYear(chosen.openYear)}开放`)}</p>
           )}
           {chosen.growth && current?.growth && (
             <div className="tbl-scroll">
@@ -154,7 +155,7 @@ function RetirePanel({ unit }: { unit: ServerUnit }) {
       {leaves && (
         <dl className="facts">
           <dt>遗产内容</dt><dd>冻结退役时的等级 {unit.level}、九项属性总和 {totalStats(unit.snapshot.stats)} 与个人基础成长；继承者二选一：成长传承或数值传承。</dd>
-          <dt>兑现条件</dt><dd>{state?.legacyUnlocked ? '传承已解锁；' : '传承尚未解锁（完成任一地区核心任务后开放）；'}交给一名没接受过遗产的 1 级现役角色，并消耗对应的传承石。</dd>
+          <dt>兑现条件</dt><dd>{state?.legacyUnlocked ? '传承已解锁；' : '传承尚未解锁（完成林地、丘陵或湖镇的核心终章并领奖后开放）；'}交给一名没接受过遗产的 1 级现役角色，并消耗对应的传承石。</dd>
         </dl>
       )}
       {away && <p className="a-warn" role="note">{unit.name}{away}，现在不能退役。</p>}
