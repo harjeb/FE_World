@@ -52,7 +52,7 @@ export function SidePanel({ snap, ctl }: { snap: Snapshot; ctl: BattleController
       {ownFlow && <Steps index={stepIndex(mode)} />}
       {mode.kind === 'move' && (
         <p className="panel" style={{ padding: '10px 14px', fontSize: 13 }}>
-          点蓝色格预览落点（显示路线），或直接点红色范围内的敌人。<span className="muted">Esc 取消选择。</span>
+          点蓝色格选落点，弹出行动菜单；再点一次落点格＝移动后待机。或直接点红色范围内的敌人。<span className="muted">Esc 取消选择。</span>
         </p>
       )}
       {(mode.kind === 'action' || mode.kind === 'attack' || mode.kind === 'heal' || mode.kind === 'item' || isCommand(mode)) && (

@@ -60,7 +60,7 @@
 | [33 旧档显式迁移](docs/33-save-migration.md) | schema／日历版本、120／500日来源、预演、备份、回滚与重开 |
 | [34 任务核对与本轮交付](docs/34-task-closure.md) | 分项提交／验证、65项覆盖矩阵、年度采样的真实范围 |
 | [35 发布环境实际验收](docs/35-release-validation-record.md) | 多人、正式计时试玩、生产实迁分别记录；非正式本地体验另记 |
-| [36 本地试玩反馈修正](docs/36-playtest-feedback.md) | 固定神主角起装、星辉历、世界路线、地区武器店与页面逐步开放 |
+| [36 本地试玩反馈修正](docs/36-playtest-feedback.md) | 固定神主角起装、星辉历、世界路线、地区武器店、页面逐步开放与战斗行动菜单 |
 
 ## 服务端（API · Worker · Agent 协议）
 

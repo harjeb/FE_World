@@ -226,3 +226,45 @@
 .map-object.done { opacity: 0.35; filter: grayscale(1); }
 
 .status-mark { position: absolute; left: 1px; top: 1px; z-index: 4; padding: 0 2px; border-radius: 2px; background: rgba(43,36,33,.82); color: #F0CF78; font: 700 8px/1.2 ui-monospace, monospace; pointer-events: none; }
+
+/* 火纹式行动菜单: pinned beside the destination tile, scrolls with the board, never covers it. */
+.ctx-menu {
+  position: absolute; z-index: 30;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 116px; max-width: 224px; max-height: 288px; overflow-y: auto;
+  padding: 4px;
+  background: var(--color-panel);
+  border: 2px solid var(--color-brass-deep); border-radius: 6px;
+  box-shadow: 0 10px 20px -8px rgba(20, 20, 16, 0.55);
+  user-select: none;
+}
+.ctx-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 2px 6px 4px; border-bottom: 1px solid var(--color-line-soft);
+  font-family: inherit; font-size: 12px; font-weight: 700; line-height: 1.2;
+  color: var(--color-brass-deep); letter-spacing: 1px;
+}
+.ctx-hint { font-weight: 400; letter-spacing: 0; color: var(--color-muted); font-size: 11px; }
+.ctx-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 8px; border: 0; border-radius: 4px;
+  font-family: inherit; font-size: 14px; font-weight: 700; line-height: 1.25;
+  color: var(--color-ink); text-align: left;
+  background: transparent; cursor: pointer; white-space: nowrap;
+}
+.ctx-item:hover { background: rgba(168, 132, 69, 0.22); }
+.ctx-item:active { background: rgba(168, 132, 69, 0.4); }
+.ctx-item .ctx-sub { font-weight: 400; font-size: 11px; color: var(--color-muted); margin-left: auto; padding-left: 8px; }
+.ctx-hot { color: var(--color-red-deep); }
+.ctx-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding: 4px 8px; border-radius: 4px; font-size: 13px; color: var(--color-ink);
+}
+.ctx-row span { font-size: 11px; color: var(--color-muted); white-space: nowrap; }
+.ctx-row.ctx-off b { color: var(--color-muted); font-weight: 400; }
+.ctx-mini {
+  border: 1px solid var(--color-line); border-radius: 4px; background: var(--color-paper);
+  font-family: inherit; font-size: 11px; font-weight: 700; line-height: 1.2;
+  color: var(--color-ink-2); padding: 2px 8px; cursor: pointer;
+}
+.ctx-mini:hover { border-color: var(--color-brass); color: var(--color-brass-deep); }

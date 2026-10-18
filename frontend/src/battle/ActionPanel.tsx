@@ -4,21 +4,39 @@ import { actionOptions, forecast, terrainAt, unitById } from '@common/engine/ind
 import type { BattleState } from '@common/engine/index.ts';
 import { TERRAINS } from '@common/maps/map.ts';
 import { VULNERARY, weaponIcon } from '../assets.ts';
-import { ArtIcon, AttackIcon, BagIcon, DanceIcon, HealIcon, RetreatIcon, SeizeIcon, SpellIcon, StaffIcon, WaitIcon } from '../ui/icons.tsx';
+import { ArtIcon, AttackIcon, BackIcon, BagIcon, DanceIcon, HealIcon, RetreatIcon, SeizeIcon, SpellIcon, StaffIcon, WaitIcon } from '../ui/icons.tsx';
 import { artInfo, commandDest, commandOptions, isCommand, spellInfo, STAFF_EFFECT_TEXT } from './commands.ts';
 import type { CommandMode } from './commands.ts';
 import type { BattleController } from './controller.ts';
+import { actionMenu } from './menu.ts';
+import type { MenuEntry } from './menu.ts';
 import { displayName } from './names.ts';
 import type { Mode } from './selection.ts';
 
 type ActMode = Extract<Mode, { to: unknown }>;
+
+function actIcon(id: MenuEntry['action']['id']) {
+  switch (id) {
+    case 'attack': return <AttackIcon />;
+    case 'art': return <ArtIcon />;
+    case 'cast': return <SpellIcon />;
+    case 'heal': return <HealIcon />;
+    case 'staff': return <StaffIcon />;
+    case 'dance': return <DanceIcon />;
+    case 'item': return <BagIcon />;
+    case 'wait': return <WaitIcon />;
+    case 'seize': return <SeizeIcon />;
+    case 'escape': return <RetreatIcon />;
+    case 'move': return <BackIcon />;
+    default: return null;
+  }
+}
 
 // 行动 / 武器 / 目标 / 道具 / 战技 / 法术 / 杖 / 舞蹈. Only what applies at the planned destination is
 // offered (docs/08); the lists come from the engine's actionOptions, which the server also checks.
 export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: ActMode; ctl: BattleController }) {
   const unit = unitById(state, mode.unit);
   const options = actionOptions(state, unit, mode.to);
-  const commands = commandOptions(state, mode);
   const terrain = TERRAINS[terrainAt(state, mode.to)].name;
   const kind = mode.kind === 'attack' || mode.kind === 'heal' ? mode.kind : null;
   const weaponOptions = kind ? options[kind] : [];
@@ -30,71 +48,36 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
   const onThrone = goal.kind === 'seize' && goal.throne[0] === mode.to[0] && goal.throne[1] === mode.to[1];
   const onExit = (goal.kind === 'escape' || goal.kind === 'gather' || goal.kind === 'escort')
     && goal.exits.some(e => e[0] === mode.to[0] && e[1] === mode.to[1]);
+  // Same source as the map's contextual menu: exactly what the engine offers at the destination.
+  const entries = actionMenu(state, unit.id, mode.to);
+  const run = (entry: MenuEntry) => {
+    if (entry.action.id === 'interact') ctl.interact(entry.action.object);
+    else if (entry.action.id === 'move') ctl.cancel();
+    else ctl.chooseAction(entry.action.id);
+  };
 
   return (
     <section className="panel" aria-label="行动与武器">
       <div className="sect">
         <div className="sect-k"><span>行动</span><small>落点 {terrain} · 仅显示可用项</small></div>
         <div className="acts">
-          {options.seize && (
-            <button type="button" className="btn btn-sm btn-primary" onClick={() => ctl.chooseAction('seize')}>
-              <SeizeIcon />压制
-            </button>
-          )}
-          {options.escape && (
-            <button type="button" className="btn btn-sm btn-primary" onClick={() => ctl.chooseAction('escape')}>
-              <RetreatIcon />撤离
-            </button>
-          )}
-          {options.attack.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'attack'} onClick={() => ctl.chooseAction('attack')}>
-              <AttackIcon />攻击
-            </button>
-          )}
-          {commands.arts.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'art'} onClick={() => ctl.chooseAction('art')}>
-              <ArtIcon />战技
-            </button>
-          )}
-          {commands.casts.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'cast'} onClick={() => ctl.chooseAction('cast')}>
-              <SpellIcon />法术
-            </button>
-          )}
-          {options.heal.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'heal'} onClick={() => ctl.chooseAction('heal')}>
-              <HealIcon />治疗
-            </button>
-          )}
-          {commands.staves.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'staff'} onClick={() => ctl.chooseAction('staff')}>
-              <StaffIcon />杖
-            </button>
-          )}
-          {commands.dance.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'dance'} onClick={() => ctl.chooseAction('dance')}>
-              <DanceIcon />舞蹈
-            </button>
-          )}
-          {options.interactions.map(option => (
-            <button key={option.object} type="button" className="btn btn-sm btn-primary" onClick={() => ctl.interact(option.object)}>
-              {option.label}
-            </button>
-          ))}
-          {options.items.length > 0 && (
-            <button type="button" className="btn btn-sm" aria-pressed={mode.kind === 'item'} onClick={() => ctl.chooseAction('item')}>
-              <BagIcon />道具
-            </button>
-          )}
-          <button type="button" className="btn btn-sm" onClick={() => ctl.chooseAction('wait')}>
-            <WaitIcon />待机
-          </button>
+          {entries.map(entry => {
+            const id = entry.action.id;
+            const active = id === mode.kind || (id === 'item' && mode.kind === 'item');
+            return (
+              <button key={id === 'interact' ? `i:${entry.action.object}` : id} type="button"
+                className={`btn btn-sm${entry.tone === 'primary' ? ' btn-primary' : ''}`} aria-pressed={active}
+                onClick={() => run(entry)}>
+                {actIcon(id)}{entry.label}
+              </button>
+            );
+          })}
         </div>
         {mode.kind === 'action' && (
           <p style={{ fontSize: 12, color: '#6A6256' }}>
             {options.seize ? '压制王座会立即赢下这场战斗。' : onThrone ? '只有主将能压制王座。' : ''}
             {options.escape ? '站上撤离点的单位可以撤离，带出的物资才算带回。' : onExit ? '只有站在撤离点上的单位才能撤离。' : ''}
-            待机会立即提交移动；也可以直接点地图上红色范围内的敌人。
+            再点一次落点格＝移动后待机；点地图上红色范围内的敌人直接选目标；Esc 返回重选落点。
           </p>
         )}
       </div>
@@ -141,7 +124,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
 
       {mode.kind === 'item' && (
         <div className="sect">
-          <div className="sect-k"><span>道具</span><small>使用后立即提交，结束该单位的行动</small></div>
+          <div className="sect-k"><span>持有物</span><small>使用后立即提交，结束该单位的行动</small></div>
           <div className="acts">
             {options.items.map(i => {
               const stack = unit.items[i];
@@ -152,6 +135,12 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
                 </button>
               );
             })}
+            {options.items.length === 0 && (
+              <p style={{ fontSize: 13, margin: 0 }}>
+                {unit.hp >= unit.stats.hp ? 'HP 已满，无需用药。' : '现在没有能用的道具。'}
+                全部武器与道具见地图上的行动菜单「持有物」。
+              </p>
+            )}
           </div>
         </div>
       )}

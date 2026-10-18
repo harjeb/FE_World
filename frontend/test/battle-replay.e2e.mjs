@@ -6,11 +6,12 @@
 // Usage (from frontend/): npm run build && node test/battle-replay.e2e.mjs
 // Needs Node.js 22.18+ and Chromium (CHROME_BIN overrides the binary name).
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
 import { seedBrowserAccount } from './fixtures.mjs';
+import { moveRange } from '../../backend/common/engine/index.ts';
 
 const API_PORT = 8612;
 let cdpPort = 9512;
@@ -49,9 +50,9 @@ async function openPage(profile) {
     if (res.exceptionDetails) throw new Error(res.exceptionDetails.exception?.description ?? res.exceptionDetails.text);
     return res.result.value;
   };
-  const click = async ([x, y]) => {
+  const click = async ([x, y], button = 'left') => {
     for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) {
-      await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
+      await send('Input.dispatchMouseEvent', { type, x, y, button, clickCount: 1 });
     }
   };
   const key = async (key, code, keyCode, text) => {
@@ -60,8 +61,24 @@ async function openPage(profile) {
   };
   await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+  const revealCell = async ([x, y]) => {
+    await evaluate(`(() => { const viewport = document.querySelector('.viewport'); const board = viewport.querySelector('.board');
+      const cell = parseFloat(board.style.getPropertyValue('--cell')); viewport.scrollIntoView({ block: 'nearest' });
+      viewport.scrollTo({ left: (${x} + .5) * cell - viewport.clientWidth / 2, top: (${y} + .5) * cell - viewport.clientHeight / 2 }); })()`);
+    await sleep(70);
+    return evaluate(`(() => { const board = document.querySelector('.board'); const box = board.getBoundingClientRect(); const cell = parseFloat(board.style.getPropertyValue('--cell')); return [box.left + (${x} + .5) * cell, box.top + (${y} + .5) * cell]; })()`);
+  };
   return {
-    errors, evaluate, key,
+    errors, evaluate, key, revealCell,
+    async clickCell(point, button = 'left') { await click(await revealCell(point), button); },
+    async resize(width, height) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+      await sleep(150);
+    },
+    async capture(path) {
+      const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+      writeFileSync(path, Buffer.from(shot.data, 'base64'));
+    },
     close: async () => { ws.close(); await stopProcess(chrome); },
     async open(url, selector) {
       await send('Page.navigate', { url });
@@ -191,6 +208,61 @@ try {
     await sleep(600);
     await settle(page);
     const fieldBefore = await serverOp(page, 50, { full: true });
+    const acting = fieldBefore.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.acted);
+    const stop = [...moveRange(fieldBefore.state, acting).stops].map(key => [key % fieldBefore.state.map.width, Math.floor(key / fieldBefore.state.map.width)])
+      .find(point => Math.abs(point[0] - acting.pos[0]) + Math.abs(point[1] - acting.pos[1]) === 1);
+    if (!stop) throw new Error('the menu fixture needs one adjacent legal destination');
+    const versionBeforeMove = (await serverOp(page, 10)).version;
+    await page.clickCell(acting.pos);
+    await page.clickCell(stop);
+    await sleep(150);
+    const menuText = await page.evaluate(`document.querySelector('.ctx-menu')?.innerText ?? ''`);
+    const planned = await serverOp(page, 50, { full: true });
+    check('a destination click opens the contextual menu without spending the action',
+      ['移动', '持有物', '待机'].every(text => menuText.includes(text))
+        && JSON.stringify(planned.state.units.find(unit => unit.id === acting.id).pos) === JSON.stringify(acting.pos)
+        && planned.eventCount === fieldBefore.eventCount && (await serverOp(page, 10)).version === versionBeforeMove, menuText.replace(/\s+/g, ' '));
+    const menuFits = () => page.evaluate(`(() => { const menu = document.querySelector('.ctx-menu'); if (!menu) return false;
+      const m = menu.getBoundingClientRect(), v = document.querySelector('.viewport').getBoundingClientRect(), b = document.querySelector('.board').getBoundingClientRect();
+      const cell = parseFloat(document.querySelector('.board').style.getPropertyValue('--cell'));
+      const x = b.left + ${stop[0]} * cell, y = b.top + ${stop[1]} * cell;
+      return m.left >= v.left && m.right <= v.right && m.top >= v.top && m.bottom <= v.bottom
+        && !(m.left < x + cell && m.right > x && m.top < y + cell && m.bottom > y); })()`);
+    check('the menu stays in the viewport and leaves its destination tile clickable', await menuFits(), 'desktop bounds');
+    if (process.env.E2E_ARTIFACT_DIR) {
+      mkdirSync(process.env.E2E_ARTIFACT_DIR, { recursive: true });
+      await page.capture(join(process.env.E2E_ARTIFACT_DIR, 'battle-menu-desktop.png'));
+    }
+    await page.resize(390, 1100);
+    await page.revealCell(stop);
+    check('the menu also fits a narrow viewport without covering the destination', await menuFits(), '390px bounds');
+    if (process.env.E2E_ARTIFACT_DIR) await page.capture(join(process.env.E2E_ARTIFACT_DIR, 'battle-menu-mobile.png'));
+    await page.resize(1440, 900);
+    await page.revealCell(stop);
+    await page.clickText('.ctx-menu .ctx-item', '持有物');
+    check('held items open on the map even at full HP and never submit movement',
+      await page.evaluate(`document.querySelector('.ctx-menu')?.getAttribute('aria-label') === '持有物' && document.querySelectorAll('.ctx-menu .ctx-row').length > 0`)
+        && (await serverOp(page, 10)).version === versionBeforeMove, 'inventory stays local');
+    await page.clickText('.ctx-menu .ctx-mini', '返回');
+    await page.key('End', 'End', 35);
+    await page.key('ArrowUp', 'ArrowUp', 38);
+    const keyboardChoice = await page.evaluate(`document.activeElement?.textContent.trim()`);
+    await page.key('Enter', 'Enter', 13, '\r');
+    check('menu keyboard navigation can return to movement without an extra submission',
+      keyboardChoice === '移动' && !await page.evaluate(`!!document.querySelector('.ctx-menu')`)
+        && (await serverOp(page, 10)).version === versionBeforeMove, String(keyboardChoice));
+    await page.clickCell(stop);
+    await page.clickCell(stop, 'right');
+    check('right-click cancels the planned move without spending an action',
+      !await page.evaluate(`!!document.querySelector('.ctx-menu')`) && (await serverOp(page, 10)).version === versionBeforeMove, 'cancelled');
+    await page.clickCell(stop);
+    await page.clickCell(stop);
+    await settle(page);
+    const moved = await serverOp(page, 50, { full: true });
+    const movedUnit = moved.state.units.find(unit => unit.id === acting.id);
+    check('clicking the landed tile confirms exactly one move and wait on the server',
+      JSON.stringify(movedUnit.pos) === JSON.stringify(stop) && movedUnit.acted
+        && (await serverOp(page, 10)).version === versionBeforeMove + 1, `${acting.id} → ${stop}`);
     await endPhase(page);
     const fieldAfter = await serverOp(page, 50, { full: true });
     const dayAfter = (await serverOp(page, 30)).day;

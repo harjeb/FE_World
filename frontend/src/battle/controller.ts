@@ -88,7 +88,17 @@ export class BattleController {
 
   click(at: Point): void {
     if (this.blocked) return;
-    this.set({ mode: clickCell(this.snap.state, this.snap.mode, at, this.snap.hover), notice: null });
+    const mode = this.snap.mode;
+    // 火纹式快捷待机: while the action menu is open, clicking the SAME landed tile again means
+    // “move here and wait” — no need to hit the 待机 button. Targeting modes (attack / heal /
+    // art / cast / staff / dance / item) and the move stage never quick-confirm; they replan or
+    // pick targets through clickCell instead. Right-click / Escape still cancels without spend.
+    if (mode.kind === 'action' && mode.to[0] === at[0] && mode.to[1] === at[1]
+      && this.snap.state.phase === 'player') {
+      this.chooseAction('wait');
+      return;
+    }
+    this.set({ mode: clickCell(this.snap.state, mode, at, this.snap.hover), notice: null });
   }
 
   select(unitId: string): void {
@@ -313,14 +323,18 @@ export class BattleController {
   // unit has acted, as in docs/03).
   private async commit(action: Action): Promise<void> {
     const before = this.snap.state;
+    const previousMode = this.snap.mode.kind === 'busy' ? IDLE : this.snap.mode;
+    // Lock input before the request starts; repeated pointer/keyboard events must not enqueue
+    // another action while the server reply and shared-session refresh are still in flight.
+    this.set({ mode: { kind: 'busy' }, hover: null, notice: null });
     let result: { state: BattleState; events: BattleEvent[] };
     try {
       result = this.session.apply ? await this.session.apply(action) : step(before, action);
     } catch (error) {
-      this.set({ notice: error instanceof EngineError ? error.message : String(error) });
+      this.set({ mode: previousMode, notice: error instanceof EngineError ? error.message : String(error) });
       return;
     }
-    this.set({ state: result.state, mode: { kind: 'busy' }, hover: null, notice: null });
+    this.set({ state: result.state });
     this.session.onChange?.(result.state);
     await playEvents(this, result.events, before);
     this.set({ view: result.state, log: [...describe(result.events, before).reverse(), ...this.snap.log].slice(0, 80) });

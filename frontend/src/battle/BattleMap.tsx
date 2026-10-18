@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, PointerEvent, ReactNode } from 'react';
+import type { CSSProperties, PointerEvent, ReactNode, SyntheticEvent } from 'react';
 import { living, unitById } from '@common/engine/index.ts';
 import type { Point } from '@common/engine/index.ts';
 import { mapArt } from '../assets.ts';
@@ -9,6 +9,7 @@ import { CellLayer, Cursor, Floats, Ghost, MapTag, ObjectLayer, PathArrow, Threa
 import { Minimap, PhaseBanner, TerrainWindow, ZoomControls } from './MapWidgets.tsx';
 import { displayName } from './names.ts';
 import { overlaysFor, threatCells } from './overlays.ts';
+import { ContextMenu } from './ContextMenu.tsx';
 import { isCommand } from './commands.ts';
 
 const DRAG_START = 6;
@@ -24,7 +25,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
   const viewport = useRef<HTMLDivElement>(null);
   const press = useRef<{ x: number; y: number; left: number; top: number; dragging: boolean } | null>(null);
   const keepCenter = useRef<Point | null>(null);
-  const [scroll, setScroll] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  const [scroll, setScroll] = useState({ left: 0, top: 0, width: 0, height: 0, offX: 0, offY: 0 });
   const [dragging, setDragging] = useState(false);
 
   const overlays = useMemo(() => (busy ? null : overlaysFor(state, mode, hover)), [busy, state, mode, hover]);
@@ -32,8 +33,22 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
 
   const readScroll = () => {
     const el = viewport.current;
-    if (el) setScroll({ left: el.scrollLeft, top: el.scrollTop, width: el.clientWidth, height: el.clientHeight });
+    // offX/offY: where the board sits inside the viewport when it is smaller than the view
+    // (margin auto centers it); visible board coordinates = scroll − offset.
+    const board = el?.querySelector<HTMLElement>(':scope > .board');
+    if (el) setScroll({
+      left: el.scrollLeft, top: el.scrollTop, width: el.clientWidth, height: el.clientHeight,
+      offX: board?.offsetLeft ?? 0, offY: board?.offsetTop ?? 0,
+    });
   };
+
+  useLayoutEffect(() => {
+    const el = viewport.current;
+    if (!el) return;
+    const observer = new ResizeObserver(readScroll);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const centerOn = (at: Point, smooth: boolean) => {
     const el = viewport.current;
@@ -99,6 +114,35 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
       if (at) ctl.click(at);
     }
   };
+  // 右键 = 火纹的取消键：back one step (or drop the selection), never spends the move.
+  const onContextMenu = (e: SyntheticEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    ctl.cancel();
+  };
+
+  // Position the contextual menu next to the destination tile, flipped/clamped to stay inside the
+  // VISIBLE part of the viewport (works at any zoom / scroll position), and kept fully off its own
+  // tile so a click on that tile still quick-confirms 移动后待机.
+  const placeMenu = (to: Point, size: { w: number; h: number }): CSSProperties => {
+    const pad = 4, gap = 3;
+    const visL = scroll.left - scroll.offX, visR = visL + scroll.width;
+    const visT = scroll.top - scroll.offY, visB = visT + scroll.height;
+    const tileL = to[0] * cell, tileR = tileL + cell;
+    const tileT = to[1] * cell, tileB = tileT + cell;
+    let left = tileR + gap;
+    if (left + size.w > visR - pad) left = tileL - size.w - gap; // flip to the left edge of the tile
+    left = Math.max(visL + pad, Math.min(left, visR - pad - size.w));
+    let top = Math.max(visT + pad, Math.min(tileT, visB - pad - size.h));
+    // Degenerate narrow viewports: if clamping pushed the menu over the tile, go above or below.
+    if (left < tileR && left + size.w > tileL && top < tileB && top + size.h > tileT) {
+      top = tileT - size.h - gap >= visT + pad ? tileT - size.h - gap : Math.max(visT + pad, tileB + gap);
+    }
+    return { left, top, maxHeight: Math.max(60, scroll.height - pad * 2), maxWidth: Math.max(100, scroll.width - pad * 2) };
+  };
+  // The menu is only the player's live decision tool: never over enemy / AI playback, dialogs,
+  // 结果画面 or read-only sessions.
+  const menuOpen = (mode.kind === 'action' || mode.kind === 'item') && state.phase === 'player' && !state.result
+    && !snap.combat && !snap.levelUp && !snap.dialog && !ctl.session.readOnly;
 
   const selectedId = 'unit' in mode ? mode.unit : null;
   const selected = selectedId ? unitById(view, selectedId) : null;
@@ -124,6 +168,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
       <div ref={viewport} className={`viewport${dragging ? ' dragging' : ''}`} tabIndex={0} role="application"
         aria-label={`战术地图：${view.name}`} aria-describedby="map-help"
         onScroll={readScroll} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+        onContextMenu={onContextMenu}
         onPointerLeave={() => { if (!press.current) ctl.hoverCell(null); }}>
         <div className="board" style={{ width, height, '--cell': `${cell}px` } as CSSProperties}>
           {image
@@ -144,7 +189,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
           <ObjectLayer state={view} cell={cell} />
           <UnitLayer view={view} cell={cell} selected={selectedId} ghostElsewhere={ghostElsewhere} fading={snap.fading} />
           {ghost && ghostElsewhere && <Ghost unit={ghost.unit} at={ghost.at} cell={cell} />}
-          {ghost && ghostElsewhere && !target && mode.kind !== 'move' && <MapTag at={ghost.at} cell={cell} view={view} className="mt-brass">预览落点</MapTag>}
+          {ghost && ghostElsewhere && !target && mode.kind !== 'move' && <MapTag at={ghost.at} cell={cell} view={view} className="mt-brass">已选落点</MapTag>}
           {throne && throneTag && <MapTag at={throne} cell={cell} view={view} className="mt-throne"><SeizeIcon size={14} />王座 · 压制目标</MapTag>}
           {hover && !busy && <Cursor at={hover} cell={cell} kind={snap.cursor ? 'kbd-cursor' : ''} />}
           {target && <Cursor at={target.pos} cell={cell} kind="tgt" />}
@@ -156,6 +201,8 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
             </MapTag>
           )}
           {overlay?.(cell)}
+          {menuOpen && (mode.kind === 'action' || mode.kind === 'item')
+            && <ContextMenu state={state} unitId={mode.unit} to={mode.to} ctl={ctl} place={placeMenu} page={mode.kind === 'item' ? 'bag' : 'root'} />}
           <Floats floats={snap.floats} cell={cell} />
         </div>
       </div>
@@ -168,7 +215,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
       }} />
       {snap.banner && <PhaseBanner side={snap.banner.side} turn={snap.banner.turn} />}
       <p id="map-help" className="sr-only">
-        点击己方单位选中，再点蓝色格预览落点，点红色范围内的敌人查看交战预测。方向键移动光标，空格选择，Enter 确认，Esc 返回上一步。
+        点击己方单位选中，再点蓝色格选择落点并打开行动菜单；再点一次落点格直接待机，点红色范围内的敌人查看交战预测。方向键移动光标，空格选择，Enter 确认，Esc 或右键返回上一步。
       </p>
     </div>
   );
