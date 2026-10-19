@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { DAYS_PER_SEASON, DAYS_PER_YEAR, SEASONS_PER_YEAR, dateOf } from '@common/game/calendar.ts';
 import { regionById } from '@common/game/calendar.ts';
+import { REGION_EXPLORATION_GAIN, REGION_EXPLORATION_MAX } from '@common/game/region-map.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { CRESTS, ICONS } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
@@ -54,9 +55,29 @@ export function CampPage() {
     tasks.push({
       key: 'world', icon: <CompassIcon />, title: world.unlockedRegions.length === 0 ? '第一步 · 选择首条讨伐路线' : '新的讨伐路线可选',
       tag: [`${world.selectableRegions.length} 条可选`, 'tag-brass'],
-      desc: '在世界地图上开通下一个地区，不消耗行动日；开通后即可出击、做任务与派遣。',
+      desc: '在世界地图上开通下一个地区，不消耗行动日；开通后即可出击与做任务，首次讨伐后开放派遣。',
       action: { label: '打开世界地图', href: links.world, primary: true },
     });
+  }
+  const explorationTarget = world?.nodes.find(n => world.unlockedRegions.includes(n.id)
+    && n.exploration < REGION_EXPLORATION_MAX
+    && world.edges.some(([a, b]) => (a === n.id && b !== 0 && !world.unlockedRegions.includes(b)) || (b === n.id && a !== 0 && !world.unlockedRegions.includes(a))));
+  const firstRegion = world?.nodes.find(n => world.unlockedRegions.includes(n.id));
+  if (!battle && run?.state !== 'between_maps' && !annualLive(annual) && firstRegion && world?.selectableRegions.length === 0) {
+    if (cleared === 0) {
+      tasks.push({
+        key: 'first-sortie', icon: <CompassIcon />, title: `下一步 · 首次出击${firstRegion.name}`,
+        desc: `已选择${firstRegion.name}路线。整备队伍后完成第一场野外讨伐，积累探索度，并开放副本、派遣与普通竞技场。`,
+        action: { label: '准备首次出击', href: `${links.field}?region=${firstRegion.id}`, primary: true },
+      });
+    } else if (explorationTarget) {
+      tasks.push({
+        key: 'exploration', icon: <CompassIcon />, title: `下一步 · 探索${explorationTarget.name}，开通相邻路线`,
+        tag: [`${explorationTarget.exploration} / ${REGION_EXPLORATION_MAX}`, 'tag-brass'],
+        desc: `还需 ${REGION_EXPLORATION_MAX - explorationTarget.exploration} 探索度。野外胜利 +${REGION_EXPLORATION_GAIN.field}，单图任务完成 +${REGION_EXPLORATION_GAIN.quest}，各副本（含多图任务）首次完整通关 +${REGION_EXPLORATION_GAIN.dungeon}；达到 ${REGION_EXPLORATION_MAX} 后可在世界地图开通相邻路线。`,
+        action: { label: '查看探索路线', href: links.world, primary: true },
+      });
+    }
   }
   if (battle) {
     const inRun = battle.kind === 'field' && run?.battleId === battle.id;

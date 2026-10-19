@@ -9,6 +9,8 @@ import type { CharacterId } from '@common/data/characters.ts';
 import type { Rank, StatKey, Stats, WeaponType } from '@common/data/types.ts';
 import type { FeatureAccess, WorldMapView } from '@common/game/region-map.ts';
 import { ApiError, call, login as apiLogin, newCommandId, setToken, token } from './client.ts';
+import { parseRoute } from '../router.ts';
+import type { Route } from '../router.ts';
 
 export interface WeaponInstance { id: string; durability: number; maxDurability: number; refinement?: number }
 export interface BookInstance { id: string; charges: number; maxCharges: number }
@@ -141,6 +143,7 @@ export interface ServerState {
       className: string;
       growthType: string;
       portraits: { id: string; name: string }[];
+      baseStats: Record<string, number>;
       budget: number;
       defaultAllocation: Record<string, number>;
       minPerStat: Record<string, number>;
@@ -420,9 +423,30 @@ const EMPTY: SessionSnapshot = {
   roster: [], battles: {}, run: null, annual: null, story: null, quests: null, production: null, legacies: null,
 };
 
+type ViewKey = 'arena' | 'results' | 'story' | 'quests' | 'production' | 'legacies';
+const VIEWS: { key: ViewKey; op: number; feature: keyof FeatureAccess }[] = [
+  { key: 'arena', op: OP.GET_ARENA, feature: 'arena' },
+  { key: 'results', op: OP.GET_ARENA_RESULTS, feature: 'arena' },
+  { key: 'story', op: OP.GET_STORY, feature: 'story' },
+  { key: 'quests', op: OP.GET_QUESTS, feature: 'quests' },
+  { key: 'production', op: OP.GET_PRODUCTION, feature: 'workshop' },
+  { key: 'legacies', op: OP.GET_LEGACIES, feature: 'legacy' },
+];
+const PAGE_VIEWS: Partial<Record<Route['page'], ViewKey[]>> = {
+  camp: VIEWS.map(v => v.key), rules: ['story', 'production'],
+  arena: ['arena', 'results'], ban: ['arena', 'results'], deploy: ['arena', 'results'], 'arena-battle': ['arena', 'results'],
+  story: ['story'], quests: ['quests'], workshop: ['production'], legacy: ['legacies'], roster: ['legacies'],
+};
+// These commands change only resources/units/control, not calendar events or module progress.
+const STATE_ONLY = new Set<number>([
+  OP.BUY, OP.SELL, OP.TRANSFER_ITEM, OP.USE_ITEM, OP.ASSIGN_BEXP, OP.REPAIR_ITEM, OP.REFINE_WEAPON,
+  OP.EQUIP_SKILLS, OP.CLAIM_CONTROL, OP.RELEASE_CONTROL,
+]);
+
 class SessionStore {
   private snap: SessionSnapshot = EMPTY;
   private listeners = new Set<() => void>();
+  private revision = 0;
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -452,49 +476,85 @@ class SessionStore {
     }
   }
 
-  // Loads everything a screen might read. Called after login and after any state-changing op.
-  async refresh(): Promise<void> {
-    if (!token()) return;
+  // Core activity gates stay current; page views load on demand, then stay current for nav badges.
+  async refresh(afterOp?: number): Promise<void> {
+    const credential = token();
+    if (!credential) return;
+    const revision = ++this.revision;
+    const previous = this.snap;
+    const current = () => revision === this.revision && credential === token();
     this.set({ loading: true, error: null });
     try {
-      const [state, today, arena, roster, results, run, annual, story, quests, production, legacies] = await Promise.all([
-        call<ServerState>(OP.GET_STATE),
-        call<ServerToday>(OP.GET_TODAY).catch(() => null),
-        call<ServerArena>(OP.GET_ARENA).catch(() => null),
-        call<{ units: ServerUnit[] }>(OP.GET_ROSTER),
-        call<ArenaResults>(OP.GET_ARENA_RESULTS).catch(() => null),
-        call<{ run: ServerRun | null }>(OP.GET_RUN).then(r => r.run).catch(() => null),
-        call<ServerAnnual>(OP.GET_ANNUAL).catch(() => null),
-        call<ServerStory>(OP.GET_STORY).catch(() => null),
-        call<ServerQuests>(OP.GET_QUESTS).catch(() => null),
-        call<ServerProduction>(OP.GET_PRODUCTION).catch(() => null),
-        call<ServerLegacies>(OP.GET_LEGACIES).catch(() => null),
-      ]);
-      this.set({
-        state, today, arena, roster: roster.units, results, run, annual, story, quests, production, legacies,
-        loading: false, ready: true, error: null,
-      });
+      const state = await call<ServerState>(OP.GET_STATE);
+      if (!current()) return;
+      const patch: Partial<SessionSnapshot> = { state, roster: state.units };
+      const errors: string[] = [];
+      const stateOnly = afterOp !== undefined && STATE_ONLY.has(afterOp) && !previous.error
+        && state.day === previous.state?.day && state.version === previous.state.version + 1;
+      if (!stateOnly) {
+        const page = typeof window === 'undefined' ? 'camp' : parseRoute(window.location.hash).page;
+        const wanted = PAGE_VIEWS[page] ?? [];
+        const loadView = async <K extends ViewKey>(key: K, op: number, enabled: boolean) => {
+          if (!enabled) { patch[key] = null; return; }
+          if (wanted.includes(key) || previous[key] !== null) {
+            try { patch[key] = await call<SessionSnapshot[K]>(op); }
+            catch (error) {
+              if (error instanceof ApiError && error.code === 'UNAUTHORIZED') throw error;
+              errors.push(error instanceof Error ? error.message : String(error));
+            }
+          }
+        };
+        const [today, run, annual] = await Promise.all([
+          call<ServerToday>(OP.GET_TODAY),
+          state.features.dungeon ? call<{ run: ServerRun | null }>(OP.GET_RUN).then(r => r.run) : null,
+          state.features.annual ? call<ServerAnnual>(OP.GET_ANNUAL) : null,
+          ...VIEWS.map(v => loadView(v.key, v.op, state.features[v.feature])),
+        ]);
+        Object.assign(patch, { today, run, annual });
+      }
+      if (current()) {
+        this.set({ ...patch, loading: false, ready: true, error: null });
+        if (errors.length) throw new Error(`部分信息未更新：${errors.join('；')}`);
+      }
     } catch (error) {
+      if (!current()) return;
       if (error instanceof ApiError && error.code === 'UNAUTHORIZED') {
         setToken(null);
-        this.set({ ready: false, loading: false, error: '登录已过期，请重新登录' });
-        return;
+        this.set({ ...EMPTY, error: '登录已过期，请重新登录' });
+      } else {
+        this.set({ loading: false, error: error instanceof Error ? error.message : String(error) });
       }
-      this.set({ loading: false, error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
 
+  async loadPage(page: Route['page']): Promise<void> {
+    const wanted = PAGE_VIEWS[page] ?? [];
+    if (this.snap.state && VIEWS.some(v => wanted.includes(v.key) && this.snap.state!.features[v.feature] && this.snap[v.key] === null)) {
+      await this.refresh();
+    }
+  }
+
+  // A committed command must remain successful even if its following read cannot reach the server.
+  private async afterWrite(op: number, credential: string | null): Promise<void> {
+    if (credential !== token()) return;
+    try { await this.refresh(op); }
+    catch (error) {
+      if (credential === token()) this.set({ error: `操作已提交，但状态尚未同步：${error instanceof Error ? error.message : String(error)}。请重新同步，不要重复提交。` });
+    }
+  }
+
   logout(): void {
+    this.revision++;
     setToken(null);
     this.set({ ...EMPTY });
   }
 
-  // Runs an op and refreshes the derived views, so a screen never shows stale numbers.
   async run<T = unknown>(op: number, data: Record<string, unknown> = {}, refresh = true): Promise<T> {
+    const credential = token();
     const commandId = typeof data.commandId === 'string' ? data.commandId : newCommandId();
     const result = await call<T>(op, data, commandId);
-    if (refresh) await this.refresh();
+    if (refresh) await this.afterWrite(op, credential);
     return result;
   }
 
@@ -505,14 +565,15 @@ class SessionStore {
   }
 
   async arenaBan(opponentId: string, bans: string[]): Promise<ArenaReveal> {
-    const result = await this.run<{ opponentId: string; reveal: ArenaReveal }>(OP.ARENA_BAN, { opponentId, bans }, false);
+    const result = await this.run<{ opponentId: string; reveal: ArenaReveal }>(OP.ARENA_BAN, { opponentId, bans });
     return result.reveal;
   }
 
   async arenaAttack(opponentId: string, picks: { character: CharacterId; unitId?: string; pos: [number, number] }[], commander: CharacterId): Promise<string> {
+    const credential = token();
     const result = await call<{ battleId: string; state: BattleState }>(OP.ARENA_ATTACK, { opponentId, picks, commander }, newCommandId());
-    this.set({ battles: { ...this.snap.battles, [opponentId]: result.state } });
-    await this.refresh();
+    if (credential === token()) this.set({ battles: { ...this.snap.battles, [opponentId]: result.state } });
+    await this.afterWrite(OP.ARENA_ATTACK, credential);
     return result.battleId;
   }
 
@@ -539,18 +600,17 @@ class SessionStore {
       if (action.act === 'cast') { data.targetId = action.target; data.spell = action.spell; if (action.dest) data.dest = action.dest; }
       if (action.act === 'staff') { data.targetId = action.target; data.weapon = action.weapon; if (action.dest) data.dest = action.dest; }
     }
+    const credential = token();
     const result = await call<{ state: BattleState; events?: BattleEvent[] }>(op, data, newCommandId());
-    if (result.state?.result) await this.refresh();
+    if (result.state?.result) await this.afterWrite(op, credential);
     return { state: result.state, events: result.events ?? [] };
   }
 
   async sortie(region: number, unitIds: string[]): Promise<{ battleId: string; state: BattleState }> {
-    const result = await call<{ battleId: string; state: BattleState }>(OP.SORTIE, { region, unitIds }, newCommandId());
-    await this.refresh();
-    return result;
+    return this.run<{ battleId: string; state: BattleState }>(OP.SORTIE, { region, unitIds });
   }
 
-  // 完成自捏开局：自建主角（固定平民／成长型，属性即 1 级全值）+ 两名同伴，只能提交一次。
+  // 完成自捏开局：自建主角（固定平民／成长型，基础属性 + 10 点加成，每项最多加 5）+ 两名同伴，只能提交一次。
   async completeSetup(protagonist: {
     name: string; sex: 'male' | 'female'; portrait: string; allocation: Record<string, number>;
   }, companions: string[]): Promise<{ companions: string[] }> {

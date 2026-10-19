@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { REPUTATION_TIERS } from '@common/game/reputation.ts';
+import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ChallengeFloor, QuestRegion, QuestView } from '../api/session.ts';
@@ -11,6 +12,7 @@ import type { ItemFilter } from '../model/item-filter.ts';
 import { go, links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { LockIcon } from '../ui/icons.tsx';
+import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { advance, dateLabel } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 import { itemSpec } from './PrepParts.tsx';
@@ -91,8 +93,7 @@ function RegionsTab() {
     setTeam(active.filter(u => !busyReason(u, annual)).slice(0, q.maxUnits).map(u => u.id));
   };
   const start = (q: QuestView) => act(`s${q.id}`, async () => {
-    await session.run(OP.START_QUEST, { questId: q.id, unitIds: team }, false);
-    await session.refresh();
+    await session.run(OP.START_QUEST, { questId: q.id, unitIds: team });
     // 远征／连续副本任务进入副本页；单图任务进入普通出击页。
     go(q.tier === 'region' || (q.classic?.stageCount ?? 1) > 1 ? links.dungeon : links.field);
     return q.name;
@@ -176,6 +177,8 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
   onStart: (q: QuestView) => void; onClaim: (q: QuestView) => void; onBuy: (region: number, item: string) => void;
 }) {
   const next = region.tier.next;
+  const { state } = useSession();
+  const exploration = state?.world.nodes.find(node => node.id === region.region);
   const [shopFilter, setShopFilter] = useState<ItemFilter>('all');
   // 声望商店按物品分类过滤（武器按剑/枪/斧/弓/拳/短刀/兽/龙/魔道书/杖细分），芯片带数量。
   const shopKeys = region.shop.map(s => s.item);
@@ -189,6 +192,10 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
         <h2 id={`rg-${region.region}`}>{region.name}</h2>
         <span style={{ fontSize: 12, color: '#6A6256' }}>声望 <b className="num">{region.reputation}</b> · {region.tier.name}{next !== null ? ` · 距下一档 ${next - region.reputation}` : ''}</span>
       </div>
+      {exploration && <div style={{ padding: '12px 16px' }}>
+        <RegionExploration region={exploration} />
+        <p style={{ fontSize: 12, color: '#6A6256', marginTop: 6 }}>单图任务完成 +{REGION_EXPLORATION_GAIN.quest} 探索度，多图任务首次整本通关 +{REGION_EXPLORATION_GAIN.dungeon}；探索满后可在<a href={links.world}>世界地图</a>开通相邻新路线。</p>
+      </div>}
       <ol className="chapters quest-list">
         {region.quests.map(q => {
           const phase = phaseOf(q);

@@ -87,6 +87,7 @@ test('a classic single-map quest uses the source map, pays its days and resolves
   const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; quests: { id: string; done: boolean; claimed: boolean }[] }[] };
   const entry = view.regions.find(region => region.region === 2)!.quests.find(quest => quest.id === 'cl-fe1-ch16')!;
   assert.equal(entry.done, true);
+  assert.equal(player.flags.regionExploration?.[2], 5, '经典单图任务按五点结算');
   assert.equal(entry.claimed, false);
   const claimed = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'cl-fe1-ch16' }) as { gold: number };
   assert.equal(claimed.gold, 900);
@@ -105,6 +106,7 @@ test('a GBA classic quest exposes its scenario metadata', () => {
   const battle = store.battle(player.id, started.battleId)!;
   assert.equal(battle.state.map.width, classicMap('fe6-ch13-main').width);
   dispatch(ctx, OP.RETREAT, { battleId: started.battleId });
+  assert.equal(player.flags.regionExploration?.[2] ?? 0, 0, '失败的任务不加探索');
 });
 
 test('a classic dungeon runs its scenario sequence with carry-over and completes all stages', () => {
@@ -133,6 +135,7 @@ test('a classic dungeon runs its scenario sequence with carry-over and completes
   }
   run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number } }).run;
   assert.equal(run.state, 'completed');
+  assert.equal(player.flags.regionExploration?.[2], 20, '经典多图副本首次整本完成加二十');
   assert.equal(player.day, day + 6, '三图共 6 日');
   for (const id of TEAM) assert.equal(store.unit(player.id, id)!.lockedRunId ?? null, null);
 });

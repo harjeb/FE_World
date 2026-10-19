@@ -85,6 +85,7 @@ test('a quest pays its days once, marks done on a win, and its first reward is c
 
   const afterWin = questView(ctx, 2);
   assert.ok(afterWin.quests.find(q => q.id === 'gw1')!.done, 'a win marks the quest done');
+  assert.equal(player.flags.regionExploration?.[2], 5, '单图任务只加五，不叠加野图分数');
   assert.ok(!afterWin.quests.find(q => q.id === 'gw1')!.claimed, 'the reward is claimed separately');
   assert.ok(afterWin.quests.find(q => q.id === 'gw2')!.available, 'gw2 opens once gw1 is done');
 
@@ -96,6 +97,7 @@ test('a quest pays its days once, marks done on a win, and its first reward is c
   assert.equal(questView(ctx, 2).reputation, 20);
   assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'gw1' }), /已经领取过/);
   assert.equal(questView(ctx, 2).quests.find(q => q.id === 'gw1')!.claimed, true);
+  assert.equal(store.getPlayer(player.id)!.flags.regionExploration?.[2], 5, '领奖不会再加探索');
 });
 
 test('a full roster keeps a quest recruit claimable instead of losing the character', () => {
@@ -219,6 +221,7 @@ test('a region expedition runs three maps and only marks the quest done at the e
   assert.equal(store.battle(player.id, started.battleId)!.state.goal.kind, 'seize', 'map 1 探路 = seize');
   assert.equal(playOut(ctx, started.battleId), 'player');
   assert.ok(!(player.flags.questsDone ?? []).includes('gw6'), 'stage one does not complete the quest');
+  assert.equal(player.flags.regionExploration?.[2] ?? 0, 0);
   const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 4);
   assert.equal(store.battle(player.id, second.battleId)!.state.goal.kind, 'rout', 'map 2 消耗战 = rout');
@@ -228,6 +231,7 @@ test('a region expedition runs three maps and only marks the quest done at the e
   assert.equal(store.battle(player.id, third.battleId)!.state.goal.kind, 'boss', 'map 3 首领战 = boss');
   assert.equal(playOut(ctx, third.battleId), 'player');
   assert.ok(player.flags.questsDone!.includes('gw6'), 'finishing all three maps completes the quest');
+  assert.equal(player.flags.regionExploration?.[2], 20, '多图任务按副本首通二十，不叠加任务五分');
 });
 
 test('an old three-quest region can finish its new branches and claim the ending exactly once', () => {
@@ -264,6 +268,7 @@ test('new core expeditions use their configured goals and cannot pay reputation 
   empower(store, player, ids);
   player.flags.questsDone = ['r9-1', 'r9-2', 'r9-3', 'r9-4', 'r9-5', 'r9-6'];
   player.flags.regionReputation = { 9: 260 };
+  player.flags.regionExploration = { 9: 20 };
   store.savePlayer(player);
   const day = player.day;
   let started = dispatch(ctx, OP.START_QUEST, { questId: 'r9-7', unitIds: ids }) as { battleId: string };
@@ -281,6 +286,7 @@ test('new core expeditions use their configured goals and cannot pay reputation 
     store.saveBattle(battle);
     dispatch(ctx, OP.UNIT_ACT, { battleId: battle.id, unitId: leader.id, moveTo: leader.pos, action: kind === 'seize' ? 'seize' : 'wait' });
     assert.equal(store.battle(player.id, battle.id)!.state.result?.winner, 'player');
+    assert.equal(player.flags.regionExploration?.[9], stage === 2 ? 40 : 20, '另一个任务副本有独立首通，仅完整通关加二十');
     if (stage < 2) {
       assert.ok(!player.flags.questsDone!.includes('r9-7'));
       assert.throws(() => dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'r9-7' }), /尚未完成/);
@@ -289,6 +295,7 @@ test('new core expeditions use their configured goals and cannot pay reputation 
   }
   const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'r9-7' }) as { reputation: { after: number } };
   assert.equal(reward.reputation.after, 340);
+  assert.equal(player.flags.regionExploration?.[9], 40, '任务副本领奖不重复加探索');
 });
 
 test('new classic rewards preserve already earned reputation and still issue gold and loot', () => {

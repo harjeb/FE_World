@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import type { BattleState } from '@common/engine/index.ts';
 import { regionById } from '@common/game/calendar.ts';
 import { DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
+import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ActionQuote, ServerRun } from '../api/session.ts';
 import { links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
+import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { itemName, QuoteBox, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
 import { BattlePage } from './BattlePage.tsx';
 import { fallenLine } from './Dialogs.tsx';
@@ -213,6 +215,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
       </Shell>
     );
   }
+  const exploration = state.world.nodes.find(node => node.id === target.id);
   const picked = active.filter(u => team.includes(u.id));
   const top = Math.max(0, ...picked.map(u => u.level));
   const total = advance(today.day, DUNGEON_STAGE_DAYS * DUNGEON_STAGES);
@@ -252,7 +255,8 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
                 </button>
               ))}
             </div>
-            <p className="pfoot">完整通关未讨伐的地区即讨伐该地区；中途撤离或失败不算讨伐。</p>
+            {exploration && <div style={{ padding: '0 16px 12px' }}><RegionExploration region={exploration} /></div>}
+            <p className="pfoot">各地区大副本仅首次完整通关 +{REGION_EXPLORATION_GAIN.dungeon} 探索度，重复通关不加；中间关卡、撤离或失败不加。完整通关也会记为已讨伐。</p>
           </section>
 
           <section className="panel" aria-labelledby="dtm-h">

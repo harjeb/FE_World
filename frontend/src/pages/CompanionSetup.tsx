@@ -8,9 +8,7 @@ import { session, useSession } from '../api/session.ts';
 import { toast } from '../ui/toast.tsx';
 import { Face } from './SystemParts.tsx';
 
-// 自捏开局（docs/00「神主角」、docs/13 §开局）：神主角固定以平民／成长型开局，自定姓名、性别
-// 与形象，九属性的 1 级全值直接分配（HP 1–30、其余 0–10、总计 60）；培养倾向由分配的属性分布
-// 自动推导，不再提供职业／成长／倾向选择器。再从剩余预设中挑两名同伴；同一事务提交，只能完成一次。
+// 自捏开局：固定平民／成长型，保留基础属性并额外分配 10 点，每项最多加 5；倾向由加点推导。
 export function CompanionSetup() {
   const { state } = useSession();
   const [name, setName] = useState('');
@@ -23,7 +21,7 @@ export function CompanionSetup() {
 
   const opts = state.setup.protagonist;
   const fixedClassId = opts.classId;
-  // 分配初始值用服务器下发的默认方案（总计 60）。
+  // 默认不预分配额外属性点。
   const current = alloc ?? (opts.defaultAllocation as Record<StatKey, number>);
   const chosenPortrait = portrait || opts.portraits[0]?.id || 'erin';
   const used = STAT_KEYS.reduce((sum, k) => sum + current[k], 0);
@@ -93,14 +91,16 @@ export function CompanionSetup() {
             </div>
           </div>
           <div style={{ fontSize: 14 }}>
-            <div style={{ color: '#4E473D' }}>九属性起始值 · 还剩 {opts.budget - used} / {opts.budget} 点（HP {opts.minPerStat.hp}–{opts.maxPerStat.hp}，其余 0–{opts.maxPerStat.str}）</div>
-            <div className="alloc" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8, marginTop: 6 }}>
+            <div style={{ color: '#4E473D' }}>保留基础属性 · 额外还剩 {opts.budget - used} / {opts.budget} 点（每项最多加 {opts.maxPerStat.str} 点）</div>
+            <div className="alloc" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 8, marginTop: 6 }}>
               {STAT_KEYS.map(k => (
                 <div key={k} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <span className="al-k" style={{ width: 40 }}>{STAT_NAMES[k]}</span>
+                  <span className="num" aria-label={`${STAT_NAMES[k]}基础值`}>{opts.baseStats[k]}</span>
                   <button type="button" className="btn btn-sm" aria-label={`${STAT_NAMES[k]} −1`} disabled={current[k] <= opts.minPerStat[k]} onClick={() => bump(k, -1)}>−</button>
-                  <b className="num" style={{ width: 16, textAlign: 'center' }}>{current[k]}</b>
+                  <b className="num" style={{ minWidth: 20, textAlign: 'center' }} aria-label={`${STAT_NAMES[k]}加点`}>+{current[k]}</b>
                   <button type="button" className="btn btn-sm" aria-label={`${STAT_NAMES[k]} +1`} disabled={current[k] >= opts.maxPerStat[k] || used >= opts.budget} onClick={() => bump(k, 1)}>+</button>
+                  <span className="num" aria-label={`${STAT_NAMES[k]}最终值`}>= {opts.baseStats[k] + current[k]}</span>
                 </div>
               ))}
             </div>

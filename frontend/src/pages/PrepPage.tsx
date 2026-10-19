@@ -37,7 +37,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
 
   function warehouseActions(key: string, uses: number, count: number) {
     const item = itemOf(key);
-    const sell = (n: number) => runOp<{ gained: number; count: number }>(OP.SELL, { item: key, count: n }, r => `卖出 ${item?.name ?? key} ×${r.count}，金币 +${r.gained}`);
+    const sell = (n: number) => runOp<{ gained: number; count: number }>(OP.SELL, { item: key, count: n, ...((item?.kind === 'consumable' || item?.kind === 'spellbook') ? { uses } : {}) }, r => `卖出 ${item?.name ?? key} ×${r.count}，金币 +${r.gained}`);
     const acts = [];
     if (unit && item?.kind === 'weapon') {
       const full = unit.snapshot.weapons.length >= CARRY;
@@ -85,6 +85,8 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
           金币 <b className="num">{gold.toLocaleString()}</b> · 商店在{plainDate(nextSeason)}补货（{nextSeason - day} 日后）
         </div>
       </div>
+
+      <UnitPicker units={active} selected={unit} onPick={id => go(links.prep(id))} />
 
       <div className="chips" role="group" aria-label="物品分类">
         {ITEM_FILTERS.map(([f, label]) => (
@@ -144,7 +146,6 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
         </div>
 
         <div className="colstack">
-          <UnitPicker units={active} selected={unit} onPick={id => go(links.prep(id))} />
           {unit && <CarriedPanel unit={unit} />}
           {unit && <DrugPanel unit={unit} />}
           {unit && <BexpPanel key={unit.id} unit={unit} bexp={state?.bexp ?? 0} />}

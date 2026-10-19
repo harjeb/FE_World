@@ -89,7 +89,6 @@ class ArenaStore {
     this.reveals.set(id, reveal);
     this.overrides.set(id, { status: 'revealed', bans });
     this.recompute();
-    await session.refresh();
     return reveal;
   }
 

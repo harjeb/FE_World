@@ -9,7 +9,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { seedBrowserAccount } from './fixtures.mjs';
+import { prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
 
 const API_PORT = 8611;
 let cdpPort = 9411;
@@ -52,6 +52,10 @@ async function openPage(profile) {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
   return {
     errors, evaluate,
+    viewport: (width, height) => send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false }),
+    async key(key, shift = false) {
+      for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key, code: key, windowsVirtualKeyCode: key === 'Enter' ? 13 : key === 'Tab' ? 9 : 27, modifiers: shift ? 8 : 0, ...(key === 'Enter' && type === 'keyDown' ? { text: '\r' } : {}) });
+    },
     async capture(path, width = 1440, height = 1000) {
       await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
       await sleep(150);
@@ -62,6 +66,11 @@ async function openPage(profile) {
     close: async () => { ws.close(); await stopProcess(chrome); },
     async open(url, selector) {
       await send('Page.navigate', { url });
+      for (let i = 0; i < 150 && !(await evaluate(`document.readyState === 'complete' && !!document.querySelector(${JSON.stringify(selector)})`)); i++) await sleep(100);
+      await sleep(400);
+    },
+    async reload(selector) {
+      await send('Page.reload', { ignoreCache: true });
       for (let i = 0; i < 150 && !(await evaluate(`document.readyState === 'complete' && !!document.querySelector(${JSON.stringify(selector)})`)); i++) await sleep(100);
       await sleep(400);
     },
@@ -127,12 +136,26 @@ try {
     await page.click('button[type=submit]');
     check('new accounts enter character setup', await until(() => page.evaluate(`document.body.innerText.includes('缔结神约')`)), 'setup shown');
     await page.type('input[placeholder="2–12 字"]', '星海神主');
+    const setup = (await api(page, 10)).setup.protagonist;
+    check('setup preserves base stats with 10 unspent bonus points',
+      await page.evaluate(`document.body.innerText.includes('额外还剩 10 / 10 点') && document.querySelector('[aria-label="HP最终值"]').textContent.includes('20')`), 'base HP 20, extra budget 10');
     await page.evaluate(`[...document.querySelectorAll('section:nth-of-type(2) button')].slice(0, 2).forEach(button => button.click())`);
+    check('setup requires all bonus points before confirmation',
+      await page.evaluate(`[...document.querySelectorAll('button')].find(button => button.innerText === '确认开局').disabled`), 'unspent points block confirmation');
+    for (let point = 0; point < 5; point++) await page.click('[aria-label="魔 +1"]');
+    check('one stat cannot receive more than 5 bonus points',
+      await page.evaluate(`document.querySelector('[aria-label="魔 +1"]').disabled && document.querySelector('[aria-label="魔最终值"]').textContent.includes('9')`), 'base magic 4 + bonus 5 = 9');
+    for (let point = 0; point < 5; point++) await page.click('[aria-label="速 +1"]');
+    check('all 10 points are allocated without reducing the base',
+      await page.evaluate(`document.body.innerText.includes('额外还剩 0 / 10 点') && document.querySelector('[aria-label="HP −1"]').disabled && ![...document.querySelectorAll('button')].find(button => button.innerText === '确认开局').disabled`), '10 spent, HP base retained');
     await page.evaluate(`[...document.querySelectorAll('button')].find(button => button.innerText === '确认开局').click()`);
     check('completing setup opens the camp with exactly three characters',
       await until(() => page.evaluate(`!!document.querySelector('.topbar')`)) && (await api(page, 10)).units.length === 3, 'three-member party');
     const protagonist = (await api(page, 10)).units.find(unit => unit.isProtagonist);
     check('the custom protagonist retains its identity', protagonist?.id === 'u_protagonist' && protagonist.name === '星海神主', 'custom protagonist');
+    const heroDetail = await api(page, 21, { unitId: 'u_protagonist' });
+    check('saved hero stats retain every base value and add only the allocated bonuses',
+      JSON.stringify(heroDetail.stats) === JSON.stringify({ ...setup.baseStats, mag: setup.baseStats.mag + 5, spd: setup.baseStats.spd + 5 }), JSON.stringify(heroDetail.stats));
     const starters = (await api(page, 10)).units;
     check('the starting three carry all-E ranks and the cheapest wooden/iron basic kit',
       starters.every(unit => Object.values(unit.ranks).every(rank => rank === 'E'))
@@ -171,8 +194,12 @@ try {
       && (await api(page, 10)).day === beforeRoute.day, 'region 2 at the same date');
     check('route choice reveals field and quest pages while advanced combat stays hidden',
       await page.evaluate(`!!document.querySelector('.rail a[href="#/field"]') && !!document.querySelector('.rail a[href="#/quests"]') && !document.querySelector('.rail a[href="#/arena"]')`), 'progressive navigation');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '#tasks-h');
+    check('choosing a route leads to the first sortie', await page.evaluate(`document.querySelector('#tasks-h').closest('section').innerText.includes('准备首次出击')`), 'first sortie guidance');
     await page.open(`http://127.0.0.1:${API_PORT}/#/world`, '.world-map');
     check('the chosen route survives a browser reload', await page.evaluate(`document.querySelector('.world-node[data-region="2"]').classList.contains('unlocked') && document.querySelectorAll('.world-node.available').length === 0`), 'forest retained');
+    check('a newly opened region has an accessible exploration bar at zero',
+      await page.evaluate(`(() => { const bar = document.querySelector('.world-node[data-region="2"] progress'); return bar?.value === 0 && bar.max === 100 && bar.getAttribute('aria-label') === '希尔瓦林地探索度'; })()`), '0 / 100');
     await page.click('.world-node[data-region="2"]');
     await page.evaluate(`[...document.querySelectorAll('.go-bar a')].find(link => link.innerText === '前往任务').click()`);
     check('map links carry the selected region', await until(() => page.evaluate(`location.hash === '#/quests?region=2' && !!document.querySelector('[aria-labelledby="rg-2"]')`)), 'forest quest page');
@@ -180,12 +207,51 @@ try {
     check('quest data only contains opened content',
       quests.regions.length === 1 && quests.regions[0].region === 2
       && quests.regions[0].quests.every(quest => quest.available || quest.done || quest.inProgress), 'unopened regions and prerequisites hidden');
+    check('quest pages show the regional bar and both quest reward rules',
+      await page.evaluate(`(() => { const panel = document.querySelector('[aria-labelledby="rg-2"]'); return panel.querySelector('progress')?.value === 0 && panel.innerText.includes('单图任务完成 +5') && panel.innerText.includes('首次整本通关 +20'); })()`), 'single-map +5, multi-map first clear +20');
     await page.evaluate(`[...document.querySelectorAll('[aria-label="希尔瓦林地商店分类"] button')].find(button => button.innerText.startsWith('弓')).click()`);
     const regionalWares = await page.evaluate(`document.querySelector('[aria-labelledby="rg-2"] ul.eq').innerText`);
     check('regional shops filter by weapon type', regionalWares.includes('木制弓') && !regionalWares.includes('疾风剑'), regionalWares.slice(0, 90));
     await page.click('.ch-acts button');
     check('quest preparation shows team selection, date, enemy level and permanent-death risk',
       await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/field?region=2`, '#rg-h');
+    check('field preparation shows the current bar and three-point reward',
+      await page.evaluate(`(() => { const panel = document.querySelector('#rg-h').closest('section'); return panel.querySelector('progress')?.value === 0 && panel.innerText.includes('野外获胜 +3'); })()`), '0 / 100, win +3');
+    const explorer = await api(page, 10);
+    const explorerTeam = explorer.units.map(unit => unit.id);
+    const fieldWin = await api(page, 31, { region: 2, unitIds: explorerTeam });
+    const fieldCommand = prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, fieldWin.battleId);
+    await api(page, 54, fieldCommand);
+    await api(page, 54, fieldCommand);
+    await page.open(`http://127.0.0.1:${API_PORT}/#/world`, '.world-map');
+    await page.reload('.world-map');
+    check('a real field settlement persists three points without opening neighbours',
+      await page.evaluate(`document.querySelector('.world-node[data-region="2"] progress')?.value === 3 && document.querySelectorAll('.world-node.available').length === 0`), '3 / 100 after reload and command replay');
+    if (process.env.E2E_ARTIFACT_DIR) {
+      await page.capture(join(process.env.E2E_ARTIFACT_DIR, 'exploration-desktop.png'));
+      await page.capture(join(process.env.E2E_ARTIFACT_DIR, 'exploration-mobile.png'), 390, 1100);
+    }
+    await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '#tasks-h');
+    check('first victory leads to exploration with completion-based quest credit', await page.evaluate(`(() => { const tasks = document.querySelector('#tasks-h').closest('section').innerText; return tasks.includes('还需 97 探索度') && tasks.includes('单图任务完成 +5') && !tasks.includes('准备首次出击'); })()`), 'next exploration goal');
+    const questWin = await api(page, 124, { questId: 'gw1', unitIds: explorerTeam });
+    await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, questWin.battleId));
+    await api(page, 125, { questId: 'gw1' });
+    await page.open(`http://127.0.0.1:${API_PORT}/#/quests?region=2`, '[aria-labelledby="rg-2"]');
+    await page.reload('[aria-labelledby="rg-2"]');
+    check('quest completion adds five once and the quest bar refreshes after claiming',
+      await page.evaluate(`document.querySelector('[aria-labelledby="rg-2"] progress')?.value === 8`), '3 + 5 = 8');
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let stage = await api(page, 101, { region: 2, unitIds: explorerTeam });
+      for (let index = 0; index < 3; index++) {
+        await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, stage.battleId));
+        if (index < 2) stage = await api(page, 102);
+      }
+    }
+    await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2`, '#drg-h');
+    await page.reload('#drg-h');
+    check('dungeon bars reflect only the first full clear across two completed runs',
+      await page.evaluate(`(() => { const panel = document.querySelector('#drg-h').closest('section'); return panel.querySelector('progress')?.value === 28 && panel.innerText.includes('仅首次完整通关 +20') && panel.innerText.includes('重复通关不加'); })()`), '8 + 20 = 28');
     await page.evaluate(`localStorage.clear()`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     const name = 'e2e-seeded';
@@ -231,11 +297,27 @@ try {
     const roster = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
     check('roster shows the server units', roster.includes('艾琳') && roster.includes('维克托') && roster.includes('12'), roster.slice(0, 120));
 
+    // Confirmation belongs to one character and must reset even when returning to that character.
+    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#eq-h');
+    await page.evaluate(`[...document.querySelectorAll('button')].find(b => b.innerText === '解雇欧文…').click()`);
+    await until(() => page.evaluate(`document.body.innerText.includes('确认解雇欧文')`));
+    await page.evaluate(`[...document.querySelectorAll('.roster-list button.row')].find(b => b.innerText.includes('古斯塔夫')).click()`);
+    check('switching characters clears dismissal confirmation', await until(() => page.evaluate(`document.body.innerText.includes('解雇古斯塔夫…') && !document.body.innerText.includes('确认解雇')`)), 'no inherited confirmation');
+    await page.evaluate(`[...document.querySelectorAll('.roster-list button.row')].find(b => b.innerText.includes('欧文')).click()`);
+    check('returning to the original character also requires fresh confirmation', await until(() => page.evaluate(`document.body.innerText.includes('解雇欧文…') && !document.body.innerText.includes('确认解雇')`)), 'confirmation cleared');
+
     // 整备: every button is a server op on the selected unit, and none of them moves the date.
     const owen = async () => (await api(page, 20)).units.find(u => u.id === 'u_owen');
     const dayBefore = (await api(page, 30)).day;
     const owen0 = await owen();
     await page.open(`http://127.0.0.1:${API_PORT}/#/prep/u_owen`, '.gear-shop li .btn');
+    await page.viewport(390, 844);
+    const mobilePrep = await page.evaluate(`(() => { const chooser = document.querySelector('.gear-picker').getBoundingClientRect(); const warehouse = document.querySelector('#wh-h').getBoundingClientRect(); return { chooser: chooser.top, warehouse: warehouse.top, width: document.documentElement.scrollWidth, selected: document.querySelector('.gear-picker .ph').innerText }; })()`);
+    check('mobile prep chooses the target before inventory without horizontal overflow', mobilePrep.chooser < mobilePrep.warehouse && mobilePrep.width === 390 && mobilePrep.selected.includes('欧文'), JSON.stringify(mobilePrep));
+    await page.evaluate(`document.querySelector('#wh-h').scrollIntoView()`);
+    check('the selected character stays visible while scrolling mobile inventory', await page.evaluate(`document.querySelector('.gear-picker').getBoundingClientRect().top === 0`), 'sticky chooser');
+    await page.viewport(1440, 900);
+    await page.evaluate(`scrollTo(0, 0)`);
     await page.evaluate(`[...document.querySelectorAll('.chips button')].find(button => button.innerText.startsWith('剑')).click()`);
     const centralWares = await page.evaluate(`document.querySelector('.gear-shop').innerText`);
     check('the central shop filters basic weapons and preserves the selected unit',
@@ -261,6 +343,23 @@ try {
     check('prep assigns shared experience', await until(async () => (await owen()).level === owen0.level + 1) && (await api(page, 10)).bexp === bexp0 - 100,
       `Lv ${owen0.level} → ${(await owen()).level}, 公共经验 ${bexp0} → ${(await api(page, 10)).bexp}`);
     check('prep never moves the date', (await api(page, 30)).day === dayBefore, `day ${dayBefore} → ${(await api(page, 30)).day}`);
+    const goldBeforeDisconnect = (await api(page, 10)).gold;
+    const purchasePrice = (await api(page, 40)).items.find(row => row.name === '木制剑').price;
+    await page.evaluate(`(() => {
+      window.originalFetch = window.fetch;
+      window.writeCount = 0;
+      window.fetch = async (url, options) => {
+        const request = JSON.parse(options?.body || '{}');
+        if (request.op === 41) { window.writeCount++; const response = await window.originalFetch(url, options); window.failStateRead = true; return response; }
+        if (request.op === 10 && window.failStateRead) throw new Error('测试：状态刷新断线');
+        return window.originalFetch(url, options);
+      };
+    })()`);
+    await press(page, '.gear-shop li', '木制剑', '买');
+    check('a committed purchase with failed refresh still reports success', await until(() => page.evaluate(`document.body.innerText.includes('操作已提交，但状态尚未同步') && document.body.innerText.includes('买下木制剑')`)), 'success toast plus sync notice');
+    await page.evaluate(`window.fetch = window.originalFetch`);
+    await page.evaluate(`[...document.querySelectorAll('button')].find(b => b.innerText === '重新同步').click()`);
+    check('reconnecting only refreshes and never repeats the purchase', await until(() => page.evaluate(`!document.body.innerText.includes('操作已提交，但状态尚未同步')`)) && await page.evaluate(`window.writeCount === 1`) && (await api(page, 10)).gold === goldBeforeDisconnect - purchasePrice, 'one purchase, one deduction');
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#eq-h');
     const link = await page.evaluate(`[...document.querySelectorAll('section[aria-labelledby=eq-h] a')].find(a => a.innerText.includes('从仓库放入'))?.getAttribute('href')`);
     check('roster links to prep with the unit picked', link === '#/prep/u_owen', String(link));
@@ -297,6 +396,23 @@ try {
     const twin = await api(page, 21, { unitId: 'u_owen_twin' });
     const twinValue = await rowValue();
     check('duplicate templates keep the second instance growth', twinValue === `${twin.totalGrowth.str}%` && twinValue !== originalValue, `second ${twinValue} vs ${twin.totalGrowth.str}%`);
+    const keyboardParty = (await api(page, 10)).units.filter(u => u.status === 'active').slice(0, 6).map(u => u.id);
+    const keyboardBattle = await api(page, 31, { region: 1, unitIds: keyboardParty });
+    await page.open(`http://127.0.0.1:${API_PORT}/#/field`, '.battle-shell');
+    const openRetreat = () => page.evaluate(`[...document.querySelectorAll('button')].find(b => b.innerText.includes('撤退')).click()`);
+    await openRetreat();
+    await until(() => page.evaluate(`!!document.querySelector('#dlg-title')`));
+    check('retreat defaults focus to cancel', await page.evaluate(`document.activeElement.innerText.includes('取消')`), 'cancel focused');
+    await page.key('Tab', true);
+    check('shift-tab wraps inside the confirmation', await page.evaluate(`document.activeElement.innerText.includes('确认撤退')`), 'focus remains in modal');
+    await page.key('Tab');
+    await page.key('Enter');
+    check('Enter on cancel keeps the battle active', await until(() => page.evaluate(`!document.querySelector('#dlg-title')`)) && !(await api(page, 50, { battleId: keyboardBattle.battleId })).result, 'no retreat command');
+    await openRetreat();
+    await until(() => page.evaluate(`!!document.querySelector('#dlg-title')`));
+    await page.key('Tab');
+    await page.key('Enter');
+    check('Enter on the focused confirmation still retreats', await until(async () => (await api(page, 50, { battleId: keyboardBattle.battleId })).result?.reason === '全军撤退'), 'explicit confirm works');
     check('no console errors', page.errors.length === 0, page.errors.join(' | ') || 'none');
   } finally {
     await page.close();

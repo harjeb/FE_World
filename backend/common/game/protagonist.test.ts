@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../data/characters.ts';
+import { deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../data/characters.ts';
 import { CLASSES } from '../data/classes.ts';
 import { RANKS, STAT_KEYS } from '../data/types.ts';
 import type { Rank, StatKey, Stats } from '../data/types.ts';
@@ -10,35 +10,29 @@ import { createUnit, primaryWeaponType, RECRUIT_RANK_STEP_LEVELS, recruitRank, s
 const stat = (values: Partial<Record<StatKey, number>>): Stats =>
   Object.fromEntries(STAT_KEYS.map(key => [key, values[key] ?? 0])) as Stats;
 
-test('the allocation constants are internally consistent: default = 60 points inside every per-stat bound', () => {
-  const spent = STAT_KEYS.reduce((sum, key) => sum + PROTAGONIST_ALLOCATION_DEFAULT[key], 0);
-  assert.equal(PROTAGONIST_ALLOCATION_BUDGET, 60);
-  assert.equal(spent, PROTAGONIST_ALLOCATION_BUDGET, 'the default allocation spends the whole budget');
+test('protagonist keeps its fixed base, with 10 unspent bonus points and a 5-point cap on every stat', () => {
+  assert.deepEqual(PROTAGONIST_BASE_STATS, { hp: 20, str: 6, mag: 4, skl: 6, spd: 6, lck: 5, def: 5, res: 4, cha: 4 });
+  assert.equal(PROTAGONIST_ALLOCATION_BUDGET, 10);
   for (const key of STAT_KEYS) {
-    assert.ok(PROTAGONIST_MIN_ALLOCATION[key] <= PROTAGONIST_ALLOCATION_DEFAULT[key], `${key} default reaches the minimum`);
-    assert.ok(PROTAGONIST_MAX_ALLOCATION[key] >= PROTAGONIST_ALLOCATION_DEFAULT[key], `${key} default stays under the maximum`);
-  }
-  assert.equal(PROTAGONIST_MIN_ALLOCATION.hp, 1, 'HP starts at 1');
-  assert.equal(PROTAGONIST_MAX_ALLOCATION.hp, 30);
-  for (const key of STAT_KEYS.filter(k => k !== 'hp')) {
+    assert.equal(PROTAGONIST_ALLOCATION_DEFAULT[key], 0, `${key} starts without bonus points`);
     assert.equal(PROTAGONIST_MIN_ALLOCATION[key], 0);
-    assert.equal(PROTAGONIST_MAX_ALLOCATION[key], 10);
+    assert.equal(PROTAGONIST_MAX_ALLOCATION[key], 5);
   }
   assert.equal(PROTAGONIST_CLASS_ID, 'commoner');
   assert.equal(PROTAGONIST_GROWTH_TYPE, 'growth');
 });
 
 test('tendency is derived from the allocation distribution: str×2 / mag×2 / skl+spd / def+res, ties → balanced', () => {
-  // 默认分配三组同分（力 12、技+速 12）→ 平手取均衡。
+  // 未加点时四组同分，取均衡。
   assert.equal(deriveProtagonistTendency(PROTAGONIST_ALLOCATION_DEFAULT), 'balanced');
-  assert.equal(deriveProtagonistTendency(stat({ str: 10 })), 'might');
-  assert.equal(deriveProtagonistTendency(stat({ mag: 10 })), 'magic');
+  assert.equal(deriveProtagonistTendency(stat({ str: 5, hp: 5 })), 'might');
+  assert.equal(deriveProtagonistTendency(stat({ mag: 5, hp: 5 })), 'magic');
   assert.equal(deriveProtagonistTendency(stat({ skl: 5, spd: 5 })), 'skill');
   assert.equal(deriveProtagonistTendency(stat({ def: 5, res: 5 })), 'guard');
   // 任何最高分平手都回落均衡，推导是纯函数、重复调用结果一致。
-  assert.equal(deriveProtagonistTendency(stat({ str: 5, skl: 5, spd: 5 })), 'balanced');
-  assert.equal(deriveProtagonistTendency(stat({ str: 4, mag: 2 })), 'might');
-  const allocation = stat({ hp: 18, str: 6, mag: 10, skl: 5, spd: 5, lck: 5, def: 5, res: 4, cha: 2 });
+  assert.equal(deriveProtagonistTendency(stat({ str: 3, skl: 3, spd: 3, hp: 1 })), 'balanced');
+  assert.equal(deriveProtagonistTendency(stat({ str: 4, mag: 2, hp: 4 })), 'might');
+  const allocation = stat({ mag: 5, spd: 5 });
   assert.equal(deriveProtagonistTendency(allocation), deriveProtagonistTendency(allocation), 'derivation is idempotent');
   // 五条倾向向量都在表里，名字与向量一一对应。
   assert.equal(Object.keys(PROTAGONIST_TENDENCIES).length, 5);
@@ -48,7 +42,7 @@ test('tendency is derived from the allocation distribution: str×2 / mag×2 / sk
 test("the 'basic' kit: all supported ranks E, one cheapest wooden/E weapon of the primary type, at most one beginner book", () => {
   // 平民只拿一把木剑：熟练度覆盖全部支持类型，但装备不铺满、也不送书。
   const hero = createUnit('erin', 1, 'u_p', 0, true, {
-    classId: 'commoner', growthType: 'growth', base: PROTAGONIST_ALLOCATION_DEFAULT, startingGear: 'basic',
+    classId: 'commoner', growthType: 'growth', base: PROTAGONIST_BASE_STATS, startingGear: 'basic',
   });
   assert.deepEqual(hero.weapons, ['fw_weapon_1']);
   assert.deepEqual(hero.spellbooks, []);

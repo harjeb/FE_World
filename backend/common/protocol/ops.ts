@@ -24,7 +24,7 @@ export const OPS: readonly OpDef[] = [
   { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。' },
 
   { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。' },
-  { op: 31, name: 'SORTIE', group: '日历', agentNote: '带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op。' },
+  { op: 31, name: 'SORTIE', group: '日历', agentNote: '带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
   { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
   { op: 33, name: 'TRAIN', group: '日历', agentNote: '训练一个单位，补武器熟练度；消耗金币或教材并推进日期。' },
   { op: 34, name: 'REST', group: '日历', agentNote: '休整指定日数，推进日期、作物与年龄，不直接发金币经验。' },
@@ -36,11 +36,11 @@ export const OPS: readonly OpDef[] = [
 
   { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。' },
   { op: 41, name: 'BUY', group: '整备', agentNote: '用金币购买商品；库存有限，买入再卖出会亏损。' },
-  { op: 42, name: 'SELL', group: '整备', agentNote: '卖出仓库物品换取金币。' },
+  { op: 42, name: 'SELL', group: '整备', agentNote: '卖出仓库物品换取金币；uses 可指定剩余次数的一叠，count 为出售数量，默认1。' },
   { op: 43, name: 'TRANSFER_ITEM', group: '整备', agentNote: '在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具、法术书（item 为 spellbook:<法术id>，同种只带一本）各最多 5 件；只有武器、法术书和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，耐久与剩余次数随物品走；出战或远征中的角色不能搬运。' },
   { op: 44, name: 'USE_ITEM', group: '整备', agentNote: '使用能力药或限量法术教材（manual:<法术id>，为有对应魔法权限的角色解锁该法术）；超出永久上限、额度或已学会时拦截，道具不扣。' },
   { op: 45, name: 'PROMOTE', group: '整备', agentNote: '切换到推荐进阶职业，须已拥有资格；与 SWITCH_CLASS 共用校验，不绕过职业购买或派遣占用。保留等级、经验和已获属性。' },
-  { op: 46, name: 'ASSIGN_BEXP', group: '整备', agentNote: '把公共经验分配给一个单位；分配不耗行动日，消耗真实库存；满级单位不能分配。' },
+  { op: 46, name: 'ASSIGN_BEXP', group: '整备', agentNote: '把公共经验分配给一个单位；不耗行动日，实际消耗不超过库存及距离满级所需，返回 amount 为实际扣除；满级单位不能分配。' },
   { op: 47, name: 'DISMISS', group: '整备', agentNote: '解雇一个单位；普通解雇不等于符合条件的退役传承。' },
   { op: 48, name: 'GET_LEGACIES', group: '整备', agentNote: '读取可用与已兑现的遗产（来源、等级、总量、成长向量）。' },
   { op: 49, name: 'CLAIM_LEGACY', group: '整备', agentNote: '用一个一级新角色兑现一份遗产：mode 取 growth（替换个人成长）或 numeric（逐级保底）；一人一生只接一次。' },
@@ -68,7 +68,7 @@ export const OPS: readonly OpDef[] = [
   { op: 96, name: 'CLAIM_RATING_REWARD', group: '竞技场', agentNote: '领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。' },
 
   { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。' },
-  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡。' },
+  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
 
@@ -85,10 +85,10 @@ export const OPS: readonly OpDef[] = [
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
   { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖。' },
-  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。' },
+  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。' },
-  { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，九属性直接分配60点（HP1–30，其余0–10），倾向自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。' },
+  { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。' },
   { op: 128, name: 'ACCEPT_RECRUIT', group: '日历', agentNote: '接受当前游历候选；名册满时保留候选，不重掷。' },
   { op: 129, name: 'DECLINE_RECRUIT', group: '日历', agentNote: '拒绝当前游历候选；已支付日期不退，之后可重新游历。' },
   { op: 130, name: 'GET_TAVERN', group: '整备', agentNote: '读取第二年后当地酒馆本季度候选、职业、种族、等级与价格。' },
@@ -103,8 +103,8 @@ export const OPS: readonly OpDef[] = [
   { op: 139, name: 'CLAIM_CONTROL', group: 'Agent', agentNote: '取得短期控制租约；同一账号的其它写操作在租约期内被拒绝。' },
   { op: 140, name: 'RELEASE_CONTROL', group: 'Agent', agentNote: '释放自己持有的控制租约；人工接管前先释放。' },
 
-  { op: 141, name: 'GET_WORLD_MAP', group: '地图', agentNote: '读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions；开荒从 1–4 四条起步路线开始，不选路线不能出击。' },
-  { op: 142, name: 'CHOOSE_ROUTE', group: '地图', agentNote: '把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次选择后要先清剿当前地区，相邻路线才会再次可选；需先完成开局自捏。' },
+  { op: 141, name: 'GET_WORLD_MAP', group: '地图', agentNote: '读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions、各地区0–100探索度；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区继续可访问，探索度独立于讨伐记录。' },
+  { op: 142, name: 'CHOOSE_ROUTE', group: '地图', agentNote: '把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次可自由选择1–4，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；需先完成开局自捏。' },
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
@@ -148,7 +148,7 @@ export const OP = Object.fromEntries(OPS.map(def => [def.name, def.op])) as Reco
 export const OP_BY_NUMBER = new Map(OPS.map(def => [def.op, def]));
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 4;
+export const DOC_VERSION = 6;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

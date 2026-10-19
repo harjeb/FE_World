@@ -21,6 +21,8 @@ import { isArenaDay } from '../common/game/calendar.ts';
 import type { WeaponId, WeaponInstance } from '../common/data/weapons.ts';
 
 export interface PlayerFlags {
+  calendarVersion?: 120 | 500;
+  calendarMigration?: { from: 120 | 500; at: number; oldDay: number; newDay: number; legacySnapshotIds: string[] };
   storedWeapons?: WeaponInstance[];
   // 放回仓库的魔道书／杖剩余次数（与 storedWeapons 一样按先进先出对应仓库里的同名实物）。
   storedBooks?: { id: WeaponId; charges: number; maxCharges: number }[];
@@ -28,6 +30,8 @@ export interface PlayerFlags {
   // 世界地图开荒：玩家显式选择的已解锁地区（canonical 列表，含旧档认领结果；clearedRegions 永不重置，
   // 实际可用地区 = unlockedRegions ∪ clearedRegions，见 common/game/region-map.ts）。
   unlockedRegions?: number[];
+  // 各地区探索度（0–100）；缺字段的旧档按已讨伐地区一次性补满，之后独立累计。
+  regionExploration?: Record<number, number>;
   // 历史首次通关等级记录；新出征按日期计算，不再用此值锁重打难度。
   firstClearLevel?: Record<number, number>;
   shopMonth: number;
@@ -125,6 +129,7 @@ export class Store {
 
   // 业务写入与收据同事务：任何中途异常回滚整次命令。
   transaction<T>(fn: () => T): T {
+    if (this.db.isTransaction) return fn();
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const result = fn();
@@ -191,7 +196,7 @@ export class Store {
 
   createPlayer(accountId: string, name: string, legion: string): Player {
     const id = randomUUID();
-    const flags: PlayerFlags = { clearedRegions: [], shopMonth: 0, festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
+    const flags: PlayerFlags = { calendarVersion: 500, clearedRegions: [], regionExploration: {}, shopMonth: 0, festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
     this.db.prepare(`INSERT INTO players
       (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, version, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -292,9 +297,9 @@ export class Store {
   }
 
   // Removes up to `count`; returns how many were actually removed.
-  takeInventory(playerId: string, item: ItemKey, count: number): number {
-    const rows = this.db.prepare('SELECT id, count FROM inventory WHERE player_id = ? AND item = ? ORDER BY id')
-      .all(playerId, item) as { id: number; count: number }[];
+  takeInventory(playerId: string, item: ItemKey, count: number, uses?: number): number {
+    const rows = this.db.prepare('SELECT id, count FROM inventory WHERE player_id = ? AND item = ? AND (? IS NULL OR uses = ?) ORDER BY id')
+      .all(playerId, item, uses ?? null, uses ?? null) as { id: number; count: number }[];
     let left = count;
     for (const row of rows) {
       if (left <= 0) break;
@@ -453,7 +458,9 @@ export class Store {
   // ---- snapshots ---------------------------------------------------------
 
   saveSnapshot(playerId: string, day: number, data: SnapshotData): SnapshotRow {
-    const id = this.snapshot(playerId, day)?.id ?? `snap-${playerId}-${day}`;
+    const legacyIds = this.getPlayer(playerId)?.flags.calendarMigration?.legacySnapshotIds ?? [];
+    let id = this.snapshot(playerId, day)?.id ?? `snap-${playerId}-${day}`;
+    while (legacyIds.includes(id)) id += '-calendar500';
     this.db.prepare('INSERT INTO snapshots (id, player_id, day, data, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = ?')
       .run(id, playerId, day, JSON.stringify(data), Date.now(), JSON.stringify(data));
     return { id, day, data, createdAt: Date.now() };
@@ -480,8 +487,12 @@ export class Store {
 
   // Other players' snapshots from the same personal day (docs/00 §10.1).
   snapshotsAtDay(day: number, excludePlayerId: string): { playerId: string; data: SnapshotData }[] {
-    return (this.db.prepare('SELECT player_id, data FROM snapshots WHERE day = ? AND player_id != ?')
-      .all(day, excludePlayerId) as { player_id: string; data: string }[])
+    return (this.db.prepare('SELECT id, player_id, data FROM snapshots WHERE day = ? AND player_id != ?')
+      .all(day, excludePlayerId) as { id: string; player_id: string; data: string }[])
+      .filter(row => {
+        const flags = this.getPlayer(row.player_id)?.flags;
+        return flags?.calendarVersion === 500 && !flags.calendarMigration?.legacySnapshotIds.includes(row.id);
+      })
       .map(r => ({ playerId: r.player_id, data: JSON.parse(r.data) as SnapshotData }));
   }
 

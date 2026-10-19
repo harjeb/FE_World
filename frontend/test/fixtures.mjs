@@ -4,6 +4,20 @@ import { loginOrRegister } from '../../backend/api/auth.ts';
 import { seedDefense, seedFullRoster } from '../../backend/api/test-support.ts';
 import { createUnit } from '../../backend/common/game/model.ts';
 
+// 流程测试直接准备一手可胜的棋盘，结算仍通过真实 HTTP 操作完成。
+export function prepareBrowserBattleWin(dbPath, playerId, battleId) {
+  const store = new Store(openDb(dbPath));
+  try {
+    const battle = store.battle(playerId, battleId);
+    const leader = battle.state.units.find(unit => unit.side === 'player');
+    for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
+    if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
+    battle.initial = structuredClone(battle.state);
+    store.saveBattle(battle);
+    return { battleId, unitId: leader.id, moveTo: leader.pos, action: battle.state.goal.kind === 'seize' ? 'seize' : 'wait', commandId: `win-${battleId}` };
+  } finally { store.db.close(); }
+}
+
 // Existing-account coverage uses an explicit legacy fixture; new-account tests
 // must complete the real setup UI rather than depending on the old starter roster.
 export function seedBrowserAccount(dbPath, name, duplicates = false) {

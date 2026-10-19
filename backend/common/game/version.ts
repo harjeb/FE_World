@@ -12,7 +12,13 @@ export const RULESET_VERSION = 'rules-v7';
 // v20: world-map pioneering (GET_WORLD_MAP/CHOOSE_ROUTE): regions unlock along chosen routes only;
 // the central shop narrows to rank-E basics plus usual consumables, advanced weapons move to the
 // regional reputation shops.
-export const CATALOG_VERSION = 20;
+// v21: protagonist keeps the former default base stats plus 10 bonus points, at most 5 per stat.
+// Only new setups change; existing units and frozen history retain their saved stats and growth.
+// v22：十二地区探索度保存于 flags.regionExploration（0–100，新账号为0）；野外胜利+3、
+// 单图任务完成+5、每个副本（含多图任务）仅首次完整通关+20，不叠加、不计中间图或重刷。
+// 缺失字段的旧档惰性初始化，仅此前已讨伐地区设100；已有进度不再回填，已开通地区访问权、
+// clearedRegions、养成与冻结历史保留。探索满100才可选择相邻新路线，初选1–4仍自由。
+export const CATALOG_VERSION = 22;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

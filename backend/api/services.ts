@@ -1,5 +1,5 @@
 import type { CharacterId } from '../common/data/characters.ts';
-import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION } from '../common/data/characters.ts';
+import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION } from '../common/data/characters.ts';
 import { CLASSES } from '../common/data/classes.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
@@ -29,7 +29,7 @@ import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runD
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import { QUEST_RECRUITS, questById } from '../common/game/quests.ts';
 import { chapterAvailable, STORY_CHAPTERS } from '../common/game/story.ts';
-import { normalizeRegions, worldMap, unlockedRegions as unionRegions } from '../common/game/region-map.ts';
+import { explorationOf, normalizeRegions, REGION_EXPLORATION_GAIN, REGION_EXPLORATION_MAX, worldMap, unlockedRegions as unionRegions } from '../common/game/region-map.ts';
 import type { FeatureAccess, RegionProgress } from '../common/game/region-map.ts';
 import type { FacilityId } from '../common/game/production.ts';
 import { recruitLevel, recruitPortrait } from '../common/game/random-recruit.ts';
@@ -101,14 +101,28 @@ export function regionEvidence(store: Store, player: Player): number[] {
   return normalizeRegions([...evidence]);
 }
 
-// 旧档懒认领：首次读到未初始化的 flags.unlockedRegions 时按证据落账一次；此后该字段即 canonical，
-// 后续活动都在已解锁地区内进行，无需重扫。返回值始终含 clearedRegions。
+// 旧档一次性认领地区，并将此前已讨伐地区的探索度补满；新档从空探索度独立累计。
 export function adoptRegions(store: Store, player: Player): number[] {
-  if (player.flags.unlockedRegions !== undefined) return playerRegions(player);
-  const merged = regionEvidence(store, player);
-  player.flags.unlockedRegions = merged;
+  const needsRegions = player.flags.unlockedRegions === undefined;
+  const needsExploration = player.flags.regionExploration === undefined;
+  if (needsRegions) player.flags.unlockedRegions = regionEvidence(store, player);
+  if (needsExploration) {
+    player.flags.regionExploration = Object.fromEntries(normalizeRegions(player.flags.clearedRegions)
+      .map(region => [region, REGION_EXPLORATION_MAX]));
+  }
+  if (needsRegions || needsExploration) store.savePlayer(player);
+  return playerRegions(player);
+}
+
+export function addRegionExploration(store: Store, player: Player, region: number, source: keyof typeof REGION_EXPLORATION_GAIN): void {
+  adoptRegions(store, player);
+  const before = explorationOf(worldProgress(player), region);
+  const after = Math.min(REGION_EXPLORATION_MAX, before + REGION_EXPLORATION_GAIN[source]);
+  if (after === before) return;
+  player.flags.regionExploration![region] = after;
   store.savePlayer(player);
-  return merged;
+  store.addEvent(player.id, 'exploration', `${regionById(region).name}探索度 +${after - before}（${after}/${REGION_EXPLORATION_MAX}）${after === REGION_EXPLORATION_MAX ? '，相邻新路线已开放选择' : ''}。`,
+    { region, source, before, after });
 }
 
 // 副本／派遣／竞技场／挑战塔的开关：首次讨伐之后开放；旧档按既有活动或多个已解锁地区放行，
@@ -166,10 +180,18 @@ export function featureAccess(store: Store, player: Player, unlocked: number[]):
 
 // 世界地图视图（WorldMapView，region-map.ts 契约）：含锁定节点与当前可选路线。
 export function worldProgress(player: Player): RegionProgress {
-  return { unlockedRegions: player.flags.unlockedRegions ?? [], clearedRegions: player.flags.clearedRegions };
+  return { unlockedRegions: player.flags.unlockedRegions ?? [], clearedRegions: player.flags.clearedRegions,
+    regionExploration: player.flags.regionExploration };
 }
 
 export function syncPlayer(store: Store, player: Player): Player {
+  if (!store.db.isTransaction) {
+    return store.transaction(() => {
+      const current = store.getPlayer(player.id);
+      if (current && current.version !== player.version) Object.assign(player, current);
+      return syncPlayer(store, player);
+    });
+  }
   // 旧档地区认领（一次性，见 adoptRegions）：后续的竞技场日懒生成也要按解锁进度放行。
   const unlocked = adoptRegions(store, player);
   const month = Math.floor(player.day / DAYS_PER_SEASON);
@@ -335,6 +357,7 @@ export function flushRecoveryBag(store: Store, player: Player): number {
 // Writes a finished battle back to the roster: growth, weapon experience, deaths, rewards and the
 // replay (docs/00 §7.1 for death, §8.3 for rewards).
 export function applyBattleOutcome(store: Store, player: Player, record: BattleRecord): BattleRewards {
+  adoptRegions(store, player);
   const outcome = summarizeOutcome(record);
   const lethal = record.mode === 'field' || record.mode === 'festival';
   const rewards: BattleRewards = { gold: 0, items: [], levelUps: [], deaths: [], weaponRanks: [] };
@@ -392,6 +415,10 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     }
   }
   const won = outcome.winner === 'player';
+  if (record.mode === 'field' && won && record.region !== undefined
+    && !record.questId && !record.runId && !record.dungeon && !record.challengeId) {
+    addRegionExploration(store, player, record.region, 'field');
+  }
   // 经典地图宝箱/村庄战利品：稳定 id 去重，只有胜利才入库；副本由 handleRunOutcome 暂存。
   if (won && !record.dungeon) {
     for (const drop of scenarioLoot(record.state)) {
@@ -464,6 +491,11 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
       run.state = 'completed';
       completed = true;
       releaseLocks();
+      // 野图也会写 clearedRegions，普通副本首通须看完整远征记录。
+      const firstDungeonClear = run.questId
+        ? !(player.flags.questsDone ?? []).includes(run.questId)
+        : !store.runs(player.id).some(previous => previous.state === 'completed' && previous.region === run.region && !previous.questId);
+      if (firstDungeonClear) addRegionExploration(store, player, run.region, 'dungeon');
       const region = regionById(run.region);
       const firstClear = !player.flags.clearedRegions.includes(run.region);
       if (firstClear) player.flags.clearedRegions.push(run.region);
@@ -771,6 +803,7 @@ export function stateView(store: Store, player: Player) {
         className: CLASSES[PROTAGONIST_CLASS_ID].name,
         growthType: PROTAGONIST_GROWTH_TYPE,
         portraits: CHARACTER_IDS.map(id => ({ id, name: CHARACTERS[id].name })),
+        baseStats: { ...PROTAGONIST_BASE_STATS },
         budget: PROTAGONIST_ALLOCATION_BUDGET,
         defaultAllocation: { ...PROTAGONIST_ALLOCATION_DEFAULT },
         minPerStat: { ...PROTAGONIST_MIN_ALLOCATION },

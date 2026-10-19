@@ -14,7 +14,7 @@ import type { ArtTraining } from '../common/data/weapon-arts.ts';
 import type { WeaponId } from '../common/data/weapons.ts';
 import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
-import { CHARACTERS, CHARACTER_IDS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { CHARACTERS, CHARACTER_IDS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import { GAME_ITEMS, isBoundWeapon, isCentralShopItem, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
@@ -56,7 +56,7 @@ import { dicePayout, frogPayout, FROG_NAMES, frogRace, MINIGAME_BETS, MINIGAME_P
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { normalizeRegions, routeCandidates, worldMap } from '../common/game/region-map.ts';
-import { adoptRegions, combatFeaturesOpen, playerRegions, tavernOpen, workshopFacilities } from './services.ts';
+import { addRegionExploration, adoptRegions, combatFeaturesOpen, playerRegions, tavernOpen, workshopFacilities, worldProgress } from './services.ts';
 import { reputationTier } from '../common/game/reputation.ts';
 
 export class OpError extends Error {
@@ -244,6 +244,8 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     ctx.player.flags.questsDone ??= [];
     if (!ctx.player.flags.questsDone.includes(record.questId)) {
       ctx.player.flags.questsDone.push(record.questId);
+      const quest = questById(record.questId);
+      if (quest) addRegionExploration(ctx.store, ctx.player, quest.region, 'quest');
       if (record.state.goal.kind === 'gather') {
         ctx.player.flags.questBoxes ??= {};
         ctx.player.flags.questBoxes[record.questId] = record.state.units.filter(unit => unit.side === 'player' && unit.escaped).reduce((sum, unit) => sum + (unit.carried ?? 0), 0);
@@ -423,8 +425,8 @@ const handlers: Record<number, Handler> = {
   // ---- 世界地图开荒（region-map.ts 契约） ----------------------------------
 
   [OP.GET_WORLD_MAP]: ctx => {
-    const unlocked = adoptRegions(ctx.store, ctx.player);
-    return worldMap({ unlockedRegions: unlocked, clearedRegions: ctx.player.flags.clearedRegions });
+    adoptRegions(ctx.store, ctx.player);
+    return worldMap(worldProgress(ctx.player));
   },
 
   // 选择一条可选路线解锁相邻地区：0 日、互不排斥；不能跳过相邻关系，需先完成开局。
@@ -433,16 +435,17 @@ const handlers: Record<number, Handler> = {
     const region = asNumber(data.region, 'region');
     if (!Number.isInteger(region) || region < 1 || region > 12) throw new OpError('BAD_REQUEST', '地区编号需为 1–12 的整数');
     const unlocked = adoptRegions(ctx.store, ctx.player);
-    const selectable = routeCandidates({ unlockedRegions: unlocked, clearedRegions: ctx.player.flags.clearedRegions });
+    const selectable = routeCandidates(worldProgress(ctx.player));
     if (!selectable.includes(region)) {
-      throw new OpError('FORBIDDEN', '只能选择世界地图上的可选路线：开局为 1–4 四条起步路线，此后需先清剿当前地区，相邻路线才会可选');
+      throw new OpError('FORBIDDEN', '只能选择世界地图上的可选路线：开局为 1–4 四条起步路线，此后需先将相连已开通地区的探索度提升至 100，才能选择新路线');
     }
     const next = normalizeRegions([...unlocked, region]);
     ctx.player.flags.unlockedRegions = next;
     ctx.store.savePlayer(ctx.player);
     ctx.store.addEvent(ctx.player.id, 'world', `军队开进 ${regionById(region).name}，解锁新地区。`, { region });
     ctx.push(OP.STATE_CHANGED, { reason: 'choose-route' });
-    return { region, unlockedRegions: next, selectableRegions: routeCandidates({ unlockedRegions: next, clearedRegions: ctx.player.flags.clearedRegions }), world: worldMap({ unlockedRegions: next, clearedRegions: ctx.player.flags.clearedRegions }) };
+    const world = worldMap(worldProgress(ctx.player));
+    return { region, unlockedRegions: next, selectableRegions: world.selectableRegions, world };
   },
 
   [OP.SORTIE]: (ctx, data) => {
@@ -702,10 +705,13 @@ const handlers: Record<number, Handler> = {
 
   [OP.SELL]: (ctx, data) => {
     const item = asString(data.item, 'item');
-    const count = Math.max(1, typeof data.count === 'number' ? data.count : 1);
+    const count = data.count === undefined ? 1 : data.count;
+    const uses = data.uses;
+    if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 1) throw new OpError('BAD_REQUEST', 'count 需要正整数');
+    if (uses !== undefined && (typeof uses !== 'number' || !Number.isSafeInteger(uses) || uses < 0)) throw new OpError('BAD_REQUEST', 'uses 需要非负整数');
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有物品 ${item}`);
     if (isBoundWeapon(item)) throw new OpError('FORBIDDEN', '这件唯一武器已绑定，不能出售');
-    const taken = ctx.store.takeInventory(ctx.player.id, item, count);
+    const taken = ctx.store.takeInventory(ctx.player.id, item, count, uses as number | undefined);
     if (taken === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件物品');
     for (let i = 0; i < taken; i++) {
       const index = ctx.player.flags.storedWeapons?.findIndex(row => row.id === item) ?? -1;
@@ -868,7 +874,10 @@ const handlers: Record<number, Handler> = {
 
   [OP.ASSIGN_BEXP]: (ctx, data) => {
     const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
-    const amount = Math.max(1, Math.min(ctx.player.bexp, asNumber(data.amount, 'amount')));
+    const amount = Math.min(
+      Math.max(1, Math.min(ctx.player.bexp, asNumber(data.amount, 'amount'))),
+      Math.max(0, (CLASSES[unit.classId].maxLevel - unit.level) * 100 - unit.exp),
+    );
     if (ctx.player.bexp < amount) throw new OpError('BAD_REQUEST', '公共经验不足');
     if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
     // 满级时经验不再累积；先拦下，免得公共经验被白白扣掉。
@@ -2272,7 +2281,7 @@ const handlers: Record<number, Handler> = {
 
   // 开局：自建神主角 + 两名同伴，一次事务完成（docs/00「神主角」、docs/13 §开局）。
   // 职业与成长类型固定（平民／成长型）：可选 legacy 字段传了错值要明确报错；培养倾向由属性分配
-  // 自动推导，不接受手选。九属性是 1 级全值直接分配：HP 1–30、其余 0–10、总计正好 60。
+  // 自动推导，不接受手选。保留固定基础值，额外分配 10 点，每项 0–5。
   [OP.COMPLETE_SETUP]: (ctx, data) => {
     if (ctx.player.flags.setupCompleted) throw new OpError('FORBIDDEN', '开局已经完成，不能重开');
     const p = (data.protagonist ?? {}) as Record<string, unknown>;
@@ -2302,7 +2311,7 @@ const handlers: Record<number, Handler> = {
       alloc[key] = value;
     }
     const spent = STAT_KEYS.reduce((sum, key) => sum + alloc[key], 0);
-    if (spent !== PROTAGONIST_ALLOCATION_BUDGET) throw new OpError('BAD_REQUEST', `属性分配总计需为 ${PROTAGONIST_ALLOCATION_BUDGET} 点（当前 ${spent}）`);
+    if (spent !== PROTAGONIST_ALLOCATION_BUDGET) throw new OpError('BAD_REQUEST', `额外属性分配总计需为 ${PROTAGONIST_ALLOCATION_BUDGET} 点（当前 ${spent}）`);
     const tendency = deriveProtagonistTendency(alloc);
     const raw = Array.isArray(data.companions) ? data.companions : [];
     const ids = raw.map(value => asString(value, 'companions'));
@@ -2315,10 +2324,10 @@ const handlers: Record<number, Handler> = {
     // 先移除占位主角，再建自捏主角与同伴（同一请求内一次写入）。
     const placeholder = ctx.store.units(ctx.player.id).find(u => u.isProtagonist);
     if (placeholder) ctx.store.removeUnit(ctx.player.id, placeholder.id);
-    // 1 级属性就是分配本身（不再掷随机基础值）；个人成长取推导出的倾向向量，只存 personalGrowth。
+    const base = Object.fromEntries(STAT_KEYS.map(key => [key, PROTAGONIST_BASE_STATS[key] + alloc[key]])) as Stats;
     const hero = createUnit(portrait, 1, 'u_protagonist', ctx.player.day, true, {
       classId: PROTAGONIST_CLASS_ID, growthType: PROTAGONIST_GROWTH_TYPE, age: 16,
-      base: alloc, personalGrowth: PROTAGONIST_TENDENCIES[tendency].growth, startingGear: 'basic',
+      base, personalGrowth: PROTAGONIST_TENDENCIES[tendency].growth, startingGear: 'basic',
     });
     hero.name = name;
     hero.sex = sex;
@@ -2591,26 +2600,32 @@ function arenaProgress(record: { attacks: Record<string, { status: string; point
 export function dispatch(ctx: Context, op: number, data: Json): unknown {
   const handler = handlers[op];
   if (!handler) throw new OpError('UNKNOWN_OP', `没有 op ${op}`);
-  // 带 agentModel 的请求视为 Agent 在线心跳 (docs/06)；最多每分钟写一次。
-  if (ctx.agentModel) {
-    const now = Date.now();
-    if (!ctx.player.flags.agentLastSeen || now - ctx.player.flags.agentLastSeen > 60_000) {
-      ctx.player.flags.agentLastSeen = now;
-      ctx.store.savePlayer(ctx.player);
-    }
-  }
-  // 幂等命令收据 (docs/13 §1.4、§2.1)：带 commandId 的写命令超时重发返回原结果，换负载则报冲突。
-  const commandId = typeof data.commandId === 'string' && data.commandId.length > 0 ? data.commandId : null;
-  if (!commandId) return WRITE_OPS.has(op) ? ctx.store.transaction(() => runHandler(ctx, op, handler, data)) : runHandler(ctx, op, handler, data);
-  const payloadHash = commandHash(op, data);
-  const existing = ctx.store.receipt(ctx.player.id, commandId);
-  if (existing) {
-    if (existing.payloadHash !== payloadHash || existing.op !== op) {
-      throw new OpError('IDEMPOTENCY_CONFLICT', '同一个 commandId 被用于不同的请求负载');
-    }
-    return existing.response;
-  }
+  const inTransaction = ctx.store.db.isTransaction;
   return ctx.store.transaction(() => {
+    // Keep the caller's object, but discard snapshots superseded by another command.
+    if (!inTransaction) {
+      const current = ctx.store.getPlayer(ctx.player.id);
+      if (current && current.version !== ctx.player.version) Object.assign(ctx.player, current);
+    }
+    // Credential actor drives heartbeat; model is optional display metadata.
+    if ((ctx.actor ?? (ctx.agentModel ? 'agent' : 'human')) === 'agent') {
+      const now = Date.now();
+      if (!ctx.player.flags.agentLastSeen || now - ctx.player.flags.agentLastSeen > 60_000) {
+        ctx.player.flags.agentLastSeen = now;
+        ctx.store.savePlayer(ctx.player);
+      }
+    }
+    // 幂等命令收据 (docs/13 §1.4、§2.1)：带 commandId 的写命令超时重发返回原结果，换负载则报冲突。
+    const commandId = typeof data.commandId === 'string' && data.commandId.length > 0 ? data.commandId : null;
+    if (!commandId) return runHandler(ctx, op, handler, data);
+    const payloadHash = commandHash(op, data);
+    const existing = ctx.store.receipt(ctx.player.id, commandId);
+    if (existing) {
+      if (existing.payloadHash !== payloadHash || existing.op !== op) {
+        throw new OpError('IDEMPOTENCY_CONFLICT', '同一个 commandId 被用于不同的请求负载');
+      }
+      return existing.response;
+    }
     const result = runHandler(ctx, op, handler, data);
     ctx.store.saveReceipt(ctx.player.id, commandId, op, payloadHash, result);
     return result;
@@ -2683,7 +2698,7 @@ const WRITE_OPS = new Set<number>([
 
 const ANNUAL_OPS = new Set<number>([
   OP.START_ANNUAL_MATCH, OP.START_MAIN_STAGE, OP.WITHDRAW_ANNUAL, OP.UNIT_ACT, OP.END_PHASE,
-  OP.RETREAT, OP.SURRENDER, OP.EXECUTE_ACTION,
+  OP.RETREAT, OP.SURRENDER, OP.EXECUTE_ACTION, OP.CLAIM_CONTROL, OP.RELEASE_CONTROL,
 ]);
 
 // 负载摘要包含操作与数据（去掉 commandId），不包含连接 seq（docs/13 §2.1）。

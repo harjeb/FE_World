@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { GROWTH_TYPE_NAMES } from '@common/data/growth-types.ts';
@@ -31,9 +31,15 @@ export function RosterPage({ unit: wanted, tab }: { unit: string | null; tab: Ro
   const [cls, setCls] = useState<ClassId | 'all'>('all');
   const [type, setType] = useState<GrowthType | 'all'>('all');
   const [sort, setSort] = useState<Sort>('roster');
-  const [dismissing, setDismissing] = useState(false);
+  const [dismissId, setDismissId] = useState<string | null>(null);
+  const dismissBusy = useRef(false);
+  const [dismissSubmitting, setDismissSubmitting] = useState(false);
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const unit = active.find(u => u.id === wanted) ?? active.find(u => u.character === wanted) ?? rosterOrder(active, annual)[0];
+  const dismissing = dismissId === unit?.id;
+  const currentUnitId = useRef(unit?.id);
+  currentUnitId.current = unit?.id;
+  useEffect(() => { setDismissId(null); }, [unit?.id]);
   const { data: detail } = useServerData(() => (unit ? session.unit(unit.id) : Promise.resolve(null)), [unit?.id]);
   if (!state || !unit) return <Shell current="roster"><p style={{ color: '#4E473D' }}>名册还是空的。</p></Shell>;
 
@@ -50,8 +56,16 @@ export function RosterPage({ unit: wanted, tab }: { unit: string | null; tab: Ro
   const list = active.filter(u => match(filter, u) && (cls === 'all' || canonicalClassId(u.classId as ClassId) === cls) && (type === 'all' || u.growthType === type)).sort(by[sort]);
   const count = (f: Filter) => active.filter(u => match(f, u)).length;
   const dismiss = async () => {
-    try { await session.run(OP.DISMISS, { unitId: unit.id }); toast(`已解雇${unit.name}`); setDismissing(false); go(links.roster()); }
-    catch (e) { toast(`解雇失败：${e instanceof Error ? e.message : String(e)}`); }
+    if (dismissBusy.current || dismissId !== unit.id) return;
+    dismissBusy.current = true;
+    setDismissSubmitting(true);
+    setDismissId(null);
+    try {
+      await session.run(OP.DISMISS, { unitId: unit.id });
+      toast(`已解雇${unit.name}`);
+      if (currentUnitId.current === unit.id) go(links.roster());
+    } catch (e) { toast(`解雇失败：${e instanceof Error ? e.message : String(e)}`); }
+    finally { dismissBusy.current = false; setDismissSubmitting(false); }
   };
 
   return (
@@ -131,9 +145,9 @@ export function RosterPage({ unit: wanted, tab }: { unit: string | null; tab: Ro
           {tab === 'classes' && <ClassMarketPanel key={unit.id} unit={unit} />}
           {tab === 'retire' && <RetireTab key={unit.id} unit={unit} />}
           {(tab === 'stats' || tab === 'growth') && !unit.isProtagonist && <div className="flex flex-wrap items-center justify-end gap-2">
-            {dismissing && <span className="a-warn" style={{ borderRadius: 6 }}>解雇后{unit.name}离开军团，不留下遗产，也不会写进纪念名册。确定吗？</span>}
-            {dismissing && <button type="button" className="btn btn-sm btn-ghost" onClick={() => setDismissing(false)}>再想想</button>}
-            <button type="button" className="btn btn-sm btn-danger" onClick={() => (dismissing ? void dismiss() : setDismissing(true))}>{dismissing ? `确认解雇${unit.name}` : `解雇${unit.name}…`}</button>
+            {dismissing && <span className="a-warn" style={{ borderRadius: 6 }}>解雇后{unit.name}离开军团，携带的装备、道具与法术书会一并失去，不留下遗产，也不会写进纪念名册。确定吗？</span>}
+            {dismissing && <button type="button" className="btn btn-sm btn-ghost" onClick={() => setDismissId(null)}>再想想</button>}
+            <button type="button" className="btn btn-sm btn-danger" disabled={dismissSubmitting} onClick={() => (dismissing ? void dismiss() : setDismissId(unit.id))}>{dismissing ? `确认解雇${unit.name}` : `解雇${unit.name}…`}</button>
           </div>}
         </div>
       </div>

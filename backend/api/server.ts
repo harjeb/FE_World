@@ -25,13 +25,15 @@ const store = new Store(openDb(DB_PATH));
 function playerFor(accountId: string): Player {
   const player = store.getPlayerByAccount(accountId);
   if (!player) throw new OpError('UNAUTHORIZED', '账号没有玩家');
-  return syncPlayer(store, player);
+  return player;
 }
 
-function runOp(accountId: string, op: number, data: Record<string, unknown>, agentModel: string | null, push: Context['push']): unknown {
+function runOp(accountId: string, op: number, data: Record<string, unknown>, agentModel: string | null, push: Context['push'], actor: 'human' | 'agent' = 'human'): unknown {
   if (PUSH_OPS.has(op)) throw new OpError('BAD_REQUEST', `op ${op} 是推送，不能主动发送`);
-  const ctx: Context = { store, player: playerFor(accountId), accountId, agentModel, actor: agentModel ? 'agent' : 'human', push };
-  return dispatch(ctx, op, data ?? {});
+  return store.transaction(() => {
+    const ctx: Context = { store, player: syncPlayer(store, playerFor(accountId)), accountId, agentModel, actor, push };
+    return dispatch(ctx, op, data ?? {});
+  });
 }
 
 function errorResponse(seq: number, op: number, error: unknown): ResponseFrame {
@@ -49,11 +51,12 @@ await app.register(websocket);
 interface Conn {
   accountId: string | null;
   agentModel: string | null;
+  actor: 'human' | 'agent';
   seq: number;
 }
 
 app.get('/ws', { websocket: true }, (socket) => {
-  const conn: Conn = { accountId: null, agentModel: null, seq: 0 };
+  const conn: Conn = { accountId: null, agentModel: null, actor: 'human', seq: 0 };
   const send = (frame: unknown) => { try { socket.send(encode(frame as never)); } catch { /* closed */ } };
 
   socket.on('message', (raw: Buffer) => {
@@ -65,10 +68,11 @@ app.get('/ws', { websocket: true }, (socket) => {
       if (frame.op === 1) {
         const data = (frame.data ?? {}) as Record<string, unknown>;
         const token = String(data.token ?? '');
-        const resolved = store.resolveSession(token) ? { accountId: store.resolveSession(token)! } : store.resolveToken(token);
+        const resolved = authCredential(token);
         if (!resolved) throw new OpError('UNAUTHORIZED', '令牌无效');
         conn.accountId = resolved.accountId;
-        conn.agentModel = typeof data.agentModel === 'string' ? data.agentModel : null;
+        conn.actor = resolved.actor;
+        conn.agentModel = conn.actor === 'agent' && typeof data.agentModel === 'string' ? data.agentModel : null;
         const clientVersion = typeof data.docVersion === 'number' ? data.docVersion : 0;
         const notice = clientVersion !== DOC_VERSION ? `当前协议版本 ${DOC_VERSION}，你的客户端是 ${clientVersion}，请更新。` : null;
         const player = playerFor(conn.accountId);
@@ -82,7 +86,7 @@ app.get('/ws', { websocket: true }, (socket) => {
       }
       if (!conn.accountId) throw new OpError('UNAUTHORIZED', '先 LOGIN');
       const data = (frame.data ?? {}) as Record<string, unknown>;
-      const result = runOp(conn.accountId, frame.op, data, conn.agentModel, (pushOp, pushData) => send({ op: pushOp, data: pushData }));
+      const result = runOp(conn.accountId, frame.op, data, conn.agentModel, (pushOp, pushData) => send({ op: pushOp, data: pushData }), conn.actor);
       send({ op, seq, ok: true, data: result ?? {} });
     } catch (error) {
       send(errorResponse(seq, op, error));
@@ -96,15 +100,14 @@ app.post('/api/login', (req, reply) => {
   const body = (req.body ?? {}) as { name?: string; password?: string; legion?: string };
   try {
     const result = loginOrRegister(store, String(body.name ?? ''), body.password, body.legion);
-    const player = syncPlayer(store, result.player);
-    reply.send({ token: result.token, state: dispatch({ store, player, accountId: result.accountId, agentModel: null, actor: 'human', push: () => {} }, 10, {}) });
+    reply.send({ token: result.token, state: runOp(result.accountId, 10, {}, null, () => {}) });
   } catch (error) {
     reply.code(400).send(error instanceof Error ? { error: error.message } : { error: String(error) });
   }
 });
 
 app.get('/api/agent-token', (req, reply) => {
-  const accountId = authAccount(req.headers.authorization);
+  const accountId = authCredential(req.headers.authorization)?.accountId;
   if (!accountId) return reply.code(401).send({ error: 'unauthorized' });
   const existing = store.db.prepare("SELECT token FROM tokens WHERE account_id = ? AND kind = 'agent' LIMIT 1").get(accountId) as { token: string } | undefined;
   const token = existing?.token ?? store.createToken(accountId, 'agent', '网页生成');
@@ -112,25 +115,26 @@ app.get('/api/agent-token', (req, reply) => {
 });
 
 app.post('/api/op', (req, reply) => {
-  const accountId = authAccount(req.headers.authorization);
-  if (!accountId) return reply.code(401).send({ op: 0, seq: 0, ok: false, error: errorBody('UNAUTHORIZED', '未登录') });
+  const credential = authCredential(req.headers.authorization);
+  if (!credential) return reply.code(401).send({ op: 0, seq: 0, ok: false, error: errorBody('UNAUTHORIZED', '未登录') });
   const body = (req.body ?? {}) as { op?: number; seq?: number; data?: Record<string, unknown> };
   const op = Number(body.op), seq = Number(body.seq ?? 0);
   if (!Number.isInteger(op)) return reply.code(400).send(errorResponse(seq, 0, new OpError('BAD_REQUEST', '缺少 op')));
   try {
-    const data = runOp(accountId, op, body.data ?? {}, null, () => {});
+    const data = runOp(credential.accountId, op, body.data ?? {}, null, () => {}, credential.actor);
     reply.send({ op, seq, ok: true, data: data ?? {} });
   } catch (error) {
     reply.send(errorResponse(seq, op, error));
   }
 });
 
-function authAccount(header: string | undefined): string | null {
+function authCredential(header: string | undefined): { accountId: string; actor: 'human' | 'agent' } | null {
   const token = header?.replace(/^Bearer\s+/i, '') ?? '';
   if (!token) return null;
   const session = store.resolveSession(token);
-  if (session) return session;
-  return store.resolveToken(token)?.accountId ?? null;
+  if (session) return { accountId: session, actor: 'human' };
+  const resolved = store.resolveToken(token);
+  return resolved ? { accountId: resolved.accountId, actor: resolved.kind === 'agent' ? 'agent' : 'human' } : null;
 }
 
 // ---- generated protocol docs ---------------------------------------------

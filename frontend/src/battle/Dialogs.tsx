@@ -6,10 +6,27 @@ import type { Dialog, LevelShow } from './controller.ts';
 import type { BattleResultView } from './session.ts';
 import { Portrait } from './UnitCard.tsx';
 
-// Focus the primary button when a dialog opens so Enter / Space act on it.
+// Keep keyboard focus inside the modal and return it to its opener on close.
 function useAutofocus() {
   const ref = useRef<HTMLButtonElement>(null);
-  useEffect(() => { ref.current?.focus(); }, []);
+  useEffect(() => {
+    const previous = document.activeElement;
+    const button = ref.current;
+    const modal = button?.closest('[role="dialog"]');
+    button?.focus();
+    const contain = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !modal) return;
+      const buttons = [...modal.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+      const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+      event.preventDefault();
+      buttons[(index + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length]?.focus();
+    };
+    document.addEventListener('keydown', contain);
+    return () => {
+      document.removeEventListener('keydown', contain);
+      if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
+    };
+  }, []);
   return ref;
 }
 
@@ -67,8 +84,8 @@ export function ConfirmDialog({ kind, state, surrender, onConfirm, onCancel }: {
           {!endPhase && !surrender && <p>{gathered ? '已带回至少1箱，任务按成功结算。仍在战场的物资不会带回，已发生的伤亡和消耗保留。' : '撤退后本场战斗按失败结算，无法继续。已经获得的经验保留。'}</p>}
         </div>
         <footer>
-          <button type="button" className="btn" onClick={onCancel}>{endPhase ? '继续行动' : '取消'} <span className="kbd">ESC</span></button>
-          <button ref={ok} type="button" className={`btn ${endPhase ? 'btn-primary' : 'btn-danger'}`} onClick={onConfirm}>
+          <button ref={ok} type="button" className="btn" onClick={onCancel}>{endPhase ? '继续行动' : '取消'} <span className="kbd">ESC</span></button>
+          <button type="button" className={`btn ${endPhase ? 'btn-primary' : 'btn-danger'}`} onClick={onConfirm}>
             {endPhase ? '结束阶段' : surrender ? '确认投降' : gathered ? '带回物资并结束' : '确认撤退'}
           </button>
         </footer>

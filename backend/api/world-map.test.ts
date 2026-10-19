@@ -21,9 +21,22 @@ function fresh(name: string) {
 function ctxFor(store: Store, accountId: string, player: Player): Context {
   return { store, accountId, player, agentModel: null, push: () => {} };
 }
-const HERO = { name: '星见', sex: 'female', portrait: 'sera', allocation: { hp: 18, str: 6, mag: 10, skl: 5, spd: 5, lck: 5, def: 5, res: 4, cha: 2 } };
+const HERO = { name: '星见', sex: 'female', portrait: 'sera', allocation: { mag: 5, spd: 5 } };
 function completeSetup(ctx: Context): void {
   dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: HERO, companions: ['victor', 'lina'] });
+}
+
+function winBattle(ctx: Context, battleId: string) {
+  const battle = ctx.store.battle(ctx.player.id, battleId)!;
+  const leader = battle.state.units.find(unit => unit.side === 'player')!;
+  // 验证结算边界：保留真实 handler 收尾，不依赖随机地图上的寻路。
+  for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
+  battle.initial = structuredClone(battle.state);
+  ctx.store.saveBattle(battle);
+  const payload = { battleId, unitId: leader.id, moveTo: leader.pos, action: 'wait', commandId: `win-${battleId}` };
+  dispatch(ctx, OP.UNIT_ACT, payload);
+  assert.equal(ctx.store.battle(ctx.player.id, battleId)!.state.result?.winner, 'player');
+  return payload;
 }
 
 type Features = Record<string, boolean>;
@@ -90,7 +103,7 @@ test('choosing a route costs no days, cannot skip adjacency and is idempotent pe
   assert.equal(player.day, day, '选路线不耗日');
   assert.equal(player.version, version + 1, '写命令推进 playerVersion');
   assert.deepEqual(chosen.unlockedRegions, [1]);
-  assert.deepEqual(chosen.selectableRegions, [], '首次选择后要先讨伐才能再选相邻路线');
+  assert.deepEqual(chosen.selectableRegions, [], '首次选择后要先探索满才能再选相邻路线');
   const states = new Map(chosen.world.nodes.map(node => [node.id, node.state]));
   assert.equal(states.get(1), 'unlocked');
   assert.equal(states.get(2), 'locked', '只选了 1：其它起步路线仍锁定，世界地图视已选路线为准');
@@ -102,13 +115,19 @@ test('choosing a route costs no days, cannot skip adjacency and is idempotent pe
   assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 2, commandId: 'route-1' }), /IDEMPOTENCY_CONFLICT|同一个 commandId/);
   // 跳线与重复选择都被拒绝。
   assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 9 }), /可选路线/, '不能跳过相邻关系');
-  assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 2 }), /可选路线/, '讨伐前相邻路线不可选');
+  assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 2 }), /可选路线/, '探索未满时相邻路线不可选');
   assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 1.5 }), /整数/);
-  // 路线互不排斥：讨伐地区 1 后可以继续选择 2 和 5。
   player.flags.clearedRegions = [1];
+  for (const amount of [3, 99]) {
+    player.flags.regionExploration = { 1: amount };
+    store.savePlayer(player);
+    assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 5 }), /探索度/, `已讨伐但探索 ${amount} 仍不能开新地区`);
+  }
+  // 路线互不排斥：探索满地区 1 后可以继续选择 2 和 5。
+  player.flags.regionExploration = { 1: 100 };
   store.savePlayer(player);
   const after = dispatch(ctx, OP.CHOOSE_ROUTE, { region: 5 }) as { selectableRegions: number[] };
-  assert.deepEqual(after.selectableRegions, [2, 3], 'cleared 1 的相邻只剩 2 与内环 3；6 要先讨伐 5 才可选');
+  assert.deepEqual(after.selectableRegions, [2, 3], '满探索 1 的相邻只剩 2 与内环 3；6 要先探索满 5 才可选');
   const second = dispatch(ctx, OP.CHOOSE_ROUTE, { region: 2 }) as { unlockedRegions: number[] };
   assert.deepEqual(second.unlockedRegions, [1, 2, 5]);
   assert.deepEqual(playerRegionsOf(store, player), [1, 2, 5]);
@@ -116,6 +135,43 @@ test('choosing a route costs no days, cannot skip adjacency and is idempotent pe
 function playerRegionsOf(store: Store, player: Player): number[] {
   return [...new Set([...(player.flags.unlockedRegions ?? []), ...player.flags.clearedRegions])].sort((a, b) => a - b);
 }
+
+test('field wins add three, single-map quests add five, and only a full persisted bar opens new routes', () => {
+  const { store, accountId, player } = fresh('world-exploration');
+  const ctx = ctxFor(store, accountId, player);
+  completeSetup(ctx);
+  dispatch(ctx, OP.CHOOSE_ROUTE, { region: 1 });
+  const team = ['u_protagonist', 'u_victor', 'u_lina'];
+  dispatch(ctx, OP.SORTIE, { region: 1, unitIds: team });
+  dispatch(ctx, OP.RETREAT, {});
+  assert.deepEqual(player.flags.regionExploration, {}, '撤退不加探索');
+  const quest = dispatch(ctx, OP.START_QUEST, { questId: 'r1-1', unitIds: team }) as { battleId: string };
+  const winningCommand = winBattle(ctx, quest.battleId);
+  assert.equal(player.flags.regionExploration![1], 5, '任务不会叠加野图分数');
+  dispatch(ctx, OP.UNIT_ACT, winningCommand);
+  dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'r1-1' });
+  assert.equal(player.flags.regionExploration![1], 5, '命令重放和领奖都不重复加探索');
+  assert.ok(player.flags.clearedRegions.includes(1), '首胜仍记录讨伐');
+  const field = dispatch(ctx, OP.SORTIE, { region: 1, unitIds: team }) as { battleId: string };
+  winBattle(ctx, field.battleId);
+  assert.equal(player.flags.regionExploration![1], 8, '随机野图获胜加三');
+  dispatch(ctx, OP.SWEEP, { region: 1, times: 2 });
+  assert.equal(player.flags.regionExploration![1], 8, '扫荡不加探索');
+  assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 5 }), /探索度/);
+  player.flags.regionExploration![1] = 98;
+  store.savePlayer(player);
+  const final = dispatch(ctx, OP.SORTIE, { region: 1, unitIds: team }) as { battleId: string };
+  winBattle(ctx, final.battleId);
+  assert.equal(player.flags.regionExploration![1], 100, '最后三点封顶为一百');
+  const reloaded = store.getPlayer(player.id)!;
+  const world = dispatch(ctxFor(store, accountId, reloaded), OP.GET_WORLD_MAP, {}) as { selectableRegions: number[]; nodes: { id: number; exploration: number }[] };
+  assert.equal(world.nodes.find(node => node.id === 1)!.exploration, 100);
+  assert.deepEqual(world.selectableRegions, [2, 3, 5]);
+  dispatch(ctx, OP.CHOOSE_ROUTE, { region: 5 });
+  const opened = dispatch(ctx, OP.GET_WORLD_MAP, {}) as typeof world;
+  assert.equal(opened.nodes.find(node => node.id === 5)!.exploration, 0, '每个新地区独立从零开始');
+  assert.equal(opened.selectableRegions.includes(9), false);
+});
 
 test('first clear opens combat features; unlocked-but-uncleared does not', () => {
   const { store, accountId, player } = fresh('world-first-clear');
@@ -169,6 +225,7 @@ test('legacy saves adopt regions only from real evidence, including the active b
   const ctx = ctxFor(store, accountId, player);
   // 构造旧档证据：讨伐 3、声望 6、任务完成（地区 5）、既有派遣（地区 9）、进行中的战斗（地区 8）。
   player.flags.clearedRegions = [3];
+  delete player.flags.regionExploration;
   player.flags.regionReputation = { 6: 100 };
   player.flags.questsDone = ['wl1'];
   const unit = store.units(player.id)[0];
@@ -187,7 +244,8 @@ test('legacy saves adopt regions only from real evidence, including the active b
   assert.equal(view.features.dungeon, true, '进行中的战斗让既有活动保持可继续');
   assert.equal(view.features.spectate, true);
   assert.equal(view.world.selectableRegions.includes(12), false, '没有证据的地区保持锁定');
-  assert.deepEqual(view.world.selectableRegions, [1, 4, 7], '已讨伐前沿 3 的相邻地区成为可选路线');
+  assert.deepEqual(view.world.selectableRegions, [1, 4, 7], '旧档已讨伐前沿 3 补满探索，相邻地区成为可选路线');
+  assert.deepEqual(store.getPlayer(player.id)!.flags.regionExploration, { 3: 100 }, '只补此前已讨伐地区，补值持久化');
   // 认领结果已持久化；重读不重复扫描也不改变结果。
   const again = (stateView(store, player) as { regions: { id: number }[] }).regions.map(r => r.id);
   assert.deepEqual(again, [3, 5, 6, 8, 9]);
@@ -200,6 +258,24 @@ test('legacy saves adopt regions only from real evidence, including the active b
   store.savePlayer(player);
   assert.equal(player.flags.setupCompleted, undefined, 'older completed setups may only have companions');
   assert.equal((dispatch(ctx, OP.CHOOSE_ROUTE, { region: 4 }) as { region: number }).region, 4);
+});
+
+test('exploration backfill also handles an existing route list and never overwrites initialized partial progress', () => {
+  const { store, accountId, player } = fresh('world-existing-routes');
+  player.flags.unlockedRegions = [1, 5];
+  player.flags.clearedRegions = [1];
+  delete player.flags.regionExploration;
+  store.savePlayer(player);
+  stateView(store, player);
+  assert.deepEqual(player.flags.regionExploration, { 1: 100 });
+  player.flags.regionExploration = { 1: 3 };
+  store.savePlayer(player);
+  const reloaded = store.getPlayer(player.id)!;
+  const world = dispatch(ctxFor(store, accountId, reloaded), OP.GET_WORLD_MAP, {}) as { unlockedRegions: number[]; selectableRegions: number[] };
+  assert.deepEqual(world.unlockedRegions, [1, 5], '既有地区不会因探索未满而收回');
+  assert.deepEqual(world.selectableRegions, []);
+  stateView(store, reloaded);
+  assert.deepEqual(store.getPlayer(player.id)!.flags.regionExploration, { 1: 3 }, '重读不把新进度当旧档再次补满');
 });
 
 test('the central shop only sells current stock; retired rows are hidden and rejected', () => {

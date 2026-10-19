@@ -41,6 +41,7 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<{ 
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${AGENT_TOKEN}` },
     body: JSON.stringify({ op, seq: 1, data }),
+    signal: AbortSignal.timeout(15_000),
   });
   const frame = await response.json() as { ok: boolean; data?: unknown; error?: { code: string; message: string; action: string } };
   if (!frame.ok) return { text: `[${frame.error?.code}] ${frame.error?.message}\naction: ${frame.error?.action}`, isError: true };
@@ -83,7 +84,15 @@ if (process.argv[1] && process.argv[1].endsWith('server.ts')) {
     const text = line.trim();
     if (!text) return;
     try {
-      void handle(JSON.parse(text) as { id?: unknown; method?: string; params?: Record<string, unknown> });
+      const message = JSON.parse(text) as { id?: unknown; method?: string; params?: Record<string, unknown> };
+      void handle(message).catch(error => {
+        const detail = error instanceof Error ? error.message : String(error);
+        if (message?.method === 'tools/call') {
+          reply(message.id, { content: [{ type: 'text', text: detail }], isError: true });
+        } else {
+          replyError(message?.id ?? null, -32603, detail);
+        }
+      });
     } catch {
       replyError(null, -32700, '解析失败');
     }

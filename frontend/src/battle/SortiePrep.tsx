@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
+import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { portraitFor, spriteFor } from '../assets.ts';
 import { useSession } from '../api/session.ts';
 import type { ServerUnit } from '../api/session.ts';
@@ -9,6 +10,7 @@ import { links, regionInHash } from '../router.ts';
 import type { FieldTab } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
+import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { busyReason } from '../model/roster.ts';
 
 const DEFAULT_TEAM = 6;
@@ -82,6 +84,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
       </Shell>
     );
   }
+  const exploration = state.world.nodes.find(node => node.id === target.id);
   const picked = active.filter(u => team.includes(u.id));
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
   const top = Math.max(0, ...picked.map(u => u.level));
@@ -119,7 +122,8 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
                 </button>
               ))}
             </div>
-            <p className="pfoot">首次获胜解锁地区。敌军按出发日期成长，前期快、后期慢：第一年结束约20级；同一场战斗内等级不变。要开通更多地区，去<a href={links.world}>世界地图</a>选择路线。</p>
+            {exploration && <div style={{ padding: '0 16px 12px' }}><RegionExploration region={exploration} /></div>}
+            <p className="pfoot">每次野外获胜 +{REGION_EXPLORATION_GAIN.field} 探索度，失败或撤退不增加；探索满后可在<a href={links.world}>世界地图</a>开通相邻新路线。敌军按出发日期成长，同一场战斗内等级不变。</p>
           </section>
 
           <section className="panel" aria-labelledby="tm-h">

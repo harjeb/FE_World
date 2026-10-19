@@ -39,16 +39,17 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = TABLE;
 export const CHARACTER_IDS = Object.keys(TABLE) as CharacterId[];
 
 // 自捏神主角（docs/00「神主角」、docs/13 §开局）：职业与成长类型固定（平民／成长型），
-// 自定姓名、性别与形象，并把九属性的 1 级全值直接分配出来（不再是「底值 + 追加点」）。
+// 自定姓名、性别与形象，保留固定基础属性，另分配 10 点加成。
 // character 只作形象与技能锚点：主角的数值、成长全部来自显式保存的字段，不泄露形象预设。
 export const PROTAGONIST_CLASS_ID: ClassId = 'commoner';
 export const PROTAGONIST_GROWTH_TYPE: GrowthType = 'growth';
 
-// 九属性直接分配：HP 1–30、其余 0–10，总计必须正好 60 点（首版数值，docs/00 标注待校准）。
-export const PROTAGONIST_ALLOCATION_BUDGET = 60;
-export const PROTAGONIST_ALLOCATION_DEFAULT: Stats = stats(20, 6, 4, 6, 6, 5, 5, 4, 4);
-export const PROTAGONIST_MIN_ALLOCATION: Record<StatKey, number> = { hp: 1, str: 0, mag: 0, skl: 0, spd: 0, lck: 0, def: 0, res: 0, cha: 0 };
-export const PROTAGONIST_MAX_ALLOCATION: Record<StatKey, number> = { hp: 30, str: 10, mag: 10, skl: 10, spd: 10, lck: 10, def: 10, res: 10, cha: 10 };
+// 基础值沿用原默认属性；额外分配从 0 开始，每项最多加 5 点，总计必须正好 10 点。
+export const PROTAGONIST_BASE_STATS: Stats = stats(20, 6, 4, 6, 6, 5, 5, 4, 4);
+export const PROTAGONIST_ALLOCATION_BUDGET = 10;
+export const PROTAGONIST_ALLOCATION_DEFAULT: Stats = stats(0, 0, 0, 0, 0, 0, 0, 0, 0);
+export const PROTAGONIST_MIN_ALLOCATION: Record<StatKey, number> = { hp: 0, str: 0, mag: 0, skl: 0, spd: 0, lck: 0, def: 0, res: 0, cha: 0 };
+export const PROTAGONIST_MAX_ALLOCATION: Record<StatKey, number> = { hp: 5, str: 5, mag: 5, skl: 5, spd: 5, lck: 5, def: 5, res: 5, cha: 5 };
 
 // 培养倾向：不再手选，由属性分配自动推导（deriveProtagonistTendency）；这里只保留五条
 // 个人成长向量作为推导结果的数据来源（基础值，运行时再叠加职业成长、年龄修正与轮回分配）。

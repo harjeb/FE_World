@@ -42,6 +42,7 @@ export async function call<T = unknown>(op: number, data: Record<string, unknown
     method: 'POST',
     headers: { 'content-type': 'application/json', ...(token() ? { authorization: `Bearer ${token()}` } : {}) },
     body,
+    signal: AbortSignal.timeout(15_000),
   });
   let response: Response;
   try {
@@ -61,6 +62,7 @@ export async function login(name: string, password?: string, legion?: string): P
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name, password, legion }),
+    signal: AbortSignal.timeout(15_000),
   });
   const body = await response.json() as { token?: string; state?: unknown; error?: string };
   if (!body.token) throw new Error(body.error ?? '登录失败');
@@ -69,7 +71,7 @@ export async function login(name: string, password?: string, legion?: string): P
 }
 
 export async function agentToken(): Promise<{ token: string; ws: string; docVersion: number }> {
-  const response = await fetch('/api/agent-token', { headers: token() ? { authorization: `Bearer ${token()}` } : {} });
+  const response = await fetch('/api/agent-token', { headers: token() ? { authorization: `Bearer ${token()}` } : {}, signal: AbortSignal.timeout(15_000) });
   if (!response.ok) throw new Error('无法获取 Agent 令牌');
   return response.json();
 }

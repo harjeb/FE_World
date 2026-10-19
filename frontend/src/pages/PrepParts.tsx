@@ -98,8 +98,8 @@ export async function runOp<T>(op: number, data: Record<string, unknown>, done: 
 
 export function UnitPicker({ units, selected, onPick }: { units: ServerUnit[]; selected: ServerUnit | undefined; onPick: (id: string) => void }) {
   return (
-    <section className="panel" aria-labelledby="gu-h">
-      <div className="ph"><h2 id="gu-h">选择角色</h2><span style={{ fontSize: 12, color: '#6A6256' }}>仓库里的按钮作用在选中的角色上</span></div>
+    <section className="panel gear-picker" aria-labelledby="gu-h">
+      <div className="ph"><h2 id="gu-h">选择角色</h2><span style={{ fontSize: 12, color: '#6A6256' }}>当前：<b>{selected?.name ?? '未选择'}</b> · 仓库操作作用于此角色</span></div>
       <div className="gear-units" role="radiogroup" aria-label="选择角色">
         {units.map(u => {
           const worn = u.weaponInstances.some(w => w.durability < w.maxDurability) || [...u.bookInstances, ...u.spellbooks].some(b => b.charges < b.maxCharges);
@@ -263,7 +263,9 @@ export function DrugPanel({ unit }: { unit: ServerUnit }) {
 export function BexpPanel({ unit, bexp }: { unit: ServerUnit; bexp: number }) {
   const [amount, setAmount] = useState(100);
   const max = CLASSES[unit.classId as keyof typeof CLASSES]?.maxLevel ?? 99;
-  const spend = Math.max(1, Math.min(bexp, amount));
+  const remaining = Math.max(0, (max - unit.level) * 100 - unit.exp);
+  const limit = Math.min(bexp, remaining);
+  const spend = Math.max(0, Math.min(limit, amount));
   const reach = Math.min(max, unit.level + Math.floor((unit.exp + spend) / 100));
   const capped = unit.level >= max;
   return (
@@ -272,16 +274,16 @@ export function BexpPanel({ unit, bexp }: { unit: ServerUnit; bexp: number }) {
       <div className="a-opts" style={{ padding: '10px 14px 0' }}>
         <label className="inline-flex items-center gap-1.5" style={{ fontSize: 13 }}>
           分给{unit.name}
-          <input type="number" aria-label="分配的公共经验" min={1} max={Math.max(1, bexp)} value={amount}
+          <input type="number" aria-label="分配的公共经验" min={limit > 0 ? 1 : 0} max={limit} value={spend} disabled={limit <= 0}
             onChange={e => setAmount(Math.max(1, Math.floor(Number(e.target.value)) || 1))} />
         </label>
-        <span className="cost">Lv {unit.level} · 经验 {unit.exp} / 100 → {capped ? '已满级' : `Lv ${reach}`}</span>
+        <span className="cost">Lv {unit.level} · 经验 {unit.exp} / 100 → {capped ? '已满级' : `Lv ${reach} · 经验 ${reach >= max ? 0 : (unit.exp + spend) % 100} / 100`} · 消耗 {spend}，公共经验剩余 {bexp - spend} · 距满级还需 {remaining}</span>
       </div>
       <div className="flex items-center justify-between gap-2" style={{ padding: '10px 14px 12px' }}>
         <span style={{ fontSize: 12, color: '#6A6256' }}>每 100 经验升 1 级，升级的成长照常随机；不推进日期。</span>
         <button type="button" className="btn btn-sm btn-primary" disabled={bexp <= 0 || capped}
-          onClick={() => void runOp<{ level: number; levelUps: unknown[] }>(OP.ASSIGN_BEXP, { unitId: unit.id, amount: spend },
-            r => (r.levelUps.length > 0 ? `${unit.name}升到 Lv ${r.level}（升了 ${r.levelUps.length} 级）` : `${unit.name}获得 ${spend} 经验`))}>分配</button>
+          onClick={() => void runOp<{ amount: number; level: number; levelUps: unknown[] }>(OP.ASSIGN_BEXP, { unitId: unit.id, amount: spend },
+            r => `${unit.name}获得 ${r.amount} 经验${r.levelUps.length > 0 ? `，升到 Lv ${r.level}（升了 ${r.levelUps.length} 级）` : ''}`)}>分配</button>
       </div>
     </section>
   );

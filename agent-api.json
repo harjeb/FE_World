@@ -1,5 +1,5 @@
 {
-  "docVersion": 4,
+  "docVersion": 6,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -80,7 +80,7 @@
       "op": 31,
       "name": "SORTIE",
       "group": "日历",
-      "agentNote": "带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op。",
+      "agentNote": "带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。",
       "push": false
     },
     {
@@ -157,7 +157,7 @@
       "op": 42,
       "name": "SELL",
       "group": "整备",
-      "agentNote": "卖出仓库物品换取金币。",
+      "agentNote": "卖出仓库物品换取金币；uses 可指定剩余次数的一叠，count 为出售数量，默认1。",
       "push": false
     },
     {
@@ -185,7 +185,7 @@
       "op": 46,
       "name": "ASSIGN_BEXP",
       "group": "整备",
-      "agentNote": "把公共经验分配给一个单位；分配不耗行动日，消耗真实库存；满级单位不能分配。",
+      "agentNote": "把公共经验分配给一个单位；不耗行动日，实际消耗不超过库存及距离满级所需，返回 amount 为实际扣除；满级单位不能分配。",
       "push": false
     },
     {
@@ -353,7 +353,7 @@
       "op": 101,
       "name": "START_DUNGEON",
       "group": "远征",
-      "agentNote": "开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡。",
+      "agentNote": "开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。",
       "push": false
     },
     {
@@ -444,7 +444,7 @@
       "op": 124,
       "name": "START_QUEST",
       "group": "任务",
-      "agentNote": "接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领。",
+      "agentNote": "接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
       "push": false
     },
     {
@@ -465,7 +465,7 @@
       "op": 127,
       "name": "COMPLETE_SETUP",
       "group": "任务",
-      "agentNote": "完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，九属性直接分配60点（HP1–30，其余0–10），倾向自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。",
+      "agentNote": "完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。",
       "push": false
     },
     {
@@ -563,14 +563,14 @@
       "op": 141,
       "name": "GET_WORLD_MAP",
       "group": "地图",
-      "agentNote": "读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions；开荒从 1–4 四条起步路线开始，不选路线不能出击。",
+      "agentNote": "读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions、各地区0–100探索度；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区继续可访问，探索度独立于讨伐记录。",
       "push": false
     },
     {
       "op": 142,
       "name": "CHOOSE_ROUTE",
       "group": "地图",
-      "agentNote": "把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次选择后要先清剿当前地区，相邻路线才会再次可选；需先完成开局自捏。",
+      "agentNote": "把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次可自由选择1–4，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；需先完成开局自捏。",
       "push": false
     },
     {

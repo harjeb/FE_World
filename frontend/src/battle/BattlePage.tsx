@@ -25,7 +25,7 @@ function useKeyboard(ctl: BattleController) {
       }
       if (snap.dialog) {
         if (e.key === 'Escape') { e.preventDefault(); ctl.cancel(); }
-        if (e.key === 'Enter') { e.preventDefault(); ctl.confirmDialog(); }
+        // The focused dialog button owns Enter / Space.
         return;
       }
       const onButton = e.target instanceof HTMLButtonElement;

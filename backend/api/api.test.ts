@@ -10,7 +10,8 @@ import { applyBattleOutcome, syncPlayer, stateView } from './services.ts';
 import { CATALOG_VERSION } from '../common/game/version.ts';
 import { CLASSES } from '../common/data/classes.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { PROTAGONIST_BASE_STATS, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { STAT_KEYS } from '../common/data/types.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { nextArenaDay, regionById } from '../common/game/calendar.ts';
 import { createFieldBattle, FIELD_BATTLE } from '../common/game/battles.ts';
@@ -68,29 +69,34 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'fresh', undefined, '新军团');
   const ctx = ctxFor(store, accountId, player);
-  type View = { units: { id: string; name: string; character: string }[]; setup: { needed: boolean; pool: { id: string }[]; protagonist: { budget: number; classId: string; growthType: string } } };
+  type View = { units: { id: string; name: string; character: string }[]; setup: { needed: boolean; pool: { id: string }[]; protagonist: { budget: number; baseStats: Record<string, number>; classId: string; growthType: string } } };
   const fresh = stateView(store, player) as View;
   assert.equal(fresh.units.length, 1, '开局只有占位主角');
   assert.equal(fresh.setup.needed, true);
   assert.equal(fresh.setup.protagonist.classId, 'commoner', '神主角固定平民开局');
   assert.equal(fresh.setup.protagonist.growthType, 'growth', '神主角固定成长型');
-  assert.equal(fresh.setup.protagonist.budget, 60);
+  assert.equal(fresh.setup.protagonist.budget, 10);
+  assert.deepEqual(fresh.setup.protagonist.baseStats, { hp: 20, str: 6, mag: 4, skl: 6, spd: 6, lck: 5, def: 5, res: 4, cha: 4 });
   const pool = fresh.setup.pool.map(c => c.id);
   assert.ok(pool.includes('victor'));
   assert.ok(!pool.includes('ren'), '剧情奖励人物不能当同伴');
-  // 属性分配即 1 级全值（HP 1–30、其余 0–10、总计 60）；魔 10 使魔×2 独高 → 自动推导魔力倾向。
-  const hero = { name: '星见', sex: 'female', portrait: 'sera', allocation: { hp: 18, str: 6, mag: 10, skl: 5, spd: 5, lck: 5, def: 5, res: 4, cha: 2 } };
+  // 仅提交额外加点：魔 5、速 5，魔×2 独高 → 自动推导魔力倾向。
+  const hero = { name: '星见', sex: 'female', portrait: 'sera', allocation: { mag: 5, spd: 5 } };
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, name: '甲' }, companions: ['victor', 'lina'] }), /2–12/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, classId: 'mage' }, companions: ['victor', 'lina'] }), /平民/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, classId: 'beast' }, companions: ['victor', 'lina'] }), /平民/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, growthType: 'normal' }, companions: ['victor', 'lina'] }), /成长型/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, tendency: 'magic' }, companions: ['victor', 'lina'] }), /不能指定/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { hp: 20, mag: 10, skl: 5, spd: 5, foo: 3 } }, companions: ['victor', 'lina'] }), /未知属性/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { hp: 0, mag: 10, skl: 5, spd: 5 } }, companions: ['victor', 'lina'] }), /1–30/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { hp: 40, mag: 10, skl: 5, spd: 5 } }, companions: ['victor', 'lina'] }), /1–30/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { hp: 20, str: 11, mag: 10, skl: 5, spd: 5 } }, companions: ['victor', 'lina'] }), /0–10/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { hp: 20, mag: 10 } }, companions: ['victor', 'lina'] }), /60/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { str: 10, mag: 10, skl: 10, spd: 10, lck: 10, def: 5, res: 5 } }, companions: ['victor', 'lina'] }), /1–30/, 'missing hp falls back to 0 and is rejected');
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { mag: 5, spd: 5, foo: 3 } }, companions: ['victor', 'lina'] }), /未知属性/);
+  for (const key of STAT_KEYS) {
+    assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation: { [key]: 6 } }, companions: ['victor', 'lina'] }), /0–5/, `${key} cannot receive more than 5 bonus points`);
+  }
+  for (const allocation of [{ hp: -1, mag: 5, spd: 5 }, { mag: 4.5, spd: 5 }, { mag: '5', spd: 5 }]) {
+    assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation }, companions: ['victor', 'lina'] }), /0–5/);
+  }
+  for (const allocation of [{}, { mag: 5, spd: 4 }, { hp: 1, mag: 5, spd: 5 }]) {
+    assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, allocation }, companions: ['victor', 'lina'] }), /总计需为 10 点/);
+  }
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor'] }), /2 名/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'victor'] }), /重复/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'ren'] }), /不能作为开局同伴/);
@@ -108,14 +114,13 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   const heroUnit = after.units.find(u => u.id === 'u_protagonist')!;
   assert.equal(heroUnit.name, '星见');
   assert.equal(heroUnit.character, 'sera', '形象即主角身份锚点');
-  // 分配 ↔ 属性往返：1 级属性就是分配本身（无额外基础值与 RNG）；个人成长 = 推导倾向向量，
-  // 不虚标 inheritedGrowth，也没有任何升级记录。
+  // 九项基础值保留，只叠加本次加点；个人成长取推导倾向，不虚标继承或升级记录。
   const detail = dispatch(ctx, OP.GET_UNIT, { unitId: 'u_protagonist' }) as {
     stats: Record<string, number>; ranks: Record<string, string>; weapons: { id: string }[]; items: { uses: number }[];
     spellbooks: { charges: number; maxCharges: number }[]; personalGrowth: Record<string, number>; inheritedGrowth: unknown;
     classId: string; growthType: string; growthLog: unknown[]; weaponInstances: { durability: number; maxDurability: number }[];
   };
-  assert.deepEqual(detail.stats, { hp: 18, str: 6, mag: 10, skl: 5, spd: 5, lck: 5, def: 5, res: 4, cha: 2 });
+  assert.deepEqual(detail.stats, { hp: 20, str: 6, mag: 9, skl: 6, spd: 11, lck: 5, def: 5, res: 4, cha: 4 });
   assert.equal(detail.classId, 'commoner');
   assert.equal(detail.growthType, 'growth');
   assert.deepEqual(detail.personalGrowth, PROTAGONIST_TENDENCIES.magic.growth);
@@ -140,23 +145,23 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['karl', 'owen'] }), /已经完成/);
 });
 
-test('the default allocation derives the balanced tendency and repeated reads are idempotent', () => {
+test('bonus allocation preserves the base and repeated setup commands and reads never add it twice', () => {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'default-hero', undefined, '均衡军团');
   const ctx = ctxFor(store, accountId, player);
   const view = stateView(store, player) as { setup: { protagonist: { defaultAllocation: Record<string, number>; portraits: { id: string }[] } } };
-  const allocation = view.setup.protagonist.defaultAllocation;
-  assert.equal(Object.values(allocation).reduce((a, b) => a + b, 0), 60);
+  assert.equal(Object.values(view.setup.protagonist.defaultAllocation).reduce((a, b) => a + b, 0), 0, 'all 10 bonus points start unspent');
+  const allocation = { ...view.setup.protagonist.defaultAllocation, hp: 5, lck: 5 };
   const portrait = view.setup.protagonist.portraits[0]!.id;
   const request = { protagonist: { name: '均衡神', sex: 'male', portrait, allocation }, companions: ['karl', 'sera'], commandId: 'create-god-once' };
   const done = dispatch(ctx, OP.COMPLETE_SETUP, request) as { protagonist: { tendency: string; classId: string } };
   assert.deepEqual(dispatch(ctx, OP.COMPLETE_SETUP, request), JSON.parse(JSON.stringify(done)), 'the same commandId returns the first JSON response without adding units');
   assert.equal(store.units(player.id).length, 3);
-  assert.equal(done.protagonist.tendency, 'balanced', 'the default allocation ties across groups → balanced');
+  assert.equal(done.protagonist.tendency, 'balanced', 'HP and luck bonuses leave all tendency scores tied');
   assert.equal(done.protagonist.classId, 'commoner');
   const first = dispatch(ctx, OP.GET_UNIT, { unitId: 'u_protagonist' }) as { stats: Record<string, number>; personalGrowth: Record<string, number> };
   const second = dispatch(ctx, OP.GET_UNIT, { unitId: 'u_protagonist' }) as { stats: Record<string, number>; personalGrowth: Record<string, number> };
-  assert.deepEqual(first.stats, allocation);
+  assert.deepEqual(first.stats, { ...PROTAGONIST_BASE_STATS, hp: 25, lck: 10 });
   assert.deepEqual(first.personalGrowth, PROTAGONIST_TENDENCIES.balanced.growth);
   assert.deepEqual(second, first, 'repeated reads return the identical saved unit');
 });

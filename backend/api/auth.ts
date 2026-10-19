@@ -33,6 +33,7 @@ export function loginOrRegister(store: Store, name: string, password?: string, l
     throw new Error('密码不正确');
   }
   let player = store.getPlayerByAccount(account.id);
+  // createPlayer explicitly marks new saves as calendar 500; existing unmarked saves need operator migration.
   if (!player) player = store.createPlayer(account.id, name, legion ?? `${name}军团`);
   const token = store.createSession(account.id);
   return { accountId: account.id, player, token };
