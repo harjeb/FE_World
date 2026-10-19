@@ -8,7 +8,7 @@ import { areaHeals, artInfo, commandAction, commandForecast, commandStatus, isCo
 import type { CommandMode } from './commands.ts';
 import type { Mode } from './selection.ts';
 import { TERRAINS } from '@common/maps/map.ts';
-import { weaponIcon } from '../assets.ts';
+import { itemIconFor } from '../assets.ts';
 import { AttackIcon, HealIcon } from '../ui/icons.tsx';
 import { displayName } from './names.ts';
 import { Portrait } from './UnitCard.tsx';
@@ -45,7 +45,7 @@ function Fighter({ unit, label, weapon, side, enemy, weaponName }: { unit: UnitS
       <div className="min-w-0">
         <div className="fc-name">{label}</div>
         <div className="fc-sub">
-          {weaponName ? <>{w && <img className="px" src={weaponIcon(w.type)} width={16} height={16} alt="" />}{weaponName}</> : w ? <><img className="px" src={weaponIcon(w.type)} width={16} height={16} alt="" />{w.name}</> : weapon ? weaponLabel(weapon) : '无武器'}
+          {weaponName ? <>{w && weapon && <img className="px" src={itemIconFor(weapon)} width={16} height={16} alt="" />}{weaponName}</> : w && weapon ? <><img className="px" src={itemIconFor(weapon)} width={16} height={16} alt="" />{w.name}</> : weapon ? weaponLabel(weapon) : '无武器'}
         </div>
         <div className="fc-ter">{terrainNote(side)}</div>
       </div>

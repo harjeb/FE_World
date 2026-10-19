@@ -8,7 +8,7 @@ import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS, spellbookItem } from '@common/game/items.ts';
 import type { GameItem, ItemKey } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
-import { ICONS, weaponIcon } from '../assets.ts';
+import { itemIconFor } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import type { BookInstance, ServerUnit } from '../api/session.ts';
 import { annualLive } from '../model/roster.ts';
@@ -21,16 +21,7 @@ export const CARRY = 5;
 
 export const itemOf = (key: string): GameItem | undefined => GAME_ITEMS[key as ItemKey];
 
-export function itemIcon(key: string): string {
-  const item = itemOf(key);
-  if (item?.kind === 'weapon' && item.weapon) return weaponIcon(WEAPONS[item.weapon].type);
-  if (item?.kind === 'consumable') return ICONS.vulnerary;
-  if (item?.kind === 'stat') return ICONS.elixir;
-  if (item?.kind === 'food') return ICONS.herb;
-  if (item?.kind === 'material') return ICONS[key as 'herb' | 'ore' | 'wood' | 'seed'] ?? ICONS.seal;
-  if (item?.kind === 'spellbook') return weaponIcon(SPELLBOOK_BY_ID.get(item.spell ?? '')?.study === 'whiteMagic' ? 'staff' : 'tome');
-  return ICONS.seal;
-}
+export const itemIcon = itemIconFor;
 
 // One line on what the item does, in the backend's own terms (game/items.ts, data/weapons.ts).
 export function itemSpec(key: string): string {
@@ -182,7 +173,7 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
           const book = res?.kind === 'charges' ? unit.bookInstances.filter(b => b.id === id)[weapons.slice(0, i).filter(w => w === id).length] : null;
           return (
             <li key={`${id}${i}`}>
-              <img className="px" src={weaponIcon(WEAPONS[id].type)} width={32} height={32} alt="" />
+              <img className="px" src={itemIconFor(id)} width={32} height={32} alt="" />
               <div className="min-w-0">
                 <div className="nm">{WEAPONS[id].name}{i === 0 && <span className="tag tag-blue">✓ 装备中</span>}</div>
                 <div className="sp">{weaponSpec(id)}</div>
@@ -206,7 +197,7 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
       <ul className="eq">
         {items.map((stack, i) => (
           <li key={`${stack.id}${i}`}>
-            <img className="px" src={ICONS.vulnerary} width={32} height={32} alt="" />
+            <img className="px" src={itemIconFor(stack.id)} width={32} height={32} alt="" />
             <div className="min-w-0"><div className="nm">{ITEMS[stack.id as ItemId]?.name ?? stack.id}</div><div className="sp">{stack.id === 'immortal_shield' ? '致命时自动消耗，保留 1 HP 并石化；每人最多 1 枚' : `剩 ${stack.uses} / ${ITEMS[stack.id as ItemId]?.uses ?? stack.uses} 次`}</div></div>
             <span className="acts"><button type="button" className="btn btn-sm btn-ghost" onClick={() => void move(stack.id, 'toWarehouse', `${ITEMS[stack.id as ItemId]?.name ?? stack.id}放回了仓库，剩 ${stack.uses} 次`)}>放回仓库</button></span>
           </li>
@@ -221,7 +212,7 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
             const blocked = cannotCast(unit, book.id);
             return (
               <li key={book.id}>
-                <img className="px" src={weaponIcon(def?.study === 'whiteMagic' ? 'staff' : 'tome')} width={32} height={32} alt="" />
+                <img className="px" src={itemIconFor(spellbookItem(book.id))} width={32} height={32} alt="" />
                 <div className="min-w-0">
                   <div className="nm">{def?.name ?? book.id}{def && <span className="tag tag-grey">{def.study === 'whiteMagic' ? '白' : '黑'} {def.rank}</span>}</div>
                   <div className="sp">{def?.effect}</div>

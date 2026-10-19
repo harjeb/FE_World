@@ -6,7 +6,7 @@ import type { ClassId } from '@common/data/classes.ts';
 import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
-import { portraitFor, spriteFor, weaponIcon } from '../assets.ts';
+import { itemIconFor, portraitFor, spriteFor } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import type { OpponentUnit } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
@@ -89,7 +89,7 @@ export function BanPage({ id }: { id: string }) {
                     </span>
                     {STAT_KEYS.map(k => <span key={k} className="s">{u.stats[k] ?? 0}</span>)}
                     <span className="wpns" title={u.weapons.map(w => WEAPONS[w as WeaponId]?.name ?? w).join('、')}>
-                      {u.weapons.map(w => <img key={w} className="px" src={weaponIcon(WEAPONS[w as WeaponId].type)} width={16} height={16} alt={WEAPONS[w as WeaponId].name} />)}
+                      {u.weapons.map(w => <img key={w} className="px" src={itemIconFor(w)} width={16} height={16} alt={WEAPONS[w as WeaponId].name} />)}
                       <span className="wnames">{u.weapons.map(w => WEAPONS[w as WeaponId]?.name ?? w).join(' ')}</span>
                     </span>
                     <button type="button" className="btn btn-sm ban" aria-pressed={banned} disabled={!banned && full}

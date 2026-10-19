@@ -3,7 +3,8 @@ import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import { actionOptions, forecast, terrainAt, unitById } from '@common/engine/index.ts';
 import type { BattleState } from '@common/engine/index.ts';
 import { TERRAINS } from '@common/maps/map.ts';
-import { VULNERARY, weaponIcon } from '../assets.ts';
+import { itemIconFor } from '../assets.ts';
+import { spellbookItem } from '@common/game/items.ts';
 import { ArtIcon, AttackIcon, BackIcon, BagIcon, DanceIcon, HealIcon, RetreatIcon, SeizeIcon, SpellIcon, StaffIcon, WaitIcon } from '../ui/icons.tsx';
 import { artInfo, commandDest, commandOptions, isCommand, spellInfo, STAFF_EFFECT_TEXT } from './commands.ts';
 import type { CommandMode } from './commands.ts';
@@ -97,7 +98,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
               return (
                 <button key={o.weapon} type="button" className="wopt" aria-pressed={(mode as { weapon: string }).weapon === o.weapon}
                   onClick={() => ctl.chooseWeapon(o.weapon)}>
-                  <img className="px" src={weaponIcon(w.type)} width={32} height={32} alt="" />
+                  <img className="px" src={itemIconFor(o.weapon)} width={32} height={32} alt="" />
                   <span className="wn">{w.name} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.rank}{book ? ` · 剩 ${book.charges} 次` : ''}</span></span>
                   <span className="wd num">{desc}</span>
                 </button>
@@ -130,7 +131,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
               const stack = unit.items[i];
               return (
                 <button key={i} type="button" className="btn" onClick={() => ctl.useItem(i)}>
-                  <img className="px" src={VULNERARY} width={32} height={32} alt="" />
+                  <img className="px" src={itemIconFor(stack.id)} width={32} height={32} alt="" />
                   使用{ITEMS[stack.id].name}（回复 {Math.min(ITEMS[stack.id].heal, unit.stats.hp - unit.hp)}，剩 {stack.uses} 次）
                 </button>
               );
@@ -162,7 +163,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
           return (
             <button key={`${a.art}:${a.weapon}`} type="button" className="wopt" aria-pressed={mode.art === a.art && mode.weapon === a.weapon} disabled={!a.usable}
               onClick={() => ctl.chooseArt(a.art, a.weapon)} title={art?.effect}>
-              <img className="px" src={weaponIcon(w.type)} width={32} height={32} alt="" />
+              <img className="px" src={itemIconFor(a.weapon)} width={32} height={32} alt="" />
               <span className="wn">{art?.name ?? a.art} <span style={{ fontWeight: 400, color: '#6A6256' }}>{w.name}{art?.original ? ' · 原创' : ''}{art?.rank ? ` · ${art.rank}` : ''}</span></span>
               <span className="wd">{art?.effect}</span>
               <span className="wd num">耐久 −{a.cost}{a.durability !== null ? `（现 ${a.durability}）` : ''} · 射程 {art?.range.join('–')}{art?.might ? ` · 威力 ${art.might > 0 ? '+' : ''}${art.might}` : ''}{art?.hit ? ` · 命中 ${art.hit > 0 ? '+' : ''}${art.hit}` : ''}{art?.crit ? ` · 必杀 +${art.crit}` : ''}{!a.usable ? ' · 耐久不足' : ''}</span>
@@ -180,7 +181,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
           const book = spellInfo(c.spell);
           return (
             <button key={c.spell} type="button" className="wopt" aria-pressed={mode.spell === c.spell} onClick={() => ctl.chooseSpell(c.spell)} title={book?.effect}>
-              <img className="px" src={weaponIcon(c.role === 'attack' || c.role === 'hostile_support' ? 'tome' : 'staff')} width={32} height={32} alt="" />
+              <img className="px" src={itemIconFor(spellbookItem(c.spell))} width={32} height={32} alt="" />
               <span className="wn">{book?.name ?? c.spell} <span style={{ fontWeight: 400, color: '#6A6256' }}>剩 {c.charges} / {c.maxCharges} 次</span></span>
               <span className="wd">{book?.effect}</span>
             </button>
@@ -198,7 +199,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
           const book = state.units.find(u => u.id === mode.unit)?.bookInstances?.find(b => b.id === st.weapon);
           return (
             <button key={st.weapon} type="button" className="wopt" aria-pressed={mode.weapon === st.weapon} onClick={() => ctl.chooseStaff(st.weapon)}>
-              <img className="px" src={weaponIcon('staff')} width={32} height={32} alt="" />
+              <img className="px" src={itemIconFor(st.weapon)} width={32} height={32} alt="" />
               <span className="wn">{w.name} <span style={{ fontWeight: 400, color: '#6A6256' }}>{STAFF_EFFECT_TEXT[st.effect]}{book ? ` · 剩 ${book.charges} 次` : ''}</span></span>
               <span className="wd">{w.note} · 射程 {w.range.join('–')}</span>
             </button>

@@ -197,7 +197,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   useEffect(() => setQuote(null), [region, teamKey, version]);
 
   if (!today || !state) {
-    return <Shell current="field"><p style={{ color: '#4E473D' }}>暂时读不到出击信息（GET_TODAY），刷新页面再试。</p></Shell>;
+    return <Shell current="field"><p style={{ color: '#4E473D' }}>暂时读不到出击信息，刷新页面再试。</p></Shell>;
   }
   // 只在已开通的地区里选；没有可选地区时回世界地图开新路线。
   const target = today.sortieRegions.find(r => r.id === region) ?? today.sortieRegions[0];

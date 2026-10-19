@@ -23,7 +23,7 @@ export function StoryPage() {
   const day = state?.day ?? 0;
 
   if (!story) {
-    return <Shell current="story"><p style={{ color: '#4E473D' }}>暂时读不到主线进度（GET_STORY），刷新页面再试。</p></Shell>;
+    return <Shell current="story"><p style={{ color: '#4E473D' }}>暂时读不到主线进度，刷新页面再试。</p></Shell>;
   }
   // 防御性过滤：GET_STORY 已只返回已开放或已完成的章节，这里再过一次，不显示未开放章节。
   const chapters = story.chapters.filter(c => c.available || c.completed);

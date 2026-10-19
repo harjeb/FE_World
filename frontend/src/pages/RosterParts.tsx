@@ -12,8 +12,9 @@ import { WEAPON_ART_BY_ID } from '@common/data/weapon-arts.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { regionById } from '@common/game/calendar.ts';
+import { spellbookItem } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
-import { ICONS, weaponIcon } from '../assets.ts';
+import { itemIconFor } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ServerSnapshot, ServerUnit, ServerUnitDetail } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
@@ -191,7 +192,7 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
     const refinement = unit.weaponInstances.find(w => w.id === id)?.refinement ?? 0;
     return (
       <li key={`${id}${i}`}>
-        <img className="px" src={weaponIcon(WEAPONS[id].type)} width={32} height={32} alt="" />
+        <img className="px" src={itemIconFor(id)} width={32} height={32} alt="" />
         <div className="min-w-0">
           <div className="nm">{WEAPONS[id].name}{(id === 'fw_weapon_85' || refinement > 0) && ` +${refinement}`} {equipped && <span className="tag tag-blue">✓ 装备中</span>}{WEAPONS[id].grants?.skill && <span className="tag tag-brass">授予 {skillName(WEAPONS[id].grants!.skill!)}</span>}</div>
           <div className="sp">{weaponSpec(id)}</div>
@@ -220,7 +221,7 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
       <ul className="eq">
         {items.map((stack, i) => (
           <li key={i}>
-            <img className="px" src={ICONS.vulnerary} width={32} height={32} alt="" />
+            <img className="px" src={itemIconFor(stack.id)} width={32} height={32} alt="" />
             <div><div className="nm">{ITEMS[stack.id as ItemId]?.name ?? stack.id}</div><div className="sp">{stack.id === 'immortal_shield' ? '致命时自动消耗，保留 1 HP 并石化；每人最多 1 枚' : ITEMS[stack.id as ItemId] ? `回复 ${ITEMS[stack.id as ItemId].heal} HP · 剩余 ${stack.uses} / ${ITEMS[stack.id as ItemId].uses} 次` : `剩余 ${stack.uses} 次`}</div></div>
             <span />
           </li>
@@ -240,7 +241,7 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
             const def = SPELLBOOK_BY_ID.get(book.id);
             return (
               <li key={book.id}>
-                <img className="px" src={weaponIcon(def && (def.role === 'attack' || def.role === 'hostile_support') ? 'tome' : 'staff')} width={32} height={32} alt="" />
+                <img className="px" src={itemIconFor(spellbookItem(book.id))} width={32} height={32} alt="" />
                 <div className="min-w-0">
                   <div className="nm">{def?.name ?? book.id}</div>
                   <div className="sp">{def ? `${def.effect} · 射程 ${def.range[0]}–${def.range[1]}${def.might ? ` · 威力 ${def.might}` : ''}` : ''}</div>

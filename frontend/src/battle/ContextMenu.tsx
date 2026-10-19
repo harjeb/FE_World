@@ -5,7 +5,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, ReactNode, SyntheticEvent } from 'react';
 import type { BattleState, Point } from '@common/engine/index.ts';
-import { VULNERARY } from '../assets.ts';
+import { itemIconFor } from '../assets.ts';
 import type { BattleController } from './controller.ts';
 import { actionMenu, carried } from './menu.ts';
 import type { MenuEntry } from './menu.ts';
@@ -84,7 +84,7 @@ export function ContextMenu({ state, unitId, to, ctl, place, page }: {
           // through the existing item flow, exactly like the sidebar panel.
           <button key={`c${c.index}`} type="button" className="ctx-item"
             onClick={() => { ctl.chooseAction('item'); ctl.useItem(c.index!); }}>
-            <img className="px" src={VULNERARY} width={20} height={20} alt="" />使用{c.name}
+            <img className="px" src={itemIconFor(c.id ?? '')} width={20} height={20} alt="" />使用{c.name}
             <span className="ctx-sub">{c.detail}</span>
           </button>
         )

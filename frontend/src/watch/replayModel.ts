@@ -1,5 +1,5 @@
 // What the 回放 page shows around the board: the event list with its filters, where each step sits
-// on the turn timeline, and the result line (stars and why the third one was missed).
+// on the turn timeline, and the result line (winner and the stored reason).
 import { describe } from '../battle/log.ts';
 import type { LogEntry } from '../battle/log.ts';
 import type { Recording } from './recording.ts';
@@ -60,14 +60,9 @@ export function turnStarts(rec: Recording): Map<number, number> {
   return starts;
 }
 
-// 三星: win, within 12 turns, nobody defeated (PINEPASS_META.stars).
-export function starLine(rec: Recording, items: ReplayItem[]): { won: boolean; stars: number; missed: string | null } {
+// The stored outcome: who won and, for a loss, the server's reason (全军撤退, 主将阵亡, ...).
+export function resultLine(rec: Recording): { won: boolean; reason: string | null } {
   const end = rec.states[rec.states.length - 1];
   const won = end.result?.winner === 'player';
-  const lost = items.find(i => i.type === 'retreat');
-  const stars = won ? 1 + (end.turn <= 12 ? 1 : 0) + (lost ? 0 : 1) : 0;
-  const missed = !won ? end.result?.reason ?? null
-    : lost ? `第 ${lost.entry.turn} 回合 ${lost.entry.text.replace('，退出战斗。', '')}`
-      : end.turn > 12 ? `用了 ${end.turn} 回合` : null;
-  return { won, stars, missed };
+  return { won, reason: won ? null : end.result?.reason ?? null };
 }

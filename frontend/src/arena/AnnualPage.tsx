@@ -89,7 +89,7 @@ function AnnualOverview({ onStarted }: { onStarted: () => void }) {
   useEffect(() => setQuote(null), [version]);
 
   if (!annual || !state) {
-    return <Shell current="arena"><p style={{ color: '#4E473D' }}>暂时读不到大竞技场（GET_ANNUAL），刷新页面再试。</p></Shell>;
+    return <Shell current="arena"><p style={{ color: '#4E473D' }}>暂时读不到大竞技场，刷新页面再试。</p></Shell>;
   }
   const current = annual.entry && annual.entry.annualIndex === annual.annualIndex ? annual.entry : null;
   const previous = annual.entry && annual.entry.annualIndex !== annual.annualIndex ? annual.entry : null;

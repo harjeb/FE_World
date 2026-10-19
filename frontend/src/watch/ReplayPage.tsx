@@ -10,7 +10,7 @@ import type { BattleNote, ServerReplayData, ServerReplayDetail } from '../api/se
 import { replayFrom } from './recording.ts';
 import type { Recording } from './recording.ts';
 import { MARK, ReplayTrack, StepMarks } from './ReplayParts.tsx';
-import { isKey, replayItems, starLine, timeline, turnStarts } from './replayModel.ts';
+import { isKey, replayItems, resultLine, timeline, turnStarts } from './replayModel.ts';
 import type { ReplayItem } from './replayModel.ts';
 import { realDateTime } from '../ui/calendar.ts';
 import { IntentQuote } from './WatchParts.tsx';
@@ -29,7 +29,7 @@ interface Prepared {
   items: ReplayItem[];
   line: ReturnType<typeof timeline>;
   starts: Map<number, number>;
-  stars: { won: boolean; stars: number; missed: string | null };
+  outcome: { won: boolean; reason: string | null };
 }
 
 // Older rules cannot be re-simulated safely (TODO DATA-03): show only the stored final board.
@@ -42,12 +42,12 @@ function prepare(data: ServerReplayData, compatible: boolean): Prepared {
   const rec = compatible ? replayFrom(data.initial, data.actions) : finalOnly(data);
   const ctl = new BattleController({
     key: 'replay', initial: rec.states[0], readOnly: true, surrender: false,
-    meta: { region: data.name, goal: data.goalText, extraLabel: data.kind === 'field' ? '三星评价' : '结果', extraValue: '' },
+    meta: { region: data.name, goal: data.goalText, extraLabel: '结果', extraValue: '' },
     result: () => ({ title: '', won: false, lines: [], action: { label: '', run: () => {} } }),
   });
   ctl.set({ settings: { ...ctl.get().settings, scenes: 'off', threat: false, grid: true } });
   const items = replayItems(rec);
-  return { rec, ctl, items, line: timeline(rec), starts: turnStarts(rec), stars: starLine(rec, items) };
+  return { rec, ctl, items, line: timeline(rec), starts: turnStarts(rec), outcome: resultLine(rec) };
 }
 
 // 历史回放: a stored battle from the server (GET_REPLAY), step by step. Nothing here changes any result.
@@ -86,7 +86,7 @@ const ACTIVITY_NAME: Record<string, string> = { field: '野外战斗', quest: '�
 
 export function ReplayView({ detail }: { detail: ServerReplayDetail }) {
   const data = detail.battle;
-  const [{ rec, ctl, items, line, starts, stars }] = useState(() => prepare(data, detail.compatible));
+  const [{ rec, ctl, items, line, starts, outcome }] = useState(() => prepare(data, detail.compatible));
   const notes: BattleNote[] = detail.notes.filter(n => n.kind === 'phase');
   const snap = useSyncExternalStore(ctl.subscribe, ctl.get);
   const [pos, setPos] = useState(0);
@@ -209,16 +209,9 @@ export function ReplayView({ detail }: { detail: ServerReplayDetail }) {
         <div className="flex flex-col">
           <span className="hud-k">结果</span>
           <span className="hud-v">
-            {stars.won ? '胜利' : '战败'} · {line.turns} 回合
-            {field && <> · <span style={{ color: '#E7C266' }}>{'★'.repeat(stars.stars)}</span><span style={{ color: '#8FA3B0' }}>{'★'.repeat(3 - stars.stars)}</span> {['零', '一', '二', '三'][stars.stars]}星</>}
+            {outcome.won ? '胜利' : '战败'} · {line.turns} 回合{outcome.reason && ` · ${outcome.reason}`}
           </span>
         </div>
-        {field && stars.missed && (
-          <div className="flex flex-col">
-            <span className="hud-k">未达三星原因</span>
-            <span className="hud-v" style={{ fontWeight: 500 }}>{stars.missed}</span>
-          </div>
-        )}
         <span className="ml-auto" style={{ fontSize: 13, color: '#DCE5EB' }}>{detail.compatible ? '回放只可浏览，不会影响任何结果' : `${detail.reason ?? '旧规则记录'}：只显示终局`}</span>
       </header>
 
@@ -280,7 +273,7 @@ export function ReplayView({ detail }: { detail: ServerReplayDetail }) {
           <section className="panel" aria-labelledby="ai-h">
             <div className="ph"><h2 id="ai-h">Agent 当时上报的意图</h2><span className="tag tag-brass">计划描述</span></div>
             <div className="intent-k">第 {turn} 回合</div>
-            {note ? <IntentQuote text={note.text} meta={[`${realDateTime(note.at)} 上报`]} /> : <div className="intent-empty">这一回合 Agent 没有上报意图（AGENT_PHASE_NOTE）。</div>}
+            {note ? <IntentQuote text={note.text} meta={[`${realDateTime(note.at)} 上报`]} /> : <div className="intent-empty">这一回合 Agent 没有上报意图。</div>}
           </section>
         </aside>
       </main>

@@ -21,7 +21,7 @@
 .flow-sep { color: #b9ae98; }
 
 .listscroll { overflow-x: auto; }
-.thead, .drow { display: grid; grid-template-columns: 46px minmax(96px, 128px) repeat(9, minmax(24px, 1fr)) minmax(92px, 150px) 84px; gap: 6px; align-items: center; min-width: 730px; }
+.thead, .drow { display: grid; grid-template-columns: 46px minmax(92px, 128px) repeat(9, minmax(24px, 1fr)) minmax(76px, 150px) 76px; gap: 4px; align-items: center; min-width: 600px; }
 .thead { padding: 6px 12px; font-size: 12px; color: var(--color-muted); background: #efe7d6; border-bottom: 1px solid var(--color-line-soft); }
 .thead span { text-align: center; }
 .thead span:nth-child(-n + 2) { text-align: left; }
@@ -75,6 +75,8 @@
 .star:disabled { cursor: not-allowed; opacity: 0.45; }
 .star[aria-pressed='true'] { color: #fff; background: var(--color-brass); border-color: #8e6c2e; }
 .ready { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
+/* A long roster pushes the start button below the fold; on desktop it stays pinned to the viewport. */
+@media (min-width: 900px) { .ready { position: sticky; bottom: 12px; z-index: 2; box-shadow: 0 -6px 18px -10px rgba(48, 45, 40, 0.45); } }
 .deploy-help { display: flex; gap: 16px; justify-content: space-between; padding: 0 14px 12px; font-size: 13px; color: var(--color-ink-2); flex-wrap: wrap; min-height: 32px; }
 
 .sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }

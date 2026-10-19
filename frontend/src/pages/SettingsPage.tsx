@@ -116,8 +116,8 @@ export function SettingsPage() {
           <section className="panel" aria-labelledby="ar-h">
             <div className="ph"><h2 id="ar-h">Agent 的报告</h2>{info?.model && <span className="tag tag-grey">{info.model}</span>}</div>
             <dl className="facts">
-              <dt>培养计划</dt><dd>{info?.plan ?? '还没有上报（AGENT_REPORT_PLAN）'}</dd>
-              <dt>离线日报</dt><dd>{info?.dailyReport ?? '还没有日报（AGENT_DAILY_REPORT）'}</dd>
+              <dt>培养计划</dt><dd>{info?.plan ?? '还没有上报'}</dd>
+              <dt>离线日报</dt><dd>{info?.dailyReport ?? '还没有日报'}</dd>
             </dl>
             {(state.features?.spectate || state.features?.reports) && <div className="go-bar">
               {state.features.spectate && <a className="btn btn-sm" href={links.spectate}>实时观战</a>}

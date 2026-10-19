@@ -5,7 +5,7 @@ import { GROWTH_TYPE_NAMES } from '@common/data/growth-types.ts';
 import type { GrowthType } from '@common/data/growth-types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import { OP } from '@common/protocol/ops.ts';
-import { weaponIcon } from '../assets.ts';
+import { itemIconFor } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ServerUnit } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
@@ -113,7 +113,7 @@ export function RosterPage({ unit: wanted, tab }: { unit: string | null; tab: Ro
                     <UnitFace unit={u} size={46} />
                     <span className="min-w-0">
                       <span className="r-name">{u.name} <span className="gt">· {u.growthTypeName} · {u.age} 岁</span>{u.isProtagonist && <span className="mini-up" title="主角">★</span>}{canPromote(u) && <span className="mini-up" title="可转职">✚</span>}</span>
-                      <span className="r-sub">{main && <img className="px" src={weaponIcon(WEAPONS[main].type)} width={16} height={16} alt="" />}{u.className} · Lv {u.level}{u.lifespanWarning !== 'none' && <span className="r-warn"> · 寿命预警</span>}</span>
+                      <span className="r-sub">{main && <img className="px" src={itemIconFor(main)} width={16} height={16} alt="" />}{u.className} · Lv {u.level}{u.lifespanWarning !== 'none' && <span className="r-warn"> · 寿命预警</span>}</span>
                     </span>
                     <StatusTag unit={u} />
                   </button>

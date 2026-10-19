@@ -4,6 +4,7 @@ import { CLASSES } from '@common/data/classes.ts';
 import type { ClassRoute } from '@common/data/classes.ts';
 import type { WeaponType } from '@common/data/types.ts';
 import type { UnitState } from '@common/engine/index.ts';
+import { drawItemIcon, ICON_SIZE } from '@common/icons/draw.ts';
 import { drawMap, glyphRows, mapSeed, TILE } from '@common/maps/draw.ts';
 import type { Terrain } from '@common/maps/map.ts';
 import { drawPortrait, SIZE as PORTRAIT_SIZE } from '@common/portraits/draw.ts';
@@ -193,6 +194,26 @@ export function fighterFor(unit: UnitState): string | null {
   return null;
 }
 
+// One icon per weapon type, for class-level displays (转职 options). Single items use itemIconFor.
 export function weaponIcon(type: WeaponType): string {
   return WEAPON_ICONS[type];
+}
+
+// Every weapon, spellbook, manual and item has its own icon (backend/common/icons), painted once per key.
+const itemIcons = new Map<string, string>();
+export function itemIconFor(key: string): string {
+  let url = itemIcons.get(key);
+  if (!url) {
+    const px = drawItemIcon(key);
+    if (!px) return icoSeal;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = ICON_SIZE;
+    const ctx = canvas.getContext('2d')!;
+    const image = ctx.createImageData(ICON_SIZE, ICON_SIZE);
+    image.data.set(px);
+    ctx.putImageData(image, 0, 0);
+    url = canvas.toDataURL();
+    itemIcons.set(key, url);
+  }
+  return url;
 }

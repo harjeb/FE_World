@@ -24,7 +24,7 @@ export function WorkshopPage() {
   const { busy, act } = useAct();
   const [perfect, setPerfect] = useState<Record<string, boolean>>({});
   if (!production || !state) {
-    return <Shell current="workshop"><p style={{ color: '#4E473D' }}>暂时读不到生产信息（GET_PRODUCTION），刷新页面再试。</p></Shell>;
+    return <Shell current="workshop"><p style={{ color: '#4E473D' }}>暂时读不到生产信息，刷新页面再试。</p></Shell>;
   }
   const day = state.day;
   const regions = state.regions;

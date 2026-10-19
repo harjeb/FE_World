@@ -75,7 +75,7 @@ export function CampActions() {
     return (
       <section className="panel" aria-labelledby="acts-h">
         <div className="ph"><h2 id="acts-h">行动</h2></div>
-        <p style={{ padding: '12px 16px', fontSize: 13, color: '#6A6256' }}>暂时读不到今天的行动（GET_TODAY），刷新页面再试。</p>
+        <p style={{ padding: '12px 16px', fontSize: 13, color: '#6A6256' }}>暂时读不到今天的行动，刷新页面再试。</p>
       </section>
     );
   }

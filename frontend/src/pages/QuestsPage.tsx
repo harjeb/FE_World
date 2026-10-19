@@ -61,7 +61,7 @@ function RegionsTab() {
   const [team, setTeam] = useState<string[]>([]);
   const prepRef = useRef<HTMLElement>(null);
   useEffect(() => { if (selected) prepRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [selected]);
-  if (!quests || !state) return <p style={{ color: '#4E473D' }}>暂时读不到地区任务（GET_QUESTS），刷新页面再试。</p>;
+  if (!quests || !state) return <p style={{ color: '#4E473D' }}>暂时读不到地区任务，刷新页面再试。</p>;
   // 防御性过滤：GET_QUESTS 已只返回已开通地区，这里再按 state.regions 过一次，避免显示未开通地区。
   const openIds = new Set(state.regions.map(r => r.id));
   const openRegions = quests.regions.filter(r => openIds.has(r.region))

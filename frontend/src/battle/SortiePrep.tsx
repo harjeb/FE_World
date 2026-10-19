@@ -61,7 +61,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
     return (
       <Shell current="field">
         <section className="panel" style={{ padding: 16 }}>
-          <p style={{ fontSize: 14 }}>暂时读不到出击信息（GET_TODAY），刷新页面再试。</p>
+          <p style={{ fontSize: 14 }}>暂时读不到出击信息，刷新页面再试。</p>
           <a className="btn btn-ghost" href={links.camp} style={{ marginTop: 10 }}>返回军营</a>
         </section>
       </Shell>

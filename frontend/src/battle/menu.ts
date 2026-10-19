@@ -50,6 +50,8 @@ export function actionMenu(state: BattleState, unitId: string, to: Point): MenuE
 
 export interface CarryEntry {
   kind: 'weapon' | 'consumable';
+  // Item key of a consumable (its icon); undefined for weapons.
+  id?: string;
   name: string;
   detail: string;
   // Index into unit.items for consumables; undefined for weapons.
@@ -81,6 +83,7 @@ export function carried(state: BattleState, unitId: string, to: Point): { weapon
     const item = ITEMS[stack.id as ItemId] as { name: string; heal: number; uses?: number; shield?: boolean };
     return {
       kind: 'consumable' as const,
+      id: stack.id,
       name: item.name,
       detail: item.shield ? '致死时自动触发' : `回复 ${item.heal} · 剩 ${stack.uses} 次`,
       index,

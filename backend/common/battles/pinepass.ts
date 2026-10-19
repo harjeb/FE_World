@@ -32,7 +32,6 @@ export const PINEPASS_ROWS = [
 export const PINEPASS_META = {
   region: '西境 · 区域 2 · 第 3 战',
   goal: '击败敌方主将 · 布洛克',
-  stars: '12 回合内 · 无人被击败',
 };
 
 interface Spec {
