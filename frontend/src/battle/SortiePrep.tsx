@@ -1,3 +1,5 @@
+import type { AiDifficulty } from '@common/engine/types.ts';
+import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
 import { useState } from 'react';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
@@ -49,11 +51,12 @@ export function FieldTabs({ current }: { current: FieldTab }) {
 
 // 出征准备 (docs/00 §11「出征前展示胜负条件、回合截止、真实死亡风险及携带保命道具」): nothing is
 // spent until 确认出征. Every number here comes from GET_TODAY / GET_STATE.
-export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: string | null; onStart: (region: number, unitIds: string[]) => void }) {
+export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: string | null; onStart: (region: number, unitIds: string[], aiDifficulty: AiDifficulty) => void }) {
   const { today, state, annual } = useSession();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const sortie = today?.actions.find(a => a.key === 'sortie');
   const max = sortie?.maxUnits ?? DEFAULT_TEAM;
+  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('normal');
   const [regionId, setRegionId] = useState<number | null>(() => regionInHash(window.location.hash));
   const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(DEFAULT_TEAM, max)).map(u => u.id));
 
@@ -84,6 +87,8 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
       </Shell>
     );
   }
+  const hardUnlocked = state.hardUnlocks?.regions?.includes(target.id) === true;
+  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
   const exploration = state.world.nodes.find(node => node.id === target.id);
   const picked = active.filter(u => team.includes(u.id));
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
@@ -114,7 +119,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
             <div className="ph"><h2 id="rg-h">选择地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>已讨伐 {cleared} · 已开通 {today.sortieRegions.length} 个地区</span></div>
             <div className="regions" role="radiogroup" aria-label="出征地区">
               {today.sortieRegions.map(r => (
-                <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" onClick={() => setRegionId(r.id)}>
+                <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" disabled={busy} onClick={() => { setRegionId(r.id); setAiDifficulty('normal'); }}>
                   <span className="rg-n">{r.name}</span>
                   <span className="rg-l">敌 Lv {r.level}</span>
                   <span className="rg-r">{r.resource}</span>
@@ -153,13 +158,14 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
             <dt>日期</dt><dd>{sortie.costDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
             {sortie.lethal && <><dt>阵亡</dt><dd className="risk">倒下的角色永久死亡，撤退只能保住还活着的人{lead ? `（主角${lead.name}倒下只撤退，不会死亡）` : ''}。</dd></>}
           </dl>
+          <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度赢得本地区野外遭遇战后解锁，仅限本地区野外。" onChange={setAiDifficulty} disabled={busy} />
           {warning && <p className="a-warn" role="note">{warning}</p>}
           {error && <p role="alert" style={{ padding: '0 16px', fontSize: 13, color: '#93392F' }}>{error}</p>}
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
             <button type="button" className="btn btn-primary btn-lg" disabled={busy || !sortie.available || picked.length === 0}
-              onClick={() => onStart(target.id, picked.map(u => u.id))}>
-              {busy ? '出征中…' : `确认出征 · ${target.name} · ${picked.length} 人`}
+              onClick={() => onStart(target.id, picked.map(u => u.id), effectiveDifficulty)}>
+              {busy ? '出征中…' : `确认出征 · ${target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
             </button>
           </div>
         </section>

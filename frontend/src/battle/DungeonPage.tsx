@@ -1,3 +1,5 @@
+import type { AiDifficulty } from '@common/engine/types.ts';
+import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import type { BattleState } from '@common/engine/index.ts';
 import { regionById } from '@common/game/calendar.ts';
@@ -128,6 +130,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
               <div className="ph"><h2 id="run-h">远征进度</h2><span style={{ fontSize: 12, color: '#6A6256' }}>敌 Lv {run.level}（出发时锁定）</span></div>
               <RunMap run={run} />
               <dl className="facts">
+                <dt>战斗难度</dt><dd>{difficultyLabel(run.aiDifficulty)}（本次远征已锁定）</dd>
                 <dt>待带回</dt><dd>{lootLine(run.pendingLoot)}<span className="muted">（完整通关才带回，撤离或失败作废）</span></dd>
                 <dt>下一图</dt><dd>{run.nextStageName ?? `第 ${next} 图`} · 推进 {stageDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
                 <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡；全员倒下即远征失败。</dd>
@@ -191,10 +194,12 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const [region, setRegion] = useState<number | null>(() => regionInHash(window.location.hash));
   // Same default as 出征准备: the first six, never more than the field allows.
   const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(6, max)).map(u => u.id));
-  const [quote, setQuote] = useState<ActionQuote | null>(null);
+  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('normal');
+  const [quoted, setQuoted] = useState<{ key: string; quote: ActionQuote } | null>(null);
+  const setQuote = () => setQuoted(null);
   const version = state?.version ?? 0;
   const teamKey = team.join(',');
-  useEffect(() => setQuote(null), [region, teamKey, version]);
+  useEffect(() => setQuoted(null), [region, teamKey, version, aiDifficulty]);
 
   if (!today || !state) {
     return <Shell current="field"><p style={{ color: '#4E473D' }}>暂时读不到出击信息，刷新页面再试。</p></Shell>;
@@ -215,6 +220,10 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
       </Shell>
     );
   }
+  const hardUnlocked = state.hardUnlocks?.dungeons?.includes(target.id) === true;
+  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
+  const quoteKey = JSON.stringify([target.id, teamKey, version, effectiveDifficulty]);
+  const quote = quoted?.key === quoteKey ? quoted.quote : null;
   const exploration = state.world.nodes.find(node => node.id === target.id);
   const picked = active.filter(u => team.includes(u.id));
   const top = Math.max(0, ...picked.map(u => u.level));
@@ -247,7 +256,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
             <div className="ph"><h2 id="drg-h">选择地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>敌人等级在出发时锁定</span></div>
             <div className="regions" role="radiogroup" aria-label="远征地区">
               {today.sortieRegions.map(r => (
-                <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" onClick={() => setRegion(r.id)}>
+                <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" disabled={busy !== null} onClick={() => { setRegion(r.id); setAiDifficulty('normal'); setQuote(); }}>
                   <span className="rg-n">{r.name}</span>
                   <span className="rg-l">敌 Lv {r.level}</span>
                   <span className="rg-r">{r.resource}</span>
@@ -273,18 +282,19 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
             <dt>总耗时</dt><dd>打满 {DUNGEON_STAGES} 张共 {DUNGEON_STAGE_DAYS * DUNGEON_STAGES} 日 → {total.label}（每进一张图才支付那 {DUNGEON_STAGE_DAYS} 日）</dd>
             <dt>阵亡</dt><dd className="risk">倒下的角色永久死亡{lead ? `（主角${lead.name}倒下只撤退）` : ''}；撤离保留已发生的伤亡。</dd>
           </dl>
-          {quote && <QuoteBox quote={quote} />}
+          <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度完整通关本地区非任务大副本后解锁，仅限本地区大副本。" onChange={value => { setQuote(); setAiDifficulty(value); }} disabled={busy !== null} />
+          {quote && <><p className="pfoot">预览战斗难度：{difficultyLabel(effectiveDifficulty)}</p><QuoteBox quote={quote} /></>}
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
             {!quote
               ? <button type="button" className="btn" disabled={busy !== null || picked.length === 0}
-                onClick={() => void act('quote', () => session.quote('dungeon', { region: target.id, unitIds: picked.map(u => u.id) }),
-                  q => { setQuote(q); return q.blockers.length > 0 ? `现在不能出发：${q.blockers.join('；')}` : `报价：第 1 图推进 ${q.costDays} 日 → ${q.date.label}`; })}>
+                onClick={() => void act('quote', () => session.quote('dungeon', { region: target.id, unitIds: picked.map(u => u.id), aiDifficulty: effectiveDifficulty }),
+                  q => { setQuoted({ key: quoteKey, quote: q }); return q.blockers.length > 0 ? `现在不能出发：${q.blockers.join('；')}` : `报价：第 1 图推进 ${q.costDays} 日 → ${q.date.label}`; })}>
                 {busy === 'quote' ? '预览中…' : '预览第 1 图'}
               </button>
               : <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || quote.blockers.length > 0}
                 onClick={() => void act('start', () => session.execute(quote.quoteId), () => `出发：${target.name}大副本第 1 图`).then(ok => { if (ok) onStarted(); })}>
-                {busy === 'start' ? '出发中…' : `确认出发 · ${target.name} · ${picked.length} 人`}
+                {busy === 'start' ? '出发中…' : `确认出发 · ${target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
               </button>}
           </div>
         </section>

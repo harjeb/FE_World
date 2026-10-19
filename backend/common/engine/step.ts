@@ -3,7 +3,7 @@ import type { WeaponId } from '../data/weapons.ts';
 import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
-import { decide } from './ai.ts';
+import { decide, nextEnemyAction } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
 import { breakIce, moveUnit } from './terrain.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
@@ -426,12 +426,14 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
   endSleep(state, 'player', events);
   expireArtPhase(state, 'player', 'end', events);
   startPhase(state, 'enemy', events);
-  for (const enemy of living(state, 'enemy')) {
-    if (state.result) return;
-    if (!enemy.alive) continue;
-    // 石化中的单位不能行动（docs/00 §7.2）。
-    if (enemy.petrified || isAsleep(enemy)) { enemy.acted = true; continue; }
-    applyAct(state, decide(state, enemy), events);
+  const enemies = living(state, 'enemy');
+  for (const enemy of enemies) if (enemy.petrified || isAsleep(enemy)) enemy.acted = true;
+  // shortcut: six full searches per enemy phase; remaining actors still use coordinated tactics.
+  const searchBudget = { remaining: 432 };
+  while (!state.result) {
+    const action = nextEnemyAction(state, enemies, searchBudget);
+    if (!action) break;
+    applyAct(state, action, events);
   }
   endSleep(state, 'enemy', events);
   expireArtPhase(state, 'enemy', 'end', events);

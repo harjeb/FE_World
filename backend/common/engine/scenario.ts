@@ -1,4 +1,5 @@
-import { createEnemy } from '../game/enemies.ts';
+import { createEnemy, type EnemySpec } from '../game/enemies.ts';
+import { addEnemyReserves } from '../game/enemy-formation.ts';
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { attackWeapons, cellKey, classOf, inBounds, living, samePoint, unitAt, wake } from './units.ts';
 import { WEAPONS } from '../data/weapons.ts';
@@ -171,6 +172,7 @@ function nearestTargets(state: BattleState, side: 'player' | 'enemy', from: Poin
 function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioAction, events: BattleEvent[]): void {
   if (action.kind === 'spawn') {
     const leader = living(state, 'enemy')[0];
+    const deployed: EnemySpec[] = [];
     action.units.forEach((spec, index) => {
       const pos = freePoint(state, spec.pos, leader);
       if (!pos) {
@@ -179,14 +181,21 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
       }
       let id = `scenario-${event.id}-${index}`;
       while (state.units.some(unit => unit.id === id)) id += '-x';
-      const enemy = createEnemy(id, {
+      const enemySpec: EnemySpec = {
+        aiDifficulty: state.aiDifficulty, seed: `${state.id}:${event.id}`,
         classId: spec.classId, level: Math.max(1, Math.min(99, (state.scenario?.baseLevel ?? 1) + spec.levelOffset)),
         pos, boss: spec.boss, behavior: spec.behavior,
-      });
+      };
+      const enemy = createEnemy(id, enemySpec);
+      deployed.push(enemySpec);
       state.units.push(enemy);
       events.push({ t: 'spawn', unit: id, event: event.id, spawned: structuredClone(enemy) });
       breakIce(state, enemy, [pos], events);
     });
+    for (const enemy of addEnemyReserves(state, deployed)) {
+      events.push({ t: 'spawn', unit: enemy.id, event: event.id, spawned: structuredClone(enemy) });
+      breakIce(state, enemy, [enemy.pos], events);
+    }
   } else if (action.kind === 'setObject') {
     const object = objectById(state, action.object);
     markObject(state, object, action.state, events, 'event');

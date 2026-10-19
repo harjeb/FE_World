@@ -1,5 +1,5 @@
 {
-  "docVersion": 8,
+  "docVersion": 12,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -58,7 +58,7 @@
       "op": 10,
       "name": "GET_STATE",
       "group": "账号",
-      "agentNote": "读取个人日期、可用行动日、金币、公共经验、名册摘要与下一次快照／竞技场时间。",
+      "agentNote": "读取个人日期、可用行动日、金币、公共经验、名册摘要与下一次快照／竞技场时间；hardUnlocks.regions/dungeons/quests 分别列出已普通通关、可选困难的地区野图／随机副本／任务连战副本。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -199,7 +199,7 @@
       "op": 30,
       "name": "GET_TODAY",
       "group": "日历",
-      "agentNote": "今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。",
+      "agentNote": "今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 分别表示该地区野图／随机副本已开放困难。出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -217,7 +217,7 @@
       "op": 31,
       "name": "SORTIE",
       "group": "日历",
-      "agentNote": "带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。",
+      "agentNote": "本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -225,6 +225,14 @@
           "region"
         ],
         "properties": {
+          "aiDifficulty": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "hard"
+            ],
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Maps, day costs and fixed quest rewards stay the same; more/higher-level foes can yield more combat experience and drops."
+          },
           "region": {
             "type": "number",
             "minimum": 1,
@@ -415,6 +423,14 @@
             "items": {
               "type": "string"
             }
+          },
+          "aiDifficulty": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "hard"
+            ],
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Maps, day costs and fixed quest rewards stay the same; more/higher-level foes can yield more combat experience and drops."
           },
           "times": {
             "type": "number"
@@ -1307,7 +1323,7 @@
       "op": 101,
       "name": "START_DUNGEON",
       "group": "远征",
-      "agentNote": "开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。",
+      "agentNote": "开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1323,6 +1339,14 @@
             "items": {
               "type": "string"
             }
+          },
+          "aiDifficulty": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "hard"
+            ],
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Maps, day costs and fixed quest rewards stay the same; more/higher-level foes can yield more combat experience and drops."
           },
           "commandId": {
             "type": "string",
@@ -1576,7 +1600,7 @@
       "op": 123,
       "name": "GET_QUESTS",
       "group": "任务",
-      "agentNote": "读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖。",
+      "agentNote": "读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1594,7 +1618,7 @@
       "op": 124,
       "name": "START_QUEST",
       "group": "任务",
-      "agentNote": "接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
+      "agentNote": "接取并开始一个地区任务：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1602,6 +1626,14 @@
           "questId"
         ],
         "properties": {
+          "aiDifficulty": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "hard"
+            ],
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Maps, day costs and fixed quest rewards stay the same; more/higher-level foes can yield more combat experience and drops."
+          },
           "questId": {
             "type": "string"
           },

@@ -4,6 +4,13 @@
 //
 // Usage (from frontend/): npm run build && node test/backend-integration.e2e.mjs
 // Needs Node.js 22.18+ and Chromium (CHROME_BIN overrides the binary name).
+import { enemyStats, HARD_ENEMY_EFFECT, HARD_ENEMY_RULES, templateFor } from '../../backend/common/game/enemies.ts';
+import { STAT_KEYS } from '../../backend/common/data/types.ts';
+import { WEAPONS } from '../../backend/common/data/weapons.ts';
+import { canWield } from '../../backend/common/engine/units.ts';
+import { enemyLevel, regionById } from '../../backend/common/game/calendar.ts';
+import { QUEST_LEVEL_CAP } from '../../backend/common/game/quests.ts';
+import { CLASSES } from '../../backend/common/data/classes.ts';
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -215,15 +222,66 @@ try {
     await page.click('.ch-acts button');
     check('quest preparation shows team selection, date, enemy level and permanent-death risk',
       await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');
+    check('single-map quests have no difficulty selector', await page.evaluate(`!document.querySelector('section[aria-label="任务出征确认"] input[value="hard"]')`), 'normal-only task');
     await page.open(`http://127.0.0.1:${API_PORT}/#/field?region=2`, '#rg-h');
     check('field preparation shows the current bar and three-point reward',
       await page.evaluate(`(() => { const panel = document.querySelector('#rg-h').closest('section'); return panel.querySelector('progress')?.value === 0 && panel.innerText.includes('野外获胜 +3'); })()`), '0 / 100, win +3');
     const explorer = await api(page, 10);
     const explorerTeam = explorer.units.map(unit => unit.id);
-    const fieldWin = await api(page, 31, { region: 2, unitIds: explorerTeam });
-    const fieldCommand = prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, fieldWin.battleId);
+    check('field AI defaults to normal and hard starts locked', await page.evaluate(`document.querySelector('input[value="normal"]').checked && document.querySelector('input[value="hard"]').disabled`), 'normal first clear required');
+    let hardBlocked = false;
+    try { await api(page, 31, { region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' }); }
+    catch (error) { hardBlocked = /普通|困难/.test(error.message); }
+    check('direct hard requests cannot skip normal victory', hardBlocked && (await api(page, 10)).day === explorer.day, 'locked without spending days');
+    await page.click('.prep-go .btn-primary');
+    check('the first field battle starts in normal mode', await until(() => page.evaluate(`document.querySelector('.hud')?.innerText.includes('战斗难度：普通')`)), 'normal HUD');
+    const normalField = await api(page, 50, { full: true });
+    const fieldCommand = prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, normalField.battleId);
     await api(page, 54, fieldCommand);
     await api(page, 54, fieldCommand);
+    const hardDeparture = await api(page, 10);
+    check('normal field victory unlocks only this region hard field',
+      JSON.stringify(hardDeparture.hardUnlocks) === JSON.stringify({ regions: [2], dungeons: [], quests: [] }), 'no dungeon or quest unlock');
+    await page.reload('#rg-h');
+    check('normal remains the default after hard unlock', await page.evaluate(`document.querySelector('input[value="normal"]').checked && !document.querySelector('input[value="hard"]').disabled`), 'opt-in hard');
+    await page.viewport(390, 844);
+    await page.click('input[value="hard"]');
+    check('difficulty choice fits mobile', await page.evaluate(`document.querySelector('input[value="hard"]').checked && document.documentElement.scrollWidth <= innerWidth`), 'hard selected at 390px');
+    check('hard preparation describes stronger enemies and reward limits', await page.evaluate(`(() => { const text = document.querySelector('input[value="hard"]').closest('fieldset').innerText; return [${JSON.stringify(HARD_ENEMY_EFFECT)}, '任务固定奖励与行动日成本不变', '更多战斗经验与掉落机会', '难度锁定', '刷新不会重随机'].every(value => text.includes(value)); })()`), 'shared hard rules, fixed quest rewards and extra combat opportunities');
+    await page.click('.prep-go .btn-primary');
+    check('hard field battle starts through the UI', await until(() => page.evaluate(`document.querySelector('.hud')?.innerText.includes('战斗难度：困难')`)), 'locked hard HUD');
+    const fieldWin = await api(page, 50, { full: true });
+    check('server stores hard AI', fieldWin.state.aiDifficulty === 'hard', fieldWin.state.aiDifficulty);
+    const hardEnemies = fieldWin.state.units.filter(unit => unit.side === 'enemy');
+    check('three deployed units face five hard field enemies', explorerTeam.length === 3 && hardEnemies.length === 5, `${explorerTeam.length} deployed, ${hardEnemies.length} enemies`);
+    const normalEnemyLevel = Math.min(QUEST_LEVEL_CAP.standard, enemyLevel(hardDeparture.day, regionById(2).offset));
+    check('hard enemy levels increase within the configured range', hardEnemies.every(unit =>
+      unit.level >= Math.min(99, normalEnemyLevel + HARD_ENEMY_RULES.levelMin)
+      && unit.level <= Math.min(99, normalEnemyLevel + HARD_ENEMY_RULES.levelMax)), `normal level ${normalEnemyLevel}, hard levels ${hardEnemies.map(unit => unit.level).join(', ')}`);
+    check('UI-started hard enemies boost every stat within capped random ranges', hardEnemies.every(unit => {
+      const base = enemyStats(unit.classId, unit.level);
+      return unit.hp === unit.stats.hp && unit.con >= 9 && unit.con <= 11 && STAT_KEYS.every(key => {
+        const min = key === 'hp' ? HARD_ENEMY_RULES.hpMin : HARD_ENEMY_RULES.statMin;
+        const max = key === 'hp' ? HARD_ENEMY_RULES.hpMax : HARD_ENEMY_RULES.statMax;
+        const cap = CLASSES[unit.classId].caps[key];
+        return unit.stats[key] >= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * min / 100)))
+          && unit.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * max / 100)));
+      });
+    }), `${hardEnemies.length} enemies checked at their actual increased levels`);
+    check('hard enemies retain original gear and carry better usable equipment', hardEnemies.every(unit => {
+      const originals = templateFor(unit.classId).weapons;
+      return originals.every(id => unit.weapons.includes(id)) && unit.weapons.some(id =>
+        !originals.includes(id) && canWield(unit, id) && originals.some(old =>
+          WEAPONS[old].type === WEAPONS[id].type && (WEAPONS[id].might > WEAPONS[old].might
+            || (WEAPONS[id].heal === 'full' && WEAPONS[old].heal !== 'full')
+            || (WEAPONS[id].magRange && !WEAPONS[old].magRange))));
+    }), 'original options retained with a stronger legal weapon');
+    await page.reload('.hud');
+    const reloadedField = await api(page, 50, { full: true });
+    check('hard AI survives reload', await page.evaluate(`document.querySelector('.hud').innerText.includes('战斗难度：困难') && !document.querySelector('input[value="hard"]')`) && reloadedField.state.aiDifficulty === 'hard', 'locked hard restored');
+    check('reload preserves generated enemies without rerolling or rebuffing', JSON.stringify(reloadedField.state.units.filter(unit => unit.side === 'enemy')) === JSON.stringify(hardEnemies), 'same levels, stats, gear and positions');
+    await page.viewport(1440, 900);
+    await api(page, 56, { battleId: fieldWin.battleId });
     await page.open(`http://127.0.0.1:${API_PORT}/#/world`, '.world-map');
     await page.reload('.world-map');
     check('a real field settlement persists three points without opening neighbours',
@@ -241,10 +299,16 @@ try {
     await page.reload('[aria-labelledby="rg-2"]');
     check('quest completion adds five once and the quest bar refreshes after claiming',
       await page.evaluate(`document.querySelector('[aria-labelledby="rg-2"] progress')?.value === 8`), '3 + 5 = 8');
+    check('completed single-map tasks stay one-shot and do not advertise hard',
+      await page.evaluate(`!document.querySelector('[data-quest="gw1"] .ch-acts button')`)
+      && (await api(page, 123)).regions[0].quests.find(q => q.id === 'gw1').hardAvailable === false, 'no replay or hard task entry');
     for (let attempt = 0; attempt < 2; attempt++) {
-      let stage = await api(page, 101, { region: 2, unitIds: explorerTeam });
+      let stage = await api(page, 101, { region: 2, unitIds: explorerTeam, aiDifficulty: attempt === 0 ? 'normal' : 'hard' });
+      if (attempt === 1) check('the unlocked dungeon accepts hard on the next run', stage.run.aiDifficulty === 'hard', 'difficulty locked into run');
       for (let index = 0; index < 3; index++) {
         await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, stage.battleId));
+        if (attempt === 0) check(`dungeon hard unlock waits for full completion (stage ${index + 1})`,
+          (await api(page, 10)).hardUnlocks.dungeons.includes(2) === (index === 2), index === 2 ? 'full clear unlocks' : 'still locked');
         if (index < 2) stage = await api(page, 102);
       }
     }
@@ -252,6 +316,11 @@ try {
     await page.reload('#drg-h');
     check('dungeon bars reflect only the first full clear across two completed runs',
       await page.evaluate(`(() => { const panel = document.querySelector('#drg-h').closest('section'); return panel.querySelector('progress')?.value === 28 && panel.innerText.includes('仅首次完整通关 +20') && panel.innerText.includes('重复通关不加'); })()`), '8 + 20 = 28');
+    check('dungeon AI defaults to normal', await page.evaluate(`document.querySelector('input[value="normal"]').checked`), 'normal selected');
+    await page.click('.prep-go .go-bar button');
+    check('dungeon preview shows normal difficulty', await until(() => page.evaluate(`document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通')`)), 'normal preview');
+    await page.click('input[value="hard"]');
+    check('changing difficulty clears the obsolete preview', await page.evaluate(`!document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通') && document.querySelector('.prep-go .go-bar button').innerText.includes('预览第 1 图')`), 'new preview required');
     await page.evaluate(`localStorage.clear()`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     const name = 'e2e-seeded';

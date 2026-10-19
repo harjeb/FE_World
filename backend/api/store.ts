@@ -26,6 +26,7 @@ export interface PlayerFlags {
   storedWeapons?: WeaponInstance[];
   // 放回仓库的魔道书／杖剩余次数（与 storedWeapons 一样按先进先出对应仓库里的同名实物）。
   storedBooks?: { id: WeaponId; charges: number; maxCharges: number }[];
+  hardUnlocks?: { regions: number[]; dungeons: number[]; quests: string[] };
   clearedRegions: number[];
   // 世界地图开荒：玩家显式选择的已解锁地区（canonical 列表，含旧档认领结果；clearedRegions 永不重置，
   // 实际可用地区 = unlockedRegions ∪ clearedRegions，见 common/game/region-map.ts）。
@@ -196,7 +197,7 @@ export class Store {
 
   createPlayer(accountId: string, name: string, legion: string): Player {
     const id = randomUUID();
-    const flags: PlayerFlags = { calendarVersion: 500, clearedRegions: [], regionExploration: {}, shopMonth: 0, festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
+    const flags: PlayerFlags = { hardUnlocks: { regions: [], dungeons: [], quests: [] }, calendarVersion: 500, clearedRegions: [], regionExploration: {}, shopMonth: 0, festivalRound: 0, festivalYear: 0, chapterExpClaimed: [] };
     this.db.prepare(`INSERT INTO players
       (id, account_id, name, legion, day, gold, bexp, arena_points, arena_medals, registered, protagonist, defense, flags, version, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -213,6 +214,25 @@ export class Store {
     this.refillShop(id, flags.shopMonth);
     this.addEvent(id, 'account', `军团建立：${legion}。`, {});
     return this.getPlayer(id)!;
+  }
+
+  // Project only settlement evidence; never deserialize historical battle boards.
+  hardUnlockEvidence(playerId: string): { kind: 'region' | 'run'; region: number; questId: string | null }[] {
+    return this.db.prepare(`
+      SELECT 'region' AS kind, json_extract(data, '$.region') AS region, NULL AS questId
+      FROM battles WHERE player_id = ?
+        AND json_extract(data, '$.mode') = 'field'
+        AND json_extract(data, '$.state.result.winner') = 'player'
+        AND COALESCE(json_extract(data, '$.state.aiDifficulty'), 'normal') = 'normal'
+        AND COALESCE(json_extract(data, '$.questId'), '') = ''
+        AND COALESCE(json_extract(data, '$.runId'), '') = ''
+        AND NOT COALESCE(json_extract(data, '$.dungeon'), 0)
+        AND COALESCE(json_extract(data, '$.challengeId'), '') = ''
+      UNION ALL
+      SELECT 'run' AS kind, json_extract(data, '$.region') AS region, json_extract(data, '$.questId') AS questId
+      FROM runs WHERE player_id = ? AND state = 'completed'
+        AND COALESCE(json_extract(data, '$.aiDifficulty'), 'normal') = 'normal'
+    `).all(playerId, playerId) as { kind: 'region' | 'run'; region: number; questId: string | null }[];
   }
 
   getPlayer(id: string): Player | null {

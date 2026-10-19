@@ -27,7 +27,7 @@ import { summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
-import { QUEST_RECRUITS, questById } from '../common/game/quests.ts';
+import { QUEST_RECRUITS, questById, supportsHardQuest } from '../common/game/quests.ts';
 import { chapterAvailable, STORY_CHAPTERS } from '../common/game/story.ts';
 import { explorationOf, normalizeRegions, REGION_EXPLORATION_GAIN, REGION_EXPLORATION_MAX, worldMap, unlockedRegions as unionRegions } from '../common/game/region-map.ts';
 import type { FeatureAccess, RegionProgress } from '../common/game/region-map.ts';
@@ -354,8 +354,33 @@ export function flushRecoveryBag(store: Store, player: Player): number {
   return bag.length;
 }
 
-// Writes a finished battle back to the roster: growth, weapon experience, deaths, rewards and the
-// replay (docs/00 §7.1 for death, §8.3 for rewards).
+// Legacy unlocks require normal completion evidence, not mixed-difficulty progress flags.
+export function hardUnlocks(store: Store, player: Player): { regions: number[]; dungeons: number[]; quests: string[] } {
+  if (!player.flags.hardUnlocks) {
+    const unlocked = { regions: [] as number[], dungeons: [] as number[], quests: [] as string[] };
+    for (const row of store.hardUnlockEvidence(player.id)) {
+      if (row.kind === 'region') unlocked.regions.push(row.region);
+      else if (!row.questId) unlocked.dungeons.push(row.region);
+      else {
+        const quest = questById(row.questId);
+        if (quest && supportsHardQuest(quest)) unlocked.quests.push(quest.id);
+      }
+    }
+    player.flags.hardUnlocks = normalizeHardUnlocks(unlocked);
+    store.savePlayer(player);
+  }
+  return normalizeHardUnlocks(player.flags.hardUnlocks);
+}
+
+function normalizeHardUnlocks(value: NonNullable<Player['flags']['hardUnlocks']>) {
+  return {
+    regions: [...new Set((value.regions ?? []).filter(id => Number.isInteger(id) && id >= 1 && id <= 12))].sort((a, b) => a - b),
+    dungeons: [...new Set((value.dungeons ?? []).filter(id => Number.isInteger(id) && id >= 1 && id <= 12))].sort((a, b) => a - b),
+    quests: [...new Set((value.quests ?? []).filter(id => { const quest = questById(id); return !!quest && supportsHardQuest(quest); }))].sort(),
+  };
+}
+
+// Writes growth, weapon experience, deaths, rewards and replay back to the roster (docs/00 §7.1/§8.3).
 export function applyBattleOutcome(store: Store, player: Player, record: BattleRecord): BattleRewards {
   adoptRegions(store, player);
   const outcome = summarizeOutcome(record);
@@ -417,6 +442,10 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   const won = outcome.winner === 'player';
   if (record.mode === 'field' && won && record.region !== undefined
     && !record.questId && !record.runId && !record.dungeon && !record.challengeId) {
+    if ((record.state.aiDifficulty ?? 'normal') === 'normal') {
+      const unlocked = hardUnlocks(store, player);
+      player.flags.hardUnlocks = normalizeHardUnlocks({ ...unlocked, regions: [...unlocked.regions, record.region] });
+    }
     addRegionExploration(store, player, record.region, 'field');
   }
   // 经典地图宝箱/村庄战利品：稳定 id 去重，只有胜利才入库；副本由 handleRunOutcome 暂存。
@@ -490,6 +519,13 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
     if (run.stageIndex >= stageCount(run) - 1) {
       run.state = 'completed';
       completed = true;
+      if ((run.aiDifficulty ?? 'normal') === 'normal') {
+        const unlocked = hardUnlocks(store, player);
+        const quest = run.questId ? questById(run.questId) : undefined;
+        if (!run.questId) unlocked.dungeons.push(run.region);
+        else if (quest && supportsHardQuest(quest)) unlocked.quests.push(quest.id);
+        player.flags.hardUnlocks = normalizeHardUnlocks(unlocked);
+      }
       releaseLocks();
       // 野图也会写 clearedRegions，普通副本首通须看完整远征记录。
       const firstDungeonClear = run.questId
@@ -757,6 +793,7 @@ export function stateView(store: Store, player: Player) {
   const unlocked = adoptRegions(store, player);
   const progress = worldProgress(player);
   return {
+    hardUnlocks: hardUnlocks(store, player),
     player: { id: player.id, name: player.name, legion: player.legion, protagonist: player.protagonist },
     version: player.version ?? 0,
     eventCursor: store.latestEventId(player.id),

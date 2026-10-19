@@ -1,3 +1,4 @@
+import { difficultyLabel } from './DifficultyChoice.tsx';
 import { living } from '@common/engine/index.ts';
 import type { BattleController, Snapshot } from './controller.ts';
 
@@ -19,6 +20,7 @@ export function Hud({ snap, ctl }: { snap: Snapshot; ctl: BattleController }) {
       )}
       <div className="flex flex-col">
         <span className="hud-k">{meta.region}</span>
+        <span className="hud-k">战斗难度：{difficultyLabel(state.aiDifficulty)}（已锁定）</span>
         <span className="hud-v serif" style={{ fontSize: 18 }}>{view.name}</span>
       </div>
       <span className="hud-sep" aria-hidden="true" />

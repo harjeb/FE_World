@@ -1,9 +1,14 @@
 import { CLASSES } from '../data/classes.ts';
 import type { ClassId } from '../data/classes.ts';
-import { STAT_KEYS, stats } from '../data/types.ts';
+import { STAT_KEYS, rankAtLeast, stats } from '../data/types.ts';
+import { nextU32, seedRng } from '../engine/rng.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
+import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
-import type { Behavior, Point, UnitState } from '../engine/types.ts';
+import type { AiDifficulty, Behavior, Point, UnitState } from '../engine/types.ts';
+
+export const HARD_ENEMY_RULES = { extraRatio: 0.5, levelMin: 2, levelMax: 5, hpMin: 20, hpMax: 35, statMin: 10, statMax: 25, conMin: 1, conMax: 3 } as const;
+export const HARD_ENEMY_EFFECT = `敌军人数 +${HARD_ENEMY_RULES.extraRatio * 100}%（以合法空位为限），等级 +${HARD_ENEMY_RULES.levelMin}～${HARD_ENEMY_RULES.levelMax}（上限99），HP +${HARD_ENEMY_RULES.hpMin}～${HARD_ENEMY_RULES.hpMax}%，其他${STAT_KEYS.length - 1}项能力值各 +${HARD_ENEMY_RULES.statMin}～${HARD_ENEMY_RULES.statMax}%（独立随机、至少+1、向上取整且不超过职业上限），体格 +${HARD_ENEMY_RULES.conMin}～${HARD_ENEMY_RULES.conMax}，装备升级，移动不变`;
 
 // Generic enemies for random encounters (docs/00 §8.1.2). No personal character: they never grow,
 // and their numbers are the class template plus the class growth expectation for the level.
@@ -52,22 +57,56 @@ export function enemyStats(classId: ClassId, level: number): Stats {
 }
 
 export function defaultBehavior(classId: ClassId): Behavior {
-  if (classId === 'cleric' || classId === 'bishop' || classId === 'valkyrie' || classId === 'sage') return 'healer';
+  if (CLASSES[classId].weapons.staff !== undefined && templateFor(classId).weapons.some(id => WEAPONS[id].heal)) return 'healer';
   if (classId === 'archer' || classId === 'mage' || classId === 'sniper' || classId === 'bow_knight') return 'opportunist';
   if (classId === 'knight' || classId === 'general' || classId === 'fortress') return 'hold';
   return 'aggressive';
 }
 
-export interface EnemySpec { classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; name?: string; tags?: UnitState['tags'] }
+// Deliberately bounded catalog choices: no personal legends or movement-granting gear.
+const HARD_GEAR: Partial<Record<WeaponId, WeaponId>> = {
+  iron_sword: 'steel_sword', iron_lance: 'steel_lance', iron_axe: 'steel_axe', iron_bow: 'steel_bow',
+  steel_sword: 'silver_sword', killing_edge: 'silver_sword', steel_lance: 'silver_lance',
+  killer_lance: 'silver_lance', javelin: 'silver_lance', steel_axe: 'silver_axe', hand_axe: 'tomahawk',
+  steel_bow: 'silver_bow', killer_bow: 'silver_bow', fire: 'thunder', thunder: 'flame_lance',
+  gauntlet: 'steel_gauntlet', dagger: 'silver_dagger', beast_claw: 'beaststone_plus', dragonstone: 'dragonstone_plus',
+  heal: 'recover', recover: 'physic',
+};
+
+export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; name?: string; tags?: UnitState['tags'] }
 
 export function createEnemy(id: string, spec: EnemySpec): UnitState {
-  const statsValue = enemyStats(spec.classId, spec.level);
+  const hard = spec.aiDifficulty === 'hard';
+  // A fresh, unit-specific stream never consumes battle/combat randomness.
+  const rng = seedRng(JSON.stringify(['hard-enemy', spec.seed ?? id, id]));
+  const int = (min: number, max: number) => min + Math.floor(nextU32(rng) / 4294967296 * (max - min + 1));
+  const rules = HARD_ENEMY_RULES;
+  const level = hard ? Math.max(spec.level, Math.min(99, spec.level + int(rules.levelMin, rules.levelMax))) : spec.level;
+  const statsValue = enemyStats(spec.classId, level);
+  if (hard) {
+    for (const key of STAT_KEYS) {
+      const percent = key === 'hp' ? int(rules.hpMin, rules.hpMax) : int(rules.statMin, rules.statMax);
+      statsValue[key] = Math.min(CLASSES[spec.classId].caps[key], statsValue[key] + Math.max(1, Math.ceil(statsValue[key] * percent / 100)));
+    }
+  }
   const tpl = templateFor(spec.classId);
+  const ranks = { ...tpl.ranks };
+  let weapons = [...tpl.weapons];
+  if (hard) {
+    const upgrades = tpl.weapons.map(weapon => HARD_GEAR[weapon]).filter((weapon): weapon is WeaponId =>
+      weapon !== undefined && CLASSES[spec.classId].weapons[WEAPONS[weapon].type] !== undefined);
+    // Keep original crit, effectiveness and range choices. Full healing stays first.
+    weapons = [...new Set([...upgrades.filter(id => id !== 'physic'), ...tpl.weapons, ...upgrades])];
+    for (const id of weapons) {
+      const weapon = WEAPONS[id];
+      if (!rankAtLeast(ranks[weapon.type], weapon.rank)) ranks[weapon.type] = weapon.rank;
+    }
+  }
   const behavior = spec.behavior ?? defaultBehavior(spec.classId);
   return {
-    id, name: spec.name ?? `灰岩${tpl.name}`, side: 'enemy', classId: spec.classId, level: spec.level, exp: 0,
-    stats: statsValue, con: 8, hp: statsValue.hp, pos: [spec.pos[0], spec.pos[1]], weapons: [...tpl.weapons],
-    items: [], ranks: { ...tpl.ranks }, boss: spec.boss, behavior, acted: false, alive: true,
+    id, name: spec.name ?? `灰岩${tpl.name}`, side: 'enemy', classId: spec.classId, level, exp: 0,
+    stats: statsValue, con: hard ? 8 + int(rules.conMin, rules.conMax) : 8, hp: statsValue.hp, pos: [spec.pos[0], spec.pos[1]], weapons,
+    items: [], ranks, boss: spec.boss, behavior, acted: false, alive: true,
     ...(spec.tags ? { tags: [...spec.tags] } : {}),
   };
 }

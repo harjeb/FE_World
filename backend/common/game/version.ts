@@ -1,7 +1,22 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v8';
+export const RULESET_VERSION = 'rules-v13';
+// v28 / rules-v13: normal wild victories and complete dungeon clears unlock only their own hard modes.
+// Existing normal completion records backfill unlocks once; single-map quests remain normal-only.
+// Saved active hard runs may finish, and old replays keep their frozen rules.
+// v27 / rules-v12: hard formations and reinforcement waves grow by 50% where legal space permits;
+// separately seeded levels, every non-move stat and equipment improve once at creation.
+// Existing saved units are not rerolled; finish active battles/runs before deploying. Old replays stay frozen.
+// v26 / rules-v11: newly created hard enemies (including reinforcements) get capped HP/str/mag bonuses.
+// Existing saved units are never rebuffed; finish active battles/runs before deploying. Old replays stay frozen.
+// v25 / rules-v10: opt-in hard AI for field/quest/dungeon battles; difficulty is frozen in battle/run.
+// Old records default to normal. No stat, reward or calendar changes; arenas stay on normal AI.
+// Normal now coordinates focus fire and actor order; hard searches three-action continuations
+// with independent simulated rolls, including occupancy and broken ice. Real RNG is never peeked.
+// v24 / rules-v9: healing AI follows the front, chooses safer healing positions and can cast healing
+// books. New generic/classic units keep their healing role; explicit saved behaviors are unchanged.
+// Existing replays stay frozen; finish active battles/runs before deploying the changed AI.
 // v23 / rules-v8: new battles freeze the departure season; winter plain/water become snow/ice.
 // Armored movement breaks ice persistently. Existing boards are not repainted; old replays stay frozen.
 // Riverlands/lakeland are additional field layouts in regions 4/5; no player progression is migrated.
@@ -21,7 +36,7 @@ export const RULESET_VERSION = 'rules-v8';
 // 单图任务完成+5、每个副本（含多图任务）仅首次完整通关+20，不叠加、不计中间图或重刷。
 // 缺失字段的旧档惰性初始化，仅此前已讨伐地区设100；已有进度不再回填，已开通地区访问权、
 // clearedRegions、养成与冻结历史保留。探索满100才可选择相邻新路线，初选1–4仍自由。
-export const CATALOG_VERSION = 23;
+export const CATALOG_VERSION = 28;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

@@ -6,6 +6,7 @@ import { OP } from './ops.ts';
 export interface SchemaProperty {
   type: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | readonly ('string' | 'number')[]; enum?: readonly (string | number)[]; minimum?: number; maximum?: number; minLength?: number; minItems?: number; maxItems?: number; items?: SchemaProperty; properties?: Record<string, SchemaProperty>; required?: string[]; additionalProperties?: boolean | SchemaProperty; oneOf?: { required: string[] }[]; description?: string;
 }
+const aiDifficulty: SchemaProperty = { type: 'string', enum: ['normal', 'hard'], description: 'Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Maps, day costs and fixed quest rewards stay the same; more/higher-level foes can yield more combat experience and drops.' };
 const point: SchemaProperty = { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 };
 const string: SchemaProperty = { type: 'string' };
 const number: SchemaProperty = { type: 'number' };
@@ -30,7 +31,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   REST: { properties: { days: number } },
   PREVIEW_ACTION: { required: ['action'], properties: {
     action: { type: 'string', enum: ['sortie', 'sweep', 'train', 'art_training', 'rest', 'recruit', 'dungeon', 'annual'] },
-    region: number, unitIds: strings, times: number, unitId: string, weaponType: string, art: string, days: number,
+    region: number, unitIds: strings, aiDifficulty, times: number, unitId: string, weaponType: string, art: string, days: number,
   } },
   EXECUTE_ACTION: { required: ['quoteId'], properties: { quoteId: string } },
   PROMOTE: { required: ['unitId', 'promotion'], properties: { unitId: string, promotion: string } },
@@ -42,7 +43,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   BUY_CLASS_QUALIFICATION: { required: ['unitId', 'classId'], properties: { unitId: string, classId: string } },
   SWITCH_CLASS: { required: ['unitId', 'classId'], properties: { unitId: string, classId: string } },
   GET_MASTERY: { required: ['unitId'], properties: { unitId: string } },
-  START_DUNGEON: { required: ['region'], properties: { region: number, unitIds: strings } },
+  START_DUNGEON: { required: ['region'], properties: { region: number, unitIds: strings, aiDifficulty } },
   START_DISPATCH: { required: ['region', 'durationDays', 'unitIds'], properties: { region: number, durationDays: number, unitIds: strings, classId: string, weaponType: string } },
   START_PRODUCTION: { required: ['recipeId'], properties: { recipeId: string, perfect: boolean } },
   COLLECT_PRODUCTION: { required: ['orderId'], properties: { orderId: string } },
@@ -72,8 +73,8 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   AGENT_PHASE_NOTE: { required: ['text'], properties: { text: string, battleId: string } },
   AGENT_COMMENT_BATTLE: { required: ['text'], properties: { text: string, battleId: string } },
   AGENT_DAILY_REPORT: { required: ['text'], properties: { text: string } },
-  SORTIE: { required: ['region'], properties: { region: { type: 'number', minimum: 1, maximum: 12 }, unitIds: { type: 'array', items: { type: 'string' } } } },
-  START_QUEST: { required: ['questId'], properties: { questId: { type: 'string' }, unitIds: { type: 'array', items: { type: 'string' } } } },
+  SORTIE: { required: ['region'], properties: { aiDifficulty, region: { type: 'number', minimum: 1, maximum: 12 }, unitIds: { type: 'array', items: { type: 'string' } } } },
+  START_QUEST: { required: ['questId'], properties: { aiDifficulty, questId: { type: 'string' }, unitIds: { type: 'array', items: { type: 'string' } } } },
   RECRUIT: { required: ['region'], properties: { region: { type: 'number', minimum: 1, maximum: 12 } } },
   ACCEPT_RECRUIT: { properties: { id: { type: 'string' } } },
   HIRE_TAVERN: { required: ['region', 'id'], properties: { region: { type: 'number', minimum: 1, maximum: 12 }, id: { type: 'string' } } },

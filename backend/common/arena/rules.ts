@@ -1,8 +1,10 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
-import { CLASSES } from '../data/classes.ts';
 import type { ClassId } from '../data/classes.ts';
-import { rankAtLeast, withCharm } from '../data/types.ts';
+import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
+import { spellBlock } from '../engine/support.ts';
+import { canWield } from '../engine/units.ts';
+import { withCharm } from '../data/types.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
@@ -65,8 +67,12 @@ const key = ([x, y]: Point) => `${x},${y}`;
 const fail = (code: string, message: string): never => { throw new EngineError(code, message); };
 
 export function canHeal(unit: SnapshotUnit): boolean {
-  return unit.weapons.some(id => WEAPONS[id].type === 'staff'
-    && CLASSES[unit.classId].weapons.staff !== undefined && rankAtLeast(unit.ranks.staff, WEAPONS[id].rank));
+  return unit.weapons.some(id => WEAPONS[id].heal && canWield(unit, id)
+    && (unit.bookInstances?.find(row => row.id === id)?.charges ?? 1) > 0)
+    || (unit.spellbooks ?? []).some(row => {
+      const book = SPELLBOOK_BY_ID.get(row.id);
+      return row.charges > 0 && book?.role === 'heal' && !spellBlock(unit, book);
+    });
 }
 
 export function arenaMap(defense: Defense): ArenaMap {
@@ -92,7 +98,7 @@ export function validateDefense(defense: Defense): string[] {
   if (spots.some(s => !zone.has(s))) errors.push('站位必须在防守出生区内');
   if (new Set(spots).size !== spots.length) errors.push('站位不能重复');
   for (const slot of defense.slots) {
-    if (slot.behavior === 'healer' && !canHeal(slot.unit)) errors.push(`${slot.unit.name ?? CHARACTERS[slot.unit.character].name} 不会用杖，不能设为治疗优先`);
+    if (slot.behavior === 'healer' && !canHeal(slot.unit)) errors.push(`${slot.unit.name ?? CHARACTERS[slot.unit.character].name} 不能治疗，不能设为治疗优先`);
   }
   if (defense.commanders.length < 1 || defense.commanders.length > 3 || defense.commanders.some(c => !characters.includes(c))) {
     errors.push('主将与备选必须是防守名单中的 1–3 人');

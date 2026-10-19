@@ -1,3 +1,5 @@
+import type { AiDifficulty } from '@common/engine/types.ts';
+import { DifficultyChoice, difficultyLabel } from '../battle/DifficultyChoice.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { REPUTATION_TIERS } from '@common/game/reputation.ts';
 import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
@@ -54,11 +56,12 @@ export function QuestsPage({ tab }: { tab: 'regions' | 'tower' }) {
 // 地区任务 (docs/20): pick a region, read its quests and shop, preview the party, date and risk before
 // committing. Rewards are claimed separately; reputation never goes down when you buy.
 function RegionsTab() {
-  const { quests, state, annual } = useSession();
+  const { quests, state, annual, today, run } = useSession();
   const { busy, act } = useAct();
   const [regionId, setRegionId] = useState<number | null>(() => regionInHash(window.location.hash));
   const [selected, setSelected] = useState<string | null>(null);
   const [team, setTeam] = useState<string[]>([]);
+  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('normal');
   const prepRef = useRef<HTMLElement>(null);
   useEffect(() => { if (selected) prepRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [selected]);
   if (!quests || !state) return <p style={{ color: '#4E473D' }}>暂时读不到地区任务，刷新页面再试。</p>;
@@ -87,13 +90,17 @@ function RegionsTab() {
   const questName = (id: string) => allQuests.find(q => q.id === id)?.name ?? id;
   const active = state.units.filter(u => u.status === 'active');
   const locked = annualLive(annual);
+  const battleLocked = !!today?.battle || run?.state === 'battle' || run?.state === 'between_maps' || allQuests.some(q => q.inProgress);
+  const hardUnlocked = quest?.hardAvailable === true && quest.hardUnlocked === true;
+  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
 
   const pick = (q: QuestView) => {
+    setAiDifficulty('normal');
     setSelected(q.id);
     setTeam(active.filter(u => !busyReason(u, annual)).slice(0, q.maxUnits).map(u => u.id));
   };
   const start = (q: QuestView) => act(`s${q.id}`, async () => {
-    await session.run(OP.START_QUEST, { questId: q.id, unitIds: team });
+    await session.run(OP.START_QUEST, { questId: q.id, unitIds: team, aiDifficulty: q.hardUnlocked === true ? effectiveDifficulty : 'normal' });
     // 远征／连续副本任务进入副本页；单图任务进入普通出击页。
     go(q.tier === 'region' || (q.classic?.stageCount ?? 1) > 1 ? links.dungeon : links.field);
     return q.name;
@@ -133,17 +140,20 @@ function RegionsTab() {
                 <dt>奖励</dt><dd>{rewardText(quest)}{quest.optionalReward ? `；带回 1 箱即可完成，之后每多 1 箱再得${itemName(quest.optionalReward.item)} ×${quest.optionalReward.perExtraBox}` : ''}</dd>
                 <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡，主角只撤退；失败或撤退不发通关奖励，已发生的伤亡和消耗保留。</dd>
               </dl>
+              {quest.done && <p className="pfoot">再次出征保留任务完成与领奖记录，固定任务奖励不会重复领取。</p>}
+              {quest.hardAvailable && <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度完整通关本副本后解锁，仅限本副本。" onChange={setAiDifficulty} disabled={busy !== null || locked || battleLocked} />}
               <TeamPicker units={active} team={team} max={quest.maxUnits} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} />
               <div className="go-bar">
                 {locked && <span className="why" style={{ marginRight: 'auto' }}>大竞技场进行中，暂时不能接任务</span>}
+                {battleLocked && <span className="why">已有战斗或远征进行中，暂时不能出征</span>}
                 <button type="button" className="btn btn-ghost" onClick={() => setSelected(null)}>取消</button>
-                <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || team.length === 0 || locked} onClick={() => void start(quest)}>
-                  {busy === `s${quest.id}` ? '出发中…' : `确认出征 · ${team.length} 人`}
+                <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || team.length === 0 || locked || battleLocked || quest.inProgress} onClick={() => void start(quest)}>
+                  {busy === `s${quest.id}` ? '出发中…' : `确认出征 · ${team.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
                 </button>
               </div>
             </section>
           )}
-          <RegionPanel region={region} busy={busy} questName={questName} onStart={pick} onClaim={q => void claim(q)} onBuy={(r, item) => void buy(r, item)} />
+          <RegionPanel region={region} busy={busy} startLocked={locked || battleLocked} questName={questName} onStart={pick} onClaim={q => void claim(q)} onBuy={(r, item) => void buy(r, item)} />
         </div>
       </div>
     </>
@@ -172,8 +182,8 @@ function RegionRow({ region, current, onPick }: { region: QuestRegion; current: 
   );
 }
 
-function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
-  region: QuestRegion; busy: string | null; questName: (id: string) => string;
+function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, onBuy }: {
+  region: QuestRegion; busy: string | null; startLocked: boolean; questName: (id: string) => string;
   onStart: (q: QuestView) => void; onClaim: (q: QuestView) => void; onBuy: (region: number, item: string) => void;
 }) {
   const next = region.tier.next;
@@ -220,7 +230,10 @@ function RegionPanel({ region, busy, questName, onStart, onClaim, onBuy }: {
               <div className="ch-acts">
                 {phase === 'ongoing' && <a className="btn btn-sm btn-primary" href={q.tier === 'region' ? links.dungeon : links.field}>继续任务</a>}
                 {phase === 'available' && (
-                  <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => onStart(q)}>准备出征</button>
+                  <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null || startLocked} onClick={() => onStart(q)}>准备出征</button>
+                )}
+                {q.hardAvailable && (phase === 'done' || phase === 'claimed') && (
+                  <button type="button" className="btn btn-sm" disabled={busy !== null || startLocked} onClick={() => onStart(q)}>再次出征</button>
                 )}
                 {phase === 'done' && (
                   <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => onClaim(q)}>

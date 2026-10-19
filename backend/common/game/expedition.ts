@@ -1,4 +1,4 @@
-import type { ItemStack, UnitState } from '../engine/types.ts';
+import type { AiDifficulty, ItemStack, UnitState } from '../engine/types.ts';
 import type { WeaponId } from '../data/weapons.ts';
 
 // 三图地区大副本（docs/00 §8.1.3、docs/13 §4.3）：固定名单、跨图不自动恢复、只有完整通关才带回掉落。
@@ -12,6 +12,7 @@ export type RunState = 'battle' | 'between_maps' | 'completed' | 'failed' | 'wit
 export interface RunCarry extends Pick<UnitState, 'weaponInstances' | 'bookInstances' | 'spellbooks'> { hp: number; items: ItemStack[]; weapons: WeaponId[] }
 
 export interface RunRecord {
+  aiDifficulty?: AiDifficulty;
   id: string;
   playerId: string;
   region: number;
@@ -35,9 +36,9 @@ export interface RunRecord {
 }
 
 export function createRun(id: string, playerId: string, region: number, unitIds: string[], level: number, clearedAtStart: number,
-  opts: { questId?: string; stageDays?: number; scenarioIds?: string[]; stageNames?: string[] } = {}): RunRecord {
+  opts: { aiDifficulty?: AiDifficulty; questId?: string; stageDays?: number; scenarioIds?: string[]; stageNames?: string[] } = {}): RunRecord {
   return {
-    id, playerId, region, state: 'battle', unitIds: [...unitIds], stageIndex: 0,
+    id, playerId, region, aiDifficulty: opts.aiDifficulty ?? 'normal', state: 'battle', unitIds: [...unitIds], stageIndex: 0,
     level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
     scenarioIds: opts.scenarioIds ? [...opts.scenarioIds] : undefined,
     stageNames: opts.stageNames ? [...opts.stageNames] : undefined,
@@ -83,7 +84,7 @@ export function stageLoot(region: number, stageIndex: number): { item: string; c
 export function runSummary(run: RunRecord): Record<string, unknown> {
   const count = stageCount(run);
   return {
-    id: run.id, region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level, questId: run.questId ?? null,
+    id: run.id, aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level, questId: run.questId ?? null,
     unitIds: run.unitIds, survivingIds: survivingIds(run.carry), battleId: run.battleId,
     // What each survivor brings into the next map: HP and supplies do not recover between maps.
     carry: run.carry,

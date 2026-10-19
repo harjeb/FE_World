@@ -35,7 +35,7 @@ test('editing keeps the defense consistent', () => {
   assert.equal(shiftPriority(MY_DEFENSE, 'victor', -1), MY_DEFENSE);
   const leaderless = removeUnit(removeUnit(MY_DEFENSE, 'victor'), 'gustav');
   assert.deepEqual(leaderless.commanders, ['owen'], 'the top-priority unit takes command when no commander is left');
-  assert.ok(validateDefense(setBehavior(MY_DEFENSE, 'erin', 'healer')).some(e => e.includes('不会用杖')));
+  assert.ok(validateDefense(setBehavior(MY_DEFENSE, 'erin', 'healer')).some(e => e.includes('不能治疗')));
 });
 
 test('notes warn about a benched commander', () => {

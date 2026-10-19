@@ -33,6 +33,7 @@ export function renderMarkdown(): string {
   lines.push('本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。', '');
   lines.push('每个请求的完整参数见 `/agent-api.json` 中对应 op 的 `dataSchema`，与 MCP 的 `data` 参数声明共用来源。', '');
   lines.push('MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。', '');
+  lines.push('SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，受职业上限约束，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。地图、耗日及任务固定奖励不变，更多高等级敌人会自然增加战斗经验和掉落机会。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal。', '');
   lines.push('## 帧格式', '');
   lines.push('```');
   lines.push('请求  { op, seq, data? }');
@@ -68,6 +69,10 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 6, text: 'v6: 十二地区新增持久化flags.regionExploration（0–100，新账号为0）；普通随机野外遭遇战胜利+3，单图任务完成+5，每个副本（含多图任务）仅首次完整通关+20，中间图及重复副本不增加，任务与副本不叠加；单独领奖、失败、撤退、扫荡和后台派遣均+0。初选1–4自由，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；探索度独立于clearedRegions，首次胜利仍按原规则开放战斗功能与扫荡。旧档仅在缺失探索度字段时惰性初始化，只有此前已讨伐地区设为100，其他地区为0，既有探索度不再次回填，已开通权限与历史数据保留。世界、任务、随机野外准备及副本准备页展示探索条。' },
     { version: 7, text: 'v7: 补齐请求参数 schema 与公共 commandId，agent-api.json 同步提供 dataSchema；MCP 排除 WebSocket 专用 LOGIN／LOGOUT，写操作使用稳定命令 ID 重试并在结果未确认时返回恢复 ID；维修纳入控制权、赛事、战斗和版本校验，报价执行复用同一操作校验且仅递增一次版本；GET_AGENT_INFO 按账号最近五分钟心跳判断在线。' },
     { version: 8, text: 'v8: 冬季新战斗草地转雪地、水域与浅滩转冰面，行动起点雪地移动−1／冰面+1，飞行不受影响；重甲踩过的冰格永久碎为水域。GET_BATTLE新增map.season及单位terrain/move/moveType/armored，GET_REACHABLE新增move和stops[].path；terrain事件记录碎冰，完整状态保留动态地形。瓦恩要塞与莱斯米尔湖镇新增大河浅洲／湖心群岛野图。规则rules-v8、目录23；旧战斗地图不重绘，旧规则回放保持冻结。' },
+    { version: 9, text: 'v9: SORTIE、START_DUNGEON、START_QUEST 新增可选 aiDifficulty（normal／hard，默认 normal）；战斗与远征摘要返回规范化设置，多图继承出发设置且不可中途修改；PREVIEW_ACTION 的 sortie／dungeon 报价保留设置并由 EXECUTE_ACTION 执行。难度仅改变敌方决策，不改变地图、属性、费用或奖励；竞技场、年度赛、挑战及陪练仍为 normal。' },
+    { version: 10, text: 'v10: hard 同时增强新生成敌军（含初始编队、首领、后续增援）：HP+20%、力量／魔力+10%，向上取整且受职业上限约束；人数、等级、其他属性、装备、奖励及耗日不额外增加。增强仅在生成时应用，已保存单位不重复加成；出征页和报价说明增幅。规则rules-v11、目录26；升级前结束活动，旧规则回放保持冻结。' },
+    { version: 11, text: 'v11: 困难初始敌阵和增援约+50%人数，等级随机+2～5，HP随机+20%～35%、其余能力+10%～25%、体格+1～3，装备及熟练度升级，移动力不变；独立种子固定随机强化，不改变战斗随机流或重掷已保存单位。新增敌人仅使用原阵附近合法空位，不挤占部署、物件或目标格。耗日与固定任务奖励不变，战斗经验与掉落按实际敌军结算。规则rules-v12、目录27；升级前结束活动，旧规则回放保持冻结。' },
+    { version: 12, text: 'v12: 困难版改为按内容解锁：普通地区野外胜利／普通完整随机副本／普通完整任务连战副本分别开放自己的hard。GET_STATE新增hardUnlocks三类列表，GET_TODAY地区行新增hardUnlocked/dungeonHardUnlocked，GET_QUESTS新增hardAvailable/hardUnlocked；未解锁请求拦截，报价列出条件。单图任务保持普通一次性流程；任务连战副本可重打但固定奖励和首通探索不重复发。旧档按实际普通完成历史补齐，既有hard远征允许继续。规则rules-v13、目录28。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

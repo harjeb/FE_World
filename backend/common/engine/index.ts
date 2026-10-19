@@ -19,7 +19,7 @@ export {
   attackWeapons, cellKey, classOf, distance, equipped, hasCurableStatus, isAsleep, isBerserk, isSilenced, inBounds, keyPoint, living, staffWeapons, terrainAt, unitAt, unitById, weaponRange,
 } from './units.ts';
 export { EngineError } from './types.ts';
-export type { Action, ActAction, BattleEvent, BattleObject, BattleObjectState, BattleState, Behavior, Point, ScenarioEvent, Side, Strike, UnitState } from './types.ts';
+export type { AiDifficulty, Action, ActAction, BattleEvent, BattleObject, BattleObjectState, BattleState, Behavior, Point, ScenarioEvent, Side, Strike, UnitState } from './types.ts';
 export { interactionOptions, objectAt, objectBlocks, runScenarioEvents, scenarioLoot } from './scenario.ts';
 export { artTargets, defaultDestination, destinationCells, destinationValid, freeCell, isHostileSpell, spellBlock, spellDestination, spellKind, spellTargets, spellWeapon, staffDestination, staffEffect, staffTargets, withSpellWeapon } from './support.ts';
 export type { DestinationRule, SpellKind, StaffEffect } from './support.ts';

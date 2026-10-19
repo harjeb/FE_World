@@ -2,7 +2,7 @@ import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/clas
 import type { WeaponType } from '../data/types.ts';
 import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
-import type { Action, BattleEvent, BattleState, Point, UnitState } from '../engine/types.ts';
+import type { AiDifficulty, Action, BattleEvent, BattleState, Point, UnitState } from '../engine/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
 import { generateMap } from '../maps/generate.ts';
 import { THEMES, type Theme } from '../maps/themes.ts';
@@ -19,7 +19,9 @@ import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
 import { DUNGEON_STAGE_DAYS, DUNGEON_STAGES } from './expedition.ts';
 import type { RunCarry } from './expedition.ts';
-import { createEnemy, pickClasses } from './enemies.ts';
+import { createEnemy, defaultBehavior, pickClasses } from './enemies.ts';
+import type { EnemySpec } from './enemies.ts';
+import { addEnemyReserves } from './enemy-formation.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP } from './quests.ts';
@@ -74,6 +76,7 @@ const ENEMY_CLASSES = CATALOG_CLASS_IDS.filter(id => CLASSES[id].stage > 0 && !c
 export const FIELD_BATTLE = { maxUnits: 8, turnLimit: 20, goalText: '击败敌方主将或全灭' } as const;
 
 export interface FieldBattleOptions {
+  aiDifficulty?: AiDifficulty;
   region: number;
   cleared: number;
   day?: number;
@@ -119,10 +122,11 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
   const classes = pickClasses(`${options.seed}:foes:${stage}`, count, ENEMY_CLASSES);
-  const enemies = classes.map((classId, i) => createEnemy(`e${i}`, {
-    classId, level, pos: map.spawns.enemy[i], boss: i === 0,
+  const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
+    aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0,
     name: i === 0 ? `${region.name}守将` : undefined,
   }));
+  const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, spec));
   const tiles = map.tiles;
   const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
   const name = quest ? `${region.name} · ${quest.name}`
@@ -149,7 +153,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
                 : { kind: 'rout' }
       : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
-    engineVersion: 1, id: `field-${options.seed}-${stage}`, kind: 'field', name,
+    engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `field-${options.seed}-${stage}`, kind: 'field', name,
     map: seasonalMap(tiles, dateOf(options.day ?? 0).season),
     units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
     goal, boxes: quest?.kind === 'gather' ? gatherBoxes(exit, tiles[0].length, tiles.length) : undefined,
@@ -157,6 +161,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     nextObjective: quest?.nextObjective ?? (quest?.kind === 'escort' ? '护送 NPC 抵达撤离点' : undefined),
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
+  addEnemyReserves(state, enemySpecs, map.spawns.player);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
@@ -170,6 +175,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 // ---- 经典地图战斗（docs/24） -------------------------------------------------
 // 地图与初始敌军来自 catalog；玩家名单仍来自名册，王座/首领与跨图携带沿用现有引擎。
 export interface ClassicBattleOptions {
+  aiDifficulty?: AiDifficulty;
   mapId: string;
   seed: string;
   // 出发日决定目标等级；经典图按副本曲线缩放，不再直接使用原作等级。
@@ -252,17 +258,18 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const policy = adaptation.levelPolicy;
   const stageBonus = options.stageIndex === undefined ? adaptation.difficulty : (options.stageIndex * policy.stageBonus);
   const baseLevel = Math.max(1, Math.min(95, (options.level ?? enemyLevel(options.day ?? 0, regionOffset)) + stageBonus));
-  const enemies = map.enemies.map((enemy, index) => {
+  const enemySpecs: EnemySpec[] = map.enemies.map((enemy, index) => {
     const boss = !!enemy.boss;
     const spread = Math.max(-policy.spread, Math.min(policy.spread, enemy.level - median));
     const level = Math.max(1, Math.min(95, baseLevel + (boss ? policy.bossBonus : spread)));
     const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
-    return createEnemy(`e${index}`, {
-      classId: enemy.classId as Parameters<typeof createEnemy>[1]['classId'], level,
+    return {
+      aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId: enemy.classId as EnemySpec['classId'], level,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
-      behavior: boss ? 'hold' : guard ? 'guard' : undefined,
-    });
+      behavior: boss ? 'hold' : guard && defaultBehavior(enemy.classId as UnitState['classId']) !== 'healer' ? 'guard' : undefined,
+    };
   });
+  const enemies = enemySpecs.map((spec, index) => createEnemy(`e${index}`, spec));
   if (enemies.length === 0) throw new Error(`经典地图 ${map.id} 没有初始敌军`);
   if (!enemies.some(enemy => enemy.boss)) enemies[0].boss = true;
   const boss = enemies.find(enemy => enemy.boss)!;
@@ -272,7 +279,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const name = options.quest?.name ?? map.name;
   const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
   const state: BattleState = {
-    engineVersion: 1, id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
+    engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
     map: seasonalMap(map.terrain, season),
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: options.quest?.turnLimit ?? map.turnLimit,
     phase: 'player', goal,
@@ -287,6 +294,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     },
     rng: seedRng(`${options.seed}:classic:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
+  addEnemyReserves(state, enemySpecs, [...map.playerSpawns, ...spawns]);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name, region: options.quest?.region,
     dungeon: options.stageIndex !== undefined || undefined, runId: options.runId,

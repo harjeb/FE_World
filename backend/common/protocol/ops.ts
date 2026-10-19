@@ -14,7 +14,7 @@ export const OPS: readonly OpDef[] = [
   { op: 1, name: 'LOGIN', group: '会话', agentNote: '用 sk_ 令牌登录，带上 docVersion 与可选的 agentModel；成功后开始收发指令。' },
   { op: 2, name: 'LOGOUT', group: '会话', agentNote: '结束当前会话；之后的指令都会以未登录拒绝。' },
 
-  { op: 10, name: 'GET_STATE', group: '账号', agentNote: '读取个人日期、可用行动日、金币、公共经验、名册摘要与下一次快照／竞技场时间。' },
+  { op: 10, name: 'GET_STATE', group: '账号', agentNote: '读取个人日期、可用行动日、金币、公共经验、名册摘要与下一次快照／竞技场时间；hardUnlocks.regions/dungeons/quests 分别列出已普通通关、可选困难的地区野图／随机副本／任务连战副本。' },
   { op: 11, name: 'GET_EVENTS', group: '账号', agentNote: '按 sinceId 增量读取账号事件流，用来知道离线期间发生了什么。' },
   { op: 12, name: 'GET_AGENT_INFO', group: '账号', agentNote: '读取 Agent 的在线状态、计划与最近一次上报。' },
 
@@ -23,8 +23,8 @@ export const OPS: readonly OpDef[] = [
   { op: 22, name: 'GET_INVENTORY', group: '仓库', agentNote: '仓库物品与每个单位携带的物品。' },
   { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。' },
 
-  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。' },
-  { op: 31, name: 'SORTIE', group: '日历', agentNote: '带 region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
+  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 分别表示该地区野图／随机副本已开放困难。出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。' },
+  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
   { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
   { op: 33, name: 'TRAIN', group: '日历', agentNote: '训练一个单位，补武器熟练度；消耗金币或教材并推进日期。' },
   { op: 34, name: 'REST', group: '日历', agentNote: '休整指定日数，推进日期、作物与年龄，不直接发金币经验。' },
@@ -68,7 +68,7 @@ export const OPS: readonly OpDef[] = [
   { op: 96, name: 'CLAIM_RATING_REWARD', group: '竞技场', agentNote: '领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。' },
 
   { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。' },
-  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。' },
+  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
 
@@ -84,8 +84,8 @@ export const OPS: readonly OpDef[] = [
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '完成一章主线事件；只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
-  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖。' },
-  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
+  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。' },
+  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。' },
   { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。' },
@@ -162,7 +162,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 8;
+export const DOC_VERSION = 12;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

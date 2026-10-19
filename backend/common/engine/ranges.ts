@@ -7,7 +7,7 @@ import { artObjects, artPostMoves, artSupportOptions } from './art-options.ts';
 import type { ArtSupport } from './art-options.ts';
 import { moveRange } from './movement.ts';
 import type { MoveRange } from './movement.ts';
-import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
+import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 import { interactionOptions } from './scenario.ts';
 import { artTargets, spellBlock, spellDestination, spellTargets, staffDestination, staffEffect, staffTargets } from './support.ts';
@@ -19,7 +19,7 @@ export function targetsFrom(state: BattleState, unit: UnitState, from: Point, we
   if (kind === 'heal' && !WEAPONS[weaponId].heal) return [];
   const pool = kind === 'attack'
     ? living(state).filter(u => anySide ? u.id !== unit.id : u.side !== unit.side)
-    : living(state, unit.side).filter(u => u.id !== unit.id
+    : living(state, unit.side).filter(u => u.id !== unit.id && !u.petrified && !u.immunities?.includes('healing')
       && (u.hp < u.stats.hp || (WEAPONS[weaponId].cure && hasCurableStatus(u))));
   return pool.filter(u => inRange(unit, weaponId, from, u.pos));
 }
@@ -111,10 +111,15 @@ function cellsWithin(state: BattleState, from: Point, [min, max]: [number, numbe
 
 // Cells the unit could strike (or heal) this phase from any cell it can stop on.
 export function reachCells(state: BattleState, unit: UnitState, range: MoveRange, kind: 'attack' | 'heal'): Set<number> {
-  const weapons = kind === 'attack' ? attackWeapons(unit) : staffWeapons(unit);
+  const weapons = kind === 'attack' ? attackWeapons(unit) : staffWeapons(unit).filter(id => WEAPONS[id].heal);
+  const ranges = weapons.map(weapon => weaponRange(unit, weapon));
+  if (!isAsleep(unit) && !isSilenced(unit)) for (const row of unit.spellbooks ?? []) {
+    const book = SPELLBOOK_BY_ID.get(row.id);
+    if (book && row.charges > 0 && book.role === kind && !spellBlock(unit, book)) ranges.push(book.range);
+  }
   const cells = new Set<number>();
   for (const stop of range.stops) {
-    for (const weapon of weapons) cellsWithin(state, keyPoint(state, stop), weaponRange(unit, weapon), cells);
+    for (const reach of ranges) cellsWithin(state, keyPoint(state, stop), reach, cells);
   }
   return cells;
 }

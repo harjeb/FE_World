@@ -174,6 +174,10 @@ export const RECRUIT_LINES: Partial<Record<CharacterId, string>> = {
 };
 
 // 任务是否可接：前置任务已完成，且当地声望达标（docs/20 §4）。
+export function supportsHardQuest(quest: Pick<Quest, 'tier' | 'scenarioIds'>): boolean {
+  return !!quest.scenarioIds?.length || quest.tier === 'region';
+}
+
 export function questAvailable(quest: Quest, state: { done: ReadonlySet<string>; reputation: number }): boolean {
   if (state.done.has(quest.id)) return false;
   const req = quest.requires;

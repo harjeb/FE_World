@@ -11,6 +11,7 @@ import type { Forecast } from './combat.ts';
 
 export type Point = [number, number];
 export type Side = 'player' | 'enemy';
+export type AiDifficulty = 'normal' | 'hard';
 // Rule-AI behaviors from docs/03: 进攻 / 伺机 / 固守 / 护卫 / 治疗优先.
 export type Behavior = 'aggressive' | 'opportunist' | 'hold' | 'guard' | 'healer';
 
@@ -160,6 +161,8 @@ export interface BattleState {
   id: string;
   // Arena battles use frozen snapshots and give no experience (docs/03).
   kind: 'field' | 'arena';
+  // Frozen when departing; absent in older battles means normal.
+  aiDifficulty?: AiDifficulty;
   name: string;
   map: { width: number; height: number; tiles: Terrain[][]; season?: number };
   units: UnitState[];

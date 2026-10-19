@@ -1,6 +1,7 @@
 // The server session: one place that logs in, keeps GET_STATE / GET_TODAY / GET_ARENA / GET_ROSTER and
 // the other shared views, and exposes the op wrappers the screens call. Everything else in the frontend
 // derives from here, so there is exactly one source of truth (docs/06「协议只在 common 定义一处」).
+import type { AiDifficulty } from '@common/engine/types.ts';
 import { useSyncExternalStore } from 'react';
 import { OP } from '@common/protocol/ops.ts';
 import type { Action, BattleEvent, BattleState, Point } from '@common/engine/index.ts';
@@ -102,6 +103,7 @@ export interface PendingRecruit {
 }
 
 export interface ServerState {
+  hardUnlocks?: { regions: number[]; dungeons: number[]; quests: string[] };
   player: { id: string; name: string; legion: string; protagonist: string };
   // Bumped by every successful write; pages that load their own data refetch when it moves.
   version: number;
@@ -189,7 +191,7 @@ export interface ServerToday {
   day: number;
   date: ServerState['date'];
   actions: TodayAction[];
-  sortieRegions: { id: number; name: string; resource: string; cleared: boolean; level: number }[];
+  sortieRegions: { id: number; name: string; resource: string; cleared: boolean; level: number; hardUnlocked?: boolean; dungeonHardUnlocked?: boolean }[];
   festival: { open: boolean; round: number; costDays: number };
   nextArenaDay: number;
   nextMonthStart: number;
@@ -218,6 +220,7 @@ export interface ServerRatings {
 
 // GET_RUN: the current or latest three-map dungeon run (docs/00 §8.1.3).
 export interface ServerRun {
+  aiDifficulty?: AiDifficulty;
   id: string; region: number; state: 'battle' | 'between_maps' | 'completed' | 'failed' | 'withdrawn';
   stageIndex: number; level: number; unitIds: string[]; survivingIds: string[]; battleId: string | null;
   // What each survivor brings into the next map: HP and supplies do not recover in between.
@@ -250,6 +253,8 @@ export interface ServerStory { bexp: number; annualSummary?: { text: string; dat
 
 // GET_QUESTS: regional quests and reputation (docs/20).
 export interface QuestView {
+  hardAvailable?: boolean;
+  hardUnlocked?: boolean;
   id: string; name: string; objective: string; kind: 'rout' | 'seize' | 'defend' | 'escape' | 'gather' | 'escort';
   tier: 'short' | 'standard' | 'region'; costDays: number; turnLimit: number; maxUnits: number;
   enemyLevel: number; enemyLevelCap?: number; toDay: number; risk: 'permadeath';
@@ -606,8 +611,8 @@ class SessionStore {
     return { state: result.state, events: result.events ?? [] };
   }
 
-  async sortie(region: number, unitIds: string[]): Promise<{ battleId: string; state: BattleState }> {
-    return this.run<{ battleId: string; state: BattleState }>(OP.SORTIE, { region, unitIds });
+  async sortie(region: number, unitIds: string[], aiDifficulty: AiDifficulty = 'normal'): Promise<{ battleId: string; state: BattleState }> {
+    return this.run<{ battleId: string; state: BattleState }>(OP.SORTIE, { region, unitIds, aiDifficulty });
   }
 
   // 完成自捏开局：自建主角（固定平民／成长型，基础属性 + 10 点加成，每项最多加 5）+ 两名同伴，只能提交一次。
