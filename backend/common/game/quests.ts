@@ -15,6 +15,9 @@ export interface QuestReward { gold: number; reputation: number; items?: [ItemKe
 
 export interface Quest {
   id: string;
+  // Archived entries remain addressable for existing runs and unclaimed rewards.
+  archived?: boolean;
+  dungeonOnly?: boolean;
   region: number;
   name: string;
   objective: string;

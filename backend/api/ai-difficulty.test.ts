@@ -43,7 +43,7 @@ function setup(): Context {
 const single = ALL_QUESTS.find(q => !q.scenarioId && !q.scenarioIds && q.tier !== 'region')!;
 const randomMulti = ALL_QUESTS.find(q => !q.scenarioId && !q.scenarioIds && q.tier === 'region')!;
 const classicSingle = ALL_QUESTS.find(q => q.scenarioId)!;
-const classicMulti = ALL_QUESTS.find(q => q.scenarioIds?.length)!;
+const classicMulti = ALL_QUESTS.find(q => !q.archived && q.scenarioIds?.length)!;
 function unlock(ctx: Context, questId: string) {
   ctx.player.flags.questsDone = ALL_QUESTS.filter(q => q.id !== questId).map(q => q.id);
   ctx.player.flags.regionReputation = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i + 1, 9999]));
@@ -126,7 +126,7 @@ for (const quest of [randomMulti, classicMulti]) {
   });
 }
 
-for (const quest of [single, classicSingle]) {
+for (const quest of [single]) {
   test(`single-map quest ${quest.id} remains normal-only even with other hard content unlocked`, () => {
     const ctx = setup();
     unlock(ctx, quest.id);

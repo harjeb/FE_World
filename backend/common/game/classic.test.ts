@@ -131,9 +131,21 @@ test('every exported classic map is playable: passable units and a reachable goa
   }
 });
 
-test('classic quests cover single maps and multi-map dungeons', () => {
+test('public classic dungeons retain the three late maps from each game', () => {
+  const routes = Object.fromEntries(CLASSIC_QUESTS.filter(quest => !quest.archived).map(quest => [quest.id, quest.scenarioIds]));
+  assert.deepEqual(routes, {
+    'clx-fe1': ['fe1-ch23', 'fe1-ch24', 'fe1-ch25'],
+    'clx-fe2': ['fe2-map-08', 'fe2-map-09', 'fe2-map-10'],
+    'clx-fe3': ['fe3-book1-ch18', 'fe3-book1-ch19', 'fe3-book1-ch20'],
+    'clx-fe6': ['fe6-ch22-main', 'fe6-ch23-main', 'fe6-ch24-main'],
+    'clx-fe7': ['fe7-ch27-eliwood', 'fe7-ch30-eliwood', 'fe7-chfinal-1-eliwood'],
+    'clx-fe8': ['fe8-ch17-eirika', 'fe8-ch20-eirika', 'fe8-chfinal-1-eirika'],
+  });
+});
+
+test('archived classic quests retain single maps and legacy multi-map dungeons', () => {
   assert.equal(CLASSIC_QUESTS.filter(quest => quest.scenarioId).length, 60);
-  const dungeons = CLASSIC_QUESTS.filter(quest => quest.scenarioIds);
+  const dungeons = CLASSIC_QUESTS.filter(quest => quest.archived && quest.scenarioIds);
   assert.equal(dungeons.length, 18);
   for (const quest of dungeons) {
     assert.ok(quest.scenarioIds!.length >= 3 && quest.scenarioIds!.length <= 4);
@@ -144,7 +156,7 @@ test('classic quests cover single maps and multi-map dungeons', () => {
 
 test('classic dungeons cover every map once and keep exclusive routes separate', () => {
   for (const game of ['fe1', 'fe2', 'fe3', 'fe6', 'fe7', 'fe8']) {
-    const dungeons = CLASSIC_QUESTS.filter(quest => quest.classic?.game === game && quest.scenarioIds);
+    const dungeons = CLASSIC_QUESTS.filter(quest => quest.archived && quest.classic?.game === game && quest.scenarioIds);
     const ids = dungeons.flatMap(quest => quest.scenarioIds!);
     assert.equal(ids.length, 10, `${game}: 副本地图总数`);
     assert.equal(new Set(ids).size, 10, `${game}: 地图不得重复`);

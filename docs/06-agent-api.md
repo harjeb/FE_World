@@ -1,8 +1,12 @@
 # 06 Agent 接口设计
 
-> 当前可调用协议以 [自动生成文档](agent-api.md)、`agent-api.json` 和 `backend/common/protocol/ops.ts` 为准（`docVersion: 13`，数字 op）。浏览器使用 `POST /api/login`、`POST /api/op`，Agent 使用 `/ws` 或经 MCP 调用同一 HTTP 操作接口；MCP 用 `AGENT_TOKEN` 认证，不暴露 WebSocket 专用的 LOGIN／LOGOUT 工具。下文包含历史设计，具体已实现状态以代码与 [功能缺口清单](12-implementation-gap-checklist.md) 为准；后续 v2 目标见 [13](13-backend-target-design.md)，不代表已有 `/api/v2` 服务。
+> 当前可调用协议以 [自动生成文档](agent-api.md)、`agent-api.json` 和 `backend/common/protocol/ops.ts` 为准（`docVersion: 14`，数字 op）。浏览器使用 `POST /api/login`、`POST /api/op`，Agent 使用 `/ws` 或经 MCP 调用同一 HTTP 操作接口；MCP 用 `AGENT_TOKEN` 认证，不暴露 WebSocket 专用的 LOGIN／LOGOUT 工具。下文包含历史设计，具体已实现状态以代码与 [功能缺口清单](12-implementation-gap-checklist.md) 为准；后续 v2 目标见 [13](13-backend-target-design.md)，不代表已有 `/api/v2` 服务。
 
-当前战斗规则为`rules-v14`／目录29。`GET_TODAY.sortieRegions[].encounters`和`dungeonEncounters`按难度给出地图方案、尺寸、出战上限与独立敌军数量；`PREVIEW_ACTION.encounter.map`提供出发时的实际地形、出生点和`playerGroups`。野外与随机副本按`unitIds`数组顺序部署（首位主将），超员、重复或不可用角色直接拒绝。改变人数、排序或反复预览不重掷地图；随机副本锁定整趟配置，各图由阶段种子生成，老远征沿用保存配置。
+当前战斗规则为`rules-v14`／目录31，协议`docVersion: 15`。`GET_TODAY.sortieRegions[].dungeonFirstClearRewards`和`GET_QUESTS.firstClearRewards`替代旧单数属性，返回`{normal:{items,available},hard:{items,available}}`，单图任务的`firstClearRewards`为`null`。两档按地区主副本／任务ID各领一次，困难装备不同且更高阶、物品更多；仅完整通关自动入库，失败／撤离作废。旧完成记录抑制对应难度补发，`questsDone`仅回退普通档；手动任务奖励与探索度跨难度仍仅一次。困难仅由同一内容的普通通关解锁。
+
+`GET_TODAY.sortieRegions[].dungeonStages`及`PREVIEW_ACTION('dungeon').dungeonStages`为`{name,scenarioId?}[]`：两张生成图＋一张经典终图。60张经典地图分为12地区各5张的池，选择种子独立于战斗RNG，开局冻结`RunRecord.stages`；`GET_RUN`摘要提供`stageNames/stageCount`。标准副本每图8日、共24日；48项地区任务远征每图2日、共6日。`encounters/dungeonEncounters`按难度给出地图方案、尺寸、出战上限与独立敌军数量，副本上限涵盖整趟所有图。`PREVIEW_ACTION.encounter.map`提供实际地形、出生点和`playerGroups`，按`unitIds`顺序部署；超员、重复或不可用角色拒绝，换队或重复预览不重掷。
+
+统一副本UI选择路线，不另设随机／经典导航分类；固定经典保留六个三图副本`clx-fe1/2/3/6/7/8`，每作一个，fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5，每图2日、共6日，继续兼容`START_QUEST`。`GET_QUESTS`提供`dungeonOnly`、`archived`、`stageNames`。公开114项定义（108本地＋6经典），旧60单图＋18短经典共78项保留查找但拒绝新开，旧进行中／待领奖仍返回；没有`stages`的旧远征由`CONTINUE_DUNGEON`沿原路线继续。普通单图任务仍仅normal、完成后不可重接。
 
 普通野外胜利解锁本地区困难野图，普通随机大副本完整通关解锁本地区困难副本，普通任务连战副本完整通关解锁本副本；单图任务保持普通、不提供困难入口。`GET_STATE.hardUnlocks`分别给出`regions`、`dungeons`与任务副本`quests`；`GET_QUESTS`的`hardAvailable`表示支持困难，`hardUnlocked`表示已解锁。未解锁直接请求困难会被拒绝，预览也会列出阻挡条件。旧档按真实普通胜利／完整通关记录补齐，完成后的任务副本可重打但固定奖励与首通探索不重复发。野外与副本的`aiDifficulty`在出发时锁定，缺失字段按`normal`处理。`hard`的新敌军及每波增援目标增加50%人数（额外人数向上取整、至少1人，以敌阵附近合法空位为限），等级独立随机+2～5且不超过99；按新等级计算基础属性后，HP随机+20～35%，力量、魔力、技巧、速度、幸运、防御、魔防、魅力各独立随机+10～25%（向上取整、至少+1且不超过职业上限），体格随机+1～3。职业与移动力不变，合法武器／法杖升级并配套熟练度，保留原有实用装备选项。固定战斗／单位种子保证刷新不会重随机；已保存敌军不重复加成，旧战斗／回放不回填。任务固定奖励与行动日成本不变，但更多、更高等级敌军会增加战斗经验与掉落机会。
 

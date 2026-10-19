@@ -2,6 +2,11 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v14';
+// v31: frozen mixed dungeon plans, six three-map classic dungeons, and difficulty-specific first-clear bundles.
+// Legacy runs retain their sequence; matching completed difficulty prevents retroactive grants.
+// Legacy questsDone blocks normal rewards only; exploration/manual quest rewards remain once overall.
+// v30 (historical): fixed equipment/items for a dungeon's first full clear; normal/hard shared eligibility.
+// Existing completion evidence stays authoritative, without retroactive grants or combat replay changes.
 // v29 / rules-v14: map-designed encounter formations and difficulty-specific deployment caps.
 // Encounters are fixed for the unspent departure day; reduced parties no longer shrink the enemy army.
 // Existing boards/runs and replay snapshots retain their saved deployments; finish active runs before upgrade.
@@ -39,7 +44,7 @@ export const RULESET_VERSION = 'rules-v14';
 // 单图任务完成+5、每个副本（含多图任务）仅首次完整通关+20，不叠加、不计中间图或重刷。
 // 缺失字段的旧档惰性初始化，仅此前已讨伐地区设100；已有进度不再回填，已开通地区访问权、
 // clearedRegions、养成与冻结历史保留。探索满100才可选择相邻新路线，初选1–4仍自由。
-export const CATALOG_VERSION = 29;
+export const CATALOG_VERSION = 31;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

@@ -1,8 +1,9 @@
-import { CLASSIC_GAME_NAMES, CLASSIC_MAPS } from './classic-catalog.ts';
+import { CLASSIC_GAME_NAMES, CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
+import { CLASSIC_DUNGEON_IDS } from './dungeon-plans.ts';
 import type { ClassicGame, ClassicMap } from './classic-catalog.ts';
 import type { Quest, QuestKind } from './quests.ts';
 
-// 经典地图任务线：每张地图一个任务，另按「3–4 图」组成地区副本。
+// 旧单图与 3–4 图任务保留供存档查找；公开经典副本保留六部作品各一条三图路线。
 // 目标与地形来自 catalog；这里只生成任务外壳（地区、前置、奖励、耗日）。
 
 const GAME_REGION: Record<ClassicGame, number> = { fe1: 2, fe2: 3, fe6: 2, fe7: 3, fe3: 5, fe8: 5 };
@@ -39,6 +40,7 @@ function soloQuests(): Quest[] {
       const kind = kindOf(map);
       out.push({
         id: `cl-${map.id}`,
+        archived: true,
         region: GAME_REGION[game],
         name: map.name,
         objective: objectiveOf(map),
@@ -77,6 +79,7 @@ function dungeonQuests(): Quest[] {
       const last = group[group.length - 1];
       out.push({
         id: `cld-${game}-${index + 1}`,
+        archived: true,
         region: GAME_REGION[game],
         name: `${CLASSIC_GAME_NAMES[game]} · 副本 ${index + 1}`,
         objective: `${group.length} 图连战：${group.map(map => map.name).join(' → ')}`,
@@ -95,4 +98,33 @@ function dungeonQuests(): Quest[] {
   return out;
 }
 
-export const CLASSIC_QUESTS: Quest[] = [...soloQuests(), ...dungeonQuests()];
+// Each game retains three late maps; FE7 follows Eliwood and FE8 follows Eirika.
+const classicRoutes: Record<typeof CLASSIC_DUNGEON_IDS[number], string[]> = {
+  'clx-fe1': ['fe1-ch23', 'fe1-ch24', 'fe1-ch25'],
+  'clx-fe2': ['fe2-map-08', 'fe2-map-09', 'fe2-map-10'],
+  'clx-fe3': ['fe3-book1-ch18', 'fe3-book1-ch19', 'fe3-book1-ch20'],
+  'clx-fe6': ['fe6-ch22-main', 'fe6-ch23-main', 'fe6-ch24-main'],
+  'clx-fe7': ['fe7-ch27-eliwood', 'fe7-ch30-eliwood', 'fe7-chfinal-1-eliwood'],
+  'clx-fe8': ['fe8-ch17-eirika', 'fe8-ch20-eirika', 'fe8-chfinal-1-eirika'],
+};
+
+function featuredDungeonQuests(): Quest[] {
+  return CLASSIC_DUNGEON_IDS.map(id => {
+    const maps = classicRoutes[id].map(classicMap);
+    const game = maps[0].game;
+    const mapName = maps.map(map => map.name).join(' → ');
+    return {
+      id, region: GAME_REGION[game], dungeonOnly: true,
+      name: `${CLASSIC_GAME_NAMES[game]} · 三图远征`,
+      objective: `3 图连战：${mapName}`,
+      kind: 'rout', tier: 'region',
+      turnLimit: Math.max(...maps.map(map => map.turnLimit)),
+      reward: { gold: 3_500, reputation: 0 },
+      scenarioIds: maps.map(map => map.id),
+      stageDays: 2, costDays: 6,
+      classic: { game, mapName, stageCount: 3, adapted: maps.some(map => map.adapted) },
+    };
+  });
+}
+
+export const CLASSIC_QUESTS: Quest[] = [...soloQuests(), ...dungeonQuests(), ...featuredDungeonQuests()];

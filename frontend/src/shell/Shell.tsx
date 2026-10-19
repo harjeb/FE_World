@@ -83,7 +83,7 @@ export function Shell({ current, children }: { current: ShellPage; children: Rea
   const ripe = production?.ready.length ?? 0;
   const chapterDue = story?.chapters.some(c => c.available && (!c.completed || !c.claimed)) ?? false;
   const heirs = state?.legacyUnlocked ? legacies?.legacies.filter(l => l.state === 'available').length ?? 0 : 0;
-  const claimable = quests?.regions.reduce((n, r) => n + r.quests.filter(q => q.done && !q.claimed).length, 0) ?? 0;
+  const claimable = quests?.regions.reduce((n, r) => n + r.quests.filter(q => !q.dungeonOnly && q.done && !q.claimed).length, 0) ?? 0;
   const world = state?.world ?? null;
   const f = featuresOf(state);
   const live = annualLive(annual);

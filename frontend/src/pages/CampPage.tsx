@@ -126,12 +126,12 @@ export function CampPage() {
       desc: chapter.completed ? `已完成，可以领取团队公共经验 ${story.bexp}。` : '章节事件已开放，名次和地区进度都不挡章节。', action: { label: '去主线', href: links.story },
     });
   }
-  const claimable = features.quests ? quests?.regions.flatMap(r => r.quests.filter(q => q.done && !q.claimed).map(q => ({ ...q, regionName: r.name }))) ?? [] : [];
+  const claimable = features.quests ? quests?.regions.flatMap(r => r.quests.filter(q => q.done && !q.claimed).map(q => ({ ...q, region: r.region, regionName: r.name }))) ?? [] : [];
   if (claimable.length > 0) {
     tasks.push({
-      key: 'quests', icon: <QuestIcon />, title: `地区任务 · ${claimable.length} 份奖励待领取`, tag: ['奖励待领取', 'tag-green'],
+      key: 'quests', icon: <QuestIcon />, title: `任务与副本 · ${claimable.length} 份奖励待领取`, tag: ['奖励待领取', 'tag-green'],
       desc: `${claimable.slice(0, 3).map(q => `${q.regionName}「${q.name}」`).join('、')}${claimable.length > 3 ? ' 等' : ''}。金币、物资与声望要手动领取；固定人物在领奖时加入。`,
-      action: { label: '去领取', href: links.quests },
+      action: { label: '去领取', href: claimable[0].dungeonOnly ? `${links.dungeon}?region=${claimable[0].region}&dungeon=${claimable[0].id}` : links.quests },
     });
   }
   const ripe = features.workshop ? production?.ready.length ?? 0 : 0;

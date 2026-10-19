@@ -30,6 +30,14 @@ const TIER_TEXT: Record<QuestView['tier'], string> = { short: '短任务', stand
 const items = (list: [string, number][] | undefined) => (list ?? []).map(([item, count]) => `${itemName(item)} ×${count}`);
 const rewardText = (q: QuestView) => [`${q.reward.gold.toLocaleString()} 金币`, `${q.reward.reputation} 声望`, ...items(q.reward.items), ...(q.exclusive ? [`专属实物：${q.exclusive.name}`] : [])].join(' · ');
 
+function FirstClearLoot({ reward }: { reward: NonNullable<QuestView['firstClearRewards']>['normal'] }) {
+  if (!reward) return null;
+  return <>
+    {reward.items.map(({ item, count }) => `${itemName(item)} ×${count}`).join(' · ')} · 本难度首通：{reward.available ? '未完成' : '已完成'}
+    <br /><span className="muted">本难度首次完整通关自动入库；普通、困难各一次固定奖励，探索度仍只增加一次</span>
+  </>;
+}
+
 function Tabs({ current }: { current: 'regions' | 'tower' }) {
   const { state } = useSession();
   const tower = featuresOf(state).tower;
@@ -68,7 +76,7 @@ function RegionsTab() {
   // 防御性过滤：GET_QUESTS 已只返回已开通地区，这里再按 state.regions 过一次，避免显示未开通地区。
   const openIds = new Set(state.regions.map(r => r.id));
   const openRegions = quests.regions.filter(r => openIds.has(r.region))
-    .map(r => ({ ...r, quests: r.quests.filter(q => q.available || q.done || q.claimed || q.inProgress) }));
+    .map(r => ({ ...r, quests: r.quests.filter(q => !q.dungeonOnly && (q.available || q.done || q.claimed || q.inProgress)) }));
   if (openRegions.length === 0) {
     return (
       <div className="prep">
@@ -138,6 +146,8 @@ function RegionsTab() {
                 <dt>出战</dt><dd>本图最多 {quest.maxUnits} 人 · 敌军 Lv {quest.enemyLevel}{quest.enemyLevelCap ? `（本图上限 ${quest.enemyLevelCap}）` : ''}</dd>
                 <dt>日期</dt><dd>推进 {quest.costDays} 日 → {advance(state.day, quest.costDays).label}{(quest.classic?.stageCount ?? 1) > 1 || quest.tier === 'region' ? '（连战按每图支付，整本合计）' : ''}</dd>
                 <dt>奖励</dt><dd>{rewardText(quest)}{quest.optionalReward ? `；带回 1 箱即可完成，之后每多 1 箱再得${itemName(quest.optionalReward.item)} ×${quest.optionalReward.perExtraBox}` : ''}</dd>
+                {quest.firstClearRewards && <><dt>本难度首通</dt><dd><FirstClearLoot reward={quest.firstClearRewards[effectiveDifficulty]} /></dd></>}
+                {quest.stageNames && <><dt>关卡顺序</dt><dd>{quest.stageNames.join(' → ')}</dd></>}
                 <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡，主角只撤退；失败或撤退不发通关奖励，已发生的伤亡和消耗保留。</dd>
               </dl>
               {quest.done && <p className="pfoot">再次出征保留任务完成与领奖记录，固定任务奖励不会重复领取。</p>}
@@ -147,7 +157,7 @@ function RegionsTab() {
                 {locked && <span className="why" style={{ marginRight: 'auto' }}>大竞技场进行中，暂时不能接任务</span>}
                 {battleLocked && <span className="why">已有战斗或远征进行中，暂时不能出征</span>}
                 <button type="button" className="btn btn-ghost" onClick={() => setSelected(null)}>取消</button>
-                <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || team.length === 0 || locked || battleLocked || quest.inProgress} onClick={() => void start(quest)}>
+                <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || team.length === 0 || locked || battleLocked || quest.inProgress || quest.archived || !quest.available} onClick={() => void start(quest)}>
                   {busy === `s${quest.id}` ? '出发中…' : `确认出征 · ${team.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
                 </button>
               </div>
@@ -223,16 +233,18 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
                   {KIND_TEXT[q.kind]} · {q.objective} · {q.costDays} 日 · 最多 {q.maxUnits} 人 · 敌 Lv {q.enemyLevel}
                 </div>
                 <p className="ch-learned"><span className="tag tag-grey">奖励</span>{rewardText(q)}</p>
+                {q.firstClearRewards && <p className="ch-learned" aria-label="首通奖励"><span className="tag tag-grey">普通首通奖励</span><FirstClearLoot reward={q.firstClearRewards.normal} /></p>}
+                {q.archived && <p className="ch-sub">已归档，仅保留进行中任务与待领取奖励，不能再次出征。</p>}
                 {phase === 'locked' && q.requires && (
                   <p className="ch-sub ch-req"><LockIcon /> 需要{q.requires.quest ? `先完成「${questName(q.requires.quest)}」` : ''}{q.requires.quest && q.requires.reputation ? '、' : ''}{q.requires.reputation ? `声望 ${q.requires.reputation}` : ''}</p>
                 )}
               </div>
               <div className="ch-acts">
                 {phase === 'ongoing' && <a className="btn btn-sm btn-primary" href={q.tier === 'region' ? links.dungeon : links.field}>继续任务</a>}
-                {phase === 'available' && (
+                {phase === 'available' && !q.archived && (
                   <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null || startLocked} onClick={() => onStart(q)}>准备出征</button>
                 )}
-                {q.hardAvailable && (phase === 'done' || phase === 'claimed') && (
+                {q.hardAvailable && !q.archived && q.available && (phase === 'done' || phase === 'claimed') && (
                   <button type="button" className="btn btn-sm" disabled={busy !== null || startLocked} onClick={() => onStart(q)}>再次出征</button>
                 )}
                 {phase === 'done' && (

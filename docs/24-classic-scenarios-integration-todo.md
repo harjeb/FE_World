@@ -1,6 +1,6 @@
 # 经典关卡接入：地形、敌军替换、事件与任务
 
-状态：**QUEST-06～09 已实现**（60 张经典地图、78 个任务/副本入口、物件与声明式事件、场景校验、战利品去重、逐图部署上限、FE7/FE8 职业映射与逐模板报告）。炮台与状态杖已作为项目机关接入；P1/P2 的迷雾、对话等其余特殊机制仍按图替换或排除。核对基线为当前代码及 `content/scenarios/classic-maps-v1/`。
+状态：**QUEST-06～09 已实现**（60 张经典地图；当前六个三图经典副本入口，78个旧任务／副本定义归档保留查找；物件与声明式事件、场景校验、战利品去重、逐图部署上限、FE7/FE8 职业映射与逐模板报告）。炮台与状态杖已作为项目机关接入；P1/P2 的迷雾、对话等其余特殊机制仍按图替换或排除。核对基线为当前代码及 `content/scenarios/classic-maps-v1/`。
 
 采用原则：保留原地图的布局和战术用途；敌军优先使用项目中对应的可用职业，没有对应职业就换成项目已有职业。新增功能集中在地图交互、事件和任务接入，不要求补齐原作全部职业、魔法、技能或剧情。
 
@@ -25,7 +25,8 @@
 ### 当前落地（classic-maps-v1）
 
 - 目录：`content/scenarios/classic-maps-v1/catalog.json`，60 张（FE1/FE2/FE3/FE6/FE7/FE8 各 10 张），字段、适配与限制见同目录 [`README.md`](../content/scenarios/classic-maps-v1/README.md)。
-- 任务：`backend/common/game/classic-quests.ts` 生成 60 个单图任务；每作另按 3–4 图组成 18 个副本。
+- 任务：当前公开114项定义（108项本地＋6个固定经典三图副本）。经典每作保留一个`clx-fe1/2/3/6/7/8`，fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5，每图2日、共6日；同一副本UI选路线，不另设随机／经典导航分类，`START_QUEST`兼容。旧60单图＋18短经典共78定义归档保留查找、拒绝新开，旧进行中／待领奖仍列出，旧远征继续原路线。
+- 混合副本：60张经典图全部进入12地区各5图的终图池，地区主副本与48项地区任务远征均为两张生成图＋经典终图；主副本每图8日共24日，任务每图2日共6日。选择种子独立于战斗RNG，开局冻结`RunRecord.stages`，无该字段的旧远征不改图。首通固定装备／物品按普通与困难各一次，手动任务奖励与探索度仍跨难度一次，详见[20](20-region-quests-reputation.md)。
 - 战斗：`createClassicBattle()` 直接读取目录生成 `BattleState`；`START_QUEST` 支持 `scenarioId` / `scenarioIds`，`CONTINUE_DUNGEON` 按顺序续战。
 - 前端：任务页显示经典标签、图数与适配标记；副本页按 `stageCount` / `stageNames` 显示进度。
 - 适配/报告：`adaptations.json`（物件/事件/地图变化/掉落）、`class-map.json`（FE7 39 个数字 ID、FE6/FE8 符号与 encounter-table）、`adaptation-report.json`（逐模板职业/武器/等级/AI/出生时机）。

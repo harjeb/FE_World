@@ -10,6 +10,7 @@ import { WEAPONS } from '../../backend/common/data/weapons.ts';
 import { canWield } from '../../backend/common/engine/units.ts';
 import { enemyLevel, regionById } from '../../backend/common/game/calendar.ts';
 import { QUEST_LEVEL_CAP } from '../../backend/common/game/quests.ts';
+import { GAME_ITEMS } from '../../backend/common/game/items.ts';
 import { CLASSES } from '../../backend/common/data/classes.ts';
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -223,6 +224,7 @@ try {
     check('quest preparation shows team selection, date, enemy level and permanent-death risk',
       await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');
     check('single-map quests have no difficulty selector', await page.evaluate(`!document.querySelector('section[aria-label="任务出征确认"] input[value="hard"]')`), 'normal-only task');
+    check('single-map quest preparation has no first-clear reward section', await page.evaluate(`!document.querySelector('section[aria-label="任务出征确认"]').innerText.includes('首通奖励')`), 'single-map rewards unchanged');
     await page.open(`http://127.0.0.1:${API_PORT}/#/field?region=2`, '#rg-h');
     check('field preparation shows the current bar and three-point reward',
       await page.evaluate(`(() => { const panel = document.querySelector('#rg-h').closest('section'); return panel.querySelector('progress')?.value === 0 && panel.innerText.includes('野外获胜 +3'); })()`), '0 / 100, win +3');
@@ -335,20 +337,52 @@ try {
     check('completed single-map tasks stay one-shot and do not advertise hard',
       await page.evaluate(`!document.querySelector('[data-quest="gw1"] .ch-acts button')`)
       && (await api(page, 123)).regions[0].quests.find(q => q.id === 'gw1').hardAvailable === false, 'no replay or hard task entry');
-    for (let attempt = 0; attempt < 2; attempt++) {
-      let stage = await api(page, 101, { region: 2, unitIds: explorerTeam, aiDifficulty: attempt === 0 ? 'normal' : 'hard' });
-      if (attempt === 1) check('the unlocked dungeon accepts hard on the next run', stage.run.aiDifficulty === 'hard', 'difficulty locked into run');
+    const firstClearBundles = (await api(page, 30)).sortieRegions.find(r => r.id === 2).dungeonFirstClearRewards;
+    const bundleCounts = async bundle => {
+      const inventory = (await api(page, 22)).inventory;
+      return bundle.items.map(drop => inventory.filter(row => row.item === drop.item).reduce((n, row) => n + row.count, 0));
+    };
+    await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2`, '#drg-h');
+    check('dungeon preparation shows the exact guaranteed normal first-clear items', firstClearBundles.normal.available && await page.evaluate(`(() => {
+      const text = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通')?.nextElementSibling.innerText ?? '';
+      return text.includes('未完成') && ${JSON.stringify(firstClearBundles.normal.items.map(drop => `${GAME_ITEMS[drop.item].name} ×${drop.count}`))}.every(item => text.includes(item));
+    })()`), 'fixed equipment and supplies before departure');
+    check('one dungeon entry offers the regional route and two three-map classics', await page.evaluate(`(() => {
+      const routes = [...document.querySelectorAll('[aria-label="副本路线"] button')];
+      return routes.length === 3 && routes.slice(1).every(el => el.innerText.includes('三图远征') && el.innerText.includes('3 图 · 6 日')) && !document.querySelector('.prep').innerText.includes('六图');
+    })()`), 'six retained classics across three regions, each three maps');
+    for (const difficulty of ['normal', 'hard']) {
+      const bundle = firstClearBundles[difficulty];
+      const beforeBundle = await bundleCounts(bundle);
+      const plan = (await api(page, 30)).sortieRegions.find(r => r.id === 2).dungeonStages;
+      let stage = await api(page, 101, { region: 2, unitIds: explorerTeam, aiDifficulty: difficulty });
+      check(`${difficulty} dungeon freezes the previewed three-map sequence`, JSON.stringify(stage.run.stageNames) === JSON.stringify(plan.map(s => s.name)), 'two generated stages and a classic finale');
+      if (difficulty === 'hard') check('the unlocked dungeon accepts hard on the next run', stage.run.aiDifficulty === 'hard', 'difficulty locked into run');
       for (let index = 0; index < 3; index++) {
+        if (index === 2) check(`${difficulty} dungeon enters the saved classic finale`, (await api(page, 50, { full: true })).state.scenario?.id === plan[2].scenarioId, plan[2].name);
         await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, stage.battleId));
-        if (attempt === 0) check(`dungeon hard unlock waits for full completion (stage ${index + 1})`,
+        if (difficulty === 'normal') check(`dungeon hard unlock waits for full completion (stage ${index + 1})`,
           (await api(page, 10)).hardUnlocks.dungeons.includes(2) === (index === 2), index === 2 ? 'full clear unlocks' : 'still locked');
         if (index < 2) stage = await api(page, 102);
+      }
+      check(`${difficulty} first full clear deposits its own advertised bundle`,
+        JSON.stringify(await bundleCounts(bundle)) === JSON.stringify(beforeBundle.map((n, i) => n + bundle.items[i].count)), 'separate rewards for normal and hard');
+      if (difficulty === 'normal') {
+        await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2`, '#drg-h');
+        await page.reload('#drg-h');
+        await page.click('input[value="hard"]');
+        check('hard preparation still advertises its unclaimed equipment after normal completion', await page.evaluate(`(() => {
+          const text = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通')?.nextElementSibling.innerText ?? '';
+          return text.includes('未完成') && ${JSON.stringify(firstClearBundles.hard.items.map(drop => `${GAME_ITEMS[drop.item].name} ×${drop.count}`))}.every(item => text.includes(item));
+        })()`), 'difficulty switch updates both items and eligibility');
       }
     }
     await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2`, '#drg-h');
     await page.reload('#drg-h');
     check('dungeon bars reflect only the first full clear across two completed runs',
       await page.evaluate(`(() => { const panel = document.querySelector('#drg-h').closest('section'); return panel.querySelector('progress')?.value === 28 && panel.innerText.includes('仅首次完整通关 +20') && panel.innerText.includes('重复通关不加'); })()`), '8 + 20 = 28');
+    check('completed dungeon keeps its difficulty reward visible without a claim action',
+      await page.evaluate(`(() => { const label = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通'); const reward = label?.nextElementSibling; return !!reward && reward.innerText.includes('已完成') && !reward.innerText.includes('未完成') && reward.innerText.includes('×') && reward.innerText.includes('普通、困难各一次固定奖励') && !reward.querySelector('button'); })()`), 'independent completion records, automatic deposits');
     check('dungeon AI defaults to normal', await page.evaluate(`document.querySelector('input[value="normal"]').checked`), 'normal selected');
     await page.click('.prep-go .go-bar button');
     check('dungeon preview shows normal difficulty', await until(() => page.evaluate(`document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通')`)), 'normal preview');
@@ -362,6 +396,35 @@ try {
     check('quoted dungeon starts through the UI', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first dungeon map');
     const quotedDungeon = await api(page, 50, { full: true });
     check('dungeon battle terrain and enemy count match preview', JSON.stringify(quotedDungeon.state.map.tiles) === JSON.stringify(dungeonPreview.encounter.map.tiles) && quotedDungeon.state.units.filter(u => u.side === 'enemy').length === dungeonPreview.encounter.enemyCount, dungeonPreview.encounter.name);
+    await api(page, 56);
+    await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2&dungeon=clx-fe1`, '#drg-h');
+    await page.reload('#drg-h');
+    check('retained classic preparation has exactly three maps and six total days', await page.evaluate(`(() => {
+      const text = document.querySelector('.prep-go').innerText;
+      return text.includes('3 张图连打') && text.includes('共 6 日') && document.querySelector('[aria-label="副本路线"] [aria-checked="true"]').innerText.includes('三图远征');
+    })()`), 'three stages, two days per stage');
+    await page.click('.prep-go .go-bar button');
+    check('classic dungeon starts from the same preparation page', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first classic stage');
+    for (let index = 0; index < 3; index++) {
+      const run = (await api(page, 100)).run;
+      check(`classic stage ${index + 1} remains a three-map run`, run.stageCount === 3 && run.stageIndex === index, run.stageNames[index]);
+      await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, run.battleId));
+      if (index < 2) {
+        await page.reload('#run-h');
+        check(`classic intermission ${index + 1} shows three slots and the correct next map`, await page.evaluate(`document.querySelectorAll('.run-map li').length === 3 && [...document.querySelectorAll('.facts dt')].find(el => el.textContent === '下一图').nextElementSibling.innerText.includes(${JSON.stringify(run.stageNames[index + 1])})`), 'saved route order');
+        await page.click('.go-bar button.btn-primary');
+        await until(() => page.evaluate(`!!document.querySelector('.hud')`));
+      }
+    }
+    await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '#tasks-h');
+    await page.reload('#tasks-h');
+    check('camp links pending classic rewards directly to their dungeon', await page.evaluate(`!!document.querySelector('#tasks-h').closest('section').querySelector('a[href="#/field/dungeon?region=2&dungeon=clx-fe1"]')`), 'no hidden quest-page reward');
+    await page.click('a[href="#/field/dungeon?region=2&dungeon=clx-fe1"]');
+    await until(() => page.evaluate(`!!document.querySelector('[aria-label="选择副本"]')`));
+    await page.evaluate(`[...document.querySelectorAll('[aria-label="选择副本"] button')].find(el => el.textContent === '领取任务奖励').click()`);
+    check('classic manual reward can be claimed once from the dungeon page', await until(async () => (await api(page, 123)).regions.flatMap(r => r.quests).find(q => q.id === 'clx-fe1').claimed), 'equipment was deposited at full clear; manual gold claimed separately');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/quests?region=2`, '[aria-labelledby="rg-2"]');
+    check('quest page has no duplicate classic dungeon launch entries', await page.evaluate(`!document.querySelector('[data-quest^="clx-"]') && !document.querySelector('[data-quest^="cld-"]')`), 'unified dungeon entry');
     await page.evaluate(`Object.keys(localStorage).filter(key => !key.startsWith('agent-tactics.deployment-order.')).forEach(key => localStorage.removeItem(key))`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     const name = 'e2e-seeded';

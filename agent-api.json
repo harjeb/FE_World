@@ -1,5 +1,5 @@
 {
-  "docVersion": 13,
+  "docVersion": 15,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -199,7 +199,7 @@
       "op": 30,
       "name": "GET_TODAY",
       "group": "日历",
-      "agentNote": "今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军。",
+      "agentNote": "今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，困难装备更高阶且不同；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -231,7 +231,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience and drops."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "region": {
             "type": "number",
@@ -246,7 +246,7 @@
             "minItems": 1,
             "maxItems": 8,
             "uniqueItems": true,
-            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. Omission chooses available units up to that limit; excess or duplicate IDs are rejected."
+            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. For dungeons this limit accounts for every stage, including the classic finale. Omission chooses available units up to that limit; excess or duplicate IDs are rejected."
           },
           "commandId": {
             "type": "string",
@@ -398,7 +398,7 @@
       "op": 38,
       "name": "PREVIEW_ACTION",
       "group": "日历",
-      "agentNote": "为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。",
+      "agentNote": "为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。dungeon 另返回 dungeonStages（各图 name、可选 scenarioId）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -434,7 +434,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience and drops."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "times": {
             "type": "number"
@@ -1309,7 +1309,7 @@
       "op": 100,
       "name": "GET_RUN",
       "group": "远征",
-      "agentNote": "读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。",
+      "agentNote": "读取当前或最近一次连续远征：状态、stageNames/stageCount、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落；completed 时 pendingLoot 是已入库清单，包含本次实际获得的首通奖励。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1327,7 +1327,7 @@
       "op": 101,
       "name": "START_DUNGEON",
       "group": "远征",
-      "agentNote": "开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。",
+      "agentNote": "开始三图地区大副本（两张生成图＋一张经典终图，每图8日，共24日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1346,7 +1346,7 @@
             "minItems": 1,
             "maxItems": 8,
             "uniqueItems": true,
-            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. Omission chooses available units up to that limit; excess or duplicate IDs are rejected."
+            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. For dungeons this limit accounts for every stage, including the classic finale. Omission chooses available units up to that limit; excess or duplicate IDs are rejected."
           },
           "aiDifficulty": {
             "type": "string",
@@ -1354,7 +1354,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience and drops."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "commandId": {
             "type": "string",
@@ -1608,7 +1608,7 @@
       "op": 123,
       "name": "GET_QUESTS",
       "group": "任务",
-      "agentNote": "读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。",
+      "agentNote": "读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1626,7 +1626,7 @@
       "op": 124,
       "name": "START_QUEST",
       "group": "任务",
-      "agentNote": "接取并开始一个地区任务：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
+      "agentNote": "接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1640,7 +1640,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience and drops."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "questId": {
             "type": "string"

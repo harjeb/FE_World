@@ -1,3 +1,4 @@
+import { classicMap } from '../common/game/classic-catalog.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from './db.ts';
@@ -261,7 +262,7 @@ test('an old three-quest region can finish its new branches and claim the ending
   assert.equal(store.countInventory(player.id, 'royal_sword'), 0, 'old exclusive rewards are not issued again');
 });
 
-test('new core expeditions use their configured goals and cannot pay reputation after only one map', () => {
+test('core expeditions keep early goals, finish on a classic map and pay only after all stages', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'];
@@ -275,7 +276,8 @@ test('new core expeditions use their configured goals and cannot pay reputation 
   for (const [stage, kind] of ['rout', 'seize', 'boss'].entries()) {
     const battle = store.battle(player.id, started.battleId)!;
     assert.equal(battle.questId, 'r9-7');
-    assert.equal(battle.state.goal.kind, kind);
+    const expectedGoal = stage === 2 ? classicMap(store.activeRun(player.id)!.stages![2].scenarioId!).goal.kind : kind;
+    assert.equal(battle.state.goal.kind, expectedGoal);
     assert.equal(battle.costDays, 2);
     assert.equal(player.day, day + (stage + 1) * 2);
     // 本例验收逐图配置与结算边界：准备一手可胜的棋盘，避免随机地形下的 AI 寻路左右流程测试。
@@ -284,7 +286,7 @@ test('new core expeditions use their configured goals and cannot pay reputation 
     if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
     battle.initial = structuredClone(battle.state);
     store.saveBattle(battle);
-    dispatch(ctx, OP.UNIT_ACT, { battleId: battle.id, unitId: leader.id, moveTo: leader.pos, action: kind === 'seize' ? 'seize' : 'wait' });
+    dispatch(ctx, OP.UNIT_ACT, { battleId: battle.id, unitId: leader.id, moveTo: leader.pos, action: battle.state.goal.kind === 'seize' ? 'seize' : 'wait' });
     assert.equal(store.battle(player.id, battle.id)!.state.result?.winner, 'player');
     assert.equal(player.flags.regionExploration?.[9], stage === 2 ? 40 : 20, '另一个任务副本有独立首通，仅完整通关加二十');
     if (stage < 2) {

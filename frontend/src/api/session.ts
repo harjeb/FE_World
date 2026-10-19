@@ -189,11 +189,16 @@ export interface TodayAction {
   lethal?: boolean;
 }
 
+export interface FirstClearReward {
+  items: { item: string; count: number }[];
+  available: boolean;
+}
+
 export interface ServerToday {
   day: number;
   date: ServerState['date'];
   actions: TodayAction[];
-  sortieRegions: { encounters?: Record<AiDifficulty, FieldEncounter>; dungeonEncounters?: Record<AiDifficulty, FieldEncounter>; id: number; name: string; resource: string; cleared: boolean; level: number; hardUnlocked?: boolean; dungeonHardUnlocked?: boolean }[];
+  sortieRegions: { encounters?: Record<AiDifficulty, FieldEncounter>; dungeonEncounters?: Record<AiDifficulty, FieldEncounter>; id: number; name: string; resource: string; cleared: boolean; level: number; hardUnlocked?: boolean; dungeonFirstClearRewards: Record<AiDifficulty, FirstClearReward>; dungeonStages: { name: string; scenarioId?: string }[]; dungeonHardUnlocked?: boolean }[];
   festival: { open: boolean; round: number; costDays: number };
   nextArenaDay: number;
   nextMonthStart: number;
@@ -256,6 +261,8 @@ export interface ServerStory { bexp: number; annualSummary?: { text: string; dat
 
 // GET_QUESTS: regional quests and reputation (docs/20).
 export interface QuestView {
+  firstClearRewards: Record<AiDifficulty, FirstClearReward> | null;
+  dungeonOnly: boolean; archived: boolean; stageNames: string[] | null;
   hardAvailable?: boolean;
   hardUnlocked?: boolean;
   id: string; name: string; objective: string; kind: 'rout' | 'seize' | 'defend' | 'escape' | 'gather' | 'escort';
@@ -361,6 +368,7 @@ export interface ServerAgentInfo { online: boolean; model: string | null; plan: 
 
 // Quotes are bound to the player version; EXECUTE_ACTION re-checks it (docs/13 §3.2).
 export interface ActionQuote {
+  dungeonStages?: { name: string; scenarioId?: string }[];
   encounter?: FieldEncounter & { map: Pick<BattleMap, 'width' | 'height' | 'tiles' | 'spawns' | 'playerGroups' | 'objective'> };
   quoteId: string; playerVersion: number; action: string; costDays: number; costGold: number;
   fromDay: number; toDay: number; date: ServerState['date']; risk: 'permadeath' | 'simulation';
@@ -444,7 +452,7 @@ const VIEWS: { key: ViewKey; op: number; feature: keyof FeatureAccess }[] = [
 const PAGE_VIEWS: Partial<Record<Route['page'], ViewKey[]>> = {
   camp: VIEWS.map(v => v.key), rules: ['story', 'production'],
   arena: ['arena', 'results'], ban: ['arena', 'results'], deploy: ['arena', 'results'], 'arena-battle': ['arena', 'results'],
-  story: ['story'], quests: ['quests'], workshop: ['production'], legacy: ['legacies'], roster: ['legacies'],
+  story: ['story'], dungeon: ['quests'], quests: ['quests'], workshop: ['production'], legacy: ['legacies'], roster: ['legacies'],
 };
 // These commands change only resources/units/control, not calendar events or module progress.
 const STATE_ONLY = new Set<number>([

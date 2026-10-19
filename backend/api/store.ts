@@ -649,6 +649,13 @@ export class Store {
     return row ? JSON.parse(row.data) as RunRecord : null;
   }
 
+  hasCompletedRun(playerId: string, region: number, questId?: string, aiDifficulty?: 'normal' | 'hard'): boolean {
+    return !!this.db.prepare(`SELECT 1 FROM runs WHERE player_id = ? AND state = 'completed'
+      AND json_extract(data, '$.region') = ? AND json_extract(data, '$.questId') IS ?
+      AND (? IS NULL OR COALESCE(json_extract(data, '$.aiDifficulty'), 'normal') = ?) LIMIT 1`)
+      .get(playerId, region, questId ?? null, aiDifficulty ?? null, aiDifficulty ?? null);
+  }
+
   // 全部远征记录：旧档地区认领按真实证据扫描。
   runs(playerId: string): RunRecord[] {
     return (this.db.prepare('SELECT data FROM runs WHERE player_id = ?').all(playerId) as { data: string }[])

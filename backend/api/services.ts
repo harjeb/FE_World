@@ -15,7 +15,7 @@ import { seedRng } from '../common/engine/rng.ts';
 import { scenarioLoot } from '../common/engine/scenario.ts';
 import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
-import { carryFromBattle, DUNGEON_STAGES, stageCount, stageLoot } from '../common/game/expedition.ts';
+import { carryFromBattle, dungeonFirstClearLoot, DUNGEON_STAGES, stageCount, stageLoot } from '../common/game/expedition.ts';
 import type { RunCarry, RunRecord } from '../common/game/expedition.ts';
 import { advanceBracket, knockoutResult, nextAnnualWindowStart, qualifierResult, annualWindowOpen } from '../common/game/annual.ts';
 import type { AnnualEntry } from '../common/game/annual.ts';
@@ -498,6 +498,12 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   return rewards;
 }
 
+export function dungeonFirstClearReward(store: Store, player: Player, region: number, questId?: string, aiDifficulty: 'normal' | 'hard' = 'normal') {
+  const completed = (aiDifficulty === 'normal' && questId !== undefined && (player.flags.questsDone ?? []).includes(questId))
+    || store.hasCompletedRun(player.id, region, questId, aiDifficulty);
+  return { items: dungeonFirstClearLoot(region, aiDifficulty), available: !completed };
+}
+
 // 连续副本结算（docs/00 §8.1.3、docs/13 §4.3）：胜则进入下一图，首领图胜利才完整通关；
 // 撤离／失败作废未带回掉落，但保留死亡与消耗。
 export function handleRunOutcome(store: Store, player: Player, record: BattleRecord): { run: RunRecord; completed: boolean } | null {
@@ -528,10 +534,11 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
       }
       releaseLocks();
       // 野图也会写 clearedRegions，普通副本首通须看完整远征记录。
-      const firstDungeonClear = run.questId
-        ? !(player.flags.questsDone ?? []).includes(run.questId)
-        : !store.runs(player.id).some(previous => previous.state === 'completed' && previous.region === run.region && !previous.questId);
-      if (firstDungeonClear) addRegionExploration(store, player, run.region, 'dungeon');
+      const firstClearReward = dungeonFirstClearReward(store, player, run.region, run.questId, run.aiDifficulty ?? 'normal');
+      const explored = (run.questId !== undefined && (player.flags.questsDone ?? []).includes(run.questId))
+        || store.hasCompletedRun(player.id, run.region, run.questId);
+      if (!explored) addRegionExploration(store, player, run.region, 'dungeon');
+      if (firstClearReward.available) run.pendingLoot.push(...firstClearReward.items);
       const region = regionById(run.region);
       const firstClear = !player.flags.clearedRegions.includes(run.region);
       if (firstClear) player.flags.clearedRegions.push(run.region);
