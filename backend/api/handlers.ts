@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { createHash } from 'node:crypto';
-import { OP, OP_BY_NUMBER } from '../common/protocol/ops.ts';
+import { OP, OP_BY_NUMBER, WRITE_OPS } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
@@ -363,7 +363,7 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.GET_AGENT_INFO]: ctx => ({
-    online: ctx.agentModel !== null,
+    online: !!ctx.player.flags.agentLastSeen && Date.now() - ctx.player.flags.agentLastSeen < 5 * 60_000,
     model: ctx.agentModel,
     plan: ctx.store.notes(ctx.player.id, 'plan')[0]?.text ?? null,
     dailyReport: ctx.store.notes(ctx.player.id, 'daily')[0]?.text ?? null,
@@ -650,7 +650,7 @@ const handlers: Record<number, Handler> = {
     if (quote.blockers && quote.blockers.length > 0) throw new OpError('FORBIDDEN', quote.blockers.join('；'));
     const handler = handlers[quote.op];
     if (!handler) throw new OpError('INTERNAL', '报价对应的操作不存在');
-    return handler(ctx, quote.payload ?? {});
+    return runHandler(ctx, quote.op, handler, quote.payload ?? {});
   },
 
   [OP.GET_SHOP]: ctx => ({
@@ -1561,14 +1561,14 @@ const handlers: Record<number, Handler> = {
     return { battleId: record.id, result: state.result ?? null, events, state: publicState(state), battle: battleView(record, false, record.events.length - events.length) };
   },
 
-  [OP.END_PHASE]: ctx => {
-    const record = requireBattle(ctx, {});
+  [OP.END_PHASE]: (ctx, data) => {
+    const record = requireBattle(ctx, data);
     const { state, events } = applyAction(ctx, record, { type: 'endPhase' });
     return { battleId: record.id, result: state.result ?? null, events, state: publicState(state), battle: battleView(record, false, record.events.length - events.length) };
   },
 
-  [OP.RETREAT]: ctx => {
-    const record = requireBattle(ctx, {});
+  [OP.RETREAT]: (ctx, data) => {
+    const record = requireBattle(ctx, data);
     const { state } = applyAction(ctx, record, { type: 'retreat' });
     return { battleId: record.id, result: state.result, state: publicState(state) };
   },
@@ -1706,8 +1706,8 @@ const handlers: Record<number, Handler> = {
     return { battleId: battle.id, battle: battleView(battle, false), state: publicState(state) };
   },
 
-  [OP.SURRENDER]: ctx => {
-    const record = requireBattle(ctx, {});
+  [OP.SURRENDER]: (ctx, data) => {
+    const record = requireBattle(ctx, data);
     if (record.mode !== 'arena' && record.mode !== 'festival') throw new OpError('BAD_REQUEST', '只有竞技场战斗可以投降');
     const { state } = applyAction(ctx, record, { type: 'surrender' });
     return { battleId: record.id, result: state.result, state: publicState(state) };
@@ -2441,6 +2441,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       costDays = ACTION_DAYS.train;
       costGold = TRAIN_GOLD;
       payload = { unitId: data.unitId, weaponType: data.weaponType };
+      if (ctx.store.activeBattle(player.id)?.state.units.some(unit => unit.id === data.unitId)) blockers.push('战斗中的队员不能培养或调整物资');
       if (player.gold < TRAIN_GOLD) blockers.push(`训练需要 ${TRAIN_GOLD} 金币`);
       break;
     }
@@ -2674,27 +2675,13 @@ function runHandler(ctx: Context, op: number, handler: Handler, data: Json): unk
     if (error instanceof EngineError) throw new OpError(error.code, error.message);
     throw error;
   }
-  if (WRITE_OPS.has(op)) {
+  // Quoted execution already advances the version in its inner operation.
+  if (WRITE_OPS.has(op) && op !== OP.EXECUTE_ACTION) {
     ctx.player.version = expectedVersion + 1;
     ctx.store.savePlayer(ctx.player, expectedVersion);
   }
   return result;
 }
-
-// 会改变玩家状态的 op：成功后 version +1。
-const WRITE_OPS = new Set<number>([
-  OP.SORTIE, OP.SWEEP, OP.TRAIN, OP.TRAIN_ART, OP.REST, OP.RECRUIT, OP.START_MAIN_STAGE, OP.SKIP_MAIN_STAGE,
-  OP.BUY, OP.SELL, OP.REFINE_WEAPON, OP.TRANSFER_ITEM, OP.USE_ITEM, OP.PROMOTE, OP.ASSIGN_BEXP, OP.DISMISS,
-  OP.SET_DEFENSE, OP.ARENA_REGISTER, OP.ARENA_BAN, OP.ARENA_ATTACK, OP.SURRENDER, OP.START_SPARRING,
-  OP.CLAIM_LEGACY, OP.RETIRE_UNIT, OP.REINCARNATE_UNIT, OP.EMERGENCY_RECRUIT, OP.BUY_CLASS_QUALIFICATION,
-  OP.SWITCH_CLASS, OP.EQUIP_SKILLS, OP.START_DISPATCH, OP.CLAIM_RATING_REWARD,
-  OP.PLANT, OP.START_PRODUCTION, OP.COLLECT_PRODUCTION, OP.START_DUNGEON, OP.CONTINUE_DUNGEON, OP.WITHDRAW_RUN,
-  OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.WITHDRAW_ANNUAL, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
-  OP.CLAIM_CONTROL, OP.RELEASE_CONTROL, OP.CHOOSE_ROUTE,
-  OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP, OP.START_CHALLENGE, OP.CLAIM_CHALLENGE_REWARD, OP.PLAY_MINIGAME, OP.ACCEPT_RECRUIT, OP.DECLINE_RECRUIT, OP.HIRE_TAVERN, OP.INN_REST, OP.USE_FOOD,
-  OP.EXECUTE_ACTION,
-  OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
-]);
 
 const ANNUAL_OPS = new Set<number>([
   OP.START_ANNUAL_MATCH, OP.START_MAIN_STAGE, OP.WITHDRAW_ANNUAL, OP.UNIT_ACT, OP.END_PHASE,

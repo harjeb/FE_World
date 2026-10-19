@@ -1,8 +1,12 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 6
+docVersion: 7
 
-本文件由 `backend/common/protocol/ops.ts` 生成，不要手改。
+本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
+
+每个请求的完整参数见 `/agent-api.json` 中对应 op 的 `dataSchema`，与 MCP 的 `data` 参数声明共用来源。
+
+MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。
 
 ## 帧格式
 

@@ -1,21 +1,23 @@
 import { createInterface } from 'node:readline';
-import { OP, OPS, PUSH_OPS } from '../backend/common/protocol/ops.ts';
+import { randomUUID } from 'node:crypto';
+import { OP, OPS, PUSH_OPS, WRITE_OPS } from '../backend/common/protocol/ops.ts';
 import { schemaFor } from '../backend/common/protocol/schemas.ts';
 
 // A dependency-free MCP server (docs/07「MCP 插件」). Tools are generated from the same op table that
 // generates docs/agent-api.md, so a new op appears here without a second definition. It talks to the
 // running API over HTTP using an agent token (env AGENT_TOKEN), so it needs no extra credentials.
 //
-// Tool input schemas are intentionally permissive: the op table describes fields in prose, and an
-// Agent reads the tool description plus GET /agent-api.json. Tightening them is a later pass.
+// Request fields are shared with the API. Nested { data } is the advertised format;
+// flat arguments remain accepted for existing clients.
 
 const API_URL = process.env.API_URL ?? 'http://localhost:8525';
 const AGENT_TOKEN = process.env.AGENT_TOKEN ?? '';
+const TOOL_OPS = OPS.filter(def => !PUSH_OPS.has(def.op) && def.op !== OP.LOGIN && def.op !== OP.LOGOUT);
 
 export interface McpTool { name: string; description: string; inputSchema: Record<string, unknown> }
 
 export function toolList(): McpTool[] {
-  return OPS.filter(def => !PUSH_OPS.has(def.op)).map(def => {
+  return TOOL_OPS.map(def => {
     const schema = schemaFor(def.name);
     return {
       name: def.name.toLowerCase(),
@@ -27,6 +29,7 @@ export function toolList(): McpTool[] {
             ? { type: 'object', properties: schema.properties, required: schema.required ?? [], additionalProperties: false }
             : { type: 'object', description: '该 op 的请求字段，见 docs/agent-api.md', additionalProperties: true },
         },
+        ...(schema?.required?.length ? { anyOf: [{ required: ['data'] }, { required: schema.required }] } : {}),
         additionalProperties: true,
       },
     };
@@ -34,18 +37,38 @@ export function toolList(): McpTool[] {
 }
 
 async function callTool(name: string, args: Record<string, unknown>): Promise<{ text: string; isError: boolean }> {
-  const op = OP[name.toUpperCase()];
-  if (!op) return { text: `未知工具 ${name}`, isError: true };
-  const data = (args.data ?? args) as Record<string, unknown>;
-  const response = await fetch(`${API_URL}/api/op`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${AGENT_TOKEN}` },
-    body: JSON.stringify({ op, seq: 1, data }),
-    signal: AbortSignal.timeout(15_000),
-  });
-  const frame = await response.json() as { ok: boolean; data?: unknown; error?: { code: string; message: string; action: string } };
-  if (!frame.ok) return { text: `[${frame.error?.code}] ${frame.error?.message}\naction: ${frame.error?.action}`, isError: true };
-  return { text: JSON.stringify(frame.data, null, 2), isError: false };
+  const def = TOOL_OPS.find(op => op.name.toLowerCase() === name.toLowerCase());
+  if (!def) return { text: `未知工具 ${name}；MCP 已通过 AGENT_TOKEN 认证，无需 LOGIN／LOGOUT。`, isError: true };
+  if (!args || typeof args !== 'object' || Array.isArray(args)) return { text: '工具参数必须是对象', isError: true };
+  const input = args.data === undefined ? args : args.data;
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return { text: 'data 必须是对象', isError: true };
+  const data = { ...input } as Record<string, unknown>;
+  const writes = WRITE_OPS.has(def.op) || def.group === 'Agent';
+  if (data.commandId !== undefined && (typeof data.commandId !== 'string' || data.commandId.length === 0)) {
+    return { text: 'commandId 必须是非空字符串；重试请保留原 commandId。', isError: true };
+  }
+  if (writes && data.commandId === undefined) data.commandId = randomUUID();
+  // Retry the same request, including its receipt key, even when the response was lost after commit.
+  const body = JSON.stringify({ op: def.op, seq: 1, data });
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(`${API_URL}/api/op`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${AGENT_TOKEN}` },
+        body,
+        signal: AbortSignal.timeout(15_000),
+      });
+      const frame = await response.json() as { ok: boolean; data?: unknown; error?: { code: string; message: string; action: string } };
+      if (!frame || typeof frame.ok !== 'boolean') throw new Error('API 返回了无效的协议响应');
+      if (!frame.ok) return { text: `[${frame.error?.code}] ${frame.error?.message}\naction: ${frame.error?.action}`, isError: true };
+      return { text: JSON.stringify(frame.data ?? {}, null, 2), isError: false };
+    } catch (error) {
+      if (attempt === 0) continue;
+      const detail = error instanceof Error ? error.message : String(error);
+      const recovery = writes ? `\n操作结果未确认，commandId: ${data.commandId}。先查询状态；如需重试，必须在 data.commandId 中使用此 ID，不要新建命令。` : '';
+      return { text: `${detail}${recovery}`, isError: true };
+    }
+  }
 }
 
 function reply(id: unknown, result: unknown): void {

@@ -53,6 +53,7 @@ test('changesSince reports the first release and rejects unknown versions', () =
   assert.ok(changesSince(1)?.changes.some(change => change.includes('WITHDRAW_ANNUAL')));
   assert.ok(changesSince(2)?.changes.some(change => change.includes('COMPLETE_SETUP')));
   assert.ok(!changesSince(2)?.changes.some(change => change.startsWith('v2:')));
+  assert.ok(changesSince(6)?.changes.some(change => change.startsWith('v7:') && change.includes('commandId')));
   assert.equal(changesSince(99), null);
 });
 

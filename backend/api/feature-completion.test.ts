@@ -8,7 +8,7 @@ import { seedFullRoster } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
-import { OP } from '../common/protocol/ops.ts';
+import { OP, PUSH_OPS } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { growthRates, equipmentSkills, createUnit } from '../common/game/model.ts';
 import { createClassicBattle } from '../common/game/battles.ts';
@@ -219,6 +219,9 @@ test('control lease blocks the other actor until released', () => {
   dispatch(human, OP.REST, { days: 1 });
 });
 
-test('every public op has a schema entry for Agent/MCP discovery', () => {
-  for (const name of Object.keys(OP)) assert.ok(schemaFor(name), name);
+test('every public request has a schema entry for Agent/MCP discovery', () => {
+  for (const [name, op] of Object.entries(OP)) {
+    if (!PUSH_OPS.has(op)) assert.ok(schemaFor(name), name);
+  }
+  assert.equal(schemaFor('UNKNOWN_OP'), undefined);
 });
