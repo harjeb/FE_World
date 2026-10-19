@@ -39,7 +39,7 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
       for (const s of e.strikes) {
         // 反噬的伤害落在出手者身上。
         const at = unitIn(view, s.backlash ? s.by : s.target).pos;
-        ctl.float(at, !s.hit ? 'MISS' : s.backlash ? `反噬 ${s.damage}` : s.crit ? `${s.damage}!` : String(s.damage), !s.hit ? 'miss' : s.crit ? 'crit' : 'dmg');
+        ctl.float(at, !s.hit ? 'MISS' : s.backlash ? `反噬 ${s.damage}` : s.crit ? `${s.damage}!` : String(s.damage), !s.hit ? 'miss' : s.crit && !s.backlash ? 'crit' : 'dmg');
         edit(d => {
           unitIn(d, s.target).hp = s.hpAfter;
           if (s.byHpAfter !== undefined) unitIn(d, s.by).hp = s.byHpAfter;

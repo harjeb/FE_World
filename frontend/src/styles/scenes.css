@@ -5,15 +5,27 @@
 .combat { position: relative; width: 860px; max-width: 100%; max-height: 100%; overflow: auto; border-radius: 8px; background: var(--color-panel); border: 1px solid var(--color-line); box-shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.6); }
 .c-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--color-line-soft); flex-wrap: wrap; }
 .scene-wrap { padding: 14px 30px 0; overflow-x: auto; }
-.scene { position: relative; width: 800px; height: 288px; border: 1px solid #2f3a33; border-radius: 4px; overflow: hidden; margin: 0 auto; }
-.scene.shake { animation: shake 0.28s linear; }
-.fighter { position: absolute; bottom: 42px; transition: transform 0.16s ease-out; }
-.fighter.lunge-r { transform: translateX(56px); }
-.fighter.lunge-l { transform: translateX(-56px); }
+.scene { position: relative; width: 800px; height: 288px; border: 1px solid #2f3a33; border-radius: 4px; overflow: hidden; margin: 0 auto; background: #1f2621; }
+/* Everything in the scene sits on the camera, which shakes inside the frame on a crit. */
+.camera { position: absolute; inset: 0; }
+.camera.shake { animation: shake 0.36s linear; }
+/* Moves use translate, not transform, so they keep the transform: scaleX(-1) of flipped map sprites. */
+.fighter { position: absolute; bottom: 42px; transition: translate 0.16s ease-out; }
+.fighter.lunge-r { translate: 56px 0; }
+.fighter.lunge-l { translate: -56px 0; }
 .fighter.hurt { animation: hurt 0.3s ease-out; }
-.spark { position: absolute; width: 76px; height: 76px; animation: spark 0.35s ease-out forwards; }
-.dmg { position: absolute; top: 26px; font-family: var(--font-pixel); font-weight: 700; font-size: 44px; line-height: 1; color: #fff; text-shadow: 3px 0 0 #2b2421, -3px 0 0 #2b2421, 0 3px 0 #2b2421, 0 -3px 0 #2b2421, 3px 3px 0 #2b2421, -3px 3px 0 #2b2421, 3px -3px 0 #2b2421, -3px -3px 0 #2b2421; animation: pop 0.25s ease-out; }
-.dmg.crit { color: #ffd76a; font-size: 56px; }
+/* 必杀: flash and step back, then dash in further and faster. */
+.fighter.charge-r { translate: -14px 0; animation: charge 0.48s steps(1, end); }
+.fighter.charge-l { translate: 14px 0; animation: charge 0.48s steps(1, end); }
+.fighter.dash { transition-duration: 0.1s; }
+.fighter.lunge-r.dash { translate: 96px 0; }
+.fighter.lunge-l.dash { translate: -96px 0; }
+.spark { position: absolute; animation: spark 0.35s ease-out forwards; }
+.spark.crit { animation-duration: 0.5s; }
+.scene-flash { position: absolute; inset: 0; background: #fff8e4; pointer-events: none; animation: flash 0.3s ease-out forwards; }
+/* Scoped to the scene: the map's damage numbers are .float-num.dmg. */
+.scene .dmg { position: absolute; top: 26px; font-family: var(--font-pixel); font-weight: 700; font-size: 44px; line-height: 1; color: #fff; text-shadow: 3px 0 0 #2b2421, -3px 0 0 #2b2421, 0 3px 0 #2b2421, 0 -3px 0 #2b2421, 3px 3px 0 #2b2421, -3px 3px 0 #2b2421, 3px -3px 0 #2b2421, -3px -3px 0 #2b2421; animation: pop 0.25s ease-out; }
+.scene .dmg.crit { color: #ffd76a; font-size: 56px; animation: slam 0.4s ease-out; }
 .dmg-label { position: absolute; top: 80px; padding: 2px 8px; border-radius: 4px; background: #2b2421; color: var(--color-panel); font-size: 13px; font-weight: 700; }
 .side-tag { position: absolute; top: 10px; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 4px; font-size: 13px; font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); color: #fff; }
 .hpwrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 14px 30px 0; }
@@ -55,13 +67,29 @@
 .lv-grid b { font-variant-numeric: tabular-nums; font-size: 15px; }
 .lv-grid em { font-style: normal; color: var(--color-green-deep); font-weight: 700; margin-left: 4px; }
 
-@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+/* The zoom keeps the shaken camera covering the frame, so its edges never show. */
+@keyframes shake {
+  0% { translate: 0 0; scale: 1.04; }
+  20% { translate: -8px 3px; }
+  40% { translate: 7px -2px; }
+  60% { translate: -5px 2px; }
+  80% { translate: 3px -1px; scale: 1.02; }
+  100% { translate: 0 0; scale: 1; }
+}
 @keyframes hurt { 0% { filter: brightness(2.2); } 100% { filter: none; } }
+/* Two flashes, then a glow held into the dash. */
+@keyframes charge {
+  0%, 36%, 72% { filter: brightness(2.4) drop-shadow(0 0 6px #ffd76a); }
+  18%, 54% { filter: none; }
+}
 @keyframes spark { from { transform: scale(0.6); opacity: 1; } to { transform: scale(1.3); opacity: 0; } }
+@keyframes flash { from { opacity: 0.8; } to { opacity: 0; } }
 @keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
+@keyframes slam { 0% { transform: scale(2.6); opacity: 0; } 45% { transform: scale(0.86); opacity: 1; } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
 @keyframes banner { 0% { opacity: 0; transform: translateX(-40px); } 18%, 78% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateX(40px); } }
 
 @media (prefers-reduced-motion: reduce) {
   .fighter, .unit, .hpbar-thin > i, .unit .hp i { transition: none; }
-  .scene.shake, .fighter.hurt, .spark, .dmg, .phase-banner > div, .float-num { animation: none; }
+  .camera.shake, .fighter.hurt, .fighter.charge-r, .fighter.charge-l, .spark, .scene .dmg, .scene .dmg.crit, .phase-banner > div, .float-num, .float-num.crit { animation: none; }
+  .scene-flash, .crit-flash { display: none; }
 }

@@ -142,6 +142,9 @@ export function MapTag({ at, cell, className, children, view, prefer = 'above' }
 export function Floats({ floats, cell }: { floats: FloatText[]; cell: number }) {
   return (
     <>
+      {floats.filter(f => f.kind === 'crit').map(f => (
+        <span key={`flash-${f.id}`} className="crit-flash" style={{ left: f.at[0] * cell, top: f.at[1] * cell }} />
+      ))}
       {floats.map(f => (
         <span key={f.id} className={`float-num ${f.kind}`}
           style={{ left: f.at[0] * cell + cell / 2, top: f.at[1] * cell - 6, transform: 'translateX(-50%)', fontSize: f.kind === 'exp' ? 12 : undefined }}>

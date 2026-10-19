@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { WEAPONS } from '@common/data/weapons.ts';
 import { classOf, forecast, forecastOnHit } from '@common/engine/index.ts';
-import type { UnitState } from '@common/engine/index.ts';
+import type { Strike, UnitState } from '@common/engine/index.ts';
 import { fighterFor, SPARK, spriteFor, STAGE } from '../assets.ts';
 import { SkipIcon } from '../ui/icons.tsx';
 import type { CombatShow } from './controller.ts';
@@ -9,6 +9,11 @@ import { displayName } from './names.ts';
 import { Portrait, SideTag } from './UnitCard.tsx';
 
 const STRIKE_MS = 900;
+// 必杀: the striker flashes and steps back before dashing in, and the impact holds a moment longer.
+const CHARGE_MS = 480;
+const CRIT_HOLD_MS = 260;
+// A backlash hurts the striker instead, so it plays as a backlash even when the roll was a crit.
+const critHit = (s: Strike) => s.hit && s.crit && !s.backlash;
 
 // Side-view exchange (交战演出 artboard): enemy on the left, ally on the right, one strike at a time.
 // Skippable with the button, Space, Enter or Esc; the map is paused meanwhile.
@@ -21,23 +26,38 @@ export function CombatScene({ show }: { show: CombatShow }) {
   const f = event.forecast ?? forecast(before, attacker.id, attacker.pos, event.weapons[0], defender.id);
   const onHit = forecastOnHit(f);
   const [shown, setShown] = useState(0);
-  const [lunge, setLunge] = useState<string | null>(null);
+  const [charge, setCharge] = useState<string | null>(null);
+  const [lunge, setLunge] = useState<{ id: string; dash: boolean } | null>(null);
+  const [shake, setShake] = useState(false);
   const [hp, setHp] = useState<Record<string, number>>({ [attacker.id]: attacker.hp, [defender.id]: defender.hp });
   const doneRef = useRef(show.done);
 
   // Each strike: wind up (lunge), land (HP and number update), pull back before the next one.
+  // A crit charges first, dashes in further and faster, and shakes the scene when it lands.
   useEffect(() => {
     const timers: number[] = [];
     const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
-    if (shown > 0) at(260, () => setLunge(null));
+    const landed = shown > 0 ? event.strikes[shown - 1] : null;
+    const hold = landed && critHit(landed) ? CRIT_HOLD_MS : 0;
+    if (landed) at(260 + hold, () => setLunge(null));
+    if (hold) at(400, () => setShake(false));
     if (shown >= event.strikes.length) {
-      at(STRIKE_MS, () => doneRef.current());
+      at(STRIKE_MS + hold, () => doneRef.current());
     } else {
       const s = event.strikes[shown];
-      const start = shown === 0 ? 350 : STRIKE_MS - 300;
-      at(start, () => setLunge(s.by));
-      at(start + 160, () => {
+      const crit = critHit(s);
+      let start = (shown === 0 ? 350 : STRIKE_MS - 300) + hold;
+      if (crit) {
+        at(start, () => setCharge(s.by));
+        start += CHARGE_MS;
+      }
+      at(start, () => {
+        setCharge(null);
+        setLunge({ id: s.by, dash: crit });
+      });
+      at(start + (crit ? 100 : 160), () => {
         setHp(prev => ({ ...prev, [s.target]: s.hpAfter, ...(s.byHpAfter !== undefined ? { [s.by]: s.byHpAfter } : {}) }));
+        if (crit) setShake(true);
         setShown(n => n + 1);
       });
     }
@@ -56,15 +76,19 @@ export function CombatScene({ show }: { show: CombatShow }) {
   }, []);
 
   const last = shown > 0 ? event.strikes[shown - 1] : null;
+  const crit = !!last && critHit(last);
+  const spark = crit ? 114 : 76; // the 19 px spark at 6x on a crit, 4x otherwise
   const strikerSide = last ? (find(last.by).side === 'player' ? 'ally' : 'enemy') : null;
   const weaponOf = (u: UnitState) => (u.id === attacker.id ? event.weapons[0] : event.weapons[1]);
   const sideSpec = (u: UnitState) => (u.id === attacker.id ? f.attacker : f.defender);
 
   const fighter = (u: UnitState, left: boolean) => {
     const own = fighterFor(u);
-    const lunging = lunge === u.id;
-    const hurt = last && last.target === u.id && last.hit;
-    const cls = `px fighter${lunging ? (left ? ' lunge-r' : ' lunge-l') : ''}${hurt ? ' hurt' : ''}`;
+    const toward = left ? 'r' : 'l';
+    const motion = charge === u.id ? ` charge-${toward}` : lunge?.id === u.id ? ` lunge-${toward}${lunge.dash ? ' dash' : ''}` : '';
+    // A striker never shows the previous hit's flash, which would replay when its charge ends.
+    const hurt = last && last.target === u.id && last.hit && !motion;
+    const cls = `px fighter${motion}${hurt ? ' hurt' : ''}`;
     // Map sprites face right for allies and left for enemies; flip them so both sides face each other.
     return own
       ? <img className={cls} src={own} width={176} height={176} alt="" style={{ left: left ? 150 : 474 }} />
@@ -118,25 +142,28 @@ export function CombatScene({ show }: { show: CombatShow }) {
         <div className="scene-wrap">
           <div className="scene" role="img"
             aria-label={last ? `${find(last.by).name}${last.hit ? `命中，造成 ${last.damage} 点伤害${last.crit ? '（必杀）' : ''}` : '未命中'}` : '双方就位'}>
-            <img className="px" src={STAGE} width={800} height={288} alt="" style={{ position: 'absolute', left: 0, top: 0 }} />
-            <span className="side-tag" style={{ left: 10, background: '#A84940' }}>◆ 敌方 · {sideSpec(enemy).terrain.name}</span>
-            <span className="side-tag" style={{ right: 10, background: '#34556B' }}>● 己方 · {sideSpec(ally).terrain.name}</span>
-            {fighter(enemy, true)}
-            {fighter(ally, false)}
-            {last && last.hit && (
-              <img key={`spark-${shown}`} className="px spark" src={SPARK} width={76} height={76} alt=""
-                style={{ left: strikerSide === 'ally' ? 250 : 470, top: 140 }} />
-            )}
-            {last && (
-              <Fragment key={`hit-${shown}`}>
-                <span className={`dmg${last.crit ? ' crit' : ''}`} style={{ left: strikerSide === 'ally' ? 210 : 520 }}>
-                  {last.hit ? last.damage : 'MISS'}
-                </span>
-                <span className="dmg-label" style={{ left: strikerSide === 'ally' ? 214 : 524 }}>
-                  {!last.hit ? '未命中' : last.backlash ? '反噬！伤害落在自己身上' : `${last.proc ? '战技触发 · ' : ''}${last.crit ? '必杀！' : '命中'}`}
-                </span>
-              </Fragment>
-            )}
+            <div className={`camera${shake ? ' shake' : ''}`}>
+              <img className="px" src={STAGE} width={800} height={288} alt="" style={{ position: 'absolute', left: 0, top: 0 }} />
+              <span className="side-tag" style={{ left: 10, background: '#A84940' }}>◆ 敌方 · {sideSpec(enemy).terrain.name}</span>
+              <span className="side-tag" style={{ right: 10, background: '#34556B' }}>● 己方 · {sideSpec(ally).terrain.name}</span>
+              {fighter(enemy, true)}
+              {fighter(ally, false)}
+              {last && last.hit && (
+                <img key={`spark-${shown}`} className={`px spark${crit ? ' crit' : ''}`} src={SPARK} width={spark} height={spark} alt=""
+                  style={{ left: (strikerSide === 'ally' ? 288 : 508) - spark / 2, top: 178 - spark / 2 }} />
+              )}
+              {crit && <span key={`flash-${shown}`} className="scene-flash" />}
+              {last && (
+                <Fragment key={`hit-${shown}`}>
+                  <span className={`dmg${crit ? ' crit' : ''}`} style={{ left: strikerSide === 'ally' ? 210 : 520 }}>
+                    {last.hit ? last.damage : 'MISS'}
+                  </span>
+                  <span className="dmg-label" style={{ left: strikerSide === 'ally' ? 214 : 524 }}>
+                    {!last.hit ? '未命中' : last.backlash ? '反噬！伤害落在自己身上' : `${last.proc ? '战技触发 · ' : ''}${last.crit ? '必杀！' : '命中'}`}
+                  </span>
+                </Fragment>
+              )}
+            </div>
           </div>
         </div>
         <div className="hpwrap">{card(enemy)}{card(ally)}</div>
