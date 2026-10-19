@@ -25,7 +25,7 @@ const MINI = 6;
 
 interface MinimapProps {
   state: BattleState;
-  image: string | undefined;
+  image: string;
   view: { left: number; top: number; width: number; height: number };
   cell: number;
   onJump: (at: Point) => void;
@@ -41,9 +41,7 @@ export function Minimap({ state, image, view, cell, onJump }: MinimapProps) {
           const box = e.currentTarget.getBoundingClientRect();
           onJump([Math.floor((e.clientX - box.left) / MINI), Math.floor((e.clientY - box.top) / MINI)]);
         }}>
-        {image
-          ? <img className="px" src={image} width={w} height={h} alt="" />
-          : <div style={{ width: w, height: h, background: '#7ea058' }} />}
+        <img className="px" src={image} width={w} height={h} alt="" />
         {state.units.filter(u => u.alive).map(u => (
           <span key={u.id} className="dot" style={{
             left: u.pos[0] * MINI + 1, top: u.pos[1] * MINI + 1,

@@ -1,19 +1,10 @@
 // Everything drawn on the board in tile coordinates. Overlays never hide units: they sit under the
 // sprites, use texture as well as color, and the threat zone adds a dashed outline (docs/08).
 import type { ReactNode } from 'react';
-import { TERRAINS } from '@common/maps/map.ts';
 import type { BattleState, Point, UnitState } from '@common/engine/index.ts';
 import { spriteFor } from '../assets.ts';
 import { BossFlag } from '../ui/icons.tsx';
 import type { FloatText } from './controller.ts';
-
-export function TileColors({ state, cell }: { state: BattleState; cell: number }) {
-  return (
-    <div className="tilegrid" style={{ gridTemplateColumns: `repeat(${state.map.width}, ${cell}px)` }} aria-hidden="true">
-      {state.map.tiles.flat().map((tile, i) => <div key={i} style={{ width: cell, height: cell, background: TERRAINS[tile].color }} />)}
-    </div>
-  );
-}
 
 export function CellLayer({ cells, width, cell, className }: { cells: Set<number>; width: number; cell: number; className: string }) {
   return (

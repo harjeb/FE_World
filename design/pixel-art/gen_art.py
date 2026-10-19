@@ -1797,23 +1797,38 @@ def p_road(px, ox, oy, ctx):
 
 def p_bridge(px, ox, oy, ctx):
     r = ctx.rng
+
+    # Drawn for travel west-east. A bridge with water beyond it to the west and east (looking past
+    # the rest of the bridge) but not to the north and south carries a north-south path and is drawn
+    # transposed: the maps here only cross rivers west-east, generated maps cross them both ways.
+    def wet(dx, dy):
+        k = 1
+        while ctx.nb(dx * k, dy * k) == 'b':
+            k += 1
+        return ctx.nb(dx * k, dy * k) in ('w', 's')
+
+    vertical = wet(-1, 0) and wet(1, 0) and not (wet(0, -1) and wet(0, 1))
+
+    def put(i, j, c):
+        px[ox + (j if vertical else i), oy + (i if vertical else j)] = c
+
     fill(px, ox, oy, WL[0])
     for j in range(3, 13):
         for i in range(16):
             off = 2 if ((j - 3) // 3) % 2 else 0
             if (j - 3) % 3 == 2 or (i + off) % 5 == 4:
-                px[ox + i, oy + j] = WL[1]
+                put(i, j, WL[1])
             elif r.random() < 0.07:
-                px[ox + i, oy + j] = WL[3]
+                put(i, j, WL[3])
     for i in range(16):
-        px[ox + i, oy + 0] = WL[3]
-        px[ox + i, oy + 1] = WL[3] if i % 6 else WL[0]
-        px[ox + i, oy + 2] = WL[2]
-        px[ox + i, oy + 13] = WL[3]
-        px[ox + i, oy + 14] = WL[3] if i % 6 else WL[0]
-        px[ox + i, oy + 15] = WL[2]
+        put(i, 0, WL[3])
+        put(i, 1, WL[3] if i % 6 else WL[0])
+        put(i, 2, WL[2])
+        put(i, 13, WL[3])
+        put(i, 14, WL[3] if i % 6 else WL[0])
+        put(i, 15, WL[2])
     for j in (0, 1, 2, 13, 14, 15):
-        px[ox + 0, oy + j] = WL[1]
+        put(0, j, WL[1])
 
 
 def p_wall(px, ox, oy, ctx):

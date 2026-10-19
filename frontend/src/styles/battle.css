@@ -43,7 +43,6 @@
 .viewport.dragging { cursor: grabbing; }
 .board { position: relative; }
 .board > .terrain { position: absolute; left: 0; top: 0; }
-.tilegrid { position: absolute; left: 0; top: 0; display: grid; }
 
 .ov { position: absolute; width: var(--cell); height: var(--cell); pointer-events: none; }
 .mv { background: rgba(64, 118, 168, 0.44); box-shadow: inset 0 0 0 1px rgba(214, 232, 244, 0.62); }

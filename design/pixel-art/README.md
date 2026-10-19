@@ -125,7 +125,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | 要改的素材 | `gen_art.py` 中的位置 |
 | --- | --- |
 | 地图 | `MAPS`，键名即文件名 |
-| 地形画法 | `PAINTERS`、`TERRAIN_ORDER`；新增地形还要同步 03 地形表和 `backend/common/maps/map.ts` |
+| 地形画法 | `PAINTERS`、`TERRAIN_ORDER`；画法改动要同步到 `backend/common/maps/draw.ts`，新增地形还要同步 03 地形表和 `backend/common/maps/map.ts` |
 | 地图单位 | `UNITS` 字符画，字符对应 `BASE` 调色板；阵营色在 `FACTIONS`，己方发色在 `UNIT_HAIR_ALLY` |
 | 头像 | `PORTRAITS`，组合 `FACES` 脸型、`HAIR_STYLES` 发型、`OUTFITS` 服装、`ACCESSORIES` 配饰和配色；新增脸型只改第 15 行以下，并盖住眼、鼻、嘴的位置；部件改动要同步到 `backend/common/portraits/draw.ts` |
 | 图标 | `ICONS16`、`ICONS12` 字符画；训练和金币图标由 `target16()`、`coin12()` 绘制 |
@@ -146,4 +146,12 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 
 两边使用同一张地形表，字符和地形种类都一致；[随机地图生成器](../../docs/10-random-map-generator.md)的 SVG 预览配色也取自这里的色板。`tools/mapgen` 的测试会读取本脚本的 `PAINTERS`，字符对不上时测试失败。
 
-这里的示例地图仍是为设计稿手写的布局。生成器输出的地图可以交给 `render_map()` 画成同样的像素风格，但脚本还没有直接读取地图 JSON 的命令。
+这里的示例地图仍是为设计稿手写的布局。游戏里其他地图（随机生成、任务、地下城、经典关卡）由前端现场绘制，见下一节。
+
+## 游戏里绘制的地图
+
+上表「画板里的名字」那几张地图直接用 PNG，其余地图由游戏现场绘制，代码在 `backend/common/maps/draw.ts`：
+
+- `draw.ts` 是本脚本地形部分的 TypeScript 移植，画法、配色和随机取值完全相同，连 Python 的随机数生成器也一并移植了。`draw.test.ts` 读取本脚本的 `MAPS`，用 TS 重画每张地图，要求和 `png/map_*.png` 逐像素一致。所以改地形画法时，两边要一起改，否则测试失败。
+- 桥默认按东西向通行来画。桥的东西两侧（越过相连的桥格）都是水，而南北两侧不都是水时，改画成南北向。本脚本的示例地图都是东西向过河，生成器的地图两个方向都有。
+- 前端 `frontend/src/assets.ts` 的 `mapArt` 给没有 PNG 的地图现场绘制：用地图名算种子，所以同一张图每次进入、回放时都一样；画好后缓存成 data URL。每格用自己的随机数，所以战斗中某格地形改变（墙被打破变成地板）时，只有这一格和相邻格的边缘会变。

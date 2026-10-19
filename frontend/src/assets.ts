@@ -4,6 +4,8 @@ import { CLASSES } from '@common/data/classes.ts';
 import type { ClassRoute } from '@common/data/classes.ts';
 import type { WeaponType } from '@common/data/types.ts';
 import type { UnitState } from '@common/engine/index.ts';
+import { drawMap, glyphRows, mapSeed, TILE } from '@common/maps/draw.ts';
+import type { Terrain } from '@common/maps/map.ts';
 import { drawPortrait, SIZE as PORTRAIT_SIZE } from '@common/portraits/draw.ts';
 import { randomPortrait } from '@common/portraits/random.ts';
 import mapPinepass from '../../design/pixel-art/png/map_pinepass.png';
@@ -88,8 +90,32 @@ export const MAPS: Record<string, string> = {
   黑松隘口: mapPinepass, 塔林原野: mapPlains, 灰岩隘口: mapPass, 暮影林地: mapWoods, 阿斯塔王城: mapCastle,
   平原会战: mapPlains, 山间隘口: mapPass, 林中遭遇: mapWoods, 王城: mapCastle,
 };
-// 年度大竞技场的战斗名是「地图名 · 大竞技场第 N 轮」，按前缀也能找到同一张图。
-export const mapArt = (name: string): string | undefined => MAPS[name] ?? MAPS[name.split(' · ')[0]];
+// Every other map (generated, quest, dungeon and classic maps) is painted here with the same terrain
+// painters (backend/common/maps/draw.ts), seeded by its name so it looks the same on every visit. Tiles
+// can change mid-battle (a destroyed wall becomes floor), so the art is keyed by the layout too.
+const painted = new Map<string, string>();
+export function mapArt(name: string, tiles: Terrain[][]): string {
+  // 年度大竞技场的战斗名是「地图名 · 大竞技场第 N 轮」，按前缀也能找到同一张图。
+  const png = MAPS[name] ?? MAPS[name.split(' · ')[0]];
+  if (png) return png;
+  const rows = glyphRows(tiles);
+  const key = `${name}\n${rows.join('\n')}`;
+  let url = painted.get(key);
+  if (!url) {
+    const canvas = document.createElement('canvas');
+    canvas.width = rows[0].length * TILE;
+    canvas.height = rows.length * TILE;
+    const ctx = canvas.getContext('2d')!;
+    const image = ctx.createImageData(canvas.width, canvas.height);
+    image.data.set(drawMap(rows, mapSeed(name)));
+    ctx.putImageData(image, 0, 0);
+    url = canvas.toDataURL();
+    // A few layouts are enough for replays stepping back and forth over a destroyed wall.
+    if (painted.size >= 8) painted.delete(painted.keys().next().value!);
+    painted.set(key, url);
+  }
+  return url;
+}
 export const CRESTS: Record<string, string> = { raven: crestRaven, frost: crestFrost };
 export const STAGE = stagePass;
 export const SPARK = fxSpark;

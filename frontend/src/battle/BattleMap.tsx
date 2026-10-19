@@ -5,7 +5,7 @@ import type { Point } from '@common/engine/index.ts';
 import { mapArt } from '../assets.ts';
 import { SeizeIcon } from '../ui/icons.tsx';
 import type { BattleController, Snapshot } from './controller.ts';
-import { CellLayer, Cursor, Floats, Ghost, MapTag, ObjectLayer, PathArrow, ThreatLayer, TileColors, UnitLayer } from './MapLayers.tsx';
+import { CellLayer, Cursor, Floats, Ghost, MapTag, ObjectLayer, PathArrow, ThreatLayer, UnitLayer } from './MapLayers.tsx';
 import { Minimap, PhaseBanner, TerrainWindow, ZoomControls } from './MapWidgets.tsx';
 import { displayName } from './names.ts';
 import { overlaysFor, threatCells } from './overlays.ts';
@@ -152,7 +152,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
   const ghostElsewhere = !!ghost && !!selected && (ghost.at[0] !== selected.pos[0] || ghost.at[1] !== selected.pos[1]);
   const infoAt = target?.pos ?? hover ?? selected?.pos ?? null;
   const W = view.map.width;
-  const image = mapArt(view.name);
+  const image = mapArt(view.name, view.map.tiles);
   // 王座: always framed; named while hovered or while our commander is selected, unless the
   // planned destination already sits there.
   const goal = view.goal;
@@ -171,9 +171,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
         onContextMenu={onContextMenu}
         onPointerLeave={() => { if (!press.current) ctl.hoverCell(null); }}>
         <div className="board" style={{ width, height, '--cell': `${cell}px` } as CSSProperties}>
-          {image
-            ? <img className="px terrain" src={image} width={width} height={height} alt="" draggable={false} />
-            : <TileColors state={view} cell={cell} />}
+          <img className="px terrain" src={image} width={width} height={height} alt="" draggable={false} />
           {overlays && <CellLayer cells={overlays.move} width={W} cell={cell} className="mv" />}
           {overlays && <CellLayer cells={overlays.attack} width={W} cell={cell} className="atk" />}
           {overlays && <CellLayer cells={overlays.heal} width={W} cell={cell} className="healz" />}
