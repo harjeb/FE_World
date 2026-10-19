@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 12
+docVersion: 13
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -8,7 +8,9 @@ docVersion: 12
 
 MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。
 
-SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，受职业上限约束，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。地图、耗日及任务固定奖励不变，更多高等级敌人会自然增加战斗经验和掉落机会。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal。
+SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，受职业上限约束，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。耗日及任务固定奖励不变，随机战场的出战上限和敌军规模由地图／难度配置决定，更多高等级敌人会自然增加战斗经验和掉落机会。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal。
+
+随机野外与随机副本先确定战场，再选择队伍：GET_TODAY.sortieRegions 的 encounters／dungeonEncounters 分别提供 normal、hard 的布局、尺寸、maxUnits 与 enemyCount；少带人不会减少敌军。同一账号、日期、地区与活动的战场固定，刷新、换队或切换难度不会重抽布局；推进日期后才更新。PREVIEW_ACTION 返回 encounter.map 的真实地形、双方出生点与 playerGroups，报价按玩家版本绑定。出征名单按unitIds数组顺序分配到map.spawns.player对应落点，首位为主将；必须互不重复、可用且不超过该图该难度的上限；随机副本保存开局配置，后续图继承出战上限。地图布局含交错遭遇、隔墙分队会合和分散据点；已保存战场不重排。
 
 ## 帧格式
 
@@ -53,15 +55,15 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 30 | GET_TODAY | 今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 分别表示该地区野图／随机副本已开放困难。出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。 |
-| 31 | SORTIE | 本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。 |
+| 30 | GET_TODAY | 今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军。 |
+| 31 | SORTIE | 本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。 |
 | 32 | SWEEP | 对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。 |
 | 33 | TRAIN | 训练一个单位，补武器熟练度；消耗金币或教材并推进日期。 |
 | 34 | REST | 休整指定日数，推进日期、作物与年龄，不直接发金币经验。 |
 | 35 | RECRUIT | 游历招募：只花行动日，按地区角色池概率遇到新人，失败也推进日期。 |
 | 36 | START_MAIN_STAGE | 开始大竞技场的下一轮（第 1–3 轮海选，之后淘汰赛），推进日期；普通角色阵亡即永久死亡。返回 battleId。 |
 | 37 | SKIP_MAIN_STAGE | 把日期推进到下一季第 1 日；只按到达日判断竞技场日，途经的竞技场日不会开放。 |
-| 38 | PREVIEW_ACTION | 为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；不改变世界。 |
+| 38 | PREVIEW_ACTION | 为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。 |
 | 39 | EXECUTE_ACTION | 用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。 |
 ### 整备
 
@@ -125,7 +127,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 100 | GET_RUN | 读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。 |
-| 101 | START_DUNGEON | 开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。 |
+| 101 | START_DUNGEON | 开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。 |
 | 102 | CONTINUE_DUNGEON | 打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。 |
 | 103 | WITHDRAW_RUN | 撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。 |
 ### 派遣
@@ -201,7 +203,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 50 | GET_BATTLE | 读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。 |
+| 50 | GET_BATTLE | 读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。encounter 返回本次随机战场的布局与人数配置；map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。 |
 | 51 | GET_REACHABLE | 某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。 |
 | 52 | PREVIEW_COMBAT | 从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。 |
 | 53 | GET_THREAT_MAP | 敌方下个阶段所有单位能攻击到的格子与每格威胁数。 |

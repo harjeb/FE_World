@@ -36,17 +36,18 @@ export function useAct(): { busy: string | null; act: <T>(key: string, run: () =
   return { busy, act };
 }
 
-export function Face({ character, classId, portrait, size = 40, dim = false }: { character: string; classId: string; portrait?: string | null; size?: number; dim?: boolean }) {
+export function Face({ character, classId, portrait, size = 40, dim = false, order = 0 }: { character: string; classId: string; portrait?: string | null; size?: number; dim?: boolean; order?: number }) {
   const looks = { classId: classId as ClassId, side: 'player' as const, character, portrait: portrait ?? undefined };
   return (
     <span className={`pf ally${dim ? ' dim' : ''}`} style={{ width: size, height: size }}>
       <img className="px" src={portraitFor(looks) ?? spriteFor(looks)} width={size + 8} height={size + 8} alt="" style={{ margin: '-4px 0 0 -4px' }} />
+      {order > 0 && <span className="tm-ord" aria-label={`部署第 ${order} 位`} style={{ position: 'absolute', right: 0, bottom: 0, borderRadius: '3px 0 0 0', padding: '0 3px' }}>{order}</span>}
     </span>
   );
 }
 
-export const UnitFace = ({ unit, size, dim }: { unit: ServerUnit; size?: number; dim?: boolean }) =>
-  <Face character={unit.character} classId={unit.classId} portrait={unit.portrait} size={size} dim={dim} />;
+export const UnitFace = ({ unit, size, dim, order }: { unit: ServerUnit; size?: number; dim?: boolean; order?: number }) =>
+  <Face character={unit.character} classId={unit.classId} portrait={unit.portrait} size={size} dim={dim} order={order} />;
 
 // Check-box team list (出征准备 look). `max` caps the picks; `why` explains a row that cannot be picked.
 // With `ordered`, picks are numbered in the order they were ticked and the first one leads.
@@ -66,10 +67,9 @@ export function TeamPicker({ units, team, max, onChange, why, ordered = false }:
           <li key={u.id}>
             <label className={`tm${picked ? ' on' : ''}${locked ? ' off' : ''}`}>
               <input type="checkbox" checked={picked} disabled={locked} onChange={() => toggle(u.id)} />
-              <UnitFace unit={u} />
+              <UnitFace unit={u} order={ordered ? order + 1 : undefined} />
               <span className="min-w-0">
                 <span className="tm-n">
-                  {ordered && picked && <span className="tm-ord">{order + 1}</span>}
                   {u.name}{u.isProtagonist && <span className="tag tag-brass">主角</span>}{ordered && order === 0 && <span className="tag tag-blue">主将</span>}
                 </span>
                 <span className="tm-s">{u.className} · Lv {u.level} · HP {u.maxHp}{blocked ? ` · ${blocked}` : ''}</span>

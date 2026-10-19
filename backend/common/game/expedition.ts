@@ -1,3 +1,4 @@
+import type { FieldEncounter } from './encounters.ts';
 import type { AiDifficulty, ItemStack, UnitState } from '../engine/types.ts';
 import type { WeaponId } from '../data/weapons.ts';
 
@@ -12,6 +13,7 @@ export type RunState = 'battle' | 'between_maps' | 'completed' | 'failed' | 'wit
 export interface RunCarry extends Pick<UnitState, 'weaponInstances' | 'bookInstances' | 'spellbooks'> { hp: number; items: ItemStack[]; weapons: WeaponId[] }
 
 export interface RunRecord {
+  encounter?: FieldEncounter;
   aiDifficulty?: AiDifficulty;
   id: string;
   playerId: string;
@@ -36,8 +38,9 @@ export interface RunRecord {
 }
 
 export function createRun(id: string, playerId: string, region: number, unitIds: string[], level: number, clearedAtStart: number,
-  opts: { aiDifficulty?: AiDifficulty; questId?: string; stageDays?: number; scenarioIds?: string[]; stageNames?: string[] } = {}): RunRecord {
+  opts: { encounter?: FieldEncounter; aiDifficulty?: AiDifficulty; questId?: string; stageDays?: number; scenarioIds?: string[]; stageNames?: string[] } = {}): RunRecord {
   return {
+    encounter: opts.encounter ? structuredClone(opts.encounter) : undefined,
     id, playerId, region, aiDifficulty: opts.aiDifficulty ?? 'normal', state: 'battle', unitIds: [...unitIds], stageIndex: 0,
     level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
     scenarioIds: opts.scenarioIds ? [...opts.scenarioIds] : undefined,
@@ -85,6 +88,7 @@ export function runSummary(run: RunRecord): Record<string, unknown> {
   const count = stageCount(run);
   return {
     id: run.id, aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, state: run.state, stageIndex: run.stageIndex, level: run.level, questId: run.questId ?? null,
+    encounter: run.encounter,
     unitIds: run.unitIds, survivingIds: survivingIds(run.carry), battleId: run.battleId,
     // What each survivor brings into the next map: HP and supplies do not recover between maps.
     carry: run.carry,

@@ -1,3 +1,5 @@
+import { LAYOUTS } from './layouts.ts';
+import type { EncounterLayout } from './layouts.ts';
 import { THEMES } from './themes.ts';
 import type { Theme } from './themes.ts';
 
@@ -42,7 +44,9 @@ export function seasonalMap(tiles: Terrain[][], season: number) {
     tiles: tiles.map(row => row.map(tile => seasonalTerrain(tile, season))) };
 }
 export interface BattleMap {
-  generatorVersion: 3;
+  generatorVersion: 3 | 4;
+  layout?: EncounterLayout;
+  playerGroups?: number[];
   seed: string;
   theme: Theme;
   width: number;
@@ -111,7 +115,7 @@ export function assertMap(value: unknown): asserts value is BattleMap {
   const map = value as BattleMap;
   assertDimension(map.width, 'width');
   assertDimension(map.height, 'height');
-  if (map.generatorVersion !== 3 || typeof map.seed !== 'string'
+  if (![3, 4].includes(map.generatorVersion) || typeof map.seed !== 'string'
     || map.seed.length === 0 || map.seed.length > 200) throw new Error('地图版本或种子无效');
   if (typeof map.theme !== 'string' || !Object.hasOwn(THEMES, map.theme)) throw new Error('未知地图主题');
   if (!Array.isArray(map.tiles) || map.tiles.length !== map.height
@@ -123,8 +127,8 @@ export function assertMap(value: unknown): asserts value is BattleMap {
   const occupied = new Set<number>();
   for (const side of ['player', 'enemy'] as const) {
     const points = map.spawns[side];
-    if (!Array.isArray(points) || points.length < 1 || points.length > 8) {
-      throw new Error('每方必须有 1–8 个出生点');
+    if (!Array.isArray(points) || points.length < 1 || points.length > (side === 'player' ? 8 : 16)) {
+      throw new Error('玩家必须有 1–8 个出生点，敌方必须有 1–16 个出生点');
     }
     for (const point of points) {
       assertPoint(point, map.width, map.height);
@@ -133,6 +137,10 @@ export function assertMap(value: unknown): asserts value is BattleMap {
       occupied.add(key);
     }
   }
+  if (map.layout !== undefined && (typeof map.layout !== 'string' || !Object.hasOwn(LAYOUTS, map.layout))) throw new Error('未知地图布局');
+  if (map.playerGroups !== undefined && (!Array.isArray(map.playerGroups)
+    || map.playerGroups.length !== map.spawns.player.length
+    || !map.playerGroups.every(group => Number.isInteger(group) && group >= 0 && group < 8))) throw new Error('玩家分组无效');
   if (map.objective?.kind !== 'seize') throw new Error('当前仅支持 seize 王座目标');
   assertPoint(map.objective.position, map.width, map.height);
   const [x, y] = map.objective.position;

@@ -4,6 +4,7 @@ import { parseArgs } from 'node:util';
 import { generateMap } from '../../backend/common/maps/generate.ts';
 import { validateMap } from '../../backend/common/maps/map.ts';
 import type { Theme } from '../../backend/common/maps/themes.ts';
+import type { EncounterLayout } from '../../backend/common/maps/layouts.ts';
 import { renderAscii, renderSvg } from './render.ts';
 
 const help = `随机战场生成器（Node.js 22.18+，无需安装依赖）
@@ -13,9 +14,12 @@ const help = `随机战场生成器（Node.js 22.18+，无需安装依赖）
 
 --width N      宽度，10–64，默认 20
 --height N     高度，10–64，默认等于 width
---units N      每方出生点数量，1–8，默认 6
+--units N      己方出生点数量，1–8，默认 6
+--enemies N    敌方出生点数量，1–16，默认与 units 相同
+--layout NAME skirmish 交错遭遇 / pincer 分进合击 / convergence 分散据点；省略按种子选择
 --theme NAME   grassland 草地（默认）/ city 城市 / palace 王宫内
                town 城镇街道 / mountain 山地 / forest 树林
+               riverlands 大河浅洲 / lakeland 湖心群岛
 --seed TEXT    固定种子；省略时随机生成并记录在结果中
 --format TYPE ascii / json / svg，默认 ascii
 --out PATH    写入新文件；拒绝覆盖已有文件，省略时输出到终端
@@ -28,7 +32,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       width: { type: 'string' }, height: { type: 'string' },
-      units: { type: 'string' }, seed: { type: 'string' }, theme: { type: 'string' },
+      units: { type: 'string' }, enemies: { type: 'string' }, layout: { type: 'string' }, seed: { type: 'string' }, theme: { type: 'string' },
       format: { type: 'string' }, out: { type: 'string' },
       check: { type: 'string' }, help: { type: 'boolean' },
     },
@@ -52,6 +56,8 @@ async function main() {
     theme: values.theme as Theme | undefined,
     height: values.height === undefined ? width : Number(values.height),
     unitsPerSide: values.units === undefined ? 6 : Number(values.units),
+    enemyCount: values.enemies === undefined ? undefined : Number(values.enemies),
+    layout: values.layout as EncounterLayout | undefined,
   });
   const output = format === 'json' ? JSON.stringify(map, null, 2)
     : format === 'svg' ? renderSvg(map) : renderAscii(map);

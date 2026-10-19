@@ -1,11 +1,15 @@
+import { DeploymentOrder } from './DeploymentOrder.tsx';
+import { defaultOrder, normalizeOrder, loadDeploymentOrder, saveDeploymentOrder } from './deployment-order.ts';
 import type { AiDifficulty } from '@common/engine/types.ts';
 import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { EncounterPreview, EncounterSummary } from './EncounterPreview.tsx';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
-import { portraitFor, spriteFor } from '../assets.ts';
-import { useSession } from '../api/session.ts';
+import { UnitFace } from '../pages/SystemParts.tsx';
+import { session, useSession } from '../api/session.ts';
+import type { ActionQuote } from '../api/session.ts';
 import type { ServerUnit } from '../api/session.ts';
 import { featuresOf } from '../model/access.ts';
 import { links, regionInHash } from '../router.ts';
@@ -17,14 +21,13 @@ import { busyReason } from '../model/roster.ts';
 
 const DEFAULT_TEAM = 6;
 
-function UnitRow({ unit, picked, locked, protagonist, why, onToggle }: { unit: ServerUnit; picked: boolean; locked: boolean; protagonist: boolean; why: string | null; onToggle: () => void }) {
-  const looks = { classId: unit.snapshot.classId, side: 'player' as const, character: unit.character, portrait: unit.portrait ?? undefined };
+function UnitRow({ unit, picked, locked, protagonist, why, order, onToggle }: { unit: ServerUnit; picked: boolean; locked: boolean; protagonist: boolean; why: string | null; order: number; onToggle: () => void }) {
   const items = unit.snapshot.items.map(i => `${ITEMS[i.id as ItemId]?.name ?? i.id}（${i.uses}）`);
   return (
     <li>
       <label className={`tm${picked ? ' on' : ''}${locked ? ' off' : ''}`}>
         <input type="checkbox" checked={picked} disabled={locked} onChange={onToggle} />
-        <span className="pf ally" style={{ width: 40, height: 40 }}><img className="px" src={portraitFor(looks) ?? spriteFor(looks)} width={48} height={48} alt="" /></span>
+        <UnitFace unit={unit} order={order} />
         <span className="min-w-0">
           <span className="tm-n">{unit.name}{protagonist && <span className="tag tag-brass">主角</span>}</span>
           <span className="tm-s">{unit.className} · Lv {unit.level} · HP {unit.maxHp}{unit.equipped ? ` · ${WEAPONS[unit.equipped as WeaponId].name}` : ''}{why ? ` · ${why}` : ''}</span>
@@ -51,14 +54,45 @@ export function FieldTabs({ current }: { current: FieldTab }) {
 
 // 出征准备 (docs/00 §11「出征前展示胜负条件、回合截止、真实死亡风险及携带保命道具」): nothing is
 // spent until 确认出征. Every number here comes from GET_TODAY / GET_STATE.
-export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: string | null; onStart: (region: number, unitIds: string[], aiDifficulty: AiDifficulty) => void }) {
+export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: string | null; onStart: (quoteId: string) => void }) {
   const { today, state, annual } = useSession();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
   const sortie = today?.actions.find(a => a.key === 'sortie');
-  const max = sortie?.maxUnits ?? DEFAULT_TEAM;
+  const fallbackMax = sortie?.maxUnits ?? DEFAULT_TEAM;
   const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('normal');
   const [regionId, setRegionId] = useState<number | null>(() => regionInHash(window.location.hash));
-  const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(DEFAULT_TEAM, max)).map(u => u.id));
+  const [team, setTeam] = useState<string[]>(() => defaultOrder(loadDeploymentOrder(state?.player.id), active.filter(u => !busyReason(u, annual)).map(u => u.id), fallbackMax));
+
+  const target = today?.sortieRegions.find(r => r.id === regionId) ?? today?.sortieRegions[0];
+  const hardUnlocked = !!target && state?.hardUnlocks?.regions?.includes(target.id) === true;
+  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
+  const plan = target?.encounters?.[effectiveDifficulty];
+  const max = plan?.maxUnits ?? fallbackMax;
+  const available = active.filter(u => !busyReason(u, annual));
+  const selectedIds = normalizeOrder(team, available.map(u => u.id), max);
+  const picked = selectedIds.map(id => available.find(u => u.id === id)!);
+  const selectionKey = JSON.stringify(selectedIds);
+  useEffect(() => setTeam(t => JSON.stringify(t) === selectionKey ? t : selectedIds), [selectionKey]);
+  const reorder = (ids: string[]) => {
+    setTeam(ids);
+    if (state) saveDeploymentOrder(state.player.id, ids);
+  };
+
+  const quoteKey = JSON.stringify([target?.id, picked.map(u => u.id), state?.version, effectiveDifficulty, plan]);
+  const [quoted, setQuoted] = useState<{ key: string; quote: ActionQuote } | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const quote = quoted?.key === quoteKey ? quoted.quote : null;
+  useEffect(() => {
+    let alive = true;
+    setQuoted(null);
+    setQuoteError(null);
+    if (target && picked.length && sortie?.available) {
+      session.quote('sortie', { region: target.id, unitIds: picked.map(u => u.id), aiDifficulty: effectiveDifficulty }).then(q => {
+        if (alive) setQuoted({ key: quoteKey, quote: q });
+      }).catch(e => { if (alive) setQuoteError(e instanceof Error ? e.message : String(e)); });
+    }
+    return () => { alive = false; };
+  }, [quoteKey, sortie?.available]);
 
   if (!today || !state || !sortie) {
     return (
@@ -72,7 +106,6 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   }
 
   // 只在已开通的地区里选（today.sortieRegions 就是已开通清单）；没有可选地区时回世界地图开新路线。
-  const target = today.sortieRegions.find(r => r.id === regionId) ?? today.sortieRegions[0];
   if (!target) {
     return (
       <Shell current="field">
@@ -87,17 +120,14 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
       </Shell>
     );
   }
-  const hardUnlocked = state.hardUnlocks?.regions?.includes(target.id) === true;
-  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
   const exploration = state.world.nodes.find(node => node.id === target.id);
-  const picked = active.filter(u => team.includes(u.id));
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
   const top = Math.max(0, ...picked.map(u => u.level));
   const avg = picked.length > 0 ? Math.round(picked.reduce((sum, u) => sum + u.level, 0) / picked.length) : 0;
   const lead = active.find(u => u.isProtagonist);
   const to = advance(today.day, sortie.costDays);
   const warning = arenaTodayWarning();
-  const toggle = (id: string) => setTeam(t => (t.includes(id) ? t.filter(x => x !== id) : t.length < max ? [...t, id] : t));
+  const toggle = (id: string) => setTeam(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : selectedIds.length < max ? [...selectedIds, id] : selectedIds);
 
   return (
     <Shell current="field">
@@ -134,19 +164,21 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
           <section className="panel" aria-labelledby="tm-h">
             <div className="ph">
               <h2 id="tm-h">出战队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2>
-              <span style={{ fontSize: 12, color: '#6A6256' }}>本图最多 {max} 人 · 敌方人数与出战人数相同</span>
+              <span style={{ fontSize: 12, color: '#6A6256' }}>本图最多 {max} 人 · 敌军 {plan?.enemyCount ?? '—'} 人</span>
             </div>
             <ul className="team" aria-label="现役单位">
               {active.map(u => {
                 const why = busyReason(u, annual);
                 return (
-                  <UnitRow key={u.id} unit={u} picked={team.includes(u.id)} locked={!team.includes(u.id) && (team.length >= max || !!why)}
+                  <UnitRow key={u.id} unit={u} order={selectedIds.indexOf(u.id) + 1} picked={selectedIds.includes(u.id)} locked={busy || !!why || (!selectedIds.includes(u.id) && selectedIds.length >= max)}
                     protagonist={u.isProtagonist} why={why} onToggle={() => toggle(u.id)} />
                 );
               })}
             </ul>
           </section>
         </div>
+
+        <DeploymentOrder units={picked} busy={busy} onChange={reorder} />
 
         <section className="panel prep-go" aria-label="确认出征">
           <dl className="facts">
@@ -159,12 +191,16 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
             {sortie.lethal && <><dt>阵亡</dt><dd className="risk">倒下的角色永久死亡，撤退只能保住还活着的人{lead ? `（主角${lead.name}倒下只撤退，不会死亡）` : ''}。</dd></>}
           </dl>
           <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度赢得本地区野外遭遇战后解锁，仅限本地区野外。" onChange={setAiDifficulty} disabled={busy} />
+          {plan && <EncounterSummary plan={plan} />}
+          {quote?.encounter && <EncounterPreview encounter={quote.encounter} names={picked.map(u => u.name)} />}
+          {quoteError && <p role="alert">{quoteError}</p>}
+          {quote?.blockers.map(text => <p role="alert" key={text}>{text}</p>)}
           {warning && <p className="a-warn" role="note">{warning}</p>}
           {error && <p role="alert" style={{ padding: '0 16px', fontSize: 13, color: '#93392F' }}>{error}</p>}
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
-            <button type="button" className="btn btn-primary btn-lg" disabled={busy || !sortie.available || picked.length === 0}
-              onClick={() => onStart(target.id, picked.map(u => u.id), effectiveDifficulty)}>
+            <button type="button" className="btn btn-primary btn-lg" disabled={busy || !sortie.available || picked.length === 0 || !quote?.encounter || quote.blockers.length > 0}
+              onClick={() => quote && onStart(quote.quoteId)}>
               {busy ? '出征中…' : `确认出征 · ${target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
             </button>
           </div>

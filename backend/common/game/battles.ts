@@ -1,3 +1,4 @@
+import { fieldEncounter, type FieldEncounter } from './encounters.ts';
 import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
 import type { WeaponType } from '../data/types.ts';
 import { stats } from '../data/types.ts';
@@ -76,6 +77,8 @@ const ENEMY_CLASSES = CATALOG_CLASS_IDS.filter(id => CLASSES[id].stage > 0 && !c
 export const FIELD_BATTLE = { maxUnits: 8, turnLimit: 20, goalText: '击败敌方主将或全灭' } as const;
 
 export interface FieldBattleOptions {
+  legacyDeployment?: boolean;
+  encounter?: FieldEncounter;
   aiDifficulty?: AiDifficulty;
   region: number;
   cleared: number;
@@ -97,6 +100,12 @@ const DUNGEON_STAGE_NAMES = ['探路', '消耗战', '首领战'];
 
 // A random encounter: level locked from the departure date before the fight.
 // 连续副本复用同一函数，只是等级、图名和跨图携带不同（docs/00 §8.1.3）。
+export function encounterMap(encounter: FieldEncounter, day: number, stage = 0) {
+  const map = generateMap({ seed: `${encounter.seed}:map:${stage}`, width: encounter.width, height: encounter.height,
+    theme: encounter.theme, layout: encounter.layout, unitsPerSide: encounter.maxUnits, enemyCount: encounter.enemyCount });
+  return { ...map, tiles: seasonalMap(map.tiles, dateOf(day).season).tiles };
+}
+
 export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptions): BattleRecord {
   const region = regionById(options.region);
   const dungeon = options.stageIndex !== undefined;
@@ -108,10 +117,13 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   if (!dungeon && !options.quest && options.region === 4) themes.push('riverlands');
   if (!dungeon && !options.quest && options.region === 5) themes.push('lakeland');
   const theme = themes[nextU32(seedRng(`${options.seed}:theme`)) % themes.length];
-  const count = Math.max(1, Math.min(FIELD_BATTLE.maxUnits, units.length));
+  const encounter = options.encounter ?? (!options.quest && !options.legacyDeployment ? fieldEncounter(options.seed, options.day ?? 0, options.region, options.aiDifficulty, dungeon ? 'dungeon' : 'field') : undefined);
+  const maxUnits = encounter?.maxUnits ?? options.quest?.maxUnits ?? FIELD_BATTLE.maxUnits;
+  if (!units.length || units.length > maxUnits || new Set(units.map(u => u.id)).size !== units.length) throw new Error(`Invalid deployment (maximum ${maxUnits})`);
+  const count = units.length;
   const quest = options.quest;
   // 护卫任务多留一个己方出生点给被护送者（unitsPerSide 封顶 8）。
-  const map = generateMap({
+  const map = encounter ? encounterMap(encounter, options.day ?? 0, stage) : generateMap({
     seed: `${options.seed}:map:${stage}`, width: options.width ?? 20, height: options.height ?? 20,
     unitsPerSide: Math.min(8, count + (quest?.kind === 'escort' ? 1 : 0)), theme,
   });
@@ -121,7 +133,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
-  const classes = pickClasses(`${options.seed}:foes:${stage}`, count, ENEMY_CLASSES);
+  const classes = pickClasses(`${options.seed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES);
   const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
     aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0,
     name: i === 0 ? `${region.name}守将` : undefined,
@@ -129,9 +141,10 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, spec));
   const tiles = map.tiles;
   const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
+  const encounterTheme = encounter?.theme ?? theme;
   const name = quest ? `${region.name} · ${quest.name}`
     : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}`
-      : `${region.name} · ${theme === 'riverlands' || theme === 'lakeland' ? THEMES[theme].name : '遭遇战'}`;
+      : `${region.name} · ${encounterTheme === 'riverlands' || encounterTheme === 'lakeland' ? THEMES[encounterTheme].name : '遭遇战'}${encounter ? ` · ${encounter.name}` : ''}`;
   const exit = map.objective.position;
   // 连续副本每图目标不同（docs/00 §8.1.3）：探路压制、消耗战全灭、首领战斩首。
   const configuredGoal = quest?.stageGoals?.[stage];
@@ -153,6 +166,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
                 : { kind: 'rout' }
       : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
+    encounter: encounter ? { ...encounter, playerGroups: map.playerGroups } : undefined,
     engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `field-${options.seed}-${stage}`, kind: 'field', name,
     map: seasonalMap(tiles, dateOf(options.day ?? 0).season),
     units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
@@ -161,7 +175,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     nextObjective: quest?.nextObjective ?? (quest?.kind === 'escort' ? '护送 NPC 抵达撤离点' : undefined),
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
-  addEnemyReserves(state, enemySpecs, map.spawns.player);
+  if (!encounter) addEnemyReserves(state, enemySpecs, map.spawns.player);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,

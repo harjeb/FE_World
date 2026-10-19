@@ -1,5 +1,7 @@
+import { designLayout, LAYOUTS } from './layouts.ts';
+import type { EncounterLayout } from './layouts.ts';
 import {
-  assertDimension, canEnter, reachable, validateMap,
+  assertDimension, canEnter, neighbors, reachable, validateMap,
 } from './map.ts';
 import type { BattleMap, Movement, Point, Terrain } from './map.ts';
 import { generateTerrain, THEMES } from './themes.ts';
@@ -11,6 +13,8 @@ export interface GenerateOptions {
   height?: number;
   unitsPerSide?: number;
   theme?: Theme;
+  layout?: EncounterLayout;
+  enemyCount?: number;
 }
 
 // Local, versioned map RNG; this does not select the battle engine's RNG.
@@ -39,12 +43,19 @@ export function generateMap(options: GenerateOptions): BattleMap {
     throw new Error('unitsPerSide 必须是 1–8 的整数');
   }
   if (typeof theme !== 'string' || !Object.hasOwn(THEMES, theme)) throw new Error('未知地图主题');
+  const enemyCount = options.enemyCount ?? unitsPerSide;
+  if (!Number.isInteger(enemyCount) || enemyCount < 1 || enemyCount > 16) throw new Error('enemyCount 必须是 1–16 的整数');
+  if (options.layout !== undefined && !Object.hasOwn(LAYOUTS, options.layout)) throw new Error('未知地图布局');
+  const layoutRandom = seededRandom(`${seed}:layout`);
+  const layout = options.layout ?? (Object.keys(LAYOUTS) as EncounterLayout[])[Math.floor(layoutRandom() * 3)];
+  const design = designLayout(layout, width, height, layoutRandom);
+  const protectedWalls = new Set(design.walls.map(([x, y]) => y * width + x));
   const random = seededRandom(seed);
   const integer = (limit: number) => Math.floor(random() * limit);
   const tiles = generateTerrain(width, height, theme, random);
   const ground: Terrain = THEMES[theme].ground;
   const paint = (x: number, y: number, tile: Terrain) => {
-    if (x >= 0 && y >= 0 && x < width && y < height) tiles[y][x] = tile;
+    if (x >= 0 && y >= 0 && x < width && y < height && !protectedWalls.has(y * width + x)) tiles[y][x] = tile;
   };
   // Roads and bridges already admit every movement type, so clearing keeps them.
   const clear = (x: number, y: number) => {
@@ -58,37 +69,35 @@ export function generateMap(options: GenerateOptions): BattleMap {
     else clear(x, y);
   };
 
-  const player: Point[] = [], enemy: Point[] = [];
-  for (let i = 0; i < unitsPerSide; i++) {
-    const y = Math.floor((i + 1) * (height - 1) / (unitsPerSide + 1));
-    player.push([1, y]);
-    enemy.push([width - 2, height - 1 - y]);
-  }
-  const objective: Point = [width - 3, Math.floor(height / 2)];
+  for (const [x, y] of design.walls) tiles[y][x] = 'wall';
+  const player = design.player.slice(0, unitsPerSide), enemy = design.enemy.slice(0, enemyCount);
+  const objective = design.objective;
   for (const [x, y] of [...player, ...enemy, objective]) {
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) clear(x + dx, y + dy);
   }
 
   function carve(from: Point, to: Point, wide = false) {
-    let [x, y] = from;
-    const horizontalFirst = random() < 0.5;
-    const step = () => {
-      open(x, y);
-      if (wide) open(x, y + 1);
-    };
-    step();
-    for (const horizontal of [horizontalFirst, !horizontalFirst]) {
-      while (horizontal ? x !== to[0] : y !== to[1]) {
-        if (horizontal) x += Math.sign(to[0] - x);
-        else y += Math.sign(to[1] - y);
-        step();
+    // BFS routes around immutable layout walls; terrain islands may be bridged.
+    const key = ([x, y]: Point) => y * width + x;
+    const queue: Point[] = [from];
+    const parent = new Map<number, Point | null>([[key(from), null]]);
+    for (let i = 0; i < queue.length && !parent.has(key(to)); i++) {
+      for (const next of neighbors(queue[i], width, height)) {
+        if (protectedWalls.has(key(next)) || parent.has(key(next))) continue;
+        parent.set(key(next), queue[i]); queue.push(next);
       }
     }
+    if (!parent.has(key(to))) throw new Error('布局隔墙阻断地图');
+    for (let point: Point | null = to; point; point = parent.get(key(point))!) {
+      open(...point);
+      if (wide) open(point[0], point[1] + 1);
+    }
   }
+
   const root = player[0];
   const waypoint: Point = [Math.floor(width / 2), 1 + integer(height - 2)];
-  carve(root, waypoint, true);
-  carve(waypoint, objective, true);
+  if (!protectedWalls.has(waypoint[1] * width + waypoint[0])) carve(root, waypoint, true);
+  carve(root, objective);
 
   // Join islands to the common ground network, so repairs never strand another class.
   for (const movement of ['armored', 'foot', 'mounted', 'flying'] as Movement[]) {
@@ -116,7 +125,7 @@ export function generateMap(options: GenerateOptions): BattleMap {
   }
   tiles[objective[1]][objective[0]] = 'throne';
   const map: BattleMap = {
-    generatorVersion: 3, seed, theme, width, height, tiles,
+    generatorVersion: 4, seed, theme, layout, playerGroups: design.playerGroups.slice(0, unitsPerSide), width, height, tiles,
     spawns: { player, enemy }, objective: { kind: 'seize', position: objective },
   };
   const validation = validateMap(map);

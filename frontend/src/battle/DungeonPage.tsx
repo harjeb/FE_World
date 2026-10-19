@@ -1,3 +1,5 @@
+import { DeploymentOrder } from './DeploymentOrder.tsx';
+import { defaultOrder, normalizeOrder, loadDeploymentOrder, saveDeploymentOrder } from './deployment-order.ts';
 import type { AiDifficulty } from '@common/engine/types.ts';
 import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
 import { useEffect, useMemo, useState } from 'react';
@@ -17,6 +19,7 @@ import { BattlePage } from './BattlePage.tsx';
 import { fallenLine } from './Dialogs.tsx';
 import { goalLabel } from './names.ts';
 import type { BattleSession } from './session.ts';
+import { EncounterPreview, EncounterSummary } from './EncounterPreview.tsx';
 import { FieldTabs } from './SortiePrep.tsx';
 import { busyReason } from '../model/roster.ts';
 
@@ -131,6 +134,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
               <RunMap run={run} />
               <dl className="facts">
                 <dt>战斗难度</dt><dd>{difficultyLabel(run.aiDifficulty)}（本次远征已锁定）</dd>
+                {run.encounter && <><dt>战场配置</dt><dd>{run.encounter.name} · {run.encounter.width} × {run.encounter.height} · 最多 {run.encounter.maxUnits} 人 · 敌军 {run.encounter.enemyCount} 人（出发时锁定）</dd></>}
                 <dt>待带回</dt><dd>{lootLine(run.pendingLoot)}<span className="muted">（完整通关才带回，撤离或失败作废）</span></dd>
                 <dt>下一图</dt><dd>{run.nextStageName ?? `第 ${next} 图`} · 推进 {stageDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
                 <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡；全员倒下即远征失败。</dd>
@@ -190,22 +194,35 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const { today, state, run, annual } = useSession();
   const { busy, act } = useAct();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
-  const max = today?.actions.find(a => a.key === 'sortie')?.maxUnits ?? 6;
+  const fallbackMax = today?.actions.find(a => a.key === 'sortie')?.maxUnits ?? 6;
   const [region, setRegion] = useState<number | null>(() => regionInHash(window.location.hash));
   // Same default as 出征准备: the first six, never more than the field allows.
-  const [team, setTeam] = useState<string[]>(() => active.filter(u => !busyReason(u, annual)).slice(0, Math.min(6, max)).map(u => u.id));
+  const [team, setTeam] = useState<string[]>(() => defaultOrder(loadDeploymentOrder(state?.player.id), active.filter(u => !busyReason(u, annual)).map(u => u.id), fallbackMax));
   const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('normal');
   const [quoted, setQuoted] = useState<{ key: string; quote: ActionQuote } | null>(null);
   const setQuote = () => setQuoted(null);
+  const target = today?.sortieRegions.find(r => r.id === region) ?? today?.sortieRegions[0];
+  const hardUnlocked = !!target && state?.hardUnlocks?.dungeons?.includes(target.id) === true;
+  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
+  const plan = target?.dungeonEncounters?.[effectiveDifficulty];
+  const max = plan?.maxUnits ?? fallbackMax;
+  const available = active.filter(u => !busyReason(u, annual));
+  const selectedIds = normalizeOrder(team, available.map(u => u.id), max);
+  const picked = selectedIds.map(id => available.find(u => u.id === id)!);
+  const selectionKey = JSON.stringify(selectedIds);
+  useEffect(() => setTeam(t => JSON.stringify(t) === selectionKey ? t : selectedIds), [selectionKey]);
+  const reorder = (ids: string[]) => {
+    setTeam(ids);
+    if (state) saveDeploymentOrder(state.player.id, ids);
+  };
   const version = state?.version ?? 0;
-  const teamKey = team.join(',');
+  const teamKey = selectionKey;
   useEffect(() => setQuoted(null), [region, teamKey, version, aiDifficulty]);
 
   if (!today || !state) {
     return <Shell current="field"><p style={{ color: '#4E473D' }}>暂时读不到出击信息，刷新页面再试。</p></Shell>;
   }
   // 只在已开通的地区里选；没有可选地区时回世界地图开新路线。
-  const target = today.sortieRegions.find(r => r.id === region) ?? today.sortieRegions[0];
   if (!target) {
     return (
       <Shell current="field">
@@ -220,12 +237,10 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
       </Shell>
     );
   }
-  const hardUnlocked = state.hardUnlocks?.dungeons?.includes(target.id) === true;
-  const effectiveDifficulty = hardUnlocked ? aiDifficulty : 'normal';
-  const quoteKey = JSON.stringify([target.id, teamKey, version, effectiveDifficulty]);
+  const quoteKey = JSON.stringify([target.id, teamKey, version, effectiveDifficulty, plan]);
   const quote = quoted?.key === quoteKey ? quoted.quote : null;
   const exploration = state.world.nodes.find(node => node.id === target.id);
-  const picked = active.filter(u => team.includes(u.id));
+
   const top = Math.max(0, ...picked.map(u => u.level));
   const total = advance(today.day, DUNGEON_STAGE_DAYS * DUNGEON_STAGES);
   const lead = active.find(u => u.isProtagonist);
@@ -270,9 +285,11 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
 
           <section className="panel" aria-labelledby="dtm-h">
             <div className="ph"><h2 id="dtm-h">远征队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2><span style={{ fontSize: 12, color: '#6A6256' }}>出发后名单固定，不能补人</span></div>
-            <TeamPicker units={active} team={team} max={max} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} />
+            <fieldset disabled={busy !== null} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><TeamPicker ordered units={active} team={selectedIds} max={max} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} /></fieldset>
           </section>
         </div>
+
+        <DeploymentOrder units={picked} busy={busy !== null} onChange={reorder} />
 
         <section className="panel prep-go" aria-label="确认出发">
           <dl className="facts">
@@ -283,6 +300,8 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
             <dt>阵亡</dt><dd className="risk">倒下的角色永久死亡{lead ? `（主角${lead.name}倒下只撤退）` : ''}；撤离保留已发生的伤亡。</dd>
           </dl>
           <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度完整通关本地区非任务大副本后解锁，仅限本地区大副本。" onChange={value => { setQuote(); setAiDifficulty(value); }} disabled={busy !== null} />
+          {plan && <EncounterSummary plan={plan} />}
+          {quote?.encounter && <EncounterPreview encounter={quote.encounter} names={picked.map(u => u.name)} />}
           {quote && <><p className="pfoot">预览战斗难度：{difficultyLabel(effectiveDifficulty)}</p><QuoteBox quote={quote} /></>}
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
@@ -292,7 +311,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
                   q => { setQuoted({ key: quoteKey, quote: q }); return q.blockers.length > 0 ? `现在不能出发：${q.blockers.join('；')}` : `报价：第 1 图推进 ${q.costDays} 日 → ${q.date.label}`; })}>
                 {busy === 'quote' ? '预览中…' : '预览第 1 图'}
               </button>
-              : <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || quote.blockers.length > 0}
+              : <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || !quote.encounter || quote.blockers.length > 0}
                 onClick={() => void act('start', () => session.execute(quote.quoteId), () => `出发：${target.name}大副本第 1 图`).then(ok => { if (ok) onStarted(); })}>
                 {busy === 'start' ? '出发中…' : `确认出发 · ${target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
               </button>}

@@ -157,6 +157,7 @@ export interface ScenarioRuntime {
 }
 
 export interface BattleState {
+  encounter?: import('../game/encounters.ts').FieldEncounter & { playerGroups?: number[] };
   engineVersion: 1;
   id: string;
   // Arena battles use frozen snapshots and give no experience (docs/03).

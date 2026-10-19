@@ -1,7 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v13';
+export const RULESET_VERSION = 'rules-v14';
+// v29 / rules-v14: map-designed encounter formations and difficulty-specific deployment caps.
+// Encounters are fixed for the unspent departure day; reduced parties no longer shrink the enemy army.
+// Existing boards/runs and replay snapshots retain their saved deployments; finish active runs before upgrade.
 // v28 / rules-v13: normal wild victories and complete dungeon clears unlock only their own hard modes.
 // Existing normal completion records backfill unlocks once; single-map quests remain normal-only.
 // Saved active hard runs may finish, and old replays keep their frozen rules.
@@ -36,7 +39,7 @@ export const RULESET_VERSION = 'rules-v13';
 // 单图任务完成+5、每个副本（含多图任务）仅首次完整通关+20，不叠加、不计中间图或重刷。
 // 缺失字段的旧档惰性初始化，仅此前已讨伐地区设100；已有进度不再回填，已开通地区访问权、
 // clearedRegions、养成与冻结历史保留。探索满100才可选择相邻新路线，初选1–4仍自由。
-export const CATALOG_VERSION = 28;
+export const CATALOG_VERSION = 29;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

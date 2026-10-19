@@ -8,8 +8,6 @@ import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { recordDeath, syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
-import { decide } from '../common/engine/index.ts';
-import { stats } from '../common/data/types.ts';
 import type { Player } from './store.ts';
 
 // Read-model additions the web pages rely on: story titles, the free-recruit status, what a dungeon
@@ -24,31 +22,6 @@ function setup(name: string) {
 
 function ctxFor(store: Store, accountId: string, player: Player): Context {
   return { store, accountId, player, agentModel: null, push: () => {} };
-}
-
-function playOut(ctx: Context, battleId: string): string {
-  for (let guard = 0; guard < 2000; guard++) {
-    const battle = ctx.store.battle(ctx.player.id, battleId);
-    if (!battle || battle.state.result) return battle?.state.result?.winner ?? 'none';
-    // 此处验收跨图读模型，不以随机地图的 AI 寻路耗时判定流程成败。
-    if (battle.state.turnLimit < 60) {
-      battle.state.turnLimit = battle.initial.turnLimit = 60;
-      ctx.store.saveBattle(battle);
-    }
-    const unit = battle.state.units.find(u => u.side === 'player' && u.alive && !u.acted);
-    if (unit) {
-      const action = decide(battle.state, unit);
-      dispatch(ctx, OP.UNIT_ACT, {
-        battleId: battle.id, unitId: unit.id, moveTo: action.to, action: action.act,
-        targetId: 'target' in action ? action.target : undefined,
-        weapon: 'weapon' in action ? action.weapon : undefined,
-        item: 'item' in action ? action.item : undefined,
-      });
-    } else {
-      dispatch(ctx, OP.END_PHASE, { battleId: battle.id });
-    }
-  }
-  throw new Error('battle did not finish');
 }
 
 interface Chapter { chapter: number; available: boolean; completed: boolean; claimed: boolean; title: string | null; learned: string | null }
@@ -99,23 +72,27 @@ test('the memorial reports the free emergency recruit status and the op follows 
 test('a dungeon run reports the HP and supplies each survivor carries into the next map', () => {
   const { store, accountId, player } = setup('run-ui');
   const ctx = ctxFor(store, accountId, player);
-  const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'];
-  for (const id of ids) {
-    const unit = store.unit(player.id, id)!;
-    unit.level = 99;
-    unit.stats = stats(150, 99, 99, 99, 99, 99, 99, 99);
-    unit.hp = 150;
-    store.saveUnit(unit, player.id);
-  }
+  const ids = ['u_erin', 'u_victor', 'u_gustav'];
   const started = dispatch(ctx, OP.START_DUNGEON, { region: 1, unitIds: ids }) as { battleId: string };
-  assert.equal(playOut(ctx, started.battleId), 'player');
+  const battle = store.battle(player.id, started.battleId)!;
+  const [leader, survivor, fallen] = battle.state.units.filter(u => u.side === 'player');
+  leader.hp = 11;
+  survivor.hp = 7;
+  survivor.items = [{ id: 'vulnerary', uses: 1 }];
+  fallen.hp = 0; fallen.alive = false;
+  // Settle a controlled near-win: this checks carry data, not random autoplay strength.
+  for (const enemy of battle.state.units.filter(u => u.side === 'enemy')) { enemy.hp = 0; enemy.alive = false; }
+  assert.equal(battle.state.goal.kind, 'seize');
+  if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
+  store.saveBattle(battle);
+  dispatch(ctx, OP.UNIT_ACT, { battleId: battle.id, unitId: leader.id, moveTo: leader.pos, action: 'seize' });
   const { run } = dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; survivingIds: string[]; carry: Record<string, { hp: number; items: { id: string; uses: number }[] }> } };
   assert.equal(run.state, 'between_maps');
   assert.deepEqual(Object.keys(run.carry).sort(), [...run.survivingIds].sort());
-  for (const id of run.survivingIds) {
-    assert.ok(run.carry[id].hp > 0 && run.carry[id].hp <= 150);
-    assert.ok(Array.isArray(run.carry[id].items));
-  }
+  assert.deepEqual(run.survivingIds, [leader.id, survivor.id]);
+  assert.equal(run.carry[leader.id].hp, 11);
+  assert.equal(run.carry[survivor.id].hp, 7);
+  assert.deepEqual(run.carry[survivor.id].items, [{ id: 'vulnerary', uses: 1 }]);
 });
 
 test('annual reserves who did not play stay available in registration order; the dead drop out', () => {

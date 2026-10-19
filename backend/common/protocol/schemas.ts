@@ -4,14 +4,15 @@ import { STAT_KEYS } from '../data/types.ts';
 import { OP } from './ops.ts';
 
 export interface SchemaProperty {
-  type: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | readonly ('string' | 'number')[]; enum?: readonly (string | number)[]; minimum?: number; maximum?: number; minLength?: number; minItems?: number; maxItems?: number; items?: SchemaProperty; properties?: Record<string, SchemaProperty>; required?: string[]; additionalProperties?: boolean | SchemaProperty; oneOf?: { required: string[] }[]; description?: string;
+  type: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | readonly ('string' | 'number')[]; enum?: readonly (string | number)[]; minimum?: number; maximum?: number; minLength?: number; minItems?: number; maxItems?: number; uniqueItems?: boolean; items?: SchemaProperty; properties?: Record<string, SchemaProperty>; required?: string[]; additionalProperties?: boolean | SchemaProperty; oneOf?: { required: string[] }[]; description?: string;
 }
-const aiDifficulty: SchemaProperty = { type: 'string', enum: ['normal', 'hard'], description: 'Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Maps, day costs and fixed quest rewards stay the same; more/higher-level foes can yield more combat experience and drops.' };
+const aiDifficulty: SchemaProperty = { type: 'string', enum: ['normal', 'hard'], description: 'Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1, class caps), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience and drops.' };
 const point: SchemaProperty = { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 };
 const string: SchemaProperty = { type: 'string' };
 const number: SchemaProperty = { type: 'number' };
 const boolean: SchemaProperty = { type: 'boolean' };
 const strings: SchemaProperty = { type: 'array', items: string };
+const fieldUnits: SchemaProperty = { ...strings, minItems: 1, maxItems: 8, uniqueItems: true, description: 'Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. Omission chooses available units up to that limit; excess or duplicate IDs are rejected.' };
 const stats: SchemaProperty = { type: 'object', properties: Object.fromEntries(STAT_KEYS.map(key => [key, number])), additionalProperties: number };
 const support: SchemaProperty = { type: 'object', required: ['target'], additionalProperties: false, oneOf: [{ required: ['spell'] }, { required: ['weapon'] }], description: 'One paid nonhostile extra; nested target, not targetId. No nested action/art.', properties: { target: { type: 'string' }, spell: { type: 'string' }, weapon: { type: 'string' }, dest: point } };
 
@@ -43,7 +44,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   BUY_CLASS_QUALIFICATION: { required: ['unitId', 'classId'], properties: { unitId: string, classId: string } },
   SWITCH_CLASS: { required: ['unitId', 'classId'], properties: { unitId: string, classId: string } },
   GET_MASTERY: { required: ['unitId'], properties: { unitId: string } },
-  START_DUNGEON: { required: ['region'], properties: { region: number, unitIds: strings, aiDifficulty } },
+  START_DUNGEON: { required: ['region'], properties: { region: number, unitIds: fieldUnits, aiDifficulty } },
   START_DISPATCH: { required: ['region', 'durationDays', 'unitIds'], properties: { region: number, durationDays: number, unitIds: strings, classId: string, weaponType: string } },
   START_PRODUCTION: { required: ['recipeId'], properties: { recipeId: string, perfect: boolean } },
   COLLECT_PRODUCTION: { required: ['orderId'], properties: { orderId: string } },
@@ -73,7 +74,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   AGENT_PHASE_NOTE: { required: ['text'], properties: { text: string, battleId: string } },
   AGENT_COMMENT_BATTLE: { required: ['text'], properties: { text: string, battleId: string } },
   AGENT_DAILY_REPORT: { required: ['text'], properties: { text: string } },
-  SORTIE: { required: ['region'], properties: { aiDifficulty, region: { type: 'number', minimum: 1, maximum: 12 }, unitIds: { type: 'array', items: { type: 'string' } } } },
+  SORTIE: { required: ['region'], properties: { aiDifficulty, region: { type: 'number', minimum: 1, maximum: 12 }, unitIds: fieldUnits } },
   START_QUEST: { required: ['questId'], properties: { aiDifficulty, questId: { type: 'string' }, unitIds: { type: 'array', items: { type: 'string' } } } },
   RECRUIT: { required: ['region'], properties: { region: { type: 'number', minimum: 1, maximum: 12 } } },
   ACCEPT_RECRUIT: { properties: { id: { type: 'string' } } },

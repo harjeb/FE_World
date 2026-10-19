@@ -184,7 +184,11 @@ test('hard expands and upgrades enemies deterministically while preserving playe
     assert.equal(new Set(hard.state.units.map(u => u.pos.join(','))).size, hard.state.units.length);
     assert.deepEqual(hard.initial, hard.state);
     assert.deepEqual(hard.state, create('hard').state, 'same seed fixes roster, levels, stats and equipment');
-    assert.deepEqual({ ...hard.state, aiDifficulty: 'normal', units: hard.state.units.filter(u => u.side !== 'enemy') },
+    if (normal.state.encounter) {
+      assert.equal(hard.state.encounter?.layout, normal.state.encounter.layout);
+      assert.deepEqual(hard.state.rng, normal.state.rng);
+      assert.deepEqual(hard.state.units.filter(u => u.side === 'player'), normal.state.units.filter(u => u.side === 'player'));
+    } else assert.deepEqual({ ...hard.state, aiDifficulty: 'normal', units: hard.state.units.filter(u => u.side !== 'enemy') },
       { ...normal.state, units: normal.state.units.filter(u => u.side !== 'enemy') });
     assert.equal(hard.costDays, normal.costDays);
     assert.equal(hard.seed, normal.seed);

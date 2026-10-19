@@ -10,6 +10,7 @@ import { syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { decide } from '../common/engine/index.ts';
 import { stats } from '../common/data/types.ts';
+import { fieldEncounter } from '../common/game/encounters.ts';
 import type { Player } from './store.ts';
 
 function setup() {
@@ -62,7 +63,7 @@ function empower(store: Store, player: Player, ids: string[]): void {
 test('a three-map dungeon locks the roster, carries state and clears the region only at the boss', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'];
+  const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'].slice(0, fieldEncounter(player.id, player.day, 1, 'normal', 'dungeon').maxUnits);
   empower(store, player, ids);
   const day = player.day;
   const started = dispatch(ctx, OP.START_DUNGEON, { region: 1, unitIds: ids }) as { run: { id: string; stageIndex: number; state: string }; battleId: string };

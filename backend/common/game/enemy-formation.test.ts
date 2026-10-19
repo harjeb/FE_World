@@ -14,13 +14,14 @@ const party = Array.from({ length: 6 }, (_, i) => createUnit('erin', 1, `player-
 
 test('hard reserves enlarge random and classic formations without changing deployment or creating extra bosses', () => {
   for (const create of [
-    (aiDifficulty: 'normal' | 'hard') => createFieldBattle(party, { region: 5, cleared: 0, day: 375, seed: 'formation', aiDifficulty }),
+    (aiDifficulty: 'normal' | 'hard') => createFieldBattle(party.slice(0, 4), { region: 5, cleared: 0, day: 375, seed: 'formation', aiDifficulty }),
     (aiDifficulty: 'normal' | 'hard') => createClassicBattle(party, { mapId: 'fe1-ch16', seed: 'formation', aiDifficulty }),
   ]) {
     const normal = create('normal').state, hard = create('hard').state;
     const originals = normal.units.filter(u => u.side === 'enemy');
     const reserves = hard.units.filter(u => u.id.startsWith('reserve-'));
-    assert.equal(reserves.length, Math.ceil(originals.length / 2));
+    assert.equal(hard.units.filter(u => u.side === 'enemy').length, originals.length + Math.ceil(originals.length / 2));
+    assert.equal(reserves.length, normal.encounter ? 0 : Math.ceil(originals.length / 2), 'planned random armies already include hard slots; classic maps add reserves');
     assert.equal(new Set(hard.units.map(u => u.id)).size, hard.units.length);
     assert.equal(new Set(hard.units.map(u => u.pos.join(','))).size, hard.units.length);
     assert.deepEqual(hard.units.filter(u => u.side === 'player'), normal.units.filter(u => u.side === 'player'));

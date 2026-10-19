@@ -20,7 +20,8 @@ import { GAME_ITEMS, isBoundWeapon, isCentralShopItem, isItemKey, spellbookItem,
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
-import { createClassicBattle, createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
+import { fieldEncounter } from '../common/game/encounters.ts';
+import { encounterMap, createClassicBattle, createFestivalBattle, createFieldBattle, FIELD_BATTLE, sparringRoster } from '../common/game/battles.ts';
 import { HARD_ENEMY_EFFECT } from '../common/game/enemies.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { CATALOG_VERSION, RULESET_VERSION, replayCompatibility } from '../common/game/version.ts';
@@ -185,6 +186,7 @@ function asAiDifficulty(value: unknown): 'normal' | 'hard' {
 export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0) {
   const state = record.state;
   return {
+    encounter: state.encounter,
     battleId: record.id,
     aiDifficulty: state.aiDifficulty ?? 'normal',
     kind: record.kind,
@@ -424,6 +426,8 @@ const handlers: Record<number, Handler> = {
       sortieRegions: REGIONS.filter(region => unlocked.includes(region.id)).map(region => ({
         id: region.id, name: region.name, resource: region.resource,
         hardUnlocked: hardUnlocks(ctx.store, ctx.player).regions.includes(region.id),
+        encounters: { normal: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'normal'), hard: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'hard') },
+        dungeonEncounters: { normal: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'normal', 'dungeon'), hard: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'hard', 'dungeon') },
         dungeonHardUnlocked: hardUnlocks(ctx.store, ctx.player).dungeons.includes(region.id),
         cleared: cleared.includes(region.id), level: enemyLevel(ctx.player.day, region.offset),
       })),
@@ -468,17 +472,11 @@ const handlers: Record<number, Handler> = {
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const region = asNumber(data.region, 'region');
     if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
-    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
-    const units = ids.length > 0
-      ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
-      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, FIELD_BATTLE.maxUnits);
-    const busy = units.find(u => u.lockedRunId || u.lockedDispatchId);
-    if (busy) throw new OpError('FORBIDDEN', `${unitName(busy)} 正在远征或派遣中`);
-    const ready = units.filter(u => u.status === 'active');
-    if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
+    const encounter = fieldEncounter(ctx.player.id, ctx.player.day, region, aiDifficulty);
+    const ready = deploymentUnits(ctx, data.unitIds, encounter.maxUnits);
     // 种子由服务器生成，不采用客户端提交的 seed，避免预选随机结果 (docs/03)。
     const seed = randomUUID().slice(0, 8);
-    const record = createFieldBattle(ready, { region, cleared: ctx.player.flags.clearedRegions.length, day: ctx.player.day, seed, aiDifficulty });
+    const record = createFieldBattle(ready, { region, cleared: ctx.player.flags.clearedRegions.length, day: ctx.player.day, seed, aiDifficulty, encounter });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.sortie;
     syncPlayer(ctx.store, ctx.player);
@@ -1199,20 +1197,16 @@ const handlers: Record<number, Handler> = {
     const region = asNumber(data.region, 'region');
     if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放大副本');
-    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
-    const units = ids.length > 0
-      ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
-      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, 6);
-    const ready = units.filter(u => u.status === 'active' && !u.lockedRunId && !u.lockedDispatchId);
-    if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
+    const encounter = fieldEncounter(ctx.player.id, ctx.player.day, region, aiDifficulty, 'dungeon');
+    const ready = deploymentUnits(ctx, data.unitIds, encounter.maxUnits);
     // 出发时锁定等级、名单与物品；只有实际创建 run 才锁配置（docs/13 §4.4）。
     const level = enemyLevel(ctx.player.day, regionById(region).offset);
-    const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length, { aiDifficulty });
+    const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length, { aiDifficulty, encounter });
     for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
     ctx.player.day += DUNGEON_STAGE_DAYS;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
-    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, day: ctx.player.day - DUNGEON_STAGE_DAYS, seed, level, stageIndex: 0, runId: run.id, aiDifficulty });
+    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, day: ctx.player.day - DUNGEON_STAGE_DAYS, seed, level, stageIndex: 0, runId: run.id, aiDifficulty, encounter });
     record.playerId = ctx.player.id;
     run.battleId = record.id;
     ctx.store.saveRun(run);
@@ -1247,7 +1241,7 @@ const handlers: Record<number, Handler> = {
       ? createClassicBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', mapId: run.scenarioIds[run.stageIndex], seed, quest: run.questId ? questById(run.questId) : undefined,
           stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day,
           season: dateOf(ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS)).season })
-      : createFieldBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS), seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest });
+      : createFieldBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS), seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest, encounter: run.encounter, legacyDeployment: !run.encounter });
     record.playerId = ctx.player.id;
     run.state = 'battle';
     run.battleId = record.id;
@@ -2178,16 +2172,8 @@ const handlers: Record<number, Handler> = {
     if (!(supportsHardQuest(quest) && done.has(quest.id)) && !questAvailable(quest, { done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0 })) {
       throw new OpError('FORBIDDEN', '任务尚未解锁或已完成');
     }
-    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
     const maxUnits = questMaxUnits(quest);
-    const units = ids.length > 0
-      ? ids.map(id => requireUnit(ctx.store, ctx.player, id))
-      : ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, maxUnits);
-    const busy = units.find(u => u.lockedRunId || u.lockedDispatchId);
-    if (busy) throw new OpError('FORBIDDEN', `${unitName(busy)} 正在远征或派遣中`);
-    const ready = units.filter(u => u.status === 'active');
-    if (ready.length === 0) throw new OpError('BAD_REQUEST', '没有可出战的单位');
-    if (ready.length > maxUnits) throw new OpError('BAD_REQUEST', `该任务最多出战 ${maxUnits} 人`);
+    const ready = deploymentUnits(ctx, data.unitIds, maxUnits);
     const seed = randomUUID().slice(0, 8);
     // 经典地图副本：按 scenarioIds 顺序逐图连战，跨图携带由 run.carry 维护（docs/24）。
     if (quest.scenarioIds?.length) {
@@ -2407,6 +2393,7 @@ const handlers: Record<number, Handler> = {
 
 // 报价构造：不改变世界，只计算成本、起止日期、风险、途经日期事件与阻挡（docs/13 §3.2）。
 interface ActionQuote {
+  encounter?: ReturnType<typeof fieldEncounter> & { map: ReturnType<typeof encounterMap> };
   aiDifficulty?: 'normal' | 'hard';
   aiDifficultyText?: string;
   op: number;
@@ -2430,6 +2417,17 @@ function dateEventsBetween(fromDay: number, toDay: number): { day: number; kind:
     if (isArenaDay(day)) out.push({ day, kind: 'arena' });
   }
   return out;
+}
+
+function deploymentUnits(ctx: Context, value: unknown, max: number) {
+  if (value !== undefined && (!Array.isArray(value) || value.length === 0 || value.some(id => typeof id !== 'string' || !id.trim()))) throw new OpError('BAD_REQUEST', 'unitIds 需要非空角色 ID 列表');
+  const ids = value as string[] | undefined;
+  if (ids && (new Set(ids).size !== ids.length || ids.length > max)) throw new OpError('BAD_REQUEST', `角色不可重复，最多出战 ${max} 人`);
+  const units = ids ? ids.map(id => requireUnit(ctx.store, ctx.player, id)) : ctx.store.units(ctx.player.id).filter(u => u.status === 'active' && !u.lockedRunId && !u.lockedDispatchId).slice(0, max);
+  const busy = units.find(u => u.lockedRunId || u.lockedDispatchId);
+  if (busy) throw new OpError('FORBIDDEN', `${unitName(busy)} 正在远征或派遣中`);
+  if (!units.length || units.some(u => u.status !== 'active')) throw new OpError('BAD_REQUEST', '名单包含无法出战的角色');
+  return units;
 }
 
 function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
@@ -2525,13 +2523,19 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
     default:
       throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / art_training / rest / recruit / dungeon / annual');
   }
+  let encounter: ActionQuote['encounter'];
+  if (action === 'sortie' || action === 'dungeon') {
+    const plan = fieldEncounter(player.id, player.day, asNumber(data.region, 'region'), asAiDifficulty(data.aiDifficulty), action === 'dungeon' ? 'dungeon' : 'field');
+    deploymentUnits(ctx, data.unitIds, plan.maxUnits);
+    encounter = { ...plan, map: encounterMap(plan, player.day) };
+  }
   const toDay = player.day + costDays;
   for (const unit of ctx.store.units(player.id).filter(unit => unit.status === 'active')) {
     const end = nextLifespanEventDay(unit, player.day, toDay);
     const message = end === null ? '' : `${unitName(unit)} 将在 ${dateOf(end).label} 寿终；请先安排传承／退役或缩短行动`;
     if (end !== null && !blockers.includes(message)) blockers.push(message);
   }
-  return { ...(payload.aiDifficulty ? { aiDifficulty: asAiDifficulty(payload.aiDifficulty), aiDifficultyText: `战斗难度：${payload.aiDifficulty === 'hard' ? `困难（hard）；${HARD_ENEMY_EFFECT}` : '普通（normal）；敌军属性不加成'}` } : {}), op, action, payload, costDays, costGold, fromDay: player.day, toDay, date: dateOf(toDay), risk, events: dateEventsBetween(player.day, toDay), blockers };
+  return { encounter, ...(payload.aiDifficulty ? { aiDifficulty: asAiDifficulty(payload.aiDifficulty), aiDifficultyText: `战斗难度：${payload.aiDifficulty === 'hard' ? `困难（hard）；${HARD_ENEMY_EFFECT}` : '普通（normal）；敌军属性不加成'}` } : {}), op, action, payload, costDays, costGold, fromDay: player.day, toDay, date: dateOf(toDay), risk, events: dateEventsBetween(player.day, toDay), blockers };
 }
 
 // ---- 战报与 Agent 说明 -----------------------------------------------------

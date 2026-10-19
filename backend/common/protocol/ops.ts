@@ -23,15 +23,15 @@ export const OPS: readonly OpDef[] = [
   { op: 22, name: 'GET_INVENTORY', group: '仓库', agentNote: '仓库物品与每个单位携带的物品。' },
   { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。' },
 
-  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 分别表示该地区野图／随机副本已开放困难。出击条目附人数上限、回合上限、胜利条件和阵亡是否永久。' },
-  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（现役单位，最多见 GET_TODAY；省略时取前 6 人）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
+  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军。' },
+  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
   { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
   { op: 33, name: 'TRAIN', group: '日历', agentNote: '训练一个单位，补武器熟练度；消耗金币或教材并推进日期。' },
   { op: 34, name: 'REST', group: '日历', agentNote: '休整指定日数，推进日期、作物与年龄，不直接发金币经验。' },
   { op: 35, name: 'RECRUIT', group: '日历', agentNote: '游历招募：只花行动日，按地区角色池概率遇到新人，失败也推进日期。' },
   { op: 36, name: 'START_MAIN_STAGE', group: '日历', agentNote: '开始大竞技场的下一轮（第 1–3 轮海选，之后淘汰赛），推进日期；普通角色阵亡即永久死亡。返回 battleId。' },
   { op: 37, name: 'SKIP_MAIN_STAGE', group: '日历', agentNote: '把日期推进到下一季第 1 日；只按到达日判断竞技场日，途经的竞技场日不会开放。' },
-  { op: 38, name: 'PREVIEW_ACTION', group: '日历', agentNote: '为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；不改变世界。' },
+  { op: 38, name: 'PREVIEW_ACTION', group: '日历', agentNote: '为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。' },
   { op: 39, name: 'EXECUTE_ACTION', group: '日历', agentNote: '用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。' },
 
   { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。' },
@@ -68,7 +68,7 @@ export const OPS: readonly OpDef[] = [
   { op: 96, name: 'CLAIM_RATING_REWARD', group: '竞技场', agentNote: '领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。' },
 
   { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落。' },
-  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；固定名单与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。' },
+  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点，中间图及重复通关不增加。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
 
@@ -106,7 +106,7 @@ export const OPS: readonly OpDef[] = [
   { op: 141, name: 'GET_WORLD_MAP', group: '地图', agentNote: '读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions、各地区0–100探索度；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区继续可访问，探索度独立于讨伐记录。' },
   { op: 142, name: 'CHOOSE_ROUTE', group: '地图', agentNote: '把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次可自由选择1–4，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；需先完成开局自捏。' },
 
-  { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。' },
+  { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。encounter 返回本次随机战场的布局与人数配置；map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
   { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。' },
   { op: 53, name: 'GET_THREAT_MAP', group: '战斗', agentNote: '敌方下个阶段所有单位能攻击到的格子与每格威胁数。' },
@@ -162,7 +162,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 12;
+export const DOC_VERSION = 13;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

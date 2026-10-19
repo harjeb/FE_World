@@ -2,6 +2,7 @@ import { CLASSES } from '../../backend/common/data/classes.ts';
 import { decide } from '../../backend/common/engine/ai.ts';
 import { autoplay } from '../../backend/common/engine/autoplay.ts';
 import { createFieldBattle } from '../../backend/common/game/battles.ts';
+import { fieldEncounter } from '../../backend/common/game/encounters.ts';
 import { createUnit } from '../../backend/common/game/model.ts';
 import type { CharacterId } from '../../backend/common/data/characters.ts';
 import { REGIONS, enemyLevel } from '../../backend/common/game/calendar.ts';
@@ -135,7 +136,9 @@ export function encounterSmoke(years = 8, battlesPerRegion = 2): EncounterYear[]
     for (const region of REGIONS) {
       for (let i = 0; i < battlesPerRegion; i += 1) {
         const party = ROSTER.map((character, index) => createUnit(character, level, `campaign-${year}-${region.id}-${i}-${index}`, day, true));
-        const record = createFieldBattle(party, { region: region.id, day, cleared: region.id - 1, seed: `campaign-${year}-${region.id}-${i}` });
+        const seed = `campaign-${year}-${region.id}-${i}`;
+        const encounter = fieldEncounter(seed, day, region.id);
+        const record = createFieldBattle(party.slice(0, encounter.maxUnits), { encounter, region: region.id, day, cleared: region.id - 1, seed });
         const final = autoplay(record.state);
         battles += 1;
         turns += final.turn;

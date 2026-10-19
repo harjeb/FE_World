@@ -6,6 +6,7 @@ import { ARENA_MAPS } from '../arena/maps.ts';
 import { banFor, createArenaDay, startAttack } from '../game/arena.ts';
 import { CLASSES } from '../data/classes.ts';
 import { createClassicBattle, createFieldBattle, createFestivalBattle } from '../game/battles.ts';
+import { fieldEncounter } from '../game/encounters.ts';
 import { createUnit } from '../game/model.ts';
 import { seasonalMap, tilesFromGlyphs } from '../maps/map.ts';
 import type { Terrain } from '../maps/map.ts';
@@ -118,9 +119,10 @@ test('teleporting armor breaks only the landing ice, not intermediate tiles', ()
 
 test('new field, classic and annual battles freeze their season; originals stay unchanged', () => {
   const units = [createUnit('erin', 1, 'winter')];
-  const autumn = createFieldBattle(units, { region: 1, cleared: 0, day: 374, seed: 'season' });
-  const winter = createFieldBattle(units, { region: 1, cleared: 0, day: 375, seed: 'season' });
-  const spring = createFieldBattle(units, { region: 1, cleared: 0, day: 500, seed: 'season' });
+  const encounter = fieldEncounter('season', 374, 1);
+  const autumn = createFieldBattle(units, { encounter, region: 1, cleared: 0, day: 374, seed: 'season' });
+  const winter = createFieldBattle(units, { encounter, region: 1, cleared: 0, day: 375, seed: 'season' });
+  const spring = createFieldBattle(units, { encounter, region: 1, cleared: 0, day: 500, seed: 'season' });
   assert.equal(winter.state.map.season, 4);
   assert.deepEqual(winter.state.map.tiles, seasonalMap(autumn.state.map.tiles, 4).tiles);
   assert.deepEqual(spring.state.map.tiles, autumn.state.map.tiles);
@@ -154,6 +156,6 @@ test('both new wild layouts enter their regional encounter pools without replaci
     assert.ok(battles.some(b => b.name.includes('遭遇战')));
     const water = battles.find(b => b.name.includes(name));
     assert.ok(water);
-    assert.ok(water.state.map.tiles.flat().filter(t => t === 'water').length >= 100);
+    assert.ok(water.state.map.tiles.flat().filter(t => t === 'water').length >= water.state.map.width * water.state.map.height / 4);
   }
 });

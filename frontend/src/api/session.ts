@@ -2,6 +2,8 @@
 // the other shared views, and exposes the op wrappers the screens call. Everything else in the frontend
 // derives from here, so there is exactly one source of truth (docs/06「协议只在 common 定义一处」).
 import type { AiDifficulty } from '@common/engine/types.ts';
+import type { FieldEncounter } from '@common/game/encounters.ts';
+import type { BattleMap } from '@common/maps/map.ts';
 import { useSyncExternalStore } from 'react';
 import { OP } from '@common/protocol/ops.ts';
 import type { Action, BattleEvent, BattleState, Point } from '@common/engine/index.ts';
@@ -191,7 +193,7 @@ export interface ServerToday {
   day: number;
   date: ServerState['date'];
   actions: TodayAction[];
-  sortieRegions: { id: number; name: string; resource: string; cleared: boolean; level: number; hardUnlocked?: boolean; dungeonHardUnlocked?: boolean }[];
+  sortieRegions: { encounters?: Record<AiDifficulty, FieldEncounter>; dungeonEncounters?: Record<AiDifficulty, FieldEncounter>; id: number; name: string; resource: string; cleared: boolean; level: number; hardUnlocked?: boolean; dungeonHardUnlocked?: boolean }[];
   festival: { open: boolean; round: number; costDays: number };
   nextArenaDay: number;
   nextMonthStart: number;
@@ -220,6 +222,7 @@ export interface ServerRatings {
 
 // GET_RUN: the current or latest three-map dungeon run (docs/00 §8.1.3).
 export interface ServerRun {
+  encounter?: FieldEncounter;
   aiDifficulty?: AiDifficulty;
   id: string; region: number; state: 'battle' | 'between_maps' | 'completed' | 'failed' | 'withdrawn';
   stageIndex: number; level: number; unitIds: string[]; survivingIds: string[]; battleId: string | null;
@@ -356,8 +359,9 @@ export type MinigameResult =
 
 export interface ServerAgentInfo { online: boolean; model: string | null; plan: string | null; dailyReport: string | null }
 
-// PREVIEW_ACTION: a quote bound to the player version; EXECUTE_ACTION re-checks it (docs/13 §3.2).
+// Quotes are bound to the player version; EXECUTE_ACTION re-checks it (docs/13 §3.2).
 export interface ActionQuote {
+  encounter?: FieldEncounter & { map: Pick<BattleMap, 'width' | 'height' | 'tiles' | 'spawns' | 'playerGroups' | 'objective'> };
   quoteId: string; playerVersion: number; action: string; costDays: number; costGold: number;
   fromDay: number; toDay: number; date: ServerState['date']; risk: 'permadeath' | 'simulation';
   events: { day: number; kind: 'arena' | 'month' | 'annual' }[]; blockers: string[];

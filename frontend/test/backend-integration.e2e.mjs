@@ -228,14 +228,44 @@ try {
       await page.evaluate(`(() => { const panel = document.querySelector('#rg-h').closest('section'); return panel.querySelector('progress')?.value === 0 && panel.innerText.includes('野外获胜 +3'); })()`), '0 / 100, win +3');
     const explorer = await api(page, 10);
     const explorerTeam = explorer.units.map(unit => unit.id);
+    [explorerTeam[0], explorerTeam[1]] = [explorerTeam[1], explorerTeam[0]];
+    await page.click('[aria-label="部署顺序"] li:nth-child(2) button');
+    const orderIds = () => page.evaluate(`[...document.querySelectorAll('[aria-label="部署顺序"] li')].map(el => el.dataset.unitId)`);
+    check('reordering preserves selected members in the requested order', JSON.stringify(await orderIds()) === JSON.stringify(explorerTeam), 'second member becomes commander');
+    check('deployment portraits show consecutive order badges at the bottom right', await page.evaluate(`(() => {
+      const rows = [...document.querySelectorAll('[aria-label="部署顺序"] li')];
+      return rows.length === 3 && rows.every((row, i) => {
+        const face = row.querySelector('.pf'), badge = face?.querySelector('.tm-ord');
+        if (badge?.textContent !== String(i + 1)) return false;
+        const p = face.getBoundingClientRect(), b = badge.getBoundingClientRect();
+        return Math.abs(p.right - b.right) <= 2 && Math.abs(p.bottom - b.bottom) <= 2;
+      });
+    })()`), '1, 2, 3 on portrait corners');
+    await page.viewport(390, 844);
+    check('deployment controls fit mobile and provide 44px targets', await page.evaluate(`document.documentElement.scrollWidth <= innerWidth && [...document.querySelectorAll('[aria-label="部署顺序"] button')].every(el => { const r = el.getBoundingClientRect(); return r.width >= 44 && r.height >= 44; })`), '390px');
+    await page.reload('#tm-h');
+    check('deployment order survives reload', JSON.stringify(await orderIds()) === JSON.stringify(explorerTeam), 'account browser preference');
+    const commanderName = explorer.units.find(unit => unit.id === explorerTeam[0]).name;
+    check('the selected commander portrait keeps badge one after reload', await page.evaluate(`(() => {
+      const row = [...document.querySelectorAll('.team li')].find(row => row.innerText.includes(${JSON.stringify(commanderName)}));
+      return row?.querySelector('.pf .tm-ord')?.textContent === '1';
+    })()`), commanderName);
+    check('reloaded quote preview names the reordered commander first', await until(() => page.evaluate(`document.querySelector('[aria-label="战场部署预览"] figcaption')?.innerText.includes(${JSON.stringify('小队 1：')} + ${JSON.stringify(commanderName)})`)), commanderName);
+    await page.viewport(1440, 900);
     check('field AI defaults to normal and hard starts locked', await page.evaluate(`document.querySelector('input[value="normal"]').checked && document.querySelector('input[value="hard"]').disabled`), 'normal first clear required');
     let hardBlocked = false;
     try { await api(page, 31, { region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' }); }
     catch (error) { hardBlocked = /普通|困难/.test(error.message); }
     check('direct hard requests cannot skip normal victory', hardBlocked && (await api(page, 10)).day === explorer.day, 'locked without spending days');
+    const normalPlan = (await api(page, 30)).sortieRegions.find(r => r.id === 2).encounters.normal;
+    check('normal sortie waits for a map quote', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"]') && !document.querySelector('.prep-go .btn-primary').disabled`)), 'quoted map ready');
+    const normalPreview = await api(page, 38, { action: 'sortie', region: 2, unitIds: explorerTeam });
     await page.click('.prep-go .btn-primary');
     check('the first field battle starts in normal mode', await until(() => page.evaluate(`document.querySelector('.hud')?.innerText.includes('战斗难度：普通')`)), 'normal HUD');
     const normalField = await api(page, 50, { full: true });
+    check('actual battle UNIT array preserves deployment order', JSON.stringify(normalField.state.units.filter(u => u.side === 'player').map(u => u.id)) === JSON.stringify(explorerTeam), 'ordered quote executed');
+    check('normal battle matches the planned fixed enemy count and preview terrain', normalField.state.units.filter(u => u.side === 'enemy').length === normalPlan.enemyCount && JSON.stringify(normalField.state.map.tiles) === JSON.stringify(normalPreview.encounter.map.tiles), normalPlan.name);
+    check('normal deployment matches preview positions', normalField.state.units.filter(u => u.side === 'player').every((u, i) => JSON.stringify(u.pos) === JSON.stringify(normalPreview.encounter.map.spawns.player[i])), 'same ordered slots');
     const fieldCommand = prepareBrowserBattleWin(join(dbDir, 'e2e.db'), explorer.player.id, normalField.battleId);
     await api(page, 54, fieldCommand);
     await api(page, 54, fieldCommand);
@@ -248,12 +278,15 @@ try {
     await page.click('input[value="hard"]');
     check('difficulty choice fits mobile', await page.evaluate(`document.querySelector('input[value="hard"]').checked && document.documentElement.scrollWidth <= innerWidth`), 'hard selected at 390px');
     check('hard preparation describes stronger enemies and reward limits', await page.evaluate(`(() => { const text = document.querySelector('input[value="hard"]').closest('fieldset').innerText; return [${JSON.stringify(HARD_ENEMY_EFFECT)}, '任务固定奖励与行动日成本不变', '更多战斗经验与掉落机会', '难度锁定', '刷新不会重随机'].every(value => text.includes(value)); })()`), 'shared hard rules, fixed quest rewards and extra combat opportunities');
+    const hardPlan = (await api(page, 30)).sortieRegions.find(r => r.id === 2).encounters.hard;
+    check('hard preview has accessible squad labels and fits mobile', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] figcaption') && document.querySelector('[aria-label="战场部署预览"]').innerText.includes('小队 1') && !document.querySelector('.prep-go .btn-primary').disabled && document.documentElement.scrollWidth <= innerWidth`)), 'map and legend at 390px');
+    const hardPreview = await api(page, 38, { action: 'sortie', region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' });
     await page.click('.prep-go .btn-primary');
     check('hard field battle starts through the UI', await until(() => page.evaluate(`document.querySelector('.hud')?.innerText.includes('战斗难度：困难')`)), 'locked hard HUD');
     const fieldWin = await api(page, 50, { full: true });
     check('server stores hard AI', fieldWin.state.aiDifficulty === 'hard', fieldWin.state.aiDifficulty);
     const hardEnemies = fieldWin.state.units.filter(unit => unit.side === 'enemy');
-    check('three deployed units face five hard field enemies', explorerTeam.length === 3 && hardEnemies.length === 5, `${explorerTeam.length} deployed, ${hardEnemies.length} enemies`);
+    check('hard field enemy count and map match the plan', hardEnemies.length === hardPlan.enemyCount && JSON.stringify(fieldWin.state.map.tiles) === JSON.stringify(hardPreview.encounter.map.tiles), `${hardPlan.name}, ${hardEnemies.length} enemies`);
     const normalEnemyLevel = Math.min(QUEST_LEVEL_CAP.standard, enemyLevel(hardDeparture.day, regionById(2).offset));
     check('hard enemy levels increase within the configured range', hardEnemies.every(unit =>
       unit.level >= Math.min(99, normalEnemyLevel + HARD_ENEMY_RULES.levelMin)
@@ -319,9 +352,17 @@ try {
     check('dungeon AI defaults to normal', await page.evaluate(`document.querySelector('input[value="normal"]').checked`), 'normal selected');
     await page.click('.prep-go .go-bar button');
     check('dungeon preview shows normal difficulty', await until(() => page.evaluate(`document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通')`)), 'normal preview');
+    check('dungeon preview includes terrain and squad legend', await page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] svg') && document.querySelector('[aria-label="战场部署预览"] figcaption').innerText.includes('小队 1')`), 'shared deployment preview');
     await page.click('input[value="hard"]');
     check('changing difficulty clears the obsolete preview', await page.evaluate(`!document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通') && document.querySelector('.prep-go .go-bar button').innerText.includes('预览第 1 图')`), 'new preview required');
-    await page.evaluate(`localStorage.clear()`);
+    const dungeonPreview = await api(page, 38, { action: 'dungeon', region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' });
+    await page.click('.prep-go .go-bar button');
+    check('hard dungeon requotes its deployment map', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"]') && document.querySelector('.prep-go .go-bar button').innerText.includes('确认出发')`)), 'hard map ready');
+    await page.click('.prep-go .go-bar button');
+    check('quoted dungeon starts through the UI', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first dungeon map');
+    const quotedDungeon = await api(page, 50, { full: true });
+    check('dungeon battle terrain and enemy count match preview', JSON.stringify(quotedDungeon.state.map.tiles) === JSON.stringify(dungeonPreview.encounter.map.tiles) && quotedDungeon.state.units.filter(u => u.side === 'enemy').length === dungeonPreview.encounter.enemyCount, dungeonPreview.encounter.name);
+    await page.evaluate(`Object.keys(localStorage).filter(key => !key.startsWith('agent-tactics.deployment-order.')).forEach(key => localStorage.removeItem(key))`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     const name = 'e2e-seeded';
     await page.type('input', name);
@@ -338,6 +379,23 @@ try {
       ['出击', '训练', '休整', '游历招募'].every(n => acts.includes(n)) && ['8 日 →', '3 日 →', '1 日 →', '4 日 →'].every(c => acts.includes(c)) && !acts.includes('扫荡') && !acts.includes('1 行动日'),
       acts.slice(0, 160));
 
+    const encounterRegions = (await api(page, 30)).sortieRegions;
+    const smallest = [...encounterRegions].sort((a, b) => a.encounters.normal.maxUnits - b.encounters.normal.maxUnits)[0];
+    const largest = [...encounterRegions].sort((a, b) => b.encounters.normal.maxUnits - a.encounters.normal.maxUnits)[0];
+    await page.open(`http://127.0.0.1:${API_PORT}/#/field?region=${largest.id}`, '#tm-h');
+    const availableRoster = (await api(page, 10)).units.filter(u => u.status === 'active').length;
+    check('another account does not inherit deployment priority', (await orderIds())[0] === (await api(page, 10)).units.filter(u => u.status === 'active')[0].id, 'account-scoped ordering');
+    check('default deployment uses six or the plan cap', await page.evaluate(`document.querySelectorAll('.team input:checked').length`) === Math.min(6, largest.encounters.normal.maxUnits, availableRoster), 'plan-sized default');
+    for (let i = 0; i < largest.encounters.normal.maxUnits; i++) {
+      const canPick = await page.evaluate(`!!document.querySelector('.team input:not(:checked):not(:disabled)')`);
+      if (!canPick) break;
+      await page.click('.team input:not(:checked):not(:disabled)');
+    }
+    await page.evaluate(`document.querySelectorAll('[aria-label="出征地区"] button')[${encounterRegions.findIndex(r => r.id === smallest.id)}].click()`);
+    check('switching to a smaller plan trims deployment', await until(() => page.evaluate(`document.querySelectorAll('.team input:checked').length <= ${smallest.encounters.normal.maxUnits} && document.querySelector('#tm-h').innerText.includes('/ ${smallest.encounters.normal.maxUnits}')`)), `${largest.encounters.normal.maxUnits} → ${smallest.encounters.normal.maxUnits}`);
+    await page.viewport(390, 844);
+    check('variable deployment preview fits narrow screens', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"]') && document.documentElement.scrollWidth <= innerWidth`)), '390px');
+    await page.viewport(1440, 900);
     await page.open(`http://127.0.0.1:${API_PORT}/#/arena`, '.panel');
     const arena = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
     check('arena lists the server opponents', arena.includes('霜狼骑团') && arena.includes('赤枫商会') && arena.includes('白塔学士团'), arena.slice(0, 160));
@@ -477,7 +535,8 @@ try {
     const twin = await api(page, 21, { unitId: 'u_owen_twin' });
     const twinValue = await rowValue();
     check('duplicate templates keep the second instance growth', twinValue === `${twin.totalGrowth.str}%` && twinValue !== originalValue, `second ${twinValue} vs ${twin.totalGrowth.str}%`);
-    const keyboardParty = (await api(page, 10)).units.filter(u => u.status === 'active').slice(0, 6).map(u => u.id);
+    const keyboardPlan = (await api(page, 30)).sortieRegions.find(r => r.id === 1).encounters.normal;
+    const keyboardParty = (await api(page, 10)).units.filter(u => u.status === 'active').slice(0, Math.min(6, keyboardPlan.maxUnits)).map(u => u.id);
     const keyboardBattle = await api(page, 31, { region: 1, unitIds: keyboardParty });
     await page.open(`http://127.0.0.1:${API_PORT}/#/field`, '.battle-shell');
     const openRetreat = () => page.evaluate(`[...document.querySelectorAll('button')].find(b => b.innerText.includes('撤退')).click()`);

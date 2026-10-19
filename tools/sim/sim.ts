@@ -1,4 +1,5 @@
 import { createFieldBattle } from '../../backend/common/game/battles.ts';
+import { fieldEncounter } from '../../backend/common/game/encounters.ts';
 import { createUnit } from '../../backend/common/game/model.ts';
 import type { UnitRecord } from '../../backend/common/game/model.ts';
 import { autoplay } from '../../backend/common/engine/autoplay.ts';
@@ -21,8 +22,10 @@ export function runSim(runsPerRegion = 20, partyLevel = 12, partySize = 6, day =
   for (const region of REGIONS) {
     let wins = 0, turns = 0, deaths = 0;
     for (let i = 0; i < runsPerRegion; i++) {
-      const record = createFieldBattle(party(partyLevel, partySize), {
-        region: region.id, day, cleared: region.id - 1, seed: `sim-${region.id}-${i}`,
+      const seed = `sim-${region.id}-${i}`;
+      const encounter = fieldEncounter(seed, day, region.id);
+      const record = createFieldBattle(party(partyLevel, Math.min(partySize, encounter.maxUnits)), {
+        encounter, region: region.id, day, cleared: region.id - 1, seed,
       });
       const final = autoplay(record.state);
       if (final.result?.winner === 'player') wins++;

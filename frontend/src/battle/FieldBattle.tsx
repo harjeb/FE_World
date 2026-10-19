@@ -1,4 +1,3 @@
-import type { AiDifficulty } from '@common/engine/types.ts';
 import { useEffect, useState } from 'react';
 import type { BattleState } from '@common/engine/index.ts';
 import { session } from '../api/session.ts';
@@ -69,11 +68,11 @@ export function FieldBattle() {
     return () => { alive = false; };
   }, [check]);
 
-  async function start(region: number, unitIds: string[], aiDifficulty: AiDifficulty) {
+  async function start(quoteId: string) {
     setBusy(true);
     setError(null);
     try {
-      const { state } = await session.sortie(region, unitIds, aiDifficulty);
+      const { state } = await session.execute<{ state: BattleState }>(quoteId);
       setBuilt(build(state));
       setStage('battle');
     } catch (e) {
@@ -87,5 +86,5 @@ export function FieldBattle() {
   if (stage === 'loading') {
     return <Shell current="field"><p style={{ color: '#4E473D' }}>正在读取出击状态…</p></Shell>;
   }
-  return <SortiePrep busy={busy} error={error} onStart={(region, unitIds, aiDifficulty) => void start(region, unitIds, aiDifficulty)} />;
+  return <SortiePrep busy={busy} error={error} onStart={quoteId => void start(quoteId)} />;
 }
