@@ -5,15 +5,15 @@ import { ARMORED_LEG, HORSE, HORSE_BARDING, PEGASUS_WING, RIDER_LEG, SADDLE_CLOT
 
 // 骑天马：马 (5,22)、翼 (4,23)、鞍褥、骑手同骑马坐标，手 (32,27)。
 const PEGASUS_BASE = [
-  { part: HORSE, x: 5, y: 22 },
-  { part: PEGASUS_WING, x: 4, y: 23 },
-  { part: SADDLE_CLOTH, x: 13, y: 32 },
+  { part: HORSE, x: 5, y: 22, fixed: true },
+  { part: PEGASUS_WING, x: 4, y: 23, fixed: true },
+  { part: SADDLE_CLOTH, x: 13, y: 32, fixed: true },
 ];
 // 骑飞龙：翼 (3,13)、龙 (4,18)、鞍褥 (12,29)；骑手坐在肩背，比骑马高 2 格，手 (32,25)。
 const WYVERN_BASE = [
-  { part: WYVERN_WING, x: 3, y: 13 },
-  { part: WYVERN, x: 4, y: 18 },
-  { part: SADDLE_CLOTH, x: 12, y: 29 },
+  { part: WYVERN_WING, x: 3, y: 13, fixed: true },
+  { part: WYVERN, x: 4, y: 18, fixed: true },
+  { part: SADDLE_CLOTH, x: 12, y: 29, fixed: true },
 ];
 // 飞龙颈甲与额甲，叠在 WYVERN 上。
 const WYVERN_PLATES = [
@@ -63,11 +63,11 @@ export const FLYING_LOOKS = {
     signature: 'lance',
     palette: { r: '#F0EADF', R: '#BFB5A4', q: '#E7C266' },
     layers: [
-      { part: HORSE, x: 5, y: 22 },
-      { part: recolor(HORSE_BARDING, { m: 'y', M: 'Y', n: 'Y' }).slice(0, 12), x: 5, y: 22 },
-      { part: recolor(PEGASUS_WING, { K: 'y' }), x: 3, y: 21 },
-      { part: PEGASUS_WING, x: 5, y: 23 },
-      { part: SADDLE_CLOTH, x: 13, y: 32 },
+      { part: HORSE, x: 5, y: 22, fixed: true },
+      { part: recolor(HORSE_BARDING, { m: 'y', M: 'Y', n: 'Y' }).slice(0, 12), x: 5, y: 22, fixed: true },
+      { part: recolor(PEGASUS_WING, { K: 'y' }), x: 3, y: 21, fixed: true },
+      { part: PEGASUS_WING, x: 5, y: 23, fixed: true },
+      { part: SADDLE_CLOTH, x: 13, y: 32, fixed: true },
       { part: cape('a', 'A', 10), x: 10, y: 21 },
       { part: ARMORED_LEG, x: 20, y: 31 },
       { part: [
@@ -119,10 +119,10 @@ export const FLYING_LOOKS = {
   dragon_commander: {
     hand: [32, 25],
     signature: 'axe',
-    palette: { g: '#A8443A', G: '#6E2A24', d: '#E8C890', x: '#F0E6D0', X: '#6E2A24', m: '#C8CED2', M: '#868E94', n: '#4E565C', o: '#C8443A' },
+    palette: { g: '#A8443A', G: '#6E2A24', d: '#E8C890', x: '#F0E6D0', X: '#6E2A24', m: '#C8CED2', M: '#868E94', n: '#4E565C', o: '#C8443A', O: '#8E2A24' },
     layers: [
       ...WYVERN_BASE,
-      { part: WYVERN_PLATES, x: 4, y: 18 },
+      { part: WYVERN_PLATES, x: 4, y: 18, fixed: true },
       { part: cape('a', 'A', 11), x: 9, y: 19 },
       { part: recolor(RIDER_LEG, { b: 'm', W: 'M' }), x: 20, y: 29 },
       { part: [

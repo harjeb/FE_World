@@ -15,6 +15,7 @@ import { STAT_KEYS } from '../common/data/types.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { nextArenaDay, regionById } from '../common/game/calendar.ts';
 import { createFieldBattle, FIELD_BATTLE } from '../common/game/battles.ts';
+import { fieldEncounter } from '../common/game/encounters.ts';
 import { ARENA_MAPS } from '../common/arena/maps.ts';
 import { decide } from '../common/engine/index.ts';
 import { tick } from '../worker/worker.ts';
@@ -214,7 +215,9 @@ test('old active battle projections show charm while stored battle RNG data stay
 test('a field sortie spends days and can be played to a result', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  const start = dispatch(ctx, OP.SORTIE, { region: 1, unitIds: ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'] }) as { battleId: string };
+  const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah']
+    .slice(0, fieldEncounter(player.id, player.day, 1).maxUnits);
+  const start = dispatch(ctx, OP.SORTIE, { region: 1, unitIds: ids }) as { battleId: string };
   assert.ok(start.battleId);
   assert.equal(ctx.player.day, 999 + 8);
   playOut(ctx);

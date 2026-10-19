@@ -8,6 +8,42 @@ import { drawItemIcon, ICON_SIZE } from '@common/icons/draw.ts';
 import { canonicalClassId } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { BATTLE_SIZE, CLASS_LOOKS, drawBattleSprite } from '@common/sprites/battle.ts';
+import type { BattlePose, SpriteColors } from '@common/sprites/battle.ts';
+import { recolorBattleSheet } from './battle/battle-sheets.ts';
+import type { BattleSheet } from './battle/battle-sheets.ts';
+import { FE_ANIM_FILES } from './battle/fe-anim-files.ts';
+import swordSheet from '../../design/pixel-art/battle-sheets/swordsman-sword.png';
+import swordMask from '../../design/pixel-art/battle-sheets/swordsman-sword-mask.png';
+import axeSheet from '../../design/pixel-art/battle-sheets/fighter-axe.png';
+import axeMask from '../../design/pixel-art/battle-sheets/fighter-axe-mask.png';
+import lanceSheet from '../../design/pixel-art/battle-sheets/cavalier-lance.png';
+import lanceMask from '../../design/pixel-art/battle-sheets/cavalier-lance-mask.png';
+import bowSheet from '../../design/pixel-art/battle-sheets/archer-bow.png';
+import bowMask from '../../design/pixel-art/battle-sheets/archer-bow-mask.png';
+import tomeSheet from '../../design/pixel-art/battle-sheets/mage-tome.png';
+import tomeMask from '../../design/pixel-art/battle-sheets/mage-tome-mask.png';
+import fistSheet from '../../design/pixel-art/battle-sheets/brawler-fist.png';
+import fistMask from '../../design/pixel-art/battle-sheets/brawler-fist-mask.png';
+import daggerSheet from '../../design/pixel-art/battle-sheets/ninja-dagger.png';
+import daggerMask from '../../design/pixel-art/battle-sheets/ninja-dagger-mask.png';
+import dragonSheet from '../../design/pixel-art/battle-sheets/dragonkin-dragon.png';
+import dragonMask from '../../design/pixel-art/battle-sheets/dragonkin-dragon-mask.png';
+import beastSheet from '../../design/pixel-art/battle-sheets/beast_fighter-beast.png';
+import beastMask from '../../design/pixel-art/battle-sheets/beast_fighter-beast-mask.png';
+import orniusSwordSheet from '../../design/pixel-art/battle-sheets/ornius_rider-sword.png';
+import orniusSwordMask from '../../design/pixel-art/battle-sheets/ornius_rider-sword-mask.png';
+import orniusAxeSheet from '../../design/pixel-art/battle-sheets/ornius_rider-axe.png';
+import orniusAxeMask from '../../design/pixel-art/battle-sheets/ornius_rider-axe-mask.png';
+import armoredOrniusSwordSheet from '../../design/pixel-art/battle-sheets/armored_ornius-sword.png';
+import armoredOrniusSwordMask from '../../design/pixel-art/battle-sheets/armored_ornius-sword-mask.png';
+import armoredOrniusAxeSheet from '../../design/pixel-art/battle-sheets/armored_ornius-axe.png';
+import armoredOrniusAxeMask from '../../design/pixel-art/battle-sheets/armored_ornius-axe-mask.png';
+import divineOrniusSwordSheet from '../../design/pixel-art/battle-sheets/divine_ornius-sword.png';
+import divineOrniusSwordMask from '../../design/pixel-art/battle-sheets/divine_ornius-sword-mask.png';
+import divineOrniusAxeSheet from '../../design/pixel-art/battle-sheets/divine_ornius-axe.png';
+import divineOrniusAxeMask from '../../design/pixel-art/battle-sheets/divine_ornius-axe-mask.png';
+import divineOrniusTomeSheet from '../../design/pixel-art/battle-sheets/divine_ornius-tome.png';
+import divineOrniusTomeMask from '../../design/pixel-art/battle-sheets/divine_ornius-tome-mask.png';
 import { CHARACTER_COLORS } from '@common/sprites/character-colors.ts';
 import { drawMap, glyphRows, mapSeed, TILE } from '@common/maps/draw.ts';
 import type { Terrain } from '@common/maps/map.ts';
@@ -190,20 +226,103 @@ function generatedPortrait(seed: string, route: ClassRoute, side: Looks['side'])
   return url;
 }
 
-// 交战形象：每个职业手绘一张（backend/common/sprites），手里的武器按本次交战用的武器类型另画一层，
-// 肤色发色取角色头像。还没画到的职业返回 null，交战演出退回路线小人。
+// 职业形象按姿势绘制；缓存包含动作帧、实际武器和角色配色。
 const battleSprites = new Map<string, string>();
-export function battleSpriteFor(unit: Looks, weapon: WeaponType | null): string | null {
-  const classId = canonicalClassId(unit.classId as ClassId);
-  if (!CLASS_LOOKS[classId]) return null;
+function battleColors(unit: Looks): SpriteColors {
   const named = CHARACTER_COLORS[unit.portrait ?? unit.character ?? ''];
   const spec = named ? null : randomPortrait(unit.id ?? unit.character ?? 'unit', { route: routeOf(unit.classId), side: unit.side });
-  const colors = { side: unit.side === 'player' ? 'player' as const : 'enemy' as const,
-    skin: named?.skin ?? spec!.skin, hair: named?.hair ?? [spec!.hair[0], spec!.hair[2]] as [string, string] };
-  const key = `${classId}|${colors.side}|${colors.skin.join()}|${colors.hair.join()}|${weapon}`;
+  return { side: unit.side === 'player' ? 'player' : 'enemy',
+    skin: named?.skin ?? spec!.skin, hair: named?.hair ?? [spec!.hair[0], spec!.hair[2]] };
+}
+
+const sheetSources: Record<string, [string, string]> = {
+  'swordsman-sword': [swordSheet, swordMask],
+  'fighter-axe': [axeSheet, axeMask],
+  'cavalier-lance': [lanceSheet, lanceMask],
+  'archer-bow': [bowSheet, bowMask],
+  'mage-tome': [tomeSheet, tomeMask],
+  'brawler-fist': [fistSheet, fistMask],
+  'ninja-dagger': [daggerSheet, daggerMask],
+  'dragonkin-dragon': [dragonSheet, dragonMask],
+  'beast_fighter-beast': [beastSheet, beastMask],
+  'ornius_rider-sword': [orniusSwordSheet, orniusSwordMask],
+  'ornius_rider-axe': [orniusAxeSheet, orniusAxeMask],
+  'armored_ornius-sword': [armoredOrniusSwordSheet, armoredOrniusSwordMask],
+  'armored_ornius-axe': [armoredOrniusAxeSheet, armoredOrniusAxeMask],
+  'divine_ornius-sword': [divineOrniusSwordSheet, divineOrniusSwordMask],
+  'divine_ornius-axe': [divineOrniusAxeSheet, divineOrniusAxeMask],
+  'divine_ornius-tome': [divineOrniusTomeSheet, divineOrniusTomeMask],
+};
+function sheetSource(sheet: BattleSheet): [string, string] | undefined {
+  if (sheetSources[sheet.id]) return sheetSources[sheet.id];
+  const [image, mask] = [FE_ANIM_FILES[sheet.file], FE_ANIM_FILES[sheet.mask]];
+  return image && mask ? [image, mask] : undefined;
+}
+const decodedSheets = new Map<string, Promise<[HTMLImageElement, HTMLImageElement]>>();
+const coloredSheets = new Map<string, Promise<string>>();
+async function decodeSheetImage(url: string): Promise<HTMLImageElement> {
+  const image = new Image();
+  image.src = url;
+  await image.decode();
+  return image;
+}
+
+export async function battleSheetUrl(unit: Looks, sheet: BattleSheet): Promise<string> {
+  const colors = battleColors(unit);
+  const sourceKey = `${sheet.file}|${sheet.mask}`;
+  const key = `${sourceKey}|${colors.side}|${colors.skin!.join()}|${colors.hair!.join()}`;
+  const cached = coloredSheets.get(key);
+  if (cached) return cached;
+  const loading = (async () => {
+    let decoded = decodedSheets.get(sourceKey);
+    if (!decoded) {
+      const sources = sheetSource(sheet);
+      if (!sources) throw new Error(`Unknown battle sheet: ${sheet.id}`);
+      decoded = Promise.all(sources.map(decodeSheetImage)) as Promise<[HTMLImageElement, HTMLImageElement]>;
+      if (decodedSheets.size >= 8) decodedSheets.delete(decodedSheets.keys().next().value!);
+      decodedSheets.set(sourceKey, decoded);
+      const pending = decoded;
+      void decoded.catch(() => {
+        if (decodedSheets.get(sourceKey) === pending) decodedSheets.delete(sourceKey);
+      });
+    }
+    const [source, mask] = await decoded;
+    if (source.naturalWidth !== mask.naturalWidth || source.naturalHeight !== mask.naturalHeight) {
+      decodedSheets.delete(sourceKey);
+      throw new Error('Battle sheet mask dimensions mismatch');
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = source.naturalWidth;
+    canvas.height = source.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Battle sheet canvas unavailable');
+    ctx.drawImage(mask, 0, 0);
+    const roles = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(source, 0, 0);
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    recolorBattleSheet(pixels.data, roles.data, colors);
+    ctx.putImageData(pixels, 0, 0);
+    return canvas.toDataURL();
+  })();
+  if (coloredSheets.size >= 32) coloredSheets.delete(coloredSheets.keys().next().value!);
+  coloredSheets.set(key, loading);
+  try {
+    return await loading;
+  } catch (error) {
+    if (coloredSheets.get(key) === loading) coloredSheets.delete(key);
+    throw error;
+  }
+}
+
+export function battleSpriteFor(unit: Looks, weapon: WeaponType | null, pose: BattlePose = 'idle', frame = 0): string | null {
+  const classId = canonicalClassId(unit.classId as ClassId);
+  if (!CLASS_LOOKS[classId]) return null;
+  const colors = battleColors(unit);
+  const key = `${classId}|${colors.side}|${colors.skin!.join()}|${colors.hair!.join()}|${weapon}|${pose}|${frame}`;
   let url = battleSprites.get(key);
   if (!url) {
-    const px = drawBattleSprite(classId, colors, weapon);
+    const px = drawBattleSprite(classId, colors, weapon, pose, frame);
     if (!px) return null;
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = BATTLE_SIZE;
@@ -212,6 +331,7 @@ export function battleSpriteFor(unit: Looks, weapon: WeaponType | null): string 
     image.data.set(px);
     ctx.putImageData(image, 0, 0);
     url = canvas.toDataURL();
+    if (battleSprites.size >= 256) battleSprites.delete(battleSprites.keys().next().value!);
     battleSprites.set(key, url);
   }
   return url;

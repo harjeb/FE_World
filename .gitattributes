@@ -1,3 +1,11 @@
 # Generated protocol artifacts must match the generator on every platform.
 /docs/agent-api.md text eol=lf
 /agent-api.json text eol=lf
+
+# Keep upstream whitespace in imported animation scripts and verbatim credits.
+/design/pixel-art/fe-anims/CREDITS.md whitespace=-blank-at-eol
+/design/pixel-art/fe-repo-candidates/*CREDITS.md whitespace=-blank-at-eol,-blank-at-eof
+/design/pixel-art/fe-repo-candidates/*.html whitespace=-blank-at-eol
+/design/pixel-art/fe-repo-candidates/fist/*-source.md whitespace=-blank-at-eof
+/design/pixel-art/fe-repo-candidates/fist/*.txt whitespace=-blank-at-eol
+/design/pixel-art/fe-repo-candidates/fist/CREDITS.md whitespace=-blank-at-eof

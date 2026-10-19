@@ -4,6 +4,7 @@ import { OP } from '@common/protocol/ops.ts';
 import { agentToken } from '../api/client.ts';
 import { session, useSession } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
+import { ART_CREDITS } from '../battle/battle-sheets.ts';
 import { loadSettings, saveSettings } from '../battle/settings.ts';
 import type { ScenePolicy, Settings } from '../battle/settings.ts';
 import { go, links } from '../router.ts';
@@ -136,6 +137,23 @@ export function SettingsPage() {
               <a className="btn btn-ghost" href={links.rules}>规则手册</a>
               <button type="button" className="btn btn-danger" onClick={() => { session.logout(); go(links.camp); }}>退出登录</button>
             </div>
+          </section>
+
+          <section className="panel" aria-labelledby="cr-h">
+            <div className="ph"><h2 id="cr-h">美术鸣谢</h2></div>
+            <p style={{ fontSize: 13, color: '#4E473D' }}>
+              交战动画改编自 <a href={ART_CREDITS.repository} target="_blank" rel="noreferrer">FE-Repo</a> 社区素材；标注 IS 的原作动画版权属于
+              Nintendo / Intelligent Systems，本作为非商业同人项目。感谢各位作者：
+            </p>
+            <ul style={{ fontSize: 12, color: '#4E473D', paddingLeft: 18, listStyle: 'disc', maxHeight: 220, overflowY: 'auto' }}>
+              {ART_CREDITS.packs.map(pack => <li key={pack.pack}>
+                <details>
+                  <summary>{pack.title} — {pack.attribution}</summary>
+                  <a href={pack.url} target="_blank" rel="noreferrer">原始素材与署名</a>
+                  <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', font: 'inherit' }}>{pack.creditsVerbatim}</pre>
+                </details>
+              </li>)}
+            </ul>
           </section>
         </div>
       </div>

@@ -163,7 +163,7 @@ export const HEALING_LOOKS = {
   wiseman: {
     hand: [32, 31],
     signature: 'staff',
-    palette: { c: '#7A5A3E', C: '#4E3A26', d: '#D8B868', D: '#9E8040', o: '#C8843A' },
+    palette: { c: '#7A5A3E', C: '#4E3A26', d: '#D8B868', D: '#9E8040', o: '#C8843A', O: '#8E5A24' },
     layers: [
       { part: robeSkirt('c', 'C'), x: 15, y: 38 },
       { part: [

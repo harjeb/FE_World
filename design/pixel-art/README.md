@@ -1,6 +1,6 @@
 # 像素素材
 
-状态：UI 设计稿用的原型素材。所有 PNG 都由 [`gen_art.py`](gen_art.py) 用代码逐像素画出，全部原创，没有使用火焰纹章的角色、标志或美术资产。
+状态：UI 设计稿用的原型素材由 [`gen_art.py`](gen_art.py) 用代码逐像素画出，全部原创，没有使用火焰纹章的角色、标志或美术资产。运行时交战动画已另行接入 FE-Repo 素材，转换结果和实际署名见 [`fe-anims/`](fe-anims/README.md)，原始匹配方案见 [`fe-repo-candidates/`](fe-repo-candidates/README.md)。
 
 [UI 设计画板](https://claude.ai/artifact/27oMCYU8APZE8R1ukpj2qn)里的图就是这些 PNG 的上传副本。画板默认只有所有者能打开，要给别人看，需在页面的分享菜单里开启。
 
@@ -142,8 +142,22 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 - 骑乘、飞行等职业画坐骑（`looks/mounts.ts`）：马、披甲马、鳞甲马、飞鸵、天马、飞龙、战车。
 - 换色：己方蓝、敌方红（阵营色部件）；肤色、发色取角色头像（固定人物见 `character-colors.ts`，随机角色取随机头像），所以战斗里认得出是谁。职业专属的颜色不随阵营变。
 - 手里的武器单独一层（`WEAPON_LAYERS`），按这次交战用的武器类型画在职业声明的手部位置；施放法术时画一本书。
-- `battle.test.ts` 要求每个在用职业都有形象、两两不同、每种武器都能画，并且己方和敌方至少有 16 个像素颜色不同。
-- 前端 `frontend/src/assets.ts` 的 `battleSpriteFor` 画好后缓存成 data URL；已停用的旧职业没有专属形象，交战演出退回路线小人。
+- `poses.ts` 从现有分层形象生成待机两帧、准备、出手、收招、受击和闪避。手臂绕肩部活动，武器跟随握点；剑斧短刀挥砍、枪拳爪前击、弓拉弦、书杖龙石抬手施放。坐骑图层保持完整，头饰与头部同步，脚底固定。
+- `battle.test.ts` 校验每职业、武器和姿势的完整性、确定性、握持连接、画布边界与配色；默认待机帧保留原图。
+- 前端 `frontend/src/assets.ts` 的 `battleSpriteFor` 按人物配色、实际武器、姿势和帧缓存 data URL（最多 256 张）；已停用的旧职业退回路线小人。
+- `frontend/src/battle/combat-motion.ts` 只安排演出时间：HP、命中、反击、追击和反噬均来自服务端逐击记录。远程攻击显示飞行物，必杀延长准备与命中停顿；支持跳过和系统的减少动态效果设置。
+
+## 外部战斗动画候选
+
+[全职业 GIF 对照页](fe-repo-candidates/classes.html)列出当前 77 个职业的原有形象、来源 GIF、可共用的动作家族、各武器动作来源和装束改绘建议。另有 [Markdown 全表](fe-repo-candidates/CLASS-MAP.md)与[完整署名原文](fe-repo-candidates/CLASS-CREDITS.md)。对照表仍保留后续改绘建议；实际采用的动作与署名以 `fe-anims/anims.json` 和 `fe-anims/CREDITS.md` 为准。
+
+## 16 帧攻击精灵图
+
+[战斗精灵图目录](battle-sheets/README.md)提供 16 组项目自绘动作：九种攻击武器各一组备用样张，另有飞鸵三阶的七个专用剑／斧／魔法组合。每组为透明 384×384 PNG，按 4×4 排列 16 个 96×96 帧，并附 GIF、逐帧时间表与语义换色遮罩。飞鸵新增组合直接播放自绘动作，保留鸟形坐骑与各阶段装饰；其他样张在 FE 包缺少对应段时使用。运行 `python3 design/pixel-art/gen_battle_sheets.py` 重新生成并校验。
+
+## FE-Repo 交战动画
+
+全部 77 个职业的 162 个攻击武器组合已有动画：155 个组合共用 FE-Repo 的 57 个资源包、91 组动作图集，另 7 个飞鸵组合使用项目自绘。对应关系见 [全职业对照](fe-repo-candidates/CLASS-MAP.md)，转换规则与署名见 [fe-anims](fe-anims/README.md)，由 `python3 design/pixel-art/gen_fe_anims.py` 生成。同职业、同武器有 FE 转换动画时优先使用；治疗杖只在地图演出。龙人五职业使用龙形动作。FE 来源人物的装束保留并适配阵营色，跨武器服装统一改绘仍按对照表后续处理。
 
 ## 游戏里生成的物品图标
 

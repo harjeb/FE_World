@@ -5,21 +5,24 @@
 .combat { position: relative; width: 860px; max-width: 100%; max-height: 100%; overflow: auto; border-radius: 8px; background: var(--color-panel); border: 1px solid var(--color-line); box-shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.6); }
 .c-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--color-line-soft); flex-wrap: wrap; }
 .scene-wrap { padding: 14px 30px 0; overflow-x: auto; }
-.scene { position: relative; width: 800px; height: 288px; border: 1px solid #2f3a33; border-radius: 4px; overflow: hidden; margin: 0 auto; background: #1f2621; }
+.scene { position: relative; width: 800px; height: 384px; border: 1px solid #2f3a33; border-radius: 4px; overflow: hidden; margin: 0 auto; background: #1f2621; }
 /* Everything in the scene sits on the camera, which shakes inside the frame on a crit. */
 .camera { position: absolute; inset: 0; }
 .camera.shake { animation: shake 0.36s linear; }
 /* Moves use translate, not transform, so they keep the transform: scaleX(-1) of flipped map sprites. */
-.fighter { position: absolute; bottom: 42px; transition: translate 0.16s ease-out; }
-.fighter.lunge-r { translate: 56px 0; }
-.fighter.lunge-l { translate: -56px 0; }
+.fighter { position: absolute; bottom: 42px; transition: translate 0.18s ease-out; }
+.fighter.lunge-r { translate: 200px 0; }
+.fighter.lunge-l { translate: -200px 0; }
 .fighter.hurt { animation: hurt 0.3s ease-out; }
 /* 必杀: flash and step back, then dash in further and faster. */
 .fighter.charge-r { translate: -14px 0; animation: charge 0.48s steps(1, end); }
 .fighter.charge-l { translate: 14px 0; animation: charge 0.48s steps(1, end); }
 .fighter.dash { transition-duration: 0.1s; }
-.fighter.lunge-r.dash { translate: 96px 0; }
-.fighter.lunge-l.dash { translate: -96px 0; }
+.fighter.lunge-r.dash { translate: 220px 0; }
+.fighter.lunge-l.dash { translate: -220px 0; }
+.combat-projectile { position: absolute; top: 254px; pointer-events: none; animation: projectile 0.18s linear forwards; }
+.combat-projectile > * { display: block; }
+@keyframes projectile { from { translate: 0 0; } to { translate: var(--travel) 0; } }
 .spark { position: absolute; animation: spark 0.35s ease-out forwards; }
 .spark.crit { animation-duration: 0.5s; }
 .scene-flash { position: absolute; inset: 0; background: #fff8e4; pointer-events: none; animation: flash 0.3s ease-out forwards; }
@@ -91,5 +94,5 @@
 @media (prefers-reduced-motion: reduce) {
   .fighter, .unit, .hpbar-thin > i, .unit .hp i { transition: none; }
   .camera.shake, .fighter.hurt, .fighter.charge-r, .fighter.charge-l, .spark, .scene .dmg, .scene .dmg.crit, .phase-banner > div, .float-num, .float-num.crit { animation: none; }
-  .scene-flash, .crit-flash { display: none; }
+  .scene-flash, .crit-flash, .spark, .combat-projectile { display: none; }
 }

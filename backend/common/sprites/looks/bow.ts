@@ -76,7 +76,7 @@ export const BOW_LOOKS = {
     signature: 'bow',
     palette: { r: '#8A5A34', R: '#5E3E24', q: '#3A2A1E' },
     layers: [
-      { part: HORSE, x: 12, y: 22 },
+      { part: HORSE, x: 12, y: 22, fixed: true },
       { part: [
         '....kaaaak....',
         '..aaaaaaaaaa..',
@@ -90,7 +90,7 @@ export const BOW_LOOKS = {
       { part: 'head', x: 12, y: 13 },
       { part: ['...wwww....', '.wwwwwwww..', 'wwwwwwwwww.', 'WWWWWWWWW..', 'ww.........'], x: 12, y: 11 },
       { part: 'armForward', x: 21, y: 26 },
-      { part: CHARIOT, x: 3, y: 31 },
+      { part: CHARIOT, x: 3, y: 31, fixed: true },
     ],
   },
 
@@ -190,7 +190,7 @@ export const BOW_LOOKS = {
   forest_knight: {
     hand: [32, 27],
     signature: 'bow',
-    palette: { c: '#3E6E3A', C: '#264A24', r: '#6A4A2E', R: '#4A321E', q: '#2A1E14' },
+    palette: { c: '#3E6E3A', C: '#264A24', L: '#8CB860', r: '#6A4A2E', R: '#4A321E', q: '#2A1E14' },
     layers: onHorse([
       '....cccc......',
       '..wwccccww....',

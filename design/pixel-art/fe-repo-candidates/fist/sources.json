@@ -1,0 +1,1305 @@
+{
+  "revision": "222c1598f0a36ae5e6ade87030f6a8cc312febd8",
+  "status": "research-only",
+  "items": [
+    {
+      "id": "F01",
+      "name": "Boxer 拳击手",
+      "upstreamTitle": "[Brawler] Boxer [M] by Neph",
+      "action": "Melee",
+      "suggestion": "已用于斗拳手、武僧、破拳神将；可给平民、贵族提供基础拳击骨架。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20%5BM%5D%20by%20Neph",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20%5BM%5D%20by%20Neph/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20%5BM%5D%20by%20Neph/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20%5BM%5D%20by%20Neph/README.md",
+      "gif": "F01.gif",
+      "script": "F01.txt",
+      "originalReadme": "F01-source.md",
+      "gifFrames": 88,
+      "scriptSteps": 88,
+      "modes": {
+        "1": {
+          "steps": 18,
+          "uniqueFrames": 16,
+          "commands": [
+            "03",
+            "07",
+            "25",
+            "04",
+            "1A",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 21,
+          "uniqueFrames": 18,
+          "commands": [
+            "03",
+            "07",
+            "1B",
+            "04",
+            "08",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 7,
+          "uniqueFrames": 5,
+          "commands": [
+            "03",
+            "07",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 11,
+          "uniqueFrames": 6,
+          "commands": [
+            "03",
+            "07",
+            "1B",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 5,
+          "uniqueFrames": 3,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 5,
+          "uniqueFrames": 3,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 18,
+          "uniqueFrames": 16,
+          "commands": [
+            "03",
+            "07",
+            "25",
+            "04",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by Neph.\n\nStaff by Seliost1.",
+      "sha256": {
+        "F01.gif": "f8da9d669f531cdb70310e3f06270e570f58e5b345ffe77fafd1260ca5085161",
+        "F01.txt": "0dae5b771b0867457ddb4049ed8a0a87b02cde7333d842a84ab0daeea6b44760",
+        "F01-source.md": "e581d3edc8fcc5e32cac73f9e07e77b685e3f66cb73809a0656b0a9113f2859f",
+        "F01-frame.png": "a15e7e30338d9981cb1619fceb483298bcb712ba8b1d2bd5e54e6a56a500a7cd"
+      },
+      "sampleFrame": "F01-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20%5BM%5D%20by%20Neph/8.%20Melee/Melee_000.png"
+    },
+    {
+      "id": "F02",
+      "name": "Boxer 光头版",
+      "upstreamTitle": "[Brawler] Boxer (Bald) [M]",
+      "action": "Melee",
+      "suggestion": "基础拳击的去发型变体，便于重新画帽子、头巾或头发。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20(Bald)%20%5BM%5D",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20(Bald)%20%5BM%5D/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20(Bald)%20%5BM%5D/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20(Bald)%20%5BM%5D/README.md",
+      "gif": "F02.gif",
+      "script": "F02.txt",
+      "originalReadme": "F02-source.md",
+      "gifFrames": 88,
+      "scriptSteps": 88,
+      "modes": {
+        "1": {
+          "steps": 18,
+          "uniqueFrames": 16,
+          "commands": [
+            "03",
+            "07",
+            "25",
+            "04",
+            "1A",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 21,
+          "uniqueFrames": 18,
+          "commands": [
+            "03",
+            "07",
+            "1B",
+            "04",
+            "08",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 7,
+          "uniqueFrames": 5,
+          "commands": [
+            "03",
+            "07",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 11,
+          "uniqueFrames": 6,
+          "commands": [
+            "03",
+            "07",
+            "1B",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 5,
+          "uniqueFrames": 3,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 5,
+          "uniqueFrames": 3,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 18,
+          "uniqueFrames": 16,
+          "commands": [
+            "03",
+            "07",
+            "25",
+            "04",
+            "01",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nOriginal Frames by Neph.\n\nBald Boxer Frames by ShadowAllyX",
+      "sha256": {
+        "F02.gif": "948895ff294547b0b435944473048590e6e4c6dba1c2655fcddb944c7b942012",
+        "F02.txt": "67f7fbd5cd58dc4caae212afe2a5bcb5f9690493ba950d8763be45a874d599bc",
+        "F02-source.md": "314e638bd342076c0cabcc80fb917cd5e73f6ba16bef72ba13f8c6ab2fc1fc8b",
+        "F02-frame.png": "64936a52c1aea4b6b7dc8388fe65a98ee3649227b57f26c01a5dcc9dbb515d51"
+      },
+      "sampleFrame": "F02-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Boxer%20(Bald)%20%5BM%5D/8.%20Melee/Melee_000.png"
+    },
+    {
+      "id": "F03",
+      "name": "Strong Guy 壮汉",
+      "upstreamTitle": "[Brawler] Strong Guy [M] by TytheBub",
+      "action": "Melee",
+      "suggestion": "优先作为斗士、土匪、战斗将领、永霸神将的拳击底稿；后两者仍需补盔甲与披风。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20%5BM%5D%20by%20TytheBub",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20%5BM%5D%20by%20TytheBub/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20%5BM%5D%20by%20TytheBub/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20%5BM%5D%20by%20TytheBub/README.md",
+      "gif": "F03.gif",
+      "script": "F03.txt",
+      "originalReadme": "F03-source.md",
+      "gifFrames": 124,
+      "scriptSteps": 124,
+      "modes": {
+        "1": {
+          "steps": 22,
+          "uniqueFrames": 16,
+          "commands": [
+            "03",
+            "07",
+            "30",
+            "2B",
+            "15",
+            "42",
+            "46",
+            "14",
+            "20",
+            "04",
+            "1A",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 29,
+          "uniqueFrames": 18,
+          "commands": [
+            "03",
+            "07",
+            "30",
+            "2B",
+            "15",
+            "42",
+            "46",
+            "14",
+            "20",
+            "04",
+            "0A",
+            "01",
+            "34",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 9,
+          "uniqueFrames": 7,
+          "commands": [
+            "03",
+            "07",
+            "3C",
+            "49",
+            "2E",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 36,
+          "uniqueFrames": 9,
+          "commands": [
+            "03",
+            "07",
+            "3D",
+            "3C",
+            "14",
+            "2F",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 3,
+          "uniqueFrames": 2,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 3,
+          "uniqueFrames": 2,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 19,
+          "uniqueFrames": 15,
+          "commands": [
+            "03",
+            "07",
+            "30",
+            "42",
+            "04",
+            "15",
+            "01",
+            "34",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nOriginal Animation by TytheBub.\n\nEdit Made by: ShadowAllyX.",
+      "sha256": {
+        "F03.gif": "fc811b14348e3fa574570a04ec71244e37dac6f04ade063be3e941fd2162f94c",
+        "F03.txt": "f6eef36ee21f39d5a2e20f74aeb6a24304bbd8acd6cff3966cd1b92f923b69de",
+        "F03-source.md": "7462980fb58efc66a7b7c311691b35572c111c3eb2359a3ac0b059710fec5cd4",
+        "F03-frame.png": "a6aace8f8912e5e9a97ee4eed6c7d8983891d10a9fb6d9229eaf390728ce38fb"
+      },
+      "sampleFrame": "F03-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20%5BM%5D%20by%20TytheBub/8.%20Melee/Melee_000.png"
+    },
+    {
+      "id": "F04",
+      "name": "Strong Guy 光头版",
+      "upstreamTitle": "[Brawler] Strong Guy (Bald) [M]",
+      "action": "Melee",
+      "suggestion": "与壮汉同族，便于替换头饰；不是新的职业专属拳击。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20(Bald)%20%5BM%5D",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20(Bald)%20%5BM%5D/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20(Bald)%20%5BM%5D/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20(Bald)%20%5BM%5D/README.md",
+      "gif": "F04.gif",
+      "script": "F04.txt",
+      "originalReadme": "F04-source.md",
+      "gifFrames": 124,
+      "scriptSteps": 124,
+      "modes": {
+        "1": {
+          "steps": 22,
+          "uniqueFrames": 16,
+          "commands": [
+            "03",
+            "07",
+            "30",
+            "2B",
+            "15",
+            "42",
+            "46",
+            "14",
+            "20",
+            "04",
+            "1A",
+            "1F",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 29,
+          "uniqueFrames": 18,
+          "commands": [
+            "03",
+            "07",
+            "30",
+            "2B",
+            "15",
+            "42",
+            "46",
+            "14",
+            "20",
+            "04",
+            "0A",
+            "01",
+            "34",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 9,
+          "uniqueFrames": 7,
+          "commands": [
+            "03",
+            "07",
+            "3C",
+            "49",
+            "2E",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 36,
+          "uniqueFrames": 9,
+          "commands": [
+            "03",
+            "07",
+            "3D",
+            "3C",
+            "14",
+            "2F",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 3,
+          "uniqueFrames": 2,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 3,
+          "uniqueFrames": 2,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 19,
+          "uniqueFrames": 15,
+          "commands": [
+            "03",
+            "07",
+            "30",
+            "42",
+            "04",
+            "15",
+            "01",
+            "34",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nOriginal Animation by TytheBub.\n\nBald Edit Made by: ShadowAllyX.",
+      "sha256": {
+        "F04.gif": "d0bdb4841bc9d8fd888a203e23aace098e51a2349d6ad12d6356039b117f3521",
+        "F04.txt": "f6eef36ee21f39d5a2e20f74aeb6a24304bbd8acd6cff3966cd1b92f923b69de",
+        "F04-source.md": "7f57ea66dc848214077b91cdf0ce83dd7ad3de1902f941a3056900cf54692234",
+        "F04-frame.png": "a6f0676ce4b4ff5e11a79ac38b923cc1fb050a48e8a9ee43930986e3e9bac827"
+      },
+      "sampleFrame": "F04-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Strong%20Guy%20(Bald)%20%5BM%5D/8.%20Melee/Melee_000.png"
+    },
+    {
+      "id": "F05",
+      "name": "Enchanter 男附魔师",
+      "upstreamTitle": "[Enchanter] Enchanter [M] by Dora Drago",
+      "action": "Melee",
+      "suggestion": "法系／辅助职业的格斗候选；可供诅咒师、萨满巫师、先知、牧师、主教、德鲁伊、贤士改绘。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BM%5D%20by%20Dora%20Drago",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BM%5D%20by%20Dora%20Drago/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BM%5D%20by%20Dora%20Drago/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BM%5D%20by%20Dora%20Drago/README.md",
+      "gif": "F05.gif",
+      "script": "F05.txt",
+      "originalReadme": "F05-source.md",
+      "gifFrames": 114,
+      "scriptSteps": 114,
+      "modes": {
+        "1": {
+          "steps": 16,
+          "uniqueFrames": 13,
+          "commands": [
+            "03",
+            "07",
+            "25",
+            "21",
+            "14",
+            "04",
+            "46",
+            "1A",
+            "01",
+            "34",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 47,
+          "uniqueFrames": 29,
+          "commands": [
+            "03",
+            "07",
+            "38",
+            "04",
+            "44",
+            "79",
+            "14",
+            "1F",
+            "08",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 9,
+          "uniqueFrames": 5,
+          "commands": [
+            "03",
+            "07",
+            "38",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 17,
+          "uniqueFrames": 8,
+          "commands": [
+            "03",
+            "07",
+            "28",
+            "38",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 6,
+          "uniqueFrames": 4,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 6,
+          "uniqueFrames": 4,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 10,
+          "uniqueFrames": 8,
+          "commands": [
+            "03",
+            "07",
+            "04",
+            "25",
+            "01",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by Dora Drago  (ドラドラゴ).",
+      "sha256": {
+        "F05.gif": "a71d5ecc9116a335e1e4a4989481e27a02d8f3b7f812a60bb7b512154a2da5cc",
+        "F05.txt": "a9da2634abffc93e2537885c65dcb19d00900e547a9811451e401c3e27381903",
+        "F05-source.md": "5da45d49ccec2aa883e3b76f38aefc121a1ddce8cedcaa50b642527732cba5d4",
+        "F05-frame.png": "ce647b9beeb23fbb13d7d2415d3e37e339e463e86ac71c1988b7b76ba27fca09"
+      },
+      "sampleFrame": "F05-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BM%5D%20by%20Dora%20Drago/8.%20Melee/Melee_000.png"
+    },
+    {
+      "id": "F06",
+      "name": "Enchanter 女附魔师",
+      "upstreamTitle": "[Enchanter] Enchanter [F] by Dora Drago",
+      "action": "Melee",
+      "suggestion": "附魔师的女性版本，适合女性法系角色；职业法袍与帽饰仍需调整。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BF%5D%20by%20Dora%20Drago",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BF%5D%20by%20Dora%20Drago/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BF%5D%20by%20Dora%20Drago/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BF%5D%20by%20Dora%20Drago/README.md",
+      "gif": "F06.gif",
+      "script": "F06.txt",
+      "originalReadme": "F06-source.md",
+      "gifFrames": 114,
+      "scriptSteps": 114,
+      "modes": {
+        "1": {
+          "steps": 16,
+          "uniqueFrames": 13,
+          "commands": [
+            "03",
+            "07",
+            "25",
+            "21",
+            "14",
+            "04",
+            "46",
+            "1A",
+            "01",
+            "34",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 47,
+          "uniqueFrames": 29,
+          "commands": [
+            "03",
+            "07",
+            "38",
+            "04",
+            "44",
+            "79",
+            "14",
+            "1F",
+            "08",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 9,
+          "uniqueFrames": 5,
+          "commands": [
+            "03",
+            "07",
+            "38",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 17,
+          "uniqueFrames": 8,
+          "commands": [
+            "03",
+            "07",
+            "28",
+            "38",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 6,
+          "uniqueFrames": 4,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 6,
+          "uniqueFrames": 4,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 10,
+          "uniqueFrames": 8,
+          "commands": [
+            "03",
+            "07",
+            "04",
+            "25",
+            "01",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by Dora Drago  (ドラドラゴ).",
+      "sha256": {
+        "F06.gif": "c38cfd434fa23a765be12f60ab02f7960baa873fea0a3f9401825466683afed1",
+        "F06.txt": "a9da2634abffc93e2537885c65dcb19d00900e547a9811451e401c3e27381903",
+        "F06-source.md": "b669369dd9a1799a57a9d8e3315d59095306282dc95c575214ff6f8126f4649e",
+        "F06-frame.png": "692fe2570d4ba7ccc11ec19c66ea8ee1d9117ebb088f51e5cb9c91f6434d6bf7"
+      },
+      "sampleFrame": "F06-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BEnchanter%5D%20Enchanter%20%5BF%5D%20by%20Dora%20Drago/8.%20Melee/Melee_000.png"
+    },
+    {
+      "id": "F07",
+      "name": "Draconic Master · Punch",
+      "upstreamTitle": "[Swordmaster-Reskin] Draconic Master [M] by Seliost1",
+      "action": "Melee (Punch)",
+      "suggestion": "持剑职业衍生的拳击候选，可给贵族或高阶职业作为动作参考；保留人物外形需要另行改绘。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/8.%20Melee%20(Punch)/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/8.%20Melee%20(Punch)/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/README.md",
+      "gif": "F07.gif",
+      "script": "F07.txt",
+      "originalReadme": "F07-source.md",
+      "gifFrames": 105,
+      "scriptSteps": 105,
+      "modes": {
+        "1": {
+          "steps": 14,
+          "uniqueFrames": 13,
+          "commands": [
+            "03",
+            "07",
+            "24",
+            "04",
+            "1F",
+            "1A",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 30,
+          "uniqueFrames": 20,
+          "commands": [
+            "03",
+            "07",
+            "2F",
+            "2E",
+            "28",
+            "24",
+            "04",
+            "1F",
+            "09",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 4,
+          "uniqueFrames": 3,
+          "commands": [
+            "03",
+            "07",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 33,
+          "uniqueFrames": 12,
+          "commands": [
+            "03",
+            "07",
+            "2F",
+            "2E",
+            "28",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 2,
+          "uniqueFrames": 2,
+          "commands": [
+            "03",
+            "07",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 2,
+          "uniqueFrames": 2,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 17,
+          "uniqueFrames": 15,
+          "commands": [
+            "03",
+            "07",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nMagic by Seliost1.",
+      "sha256": {
+        "F07.gif": "5f81432107328de5cc719487a97cc19b28927af628b41834f168831c24b3d0ba",
+        "F07.txt": "39fa608c283eb404d38a6d72cb8cee60b051c48e222e1887ad4468687f36a4f3",
+        "F07-source.md": "00f12f84f9447d9c4858734e52d23bbf4abbcc8996ef6f78bfce96d3e8b0e329",
+        "F07-frame.png": "a0e5d43e1660f5c2e86e388efc0b7c6f95eb41bde15df13455fb8fb01b3a1652"
+      },
+      "sampleFrame": "F07-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/8.%20Melee%20(Punch)/Melee_000.png"
+    },
+    {
+      "id": "F08",
+      "name": "Draconic Master · Punch 2",
+      "upstreamTitle": "[Swordmaster-Reskin] Draconic Master [M] by Seliost1",
+      "action": "Melee (Punch 2)",
+      "suggestion": "同一人物的另一套 Punch 动作，便于比较两种攻击编排。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/8.%20Melee%20(Punch%202)/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/8.%20Melee%20(Punch%202)/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/README.md",
+      "gif": "F08.gif",
+      "script": "F08.txt",
+      "originalReadme": "F08-source.md",
+      "gifFrames": 134,
+      "scriptSteps": 134,
+      "modes": {
+        "1": {
+          "steps": 14,
+          "uniqueFrames": 13,
+          "commands": [
+            "03",
+            "07",
+            "24",
+            "04",
+            "1F",
+            "1A",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 59,
+          "uniqueFrames": 34,
+          "commands": [
+            "03",
+            "07",
+            "2F",
+            "2E",
+            "28",
+            "44",
+            "25",
+            "24",
+            "04",
+            "1F",
+            "09",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 4,
+          "uniqueFrames": 3,
+          "commands": [
+            "03",
+            "07",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "6": {
+          "steps": 33,
+          "uniqueFrames": 12,
+          "commands": [
+            "03",
+            "07",
+            "2F",
+            "2E",
+            "28",
+            "05",
+            "01",
+            "06",
+            "0D"
+          ]
+        },
+        "7": {
+          "steps": 2,
+          "uniqueFrames": 2,
+          "commands": [
+            "03",
+            "07",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 2,
+          "uniqueFrames": 2,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 17,
+          "uniqueFrames": 15,
+          "commands": [
+            "03",
+            "07",
+            "01",
+            "25",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nMagic by Seliost1.",
+      "sha256": {
+        "F08.gif": "e7c45f2ba15dec596b46e6542bc8a21298da03c4eb39b96e9dcf51a82f674fa8",
+        "F08.txt": "996c0a4581b208b1df4af60849167091f528e03fbe27c73fa895d9a87060750e",
+        "F08-source.md": "00f12f84f9447d9c4858734e52d23bbf4abbcc8996ef6f78bfce96d3e8b0e329",
+        "F08-frame.png": "a0e5d43e1660f5c2e86e388efc0b7c6f95eb41bde15df13455fb8fb01b3a1652"
+      },
+      "sampleFrame": "F08-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Reskin%5D%20Draconic%20Master%20%5BM%5D%20by%20Seliost1/8.%20Melee%20(Punch%202)/Melee_000.png"
+    },
+    {
+      "id": "F09",
+      "name": "Kicker 女踢击手",
+      "upstreamTitle": "[Brawler] Kicker (F) by Redbean",
+      "action": "Melee",
+      "suggestion": "踢击备选，不归为纯拳击；适合允许拳脚混合的格斗职业。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Kicker%20(F)%20by%20Redbean",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Kicker%20(F)%20by%20Redbean/8.%20Melee/Melee.gif",
+      "scriptSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Kicker%20(F)%20by%20Redbean/8.%20Melee/Melee.txt",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Kicker%20(F)%20by%20Redbean/README.md",
+      "gif": "F09.gif",
+      "script": "F09.txt",
+      "originalReadme": "F09-source.md",
+      "gifFrames": 105,
+      "scriptSteps": 105,
+      "modes": {
+        "1": {
+          "steps": 27,
+          "uniqueFrames": 24,
+          "commands": [
+            "03",
+            "07",
+            "22",
+            "25",
+            "04",
+            "1A",
+            "1F",
+            "01",
+            "1B",
+            "06",
+            "0D"
+          ]
+        },
+        "3": {
+          "steps": 40,
+          "uniqueFrames": 37,
+          "commands": [
+            "03",
+            "07",
+            "44",
+            "22",
+            "25",
+            "41",
+            "1F",
+            "38",
+            "04",
+            "42",
+            "0A",
+            "01",
+            "1B",
+            "06",
+            "0D"
+          ]
+        },
+        "5": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": []
+        },
+        "6": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": []
+        },
+        "7": {
+          "steps": 4,
+          "uniqueFrames": 3,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "8": {
+          "steps": 4,
+          "uniqueFrames": 3,
+          "commands": [
+            "02",
+            "0E",
+            "01",
+            "0D"
+          ]
+        },
+        "9": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "10": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "11": {
+          "steps": 1,
+          "uniqueFrames": 1,
+          "commands": [
+            "01"
+          ]
+        },
+        "12": {
+          "steps": 25,
+          "uniqueFrames": 24,
+          "commands": [
+            "03",
+            "07",
+            "22",
+            "25",
+            "04",
+            "01",
+            "1B",
+            "06",
+            "0D"
+          ]
+        }
+      },
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by Redbean.\n\nScripted by Seliost1.",
+      "sha256": {
+        "F09.gif": "aedcf016412b9e2d5316efc044afb0b4c0e15129d5a65f9c2eadd7fbad8c3228",
+        "F09.txt": "5521a4460041d27f4a4d3315285fcbc88e1731e7f2d3a86d25bf0bb380062c30",
+        "F09-source.md": "883af8923acad31dcd99e76875a904feff6f42b7b494108e47e7716b5308b565",
+        "F09-frame.png": "8313665e0a6f781434151106acd78cfd495c8ddc5d2c2e952c685e5b4a24b4cc"
+      },
+      "sampleFrame": "F09-frame.png",
+      "sampleSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Unarmed)%20Brawlers,%20Fistfighters/%5BBrawler%5D%20Kicker%20(F)%20by%20Redbean/8.%20Melee/Melee_000.png"
+    }
+  ]
+}

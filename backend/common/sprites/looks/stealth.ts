@@ -33,6 +33,7 @@ export const STEALTH_LOOKS = {
   // 恶棍：灰毛领长皮大衣敞着阵营色衬衫、单边带尖刺的铁护肩、黑眼罩、黑皮带、高筒靴。
   rogue: {
     hand: [32, 31],
+    forearm: [27, 27],
     signature: 'sword',
     palette: { f: '#9C9A94', F: '#605E5A' },
     layers: [

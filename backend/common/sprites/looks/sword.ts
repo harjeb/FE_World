@@ -200,7 +200,7 @@ export const SWORD_LOOKS = {
   // 舞者：粉色短上衣露腰、白色灯笼裤配阵营色腰带、身后飘带、金头环、赤足戴脚环。
   dancer: {
     hand: [32, 31],
-    palette: { c: '#E07AA0', C: '#A84E72', d: '#F6C8D8' },
+    palette: { c: '#E07AA0', C: '#A84E72', d: '#F6C8D8', D: '#C88AA4' },
     layers: [
       { part: ['......dd', '...dddd.', '.dddD...', 'dDD.....', 'D.......', '.d......', '..d.....'], x: 9, y: 28 },
       { part: [
@@ -363,7 +363,7 @@ export const SWORD_LOOKS = {
   // 佣兵：旧皮甲带单边厚护肩、橄榄色头巾、身后破旧斗篷、腰挂皮囊。
   mercenary: {
     hand: [32, 31],
-    palette: { c: '#6E7A3A', C: '#4A5226', d: '#7A6A58' },
+    palette: { c: '#6E7A3A', C: '#4A5226', d: '#7A6A58', D: '#54483A' },
     layers: [
       { part: ['..dd', '.ddd', 'dddd', 'dddD', 'ddDD', 'd.DD', 'D.D.', '.D..'], x: 13, y: 27 },
       { part: 'legsStance', x: 16, y: 38 },

@@ -60,7 +60,7 @@ function empower(store: Store, player: Player, ids: string[]): void {
   }
 }
 
-test('a three-map dungeon locks the roster, carries state and clears the region only at the boss', () => {
+test('a three-map dungeon locks the roster, carries state and clears the region only after the finale', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   const ids = ['u_erin', 'u_victor', 'u_gustav', 'u_lina', 'u_owen', 'u_noah'].slice(0, fieldEncounter(player.id, player.day, 1, 'normal', 'dungeon').maxUnits);
@@ -84,11 +84,19 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   assert.equal(player.flags.regionExploration?.[1] ?? 0, 0, '副本中间图不加探索');
   run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number } }).run;
   assert.equal(run.stageIndex, 2);
-  // 第三张图（首领）：完整通关才写地区首通与掉落。
+  // 第三张经典压轴：准备一手可胜的棋盘，结算测试不依赖随机经典图的 AI 寻路。
   const seeds = store.countInventory(player.id, 'seed');
   const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 24);
-  assert.equal(playOut(ctx, third.battleId), 'player');
+  const finale = store.battle(player.id, third.battleId)!;
+  const leader = finale.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.npc)!;
+  for (const enemy of finale.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
+  if (finale.state.goal.kind === 'seize') leader.pos = [...finale.state.goal.throne];
+  finale.initial = structuredClone(finale.state);
+  store.saveBattle(finale);
+  dispatch(ctx, OP.UNIT_ACT, { battleId: finale.id, unitId: leader.id, moveTo: leader.pos,
+    action: finale.state.goal.kind === 'seize' ? 'seize' : 'wait' });
+  assert.equal(store.battle(player.id, finale.id)!.state.result?.winner, 'player');
   run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number } }).run;
   assert.equal(run.state, 'completed');
   assert.equal(player.flags.regionExploration?.[1], 20, '首次完整通关才加二十');

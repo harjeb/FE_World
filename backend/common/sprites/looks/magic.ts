@@ -35,7 +35,7 @@ export const MAGIC_LOOKS = {
   mage: {
     hand: [32, 31],
     signature: 'tome',
-    palette: { c: '#8A5A34', C: '#5E3E24', d: '#E8C060', o: '#C8443A' },
+    palette: { c: '#8A5A34', C: '#5E3E24', d: '#E8C060', D: '#A07A2E', o: '#C8443A', O: '#8E2A24' },
     layers: [
       { part: robeSkirt('c', 'C'), x: 15, y: 38 },
       { part: [
@@ -178,7 +178,7 @@ export const MAGIC_LOOKS = {
   mage_knight: {
     hand: [32, 31],
     signature: 'tome',
-    palette: { c: '#F0EADF', C: '#BFB5A4', z: '#22222A' },
+    palette: { c: '#F0EADF', C: '#BFB5A4', z: '#22222A', Z: '#46465A' },
     layers: [
       { part: robeSkirt('c', 'C'), x: 15, y: 38 },
       { part: ['.aaaaaaaaaaaaa', '..a.......aa..'], x: 15, y: 45 },

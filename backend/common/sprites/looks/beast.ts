@@ -39,6 +39,7 @@ export const BEAST_LOOKS = {
   // 幼战士：个头小一圈的兽族少年——大耳朵、毛边小背心、阵营色短裤、赤足戴毛脚环。
   beast_cub: {
     hand: [32, 34],
+    forearm: [27, 30],
     signature: 'beast',
     palette: { f: '#C8A070', F: '#8E6A44', p: '#E8A0A0' },
     layers: [

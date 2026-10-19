@@ -197,9 +197,9 @@ export const CHARIOT = [
 
 // 骑马：马 (5,22)、鞍褥 (13,32)、腿 (20,31)、上身 (17,22)、头 (18,11)、前臂 (27,24)，手 (32,27)。
 export const onHorse = (torso: string[], arm: string[], extra: { before?: Layer[]; head?: Layer[]; leg?: string[]; barding?: boolean } = {}): Layer[] => [
-  { part: HORSE, x: 5, y: 22 },
-  ...(extra.barding ? [{ part: HORSE_BARDING, x: 5, y: 22 }] : []),
-  { part: SADDLE_CLOTH, x: 13, y: 32 },
+  { part: HORSE, x: 5, y: 22, fixed: true },
+  ...(extra.barding ? [{ part: HORSE_BARDING, x: 5, y: 22, fixed: true }] : []),
+  { part: SADDLE_CLOTH, x: 13, y: 32, fixed: true },
   ...(extra.before ?? []),
   { part: extra.leg ?? RIDER_LEG, x: 20, y: 31 },
   { part: torso, x: 17, y: 22 },
@@ -210,9 +210,9 @@ export const onHorse = (torso: string[], arm: string[], extra: { before?: Layer[
 // 骑飞鸵：鸟 (2,18)、鞍褥 (13,30)，骑手整体比骑马高 2 格，手 (32,25)。
 export const onOrnius = (torso: string[], arm: string[], extra: { before?: Layer[]; head?: Layer[]; leg?: string[]; plates?: boolean; after?: Layer[] } = {}): Layer[] => [
   ...(extra.before ?? []),
-  { part: ORNIUS, x: 2, y: 18 },
-  ...(extra.plates ? [{ part: ORNIUS_PLATES, x: 2, y: 18 }] : []),
-  { part: SADDLE_CLOTH, x: 13, y: 30 },
+  { part: ORNIUS, x: 2, y: 18, fixed: true },
+  ...(extra.plates ? [{ part: ORNIUS_PLATES, x: 2, y: 18, fixed: true }] : []),
+  { part: SADDLE_CLOTH, x: 13, y: 30, fixed: true },
   { part: extra.leg ?? RIDER_LEG, x: 20, y: 29 },
   { part: torso, x: 17, y: 20 },
   { part: 'head', x: 18, y: 9 },

@@ -8,6 +8,9 @@
 //   m/M/n 金属亮/中/暗；w/W 皮革；y/Y 金饰；k/K 白布；b 深色裤装；e 眼睛与勾线
 //   其余字母由职业在 palette 里自定（坐骑毛色、羽毛、鳞片等）
 // 手持的武器单独一层（WEAPONS），按当前装备的武器类型画在职业声明的手部位置 hand 上。
+import { poseLayers } from './poses.ts';
+import type { BattlePose } from './poses.ts';
+export type { BattlePose } from './poses.ts';
 import { CLASSES } from '../data/classes.ts';
 import type { CatalogClassId } from '../data/classes.ts';
 import type { WeaponType } from '../data/types.ts';
@@ -41,10 +44,11 @@ export const FACTION_COLORS = {
 } as const;
 
 // A layer is a small hand-drawn grid placed at (x, y); '.' is transparent.
-export interface Layer { part: keyof typeof PARTS | string[]; x: number; y: number; flip?: boolean }
+export interface Layer { part: keyof typeof PARTS | string[]; x: number; y: number; flip?: boolean; fixed?: boolean }
 export interface ClassLook {
   layers: Layer[];
   hand: [number, number]; // grip pixel of the front hand; weapons are drawn from here
+  forearm?: [number, number]; // layer origin; defaults to hand minus (5, 3)
   palette?: Record<string, string>; // class-specific colours (c/C/d and any extra letters)
   weaponBehind?: boolean; // e.g. mounted lancers hold the lance behind the mount's head
   signature?: WeaponType; // the weapon the class is known for (previews; drawn when nothing else is known)
@@ -224,7 +228,7 @@ export const WEAPON_LAYERS: Record<WeaponType, { rows: string[]; grip: [number, 
     ],
   },
 };
-const WEAPON_COLORS: Record<string, string> = { g: '#7CC6DA', v: '#C8584E', V: '#8E3A34' };
+export const WEAPON_COLORS: Record<string, string> = { g: '#7CC6DA', v: '#C8584E', V: '#8E3A34' };
 
 // ---------------------------------------------------------------- class looks
 
@@ -235,7 +239,7 @@ export const CLASS_LOOKS: Partial<Record<CatalogClassId, ClassLook>> = { ...SWOR
 
 export interface SpriteColors { side: 'player' | 'enemy'; skin?: [string, string]; hair?: [string, string] }
 
-export function drawBattleSprite(classId: CatalogClassId, colors: SpriteColors, weapon: WeaponType | null): Uint8ClampedArray | null {
+export function drawBattleSprite(classId: CatalogClassId, colors: SpriteColors, weapon: WeaponType | null, pose: BattlePose = 'idle', frame: number = 0): Uint8ClampedArray | null {
   const look = CLASS_LOOKS[classId];
   if (!look) return null;
   const palette: Record<string, string> = {
@@ -254,13 +258,12 @@ export function drawBattleSprite(classId: CatalogClassId, colors: SpriteColors, 
       if (hex) px.set(yy * BATTLE_SIZE + x, C(hex));
     });
   });
+  const posed = poseLayers(look, PARTS, weapon ? WEAPON_LAYERS[weapon] : undefined, weapon, pose, frame);
   const drawWeapon = () => {
-    if (!weapon) return;
-    const w = WEAPON_LAYERS[weapon];
-    put(w.rows, look.hand[0] - w.grip[0], look.hand[1] - w.grip[1]);
+    if (posed.weapon) put(posed.weapon.rows, posed.weapon.x, posed.weapon.y);
   };
   if (look.weaponBehind) drawWeapon();
-  for (const layer of look.layers) put(typeof layer.part === 'string' ? PARTS[layer.part as keyof typeof PARTS] : layer.part, layer.x, layer.y, layer.flip);
+  for (const layer of posed.layers) put(typeof layer.part === 'string' ? PARTS[layer.part as keyof typeof PARTS] : layer.part, layer.x, layer.y, layer.flip);
   if (!look.weaponBehind) drawWeapon();
   // Outline: every empty pixel touching a filled one (4-neighbourhood), like the other pixel art.
   const out = new Uint8ClampedArray(BATTLE_SIZE * BATTLE_SIZE * 4);

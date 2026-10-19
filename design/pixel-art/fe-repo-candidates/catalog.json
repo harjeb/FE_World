@@ -1,0 +1,866 @@
+{
+  "repository": "https://github.com/Klokinator/FE-Repo",
+  "revision": "222c1598f0a36ae5e6ade87030f6a8cc312febd8",
+  "retrievedAt": "2026-10-19T12:31:36.695906+00:00",
+  "status": "candidates-only",
+  "policySources": [
+    "https://github.com/Klokinator/FE-Repo/blob/222c1598f0a36ae5e6ade87030f6a8cc312febd8/README.md",
+    "https://feuniverse.us/t/regarding-graphics-assets/11550"
+  ],
+  "items": [
+    {
+      "id": "A01",
+      "category": "official",
+      "name": "剑客盖伊",
+      "role": "剑",
+      "upstreamTitle": "[Myrmidon-Base] Vanilla FE7 Guy +Bow [M]",
+      "previewAction": "Sword",
+      "otherActions": [
+        "剑",
+        "弓",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取 FE7 盖伊的原版剑动作；目录的弓动作是 N426 的扩展。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Base%5D%20Vanilla%20FE7%20Guy%20%2BBow%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Base%5D%20Vanilla%20FE7%20Guy%20%2BBow%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Base%5D%20Vanilla%20FE7%20Guy%20+Bow%20%5BM%5D/1.%20Sword/Sword.gif",
+      "localPreview": "previews/A01.gif",
+      "localPoster": "previews/A01.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 146,
+      "sha256": "4370fed1f085d01c550bc99b2175727a66619b6cb30d922d18b629e1dee8e458",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nBase sword/unarmed animations by IS.\n\nBow by N426."
+    },
+    {
+      "id": "A02",
+      "category": "official",
+      "name": "斧战士",
+      "role": "斧",
+      "upstreamTitle": "[Fighter-Base] Vanilla + Weapons [M]",
+      "previewAction": "Axe",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "徒手"
+      ],
+      "authors": "IS、Vilkalizer（仓库合列）",
+      "classificationNote": "Vanilla 战士目录。Credits 合列 IS、Vilkalizer，未拆分各自动作贡献；不承诺是未经修改的 ROM 原图。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Base%5D%20Vanilla%20%2B%20Weapons%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Base%5D%20Vanilla%20%2B%20Weapons%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Base%5D%20Vanilla%20+%20Weapons%20%5BM%5D/3.%20Axe/Axe.gif",
+      "localPreview": "previews/A02.gif",
+      "localPoster": "previews/A02.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 107,
+      "sha256": "31275e4ee64d5f992f007cc86b4ac0a7da0e7c298fe663e46c493467842b2034",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\n{IS, Vilkalizer}\n\nLance by RandomWizard."
+    },
+    {
+      "id": "A03",
+      "category": "official",
+      "name": "枪兵",
+      "role": "枪",
+      "upstreamTitle": "[Soldier-Base] Vanilla +Weapons [M]",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "杖",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取 IS 的原版枪兵动作；剑、杖等扩展另有社区作者。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BSoldier-Base%5D%20Vanilla%20%2BWeapons%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BSoldier-Base%5D%20Vanilla%20%2BWeapons%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BSoldier-Base%5D%20Vanilla%20+Weapons%20%5BM%5D/2.%20Lance/Lance.gif",
+      "localPreview": "previews/A03.gif",
+      "localPoster": "previews/A03.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 78,
+      "sha256": "b9e98611a64276d0b28bb687987bae92f6be19c1dc37e6dd56d05b24b70c7f45",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nBase Soldier by IS.\n\nSword animation by Arthur Pendragon.\n\nStaff by Orihara_Saki.\n\nSword (Alt Range) by Seliost1."
+    },
+    {
+      "id": "A04",
+      "category": "official",
+      "name": "重甲骑士",
+      "role": "重甲",
+      "upstreamTitle": "[Knight-Base] Vanilla +Weapons [U]",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "弓",
+        "魔法",
+        "杖",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取基础 Lance；目录另有 Vilkalizer 的 Smooth Lance 等社区扩展。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20Knights,%20Generals,%20Armors/%5BKnight-Base%5D%20Vanilla%20%2BWeapons%20%5BU%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20Knights,%20Generals,%20Armors/%5BKnight-Base%5D%20Vanilla%20%2BWeapons%20%5BU%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20Knights,%20Generals,%20Armors/%5BKnight-Base%5D%20Vanilla%20+Weapons%20%5BU%5D/2.%20Lance/Lance.gif",
+      "localPreview": "previews/A04.gif",
+      "localPoster": "previews/A04.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 129,
+      "sha256": "45e346b5320177c57e4db0d82b8e7797411a16a26b140a36ef85d3c7c1a2e024",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nBase Knight by IS.\n\nSword by TheBlindArcher.\n\nSmooth Lance by Vilkalizer.\n\nAxe, Handaxe, and Bow by TheBlindArcher.\n\nMagic by Orihari_Saki and TheBlindArcher.\n\nStaff by knabepicer.\n\nUnarmed (Bow) by TheBlindArcher."
+    },
+    {
+      "id": "A05",
+      "category": "official",
+      "name": "轻骑兵",
+      "role": "骑兵",
+      "upstreamTitle": "[Cavalier-Base] [M] Vanilla +Weapons",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "弓",
+        "魔法",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取基础 Lance；远程魔法枪等扩展另有作者。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BCavalier-Base%5D%20%5BM%5D%20Vanilla%20%2BWeapons",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BCavalier-Base%5D%20%5BM%5D%20Vanilla%20%2BWeapons/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BCavalier-Base%5D%20%5BM%5D%20Vanilla%20+Weapons/2.%20Lance/Lance.gif",
+      "localPreview": "previews/A05.gif",
+      "localPoster": "previews/A05.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 113,
+      "sha256": "e2883f84a1769da4dd901d585c238aa80189a64f5f1a0264c215ba6c229cfa34",
+      "permissionBasis": "依仓库战斗动画 F2E 总则；条目未重复标注",
+      "creditsVerbatim": "Vanilla Cavalier by IS.\n\nAxe Alt1 by Primefusion.\n\nAxe Alt2 by Skitty.\n\nHandaxe Alt1 by Primefusion.\n\nHandaxe Alt2 by Skitty.\n\nBow by Orihara_Saki, DerTheVaporeon, Kao, and Aurora.\n\nMagic by Orihara_Saki.\n\n2. Lance (Ranged Magic) by Seliost1.\n\nUnarmed (Mount only) by tatata."
+    },
+    {
+      "id": "A06",
+      "category": "official",
+      "name": "弓箭手",
+      "role": "弓",
+      "upstreamTitle": "[Archer-Base] Vanilla FE7 + Magic [M] by Merpin",
+      "previewAction": "Bow",
+      "otherActions": [
+        "弓",
+        "魔法",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取原版 Bow；标题中的 Merpin 负责新增 Magic。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Base%5D%20Vanilla%20FE7%20%2B%20Magic%20%5BM%5D%20by%20Merpin",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Base%5D%20Vanilla%20FE7%20%2B%20Magic%20%5BM%5D%20by%20Merpin/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Base%5D%20Vanilla%20FE7%20+%20Magic%20%5BM%5D%20by%20Merpin/5.%20Bow/Bow.gif",
+      "localPreview": "previews/A06.gif",
+      "localPoster": "previews/A06.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 102,
+      "sha256": "a5e897310ebeeb147f7a4579c178cf42526f45b53ddacc5e326baa1ab3262e47",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by IS.\n\nMagic by Merpin."
+    },
+    {
+      "id": "A07",
+      "category": "official",
+      "name": "魔法师",
+      "role": "法术",
+      "upstreamTitle": "[Mage-Base] Vanilla FE7-8 +Fix [M] by Shin19",
+      "previewAction": "Magic",
+      "otherActions": [
+        "魔法",
+        "杖"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取原版 Magic；另一个 Magic (Fixed) 才是 Shin19 的修正版本。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Base%5D%20Vanilla%20FE7-8%20%2BFix%20%5BM%5D%20by%20Shin19",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Base%5D%20Vanilla%20FE7-8%20%2BFix%20%5BM%5D%20by%20Shin19/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Base%5D%20Vanilla%20FE7-8%20+Fix%20%5BM%5D%20by%20Shin19/6.%20Magic/Magic.gif",
+      "localPreview": "previews/A07.gif",
+      "localPoster": "previews/A07.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 148,
+      "sha256": "82eb226dd98d513ee1ff281678d020bf0f8b461b1347c36634b2a8985596da5e",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nVanilla animation by IS. \n\nFixed magic by Shin19."
+    },
+    {
+      "id": "A08",
+      "category": "official",
+      "name": "天马骑士",
+      "role": "飞行",
+      "upstreamTitle": "[Peg T1 Base] [F] Vanilla +Weapons",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "杖",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取原版 Lance；新增剑、杖等动作另有作者。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20T1%20Base%5D%20%5BF%5D%20Vanilla%20%2BWeapons",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20T1%20Base%5D%20%5BF%5D%20Vanilla%20%2BWeapons/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20T1%20Base%5D%20%5BF%5D%20Vanilla%20+Weapons/2.%20Lance/Lance.gif",
+      "localPreview": "previews/A08.gif",
+      "localPoster": "previews/A08.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 139,
+      "sha256": "2aac5d3b5b1265a42ce116f4944d1a96a785be75a781e44f503d33e373a8b06c",
+      "permissionBasis": "依仓库战斗动画 F2E 总则；条目未重复标注",
+      "creditsVerbatim": "Vanilla animation by IS.\n\nSword by MK404.\n\nStaff by MakeFEGayer, fixes by UltraxBlade.\n\nUnarmed (Mount only) by tatata."
+    },
+    {
+      "id": "A09",
+      "category": "official",
+      "name": "神官",
+      "role": "治疗",
+      "upstreamTitle": "[T1 Priest-Base] Vanilla Priest +Magic [M]",
+      "previewAction": "Staff",
+      "otherActions": [
+        "魔法",
+        "杖",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取原版 Staff；新增魔法动作另有作者。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Holy-Type/%5BT1%20Priest-Base%5D%20Vanilla%20Priest%20%2BMagic%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Holy-Type/%5BT1%20Priest-Base%5D%20Vanilla%20Priest%20%2BMagic%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Holy-Type/%5BT1%20Priest-Base%5D%20Vanilla%20Priest%20+Magic%20%5BM%5D/7.%20Staff/Staff.gif",
+      "localPreview": "previews/A09.gif",
+      "localPoster": "previews/A09.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 46,
+      "sha256": "42a87441f7df1ead9333ed59b15a185594eba62a0d8c3fff74728c66ffca6f61",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nVanilla animation by IS.\n\nStaff Magic by Shtick.\n\nMagic animation by Jeorge_Reds.\n\nMagic {Yerek} by Yerek."
+    },
+    {
+      "id": "A10",
+      "category": "official",
+      "name": "剑圣",
+      "role": "剑",
+      "upstreamTitle": "[Swordmaster-Base] Vanilla FE6 [M]",
+      "previewAction": "Sword",
+      "otherActions": [
+        "剑",
+        "徒手"
+      ],
+      "authors": "Intelligent Systems（IS）",
+      "classificationNote": "选取原版 Sword；Durandal 剑版本是社区扩展。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Base%5D%20Vanilla%20FE6%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Base%5D%20Vanilla%20FE6%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSwordmaster-Base%5D%20Vanilla%20FE6%20%5BM%5D/1.%20Sword/Sword.gif",
+      "localPreview": "previews/A10.gif",
+      "localPoster": "previews/A10.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 185,
+      "sha256": "f2042de16e7d24050392b8f3d5c7e165f2caf7cfebbaf9191d1c45e0018ec4c5",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nVanilla animation by IS.\n\nDurandal animation by Tatata and SteamingTofu.\n\nDurandal animation imported by ToGY."
+    },
+    {
+      "id": "B01",
+      "category": "modified",
+      "name": "约书亚帽子剑客",
+      "role": "剑",
+      "upstreamTitle": "[Myrmidon-Reskin] Joshua Hat Repal [M]",
+      "previewAction": "Sword",
+      "otherActions": [
+        "剑",
+        "徒手"
+      ],
+      "authors": "SD9K、darkjaden",
+      "classificationNote": "原版剑客外形的约书亚帽子改绘、肤色调整。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Reskin%5D%20Joshua%20Hat%20Repal%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Reskin%5D%20Joshua%20Hat%20Repal%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Reskin%5D%20Joshua%20Hat%20Repal%20%5BM%5D/1.%20Sword/Sword.gif",
+      "localPreview": "previews/B01.gif",
+      "localPoster": "previews/B01.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 146,
+      "sha256": "9d45ebf5087799a433f605452affed53d7770cf3981b73c705a726e64ffb61cd",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nMade by SD9K.\n\nDarker skin repal by darkjaden"
+    },
+    {
+      "id": "B02",
+      "category": "modified",
+      "name": "重新配色剑客",
+      "role": "剑",
+      "upstreamTitle": "[Myrmidon-Reskin] Vanilla Repal [M] by Alice",
+      "previewAction": "Sword",
+      "otherActions": [
+        "剑",
+        "徒手"
+      ],
+      "authors": "IS、Alice",
+      "classificationNote": "IS 原版剑客的 Alice 重配色版本。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Reskin%5D%20Vanilla%20Repal%20%5BM%5D%20by%20Alice",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Reskin%5D%20Vanilla%20Repal%20%5BM%5D%20by%20Alice/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Reskin%5D%20Vanilla%20Repal%20%5BM%5D%20by%20Alice/1.%20Sword/Sword.gif",
+      "localPreview": "previews/B02.gif",
+      "localPoster": "previews/B02.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 146,
+      "sha256": "25889c595ce31c051c0c0ad9cfbe766ca2b23f2ad60cf6ff998770237744ba44",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nBase Myrmidon by IS.\n\nAnimation by Alice."
+    },
+    {
+      "id": "B03",
+      "category": "modified",
+      "name": "披甲斧战士",
+      "role": "斧",
+      "upstreamTitle": "[Fighter-Reskin] Armored Edit [M] by YellowToadstool",
+      "previewAction": "Axe",
+      "otherActions": [
+        "斧",
+        "手斧",
+        "徒手"
+      ],
+      "authors": "YellowToadstool",
+      "classificationNote": "Fighter-Reskin 分类：为战士换上盔甲。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Reskin%5D%20Armored%20Edit%20%5BM%5D%20by%20YellowToadstool",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Reskin%5D%20Armored%20Edit%20%5BM%5D%20by%20YellowToadstool/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Reskin%5D%20Armored%20Edit%20%5BM%5D%20by%20YellowToadstool/3.%20Axe/Axe.gif",
+      "localPreview": "previews/B03.gif",
+      "localPoster": "previews/B03.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 89,
+      "sha256": "7435e99fa9ab892dd111e7fc6425d78d745c8a0ebdaa3811f1c25955868396e8",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by YellowToadstool."
+    },
+    {
+      "id": "B04",
+      "category": "modified",
+      "name": "无头盔圣骑士",
+      "role": "骑兵",
+      "upstreamTitle": "[Paladin-Reskin] Vanilla Helmetless [M] by tatata",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "徒手"
+      ],
+      "authors": "tatata",
+      "classificationNote": "Paladin-Reskin 分类：去掉原版圣骑士的头盔。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Reskin%5D%20Vanilla%20Helmetless%20%5BM%5D%20by%20tatata",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Reskin%5D%20Vanilla%20Helmetless%20%5BM%5D%20by%20tatata/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Reskin%5D%20Vanilla%20Helmetless%20%5BM%5D%20by%20tatata/2.%20Lance/Lance.gif",
+      "localPreview": "previews/B04.gif",
+      "localPoster": "previews/B04.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 185,
+      "sha256": "383d6171ce6ccef87b7bea25e2b6c8bcb440d13cc26963d14e2641dc97ff6d86",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nHelmetless edit by tatata"
+    },
+    {
+      "id": "B05",
+      "category": "modified",
+      "name": "重新配色圣骑士",
+      "role": "骑兵",
+      "upstreamTitle": "[Paladin-Reskin] [M] Vanilla Repalette",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "杖",
+        "徒手"
+      ],
+      "authors": "Pushwall（修正；配色作者未单列）",
+      "classificationNote": "Vanilla Repalette 分类；Credits 只列 Pushwall 修正，未单列最初配色作者。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Reskin%5D%20%5BM%5D%20Vanilla%20Repalette",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Reskin%5D%20%5BM%5D%20Vanilla%20Repalette/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Reskin%5D%20%5BM%5D%20Vanilla%20Repalette/2.%20Lance/Lance.gif",
+      "localPreview": "previews/B05.gif",
+      "localPoster": "previews/B05.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 185,
+      "sha256": "ea5f8bae6f286d000dcebabfc2d76e5f878df2fe89449ce1f2486819a8440c0d",
+      "permissionBasis": "依仓库战斗动画 F2E 总则；条目未重复标注",
+      "creditsVerbatim": "Fixes by Pushwall.\n\nStaff by Primefusion and ported by Citrus."
+    },
+    {
+      "id": "B06",
+      "category": "modified",
+      "name": "无帽魔法师",
+      "role": "法术",
+      "upstreamTitle": "[Mage-Reskin] Hatless Repal [M]",
+      "previewAction": "Magic",
+      "otherActions": [
+        "魔法"
+      ],
+      "authors": "GabrielKnight、UltraFenix",
+      "classificationNote": "Mage-Reskin 分类：去帽造型，并重新配色。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Reskin%5D%20Hatless%20Repal%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Reskin%5D%20Hatless%20Repal%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Reskin%5D%20Hatless%20Repal%20%5BM%5D/6.%20Magic/Magic.gif",
+      "localPreview": "previews/B06.gif",
+      "localPoster": "previews/B06.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 163,
+      "sha256": "7b5567da3f9f6aab60b514d5df2b8423ad90cf5bd2a5ae5c803183e498a4cce0",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nMade by {GabrielKnight}\n\nRepal by UltraFenix."
+    },
+    {
+      "id": "B07",
+      "category": "modified",
+      "name": "重新配色天马骑士",
+      "role": "飞行",
+      "upstreamTitle": "[Peg T1 Base] [F] Vanilla +Weapons Repal",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "杖",
+        "徒手"
+      ],
+      "authors": "OreoStyx",
+      "classificationNote": "原版天马骑士的 OreoStyx 重配色版本。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20T1%20Base%5D%20%5BF%5D%20Vanilla%20%2BWeapons%20Repal",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20T1%20Base%5D%20%5BF%5D%20Vanilla%20%2BWeapons%20Repal/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20T1%20Base%5D%20%5BF%5D%20Vanilla%20+Weapons%20Repal/2.%20Lance/Lance.gif",
+      "localPreview": "previews/B07.gif",
+      "localPoster": "previews/B07.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 139,
+      "sha256": "0363eac3eb2d8270c7320e392cc9bc29223b6fde9225590acb77ebeb8bade987",
+      "permissionBasis": "依仓库战斗动画 F2E 总则；条目未重复标注",
+      "creditsVerbatim": "Repalette by OreoStyx.\n\nSword by MK404.\n\nStaff by MakeFEGayer."
+    },
+    {
+      "id": "B08",
+      "category": "modified",
+      "name": "戴帽弓箭手",
+      "role": "弓",
+      "upstreamTitle": "[Archer-Reskin] Der's Hat [M]",
+      "previewAction": "Bow",
+      "otherActions": [
+        "弓",
+        "徒手"
+      ],
+      "authors": "IS、DerTheVaporeon",
+      "classificationNote": "Credits 明确为 IS 原版弓手的 DerTheVaporeon 变体。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Reskin%5D%20Der's%20Hat%20%5BM%5D",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Reskin%5D%20Der's%20Hat%20%5BM%5D/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Reskin%5D%20Der's%20Hat%20%5BM%5D/5.%20Bow/Bow.gif",
+      "localPreview": "previews/B08.gif",
+      "localPoster": "previews/B08.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 169,
+      "sha256": "abb55a0b48874d7e2c7dd4dd4375a8b1db023394aa098cea8cd7e1dbaf8c237e",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nOriginal animation by IS.\n\nArcher Variant by DerTheVaporeon."
+    },
+    {
+      "id": "C01",
+      "category": "custom",
+      "name": "女击剑士",
+      "role": "剑",
+      "upstreamTitle": "[Sword Custom] Fencer [F] by GabrielKnight",
+      "previewAction": "Sword",
+      "otherActions": [
+        "剑",
+        "斧",
+        "手斧",
+        "徒手"
+      ],
+      "authors": "GabrielKnight",
+      "classificationNote": "社区自定义击剑士动作；原目录还提供斧／手斧。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSword%20Custom%5D%20Fencer%20%5BF%5D%20by%20GabrielKnight",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSword%20Custom%5D%20Fencer%20%5BF%5D%20by%20GabrielKnight/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BSword%20Custom%5D%20Fencer%20%5BF%5D%20by%20GabrielKnight/1.%20Sword/Sword.gif",
+      "localPreview": "previews/C01.gif",
+      "localPoster": "previews/C01.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 172,
+      "sha256": "618040ec58d3c45fe162b8738fa279c735e4ed91207bfcf308c9915bc3286f71",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by GabrielKnight."
+    },
+    {
+      "id": "C02",
+      "category": "custom",
+      "name": "瓦尤／Mia 剑士",
+      "role": "剑",
+      "upstreamTitle": "[Myrmidon-Custom] Mia [F] by Redbean",
+      "previewAction": "Sword",
+      "otherActions": [
+        "剑",
+        "徒手"
+      ],
+      "authors": "RedBean、Knabepicer、UltraxBlade",
+      "classificationNote": "社区制作的瓦尤（Mia）动画；角色来自《火焰之纹章》，不是官方 GBA 原版动画。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Custom%5D%20Mia%20%5BF%5D%20by%20Redbean",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Custom%5D%20Mia%20%5BF%5D%20by%20Redbean/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Swd)%20Myrms%20and%20Swordmasters/%5BMyrmidon-Custom%5D%20Mia%20%5BF%5D%20by%20Redbean/1.%20Sword/Sword.gif",
+      "localPreview": "previews/C02.gif",
+      "localPoster": "previews/C02.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 135,
+      "sha256": "ac5cd80024a42151061130d22d31d60f9f1192d2dde4e036fbfb525e7a838bed",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by RedBean.\n\nScript by Knabepicer.\n\nScript Fix by UltraxBlade\n\nSword (Alt Ranged Attack) by Seliost1."
+    },
+    {
+      "id": "C03",
+      "category": "custom",
+      "name": "持盾角斗士 Fergus",
+      "role": "斧",
+      "upstreamTitle": "[Fighter-Custom] Gladiator Fergus [M] by ZoramineFae",
+      "previewAction": "Axe",
+      "otherActions": [
+        "斧",
+        "手斧",
+        "徒手"
+      ],
+      "authors": "ZoramineFae、Nuramon、Redbean；致谢 Eden",
+      "classificationNote": "盾牌、部分挥斧动作与尘土来自 Nuramon，斧头部分来自 Redbean；完整署名保留全部贡献。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Custom%5D%20Gladiator%20Fergus%20%5BM%5D%20by%20ZoramineFae",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Custom%5D%20Gladiator%20Fergus%20%5BM%5D%20by%20ZoramineFae/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Axe)%20Fighters%20and%20Warriors/%5BFighter-Custom%5D%20Gladiator%20Fergus%20%5BM%5D%20by%20ZoramineFae/3.%20Axe/Axe.gif",
+      "localPreview": "previews/C03.gif",
+      "localPoster": "previews/C03.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 184,
+      "sha256": "bcf6dfe30426844f8590c20c024266ad439618449aa57ef23eb35877d38a1254",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by ZoramineFae.\n\nShield comes from Nuramon's Hero (Specifically, his Armored variant)\n\nDirt particles come from Nuramon's Ephraim Heavy Infantry Great Lord, as does the entire motion of the basic (non-crit) Swing.\n\nAnimation also partially takes from Redbean's Echidna Hero's axe.\n\nShoutout to Eden for thinking kicking a shield was hilarious (she was very, very correct)"
+    },
+    {
+      "id": "C04",
+      "category": "custom",
+      "name": "SALVAGED 枪斗士",
+      "role": "枪",
+      "upstreamTitle": "[Custom Lance] Lancer [M] by SALVAGED",
+      "previewAction": "Lance",
+      "otherActions": [
+        "枪",
+        "徒手"
+      ],
+      "authors": "SALVAGED",
+      "classificationNote": "SALVAGED 自制步行枪斗士。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BCustom%20Lance%5D%20Lancer%20%5BM%5D%20by%20SALVAGED",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BCustom%20Lance%5D%20Lancer%20%5BM%5D%20by%20SALVAGED/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BCustom%20Lance%5D%20Lancer%20%5BM%5D%20by%20SALVAGED/2.%20Lance/Lance.gif",
+      "localPreview": "previews/C04.gif",
+      "localPoster": "previews/C04.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 171,
+      "sha256": "3d2b72bb749a60ee72ef90119f7153b5422e331e89759b4b3cd64581fb7b14cf",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by SALVAGED."
+    },
+    {
+      "id": "C05",
+      "category": "custom",
+      "name": "哨卫／Sentinel",
+      "role": "枪",
+      "upstreamTitle": "[Custom Lance] Sentinel [U] by Nuramon",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "徒手"
+      ],
+      "authors": "Nuramon",
+      "classificationNote": "Nuramon 自制哨卫；本次选择枪，目录另有其他作者的剑扩展。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BCustom%20Lance%5D%20Sentinel%20%5BU%5D%20by%20Nuramon",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BCustom%20Lance%5D%20Sentinel%20%5BU%5D%20by%20Nuramon/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Lnc)%20Soldiers,%20Halberdiers/%5BCustom%20Lance%5D%20Sentinel%20%5BU%5D%20by%20Nuramon/2.%20Lance/Lance.gif",
+      "localPreview": "previews/C05.gif",
+      "localPoster": "previews/C05.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 192,
+      "sha256": "ecc0b0593c83774a505d031af80f39e1c759c4e969c3bf8d2067fa7e2c63799c",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by Nuramon.\n\nSword versions by Craigrandall55."
+    },
+    {
+      "id": "C06",
+      "category": "custom",
+      "name": "黄金骑士 v2",
+      "role": "骑兵",
+      "upstreamTitle": "[Paladin-Custom] [U] Gold Knight v2 by Nuramon",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "弓",
+        "徒手"
+      ],
+      "authors": "Nuramon、HyperGammaSpaces（HGS）",
+      "classificationNote": "Nuramon 的黄金骑士 v2，HGS 参与盔甲重新着色。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Custom%5D%20%5BU%5D%20Gold%20Knight%20v2%20by%20Nuramon",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Custom%5D%20%5BU%5D%20Gold%20Knight%20v2%20by%20Nuramon/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Cavs,%20Paladins,%20Rangers/%5BPaladin-Custom%5D%20%5BU%5D%20Gold%20Knight%20v2%20by%20Nuramon/2.%20Lance/Lance.gif",
+      "localPreview": "previews/C06.gif",
+      "localPoster": "previews/C06.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 170,
+      "sha256": "d0f9fd65cf9f5327b8b64c0fe664c1058f1f8504771f19b284013e343ebdf317",
+      "permissionBasis": "依仓库战斗动画 F2E 总则；条目未重复标注",
+      "creditsVerbatim": "Still and animation by Nuramon.\n\nReshaded armor HyperGammaSpaces (HGS)."
+    },
+    {
+      "id": "C07",
+      "category": "custom",
+      "name": "Fletchling 弓手",
+      "role": "弓",
+      "upstreamTitle": "[Archer-Custom] Fletchling [M] by RenOokami",
+      "previewAction": "Bow",
+      "otherActions": [
+        "弓",
+        "徒手"
+      ],
+      "authors": "RenOokami、Knabepicer",
+      "classificationNote": "RenOokami 原图；Knabepicer 制作弓与徒手动画。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Custom%5D%20Fletchling%20%5BM%5D%20by%20RenOokami",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Custom%5D%20Fletchling%20%5BM%5D%20by%20RenOokami/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20(Bow)%20Archers%20and%20Hunters/%5BArcher-Custom%5D%20Fletchling%20%5BM%5D%20by%20RenOokami/5.%20Bow/Bow.gif",
+      "localPreview": "previews/C07.gif",
+      "localPoster": "previews/C07.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 112,
+      "sha256": "a98f985b4c9609e4c3aa9dbd55f770c502b521c7844039c8d3c2bb9bf79db742",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nOriginal spritesheet by RenOokami.\n\nBow/unarmed by Knabepicer"
+    },
+    {
+      "id": "C08",
+      "category": "custom",
+      "name": "战斗法师",
+      "role": "法术",
+      "upstreamTitle": "[Mage-Custom] Battle Mage [M] by Dejais",
+      "previewAction": "Magic",
+      "otherActions": [
+        "魔法"
+      ],
+      "authors": "Dejais",
+      "classificationNote": "Dejais 的战斗法师施法动画。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Custom%5D%20Battle%20Mage%20%5BM%5D%20by%20Dejais",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Custom%5D%20Battle%20Mage%20%5BM%5D%20by%20Dejais/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BMage-Custom%5D%20Battle%20Mage%20%5BM%5D%20by%20Dejais/6.%20Magic/Magic.gif",
+      "localPreview": "previews/C08.gif",
+      "localPoster": "previews/C08.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 192,
+      "sha256": "b5b41e24982445dce9f254722fea16753f838c924bc9fae82edc564bb6d128a5",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nMagic by Dejais"
+    },
+    {
+      "id": "C09",
+      "category": "custom",
+      "name": "火焰贤者",
+      "role": "法术",
+      "upstreamTitle": "[Sage-Custom] Fire Sage [F] by RedBean",
+      "previewAction": "Magic",
+      "otherActions": [
+        "魔法",
+        "杖"
+      ],
+      "authors": "RedBean、7743",
+      "classificationNote": "RedBean 绘制，7743 动画脚本；角色取自《霸者之剑》漫画，并非原创角色。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BSage-Custom%5D%20Fire%20Sage%20%5BF%5D%20by%20RedBean",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BSage-Custom%5D%20Fire%20Sage%20%5BF%5D%20by%20RedBean/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BSage-Custom%5D%20Fire%20Sage%20%5BF%5D%20by%20RedBean/6.%20Magic/Magic.gif",
+      "localPreview": "previews/C09.gif",
+      "localPoster": "previews/C09.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 160,
+      "sha256": "f4ba6b71f2a9af3f883e350b85c74ba9892a78a89231d24dfaa2e90f62a124f2",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nCharacter name: Fire Pattern Comics \"Sword of the Overlord\" Jie Mi\n\nhttps://tieba.baidu.com/p/7146291531?pn=6\n\nAuthor: RedBean\n\nAnimationScript: 7743"
+    },
+    {
+      "id": "C10",
+      "category": "custom",
+      "name": "RedBean 天马骑士",
+      "role": "飞行",
+      "upstreamTitle": "[Peg Custom] [F] Pegasus Knight by RedBean",
+      "previewAction": "Lance",
+      "otherActions": [
+        "枪",
+        "徒手"
+      ],
+      "authors": "Redbean、Seliost1",
+      "classificationNote": "Redbean 绘制天马骑士，Seliost1 制作动画脚本。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20Custom%5D%20%5BF%5D%20Pegasus%20Knight%20by%20RedBean",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20Custom%5D%20%5BF%5D%20Pegasus%20Knight%20by%20RedBean/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Mounted%20-%20Pegs,%20Wyverns,%20Griffons/%5BPeg%20Custom%5D%20%5BF%5D%20Pegasus%20Knight%20by%20RedBean/2.%20Lance/Lance.gif",
+      "localPreview": "previews/C10.gif",
+      "localPoster": "previews/C10.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 100,
+      "sha256": "63295a6e9f0957a5fa401ff640d05343ef5bb8fd3978db55938fcb2985c3200b",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nAnimation by Redbean.\n\nScripting by Seliost1."
+    },
+    {
+      "id": "C11",
+      "category": "custom",
+      "name": "FE10 风格重甲",
+      "role": "重甲",
+      "upstreamTitle": "[Knight-Custom] FE10-Style [U] by Nuramon",
+      "previewAction": "Lance",
+      "otherActions": [
+        "剑",
+        "枪",
+        "斧",
+        "手斧",
+        "弓",
+        "魔法",
+        "徒手"
+      ],
+      "authors": "Iscaneus、Nuramon、Jeorge Reds",
+      "classificationNote": "以 FE10 风格创作的重甲；Iscaneus 静态图，Nuramon 与 Jeorge Reds 动画及脚本。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20Knights,%20Generals,%20Armors/%5BKnight-Custom%5D%20FE10-Style%20%5BU%5D%20by%20Nuramon",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20Knights,%20Generals,%20Armors/%5BKnight-Custom%5D%20FE10-Style%20%5BU%5D%20by%20Nuramon/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Infantry%20-%20Knights,%20Generals,%20Armors/%5BKnight-Custom%5D%20FE10-Style%20%5BU%5D%20by%20Nuramon/2.%20Lance/Lance.gif",
+      "localPreview": "previews/C11.gif",
+      "localPoster": "previews/C11.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 201,
+      "sha256": "1e39166186469f32b4d4358feab3f8b0ce1cf8daf11d345bd214d92fcd17d146",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nBase still made by Iscaneus.\n\nAnimation and scripting by Nuramon and Jeorge Reds.\n\nMagic by flasuban.\n\nUnarmed with quiver and critical recoil bow edits by Topaz Light."
+    },
+    {
+      "id": "C12",
+      "category": "custom",
+      "name": "大贤者",
+      "role": "治疗",
+      "upstreamTitle": "[T3 Custom] Archsage [M] by Nuramon",
+      "previewAction": "Staff",
+      "otherActions": [
+        "魔法",
+        "杖"
+      ],
+      "authors": "Nuramon、Plant Academy、Dachi、Steaming Tofu；可选音效 Melledoneus",
+      "classificationNote": "多作者制作的大贤者动作；预览选杖，原目录还有魔法版本。",
+      "source": "https://github.com/Klokinator/FE-Repo/tree/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BT3%20Custom%5D%20Archsage%20%5BM%5D%20by%20Nuramon",
+      "readmeSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BT3%20Custom%5D%20Archsage%20%5BM%5D%20by%20Nuramon/README.md",
+      "previewSource": "https://raw.githubusercontent.com/Klokinator/FE-Repo/222c1598f0a36ae5e6ade87030f6a8cc312febd8/Battle%20Animations/Magi%20-%20Nature-Type/%5BT3%20Custom%5D%20Archsage%20%5BM%5D%20by%20Nuramon/7.%20Staff/Staff.gif",
+      "localPreview": "previews/C12.gif",
+      "localPoster": "previews/C12.png",
+      "previewSize": [
+        248,
+        160
+      ],
+      "previewFrames": 60,
+      "sha256": "7bccf31afa5b748e8effde98f8e1c7d6e39c1385f4a2fc65fa83dfb8bd1c67f3",
+      "permissionBasis": "条目明确标注 F2U/F2E",
+      "creditsVerbatim": "F2U/F2E\n\nStill and Animation by Nuramon.\n\nBoots by Plant Academy.\n\nSwirl vfx by Dachi.\n\nOrb vfx by Steaming Tofu.\n\nOptional sound effects by Melledoneus."
+    }
+  ]
+}

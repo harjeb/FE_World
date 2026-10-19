@@ -254,7 +254,7 @@ export const ARMOR_LOOKS = {
       '.MMnmnmnmnmnmn',
     ], ['mn.....', 'nmn....', '.mnms..', '..ssss.', '...sss.'], {
       leg: ARMORED_LEG,
-      before: [{ part: SCALE_BARDING, x: 5, y: 22 }, { part: SADDLE_CLOTH, x: 13, y: 32 }],
+      before: [{ part: SCALE_BARDING, x: 5, y: 22, fixed: true }, { part: SADDLE_CLOTH, x: 13, y: 32, fixed: true }],
       head: [{ part: ['.....d......', '....dd......', '....mm......', '...mmmm.....', '..mmmmmm....', '.mmmmmmmm...', 'MMMMMMMMMM..', 'nmn.........', 'mnm.........', 'nmn.........', '.nm.........'], x: 17, y: 4 }],
     }),
   },
