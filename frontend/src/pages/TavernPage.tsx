@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { regionById } from '@common/game/calendar.ts';
 import { RECRUIT_UNLOCK_DAY } from '@common/game/random-recruit.ts';
 import { OP } from '@common/protocol/ops.ts';
@@ -10,11 +10,12 @@ import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { Checks, Face, useAct } from './SystemParts.tsx';
+import { FrogFace, FrogRace } from './FrogRace.tsx';
+import { toast } from '../ui/toast.tsx';
 
 const SPECIES = { human: '人类', beast: '兽人', dragon: '龙人' } as const;
 // 返还倍率与判定（common/game/minigames.ts，docs/18）：押中总返还含本金。
 const DICE_RETURN = 2;
-const FROG_RETURN = 3.8;
 
 // 酒馆 (docs/18, TODO SETUP-04): from the second year, three paid candidates per region each season, the
 // two minigames, and the free recruit after heavy losses. None of it moves the personal date.
@@ -120,14 +121,28 @@ function MinigamePanel() {
   const [choice, setChoice] = useState<'big' | 'small'>('big');
   const [pick, setPick] = useState(0);
   const [result, setResult] = useState<MinigameResult | null>(null);
+  // 青蛙赛跑：结果到手后先播演出，冲线后才揭晓输赢。
+  const [racing, setRacing] = useState(false);
+  const [raceNo, setRaceNo] = useState(0);
   const { busy, act } = useAct();
+  const finishRace = useCallback(() => {
+    setRacing(false);
+    if (result?.game === 'frogs') toast(result.payout > 0 ? `押中了！入账 ${result.payout}，净赚 ${result.net}` : `没押中，净亏 ${-result.net}`);
+  }, [result]);
   if (!state) return null;
   if (!data) return <section className="panel"><p className="sys-note">{error ?? '读取小游戏…'}</p></section>;
   const left = data.limit - data.played;
   const blocked = today?.battle ? '战斗进行中' : run && (run.state === 'battle' || run.state === 'between_maps') ? '连续副本进行中' : annualLive(annual) ? '年度赛事进行中' : null;
-  const total = game === 'dice' ? bet * DICE_RETURN : Math.floor(bet * FROG_RETURN);
+  const odds = data.frogs[pick];
+  const times = (tenths: number) => (tenths / 10).toFixed(1);
+  const total = game === 'dice' ? bet * DICE_RETURN : bet * odds.returnTenths / 10;
   const play = () => act('play', () => session.run<MinigameResult>(OP.PLAY_MINIGAME, game === 'dice' ? { game, bet, choice } : { game, bet, pick }), r => {
     setResult(r);
+    if (r.game === 'frogs') {
+      setRacing(true);
+      setRaceNo(n => n + 1);
+      return `开跑！押了${data.frogNames[r.pick]} ${r.bet} 金`;
+    }
     return r.payout > 0 ? `赢了！入账 ${r.payout}，净赚 ${r.net}` : `没押中，净亏 ${-r.net}`;
   });
   return (
@@ -146,22 +161,30 @@ function MinigamePanel() {
           </div>
         </div>
         : <div className="mg-body">
-          <p className="sys-note">四只青蛙各 25% 机会夺冠；押中冠军返还下注的 {FROG_RETURN} 倍（含本金）。名字和跳法只是演出，不代表速度。</p>
-          <div className="chips" role="radiogroup" aria-label="押哪只青蛙">
-            {data.frogNames.map((frog, i) => <button key={frog} type="button" role="radio" aria-checked={pick === i} className="chip" onClick={() => setPick(i)}>{frog}</button>)}
+          <p className="sys-note">酒馆后院的老把戏：四只青蛙强弱固定，热门的赢面大、赔得少，冷门的反过来；押中冠军按它的倍率返还（含本金）。每只的期望返还相同。</p>
+          <div className="frog-odds" role="radiogroup" aria-label="押哪只青蛙">
+            {data.frogs.map((frog, i) => (
+              <button key={frog.name} type="button" role="radio" aria-checked={pick === i} className="frog-pick" disabled={racing} onClick={() => setPick(i)}>
+                <FrogFace frog={i} size={32} />
+                <span className="fo-name">{frog.name}</span>
+                <span className="fo-num">夺冠 {frog.chance}%</span>
+                <b className="fo-pay">{times(frog.returnTenths)} 倍</b>
+              </button>
+            ))}
           </div>
         </div>}
       <div className="mg-body">
         <div className="chips" role="radiogroup" aria-label="下注额">
           {data.bets.map(b => <button key={b} type="button" role="radio" aria-checked={bet === b} className="chip" disabled={state.gold < b} onClick={() => setBet(b)}>{b} 金</button>)}
         </div>
-        <p className="mg-quote">下注 <b>{bet}</b> 金：押中入账 <b>{total}</b>（净赚 {total - bet}）；押错入账 0（净亏 {bet}）。</p>
+        <p className="mg-quote">下注 <b>{bet}</b> 金{game === 'frogs' && <>押{odds.name}（夺冠 {odds.chance}%）</>}：押中入账 <b>{total}</b>（净赚 {total - bet}）；押错入账 0（净亏 {bet}）。</p>
       </div>
-      {result && <MinigameOutcome result={result} frogs={data.frogNames} />}
+      {result?.game === 'frogs' && <FrogRace key={raceNo} order={result.order} pick={result.pick} names={data.frogNames} seed={`${raceNo}:${result.remaining}:${result.order.join('')}`} onDone={finishRace} />}
+      {result && !racing && <MinigameOutcome result={result} frogs={data.frogNames} />}
       <div className="go-bar">
         {blocked && <span className="why" style={{ marginRight: 'auto' }}>{blocked}，不能下注</span>}
-        <button type="button" className="btn btn-primary" disabled={busy !== null || left <= 0 || !!blocked || state.gold < bet} onClick={() => void play()}>
-          {busy === 'play' ? '开局中…' : left <= 0 ? '本季正式局已用完' : `确认下注 ${bet} 金`}
+        <button type="button" className="btn btn-primary" disabled={busy !== null || racing || left <= 0 || !!blocked || state.gold < bet} onClick={() => void play()}>
+          {busy === 'play' ? '开局中…' : racing ? '比赛进行中…' : left <= 0 ? '本季正式局已用完' : `确认下注 ${bet} 金`}
         </button>
       </div>
     </section>

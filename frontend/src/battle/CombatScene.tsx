@@ -1,8 +1,9 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { WEAPONS } from '@common/data/weapons.ts';
+import type { WeaponId } from '@common/data/weapons.ts';
 import { classOf, forecast, forecastOnHit } from '@common/engine/index.ts';
 import type { Strike, UnitState } from '@common/engine/index.ts';
-import { fighterFor, SPARK, spriteFor, STAGE } from '../assets.ts';
+import { battleSpriteFor, SPARK, spriteFor, STAGE } from '../assets.ts';
 import { SkipIcon } from '../ui/icons.tsx';
 import type { CombatShow } from './controller.ts';
 import { displayName } from './names.ts';
@@ -83,15 +84,18 @@ export function CombatScene({ show }: { show: CombatShow }) {
   const sideSpec = (u: UnitState) => (u.id === attacker.id ? f.attacker : f.defender);
 
   const fighter = (u: UnitState, left: boolean) => {
-    const own = fighterFor(u);
+    const held = weaponOf(u);
+    // 法术书不在武器表里：施法时手里画一本书。
+    const own = battleSpriteFor(u, held ? WEAPONS[held as WeaponId]?.type ?? 'tome' : null);
     const toward = left ? 'r' : 'l';
     const motion = charge === u.id ? ` charge-${toward}` : lunge?.id === u.id ? ` lunge-${toward}${lunge.dash ? ' dash' : ''}` : '';
     // A striker never shows the previous hit's flash, which would replay when its charge ends.
     const hurt = last && last.target === u.id && last.hit && !motion;
     const cls = `px fighter${motion}${hurt ? ' hurt' : ''}`;
-    // Map sprites face right for allies and left for enemies; flip them so both sides face each other.
+    // Class sprites face right (flip the right-hand fighter); map sprites face right for allies and left for
+    // enemies, so they are flipped to face each other.
     return own
-      ? <img className={cls} src={own} width={176} height={176} alt="" style={{ left: left ? 150 : 474 }} />
+      ? <img className={`${cls}${left ? '' : ' flip'}`} src={own} width={192} height={192} alt="" style={{ left: left ? 142 : 466 }} />
       : <img className={`${cls} flip`} src={spriteFor(u)} width={128} height={128} alt="" style={{ left: left ? 190 : 482 }} />;
   };
 

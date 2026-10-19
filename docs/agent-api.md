@@ -189,7 +189,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 137 | GET_MINIGAMES | 读取本季度剩余酒馆小游戏局数、下注档位与赔率。 |
+| 137 | GET_MINIGAMES | 读取本季度剩余酒馆小游戏局数、下注档位与赔率；frogs 列出每只青蛙的夺冠率（%）与押中返还（十分之一倍，含本金）。 |
 | 138 | PLAY_MINIGAME | 服务端结算一局猜大小或青蛙赛跑；扣金币、占季度额度、生成并保存赛果，重试不重掷。 |
 ### Agent
 

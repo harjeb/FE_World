@@ -98,7 +98,7 @@ export const OPS: readonly OpDef[] = [
   { op: 134, name: 'GET_CHALLENGES', group: '任务', agentNote: '读取挑战塔层、风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。' },
   { op: 135, name: 'START_CHALLENGE', group: '任务', agentNote: '带固定名单挑战塔层；支付层日数并创建经典地图战斗，普通角色真实死亡。' },
   { op: 136, name: 'CLAIM_CHALLENGE_REWARD', group: '任务', agentNote: '领取已通关塔层的首通／重复奖励及该层限量equipment实物，每种奖励只发一次；旧档已领完常规奖励仍可只补领装备，不重发金币。' },
-  { op: 137, name: 'GET_MINIGAMES', group: '酒馆', agentNote: '读取本季度剩余酒馆小游戏局数、下注档位与赔率。' },
+  { op: 137, name: 'GET_MINIGAMES', group: '酒馆', agentNote: '读取本季度剩余酒馆小游戏局数、下注档位与赔率；frogs 列出每只青蛙的夺冠率（%）与押中返还（十分之一倍，含本金）。' },
   { op: 138, name: 'PLAY_MINIGAME', group: '酒馆', agentNote: '服务端结算一局猜大小或青蛙赛跑；扣金币、占季度额度、生成并保存赛果，重试不重掷。' },
   { op: 139, name: 'CLAIM_CONTROL', group: 'Agent', agentNote: '取得短期控制租约；同一账号的其它写操作在租约期内被拒绝。' },
   { op: 140, name: 'RELEASE_CONTROL', group: 'Agent', agentNote: '释放自己持有的控制租约；人工接管前先释放。' },

@@ -2067,7 +2067,7 @@
       "op": 137,
       "name": "GET_MINIGAMES",
       "group": "酒馆",
-      "agentNote": "读取本季度剩余酒馆小游戏局数、下注档位与赔率。",
+      "agentNote": "读取本季度剩余酒馆小游戏局数、下注档位与赔率；frogs 列出每只青蛙的夺冠率（%）与押中返还（十分之一倍，含本金）。",
       "push": false,
       "dataSchema": {
         "type": "object",

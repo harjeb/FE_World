@@ -359,7 +359,9 @@ export interface ServerDispatches { day: number; running: DispatchView[]; histor
 // GET_TAVERN / GET_MINIGAMES: from the second year (docs/18).
 export interface TavernRow { region: number; id: string; price: number; hired: boolean; name: string; sex: 'male' | 'female'; species: 'human' | 'beast' | 'dragon'; classId: string; className: string; portrait: CharacterId; level: number }
 export interface ServerTavern { quarter: number; regions: TavernRow[] }
-export interface ServerMinigames { quarter: number; played: number; limit: number; bets: number[]; games: ('dice' | 'frogs')[]; frogNames: string[] }
+// frogs: 每只青蛙的夺冠率（%）与押中返还（十分之一倍，含本金），由服务端规则表给出。
+export interface ServerFrogOdds { name: string; chance: number; returnTenths: number }
+export interface ServerMinigames { quarter: number; played: number; limit: number; bets: number[]; games: ('dice' | 'frogs')[]; frogNames: string[]; frogs: ServerFrogOdds[] }
 export type MinigameResult =
   | { game: 'dice'; choice: 'big' | 'small'; dice: [number, number, number]; total: number; triple: boolean; big: boolean; payout: number; bet: number; net: number; remaining: number }
   | { game: 'frogs'; pick: number; order: number[]; winner: number; payout: number; bet: number; net: number; remaining: number };

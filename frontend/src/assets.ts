@@ -5,6 +5,10 @@ import type { ClassRoute } from '@common/data/classes.ts';
 import type { WeaponType } from '@common/data/types.ts';
 import type { UnitState } from '@common/engine/index.ts';
 import { drawItemIcon, ICON_SIZE } from '@common/icons/draw.ts';
+import { canonicalClassId } from '@common/data/classes.ts';
+import type { ClassId } from '@common/data/classes.ts';
+import { BATTLE_SIZE, CLASS_LOOKS, drawBattleSprite } from '@common/sprites/battle.ts';
+import { CHARACTER_COLORS } from '@common/sprites/character-colors.ts';
 import { drawMap, glyphRows, mapSeed, TILE } from '@common/maps/draw.ts';
 import type { Terrain } from '@common/maps/map.ts';
 import { drawPortrait, SIZE as PORTRAIT_SIZE } from '@common/portraits/draw.ts';
@@ -17,8 +21,6 @@ import crestRaven from '../../design/pixel-art/png/crest_raven.png';
 import crestFrost from '../../design/pixel-art/png/crest_frost.png';
 import stagePass from '../../design/pixel-art/png/stage_pass.png';
 import fxSpark from '../../design/pixel-art/png/fx_spark.png';
-import fightErin from '../../design/pixel-art/png/fight_erin.png';
-import fightAxe from '../../design/pixel-art/png/fight_axe.png';
 import unitSwordAlly from '../../design/pixel-art/png/unit_sword_ally.png';
 import unitSwordEnemy from '../../design/pixel-art/png/unit_sword_enemy.png';
 import unitAxeAlly from '../../design/pixel-art/png/unit_axe_ally.png';
@@ -188,11 +190,31 @@ function generatedPortrait(seed: string, route: ClassRoute, side: Looks['side'])
   return url;
 }
 
-// Side-view sprites (44px, shown at 4x) exist for a few units; the rest use the map sprite at 8x.
-export function fighterFor(unit: UnitState): string | null {
-  if (unit.character === 'erin') return fightErin;
-  if (unit.side === 'enemy' && routeOf(unit.classId) === 'axe') return fightAxe;
-  return null;
+// 交战形象：每个职业手绘一张（backend/common/sprites），手里的武器按本次交战用的武器类型另画一层，
+// 肤色发色取角色头像。还没画到的职业返回 null，交战演出退回路线小人。
+const battleSprites = new Map<string, string>();
+export function battleSpriteFor(unit: Looks, weapon: WeaponType | null): string | null {
+  const classId = canonicalClassId(unit.classId as ClassId);
+  if (!CLASS_LOOKS[classId]) return null;
+  const named = CHARACTER_COLORS[unit.portrait ?? unit.character ?? ''];
+  const spec = named ? null : randomPortrait(unit.id ?? unit.character ?? 'unit', { route: routeOf(unit.classId), side: unit.side });
+  const colors = { side: unit.side === 'player' ? 'player' as const : 'enemy' as const,
+    skin: named?.skin ?? spec!.skin, hair: named?.hair ?? [spec!.hair[0], spec!.hair[2]] as [string, string] };
+  const key = `${classId}|${colors.side}|${colors.skin.join()}|${colors.hair.join()}|${weapon}`;
+  let url = battleSprites.get(key);
+  if (!url) {
+    const px = drawBattleSprite(classId, colors, weapon);
+    if (!px) return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = BATTLE_SIZE;
+    const ctx = canvas.getContext('2d')!;
+    const image = ctx.createImageData(BATTLE_SIZE, BATTLE_SIZE);
+    image.data.set(px);
+    ctx.putImageData(image, 0, 0);
+    url = canvas.toDataURL();
+    battleSprites.set(key, url);
+  }
+  return url;
 }
 
 // One icon per weapon type, for class-level displays (转职 options). Single items use itemIconFor.

@@ -116,7 +116,7 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 
 ### 交战演出
 
-- `fight_erin.png`、`fight_axe.png`：44×44 侧视人物，艾琳和灰岩斧兵。
+- `fight_erin.png`、`fight_axe.png`：44×44 侧视人物，艾琳和灰岩斧兵。只用于设计画板；游戏里的交战演出已改用下面「游戏里绘制的交战形象」。
 - `fx_spark.png`：19×19 命中火花。
 - `stage_pass.png`：200×72 演出背景，林地与石墙。
 
@@ -133,6 +133,17 @@ diff -r design/pixel-art/png /tmp/pixel-art/png
 | 交战演出 | `fighter_erin()`、`fighter_axe()`、`spark()`、`backdrop()` |
 
 改完重新生成，先看两张总览图。
+
+## 游戏里绘制的交战形象
+
+交战演出里的人物按**职业**逐个设计：77 个在用职业各一张 48×48 侧视形象（面朝右，显示时 4 倍），代码在 `backend/common/sprites/`：
+
+- `looks/<路线>.ts` 写着每个职业的设计：用哪些手绘部件、摆在哪里、配什么颜色，外加只属于它自己的细节（头饰、上衣、披风、坐骑等）。头部、站姿和坐骑是共用的手绘部件，只为让各职业比例一致，不做随机组合。
+- 骑乘、飞行等职业画坐骑（`looks/mounts.ts`）：马、披甲马、鳞甲马、飞鸵、天马、飞龙、战车。
+- 换色：己方蓝、敌方红（阵营色部件）；肤色、发色取角色头像（固定人物见 `character-colors.ts`，随机角色取随机头像），所以战斗里认得出是谁。职业专属的颜色不随阵营变。
+- 手里的武器单独一层（`WEAPON_LAYERS`），按这次交战用的武器类型画在职业声明的手部位置；施放法术时画一本书。
+- `battle.test.ts` 要求每个在用职业都有形象、两两不同、每种武器都能画，并且己方和敌方至少有 16 个像素颜色不同。
+- 前端 `frontend/src/assets.ts` 的 `battleSpriteFor` 画好后缓存成 data URL；已停用的旧职业没有专属形象，交战演出退回路线小人。
 
 ## 游戏里生成的物品图标
 

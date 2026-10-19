@@ -56,7 +56,7 @@ import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTER
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
-import { dicePayout, frogPayout, FROG_NAMES, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
+import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { normalizeRegions, routeCandidates, worldMap } from '../common/game/region-map.ts';
@@ -2062,7 +2062,8 @@ const handlers: Record<number, Handler> = {
       ctx.player.flags.minigameQuarter = quarter;
       ctx.player.flags.minigamePlays = 0;
     }
-    return { quarter, played: ctx.player.flags.minigamePlays ?? 0, limit: MINIGAME_PLAYS_PER_QUARTER, bets: MINIGAME_BETS, games: ['dice', 'frogs'], frogNames: FROG_NAMES };
+    return { quarter, played: ctx.player.flags.minigamePlays ?? 0, limit: MINIGAME_PLAYS_PER_QUARTER, bets: MINIGAME_BETS, games: ['dice', 'frogs'], frogNames: FROG_NAMES,
+      frogs: FROG_NAMES.map((name, i) => ({ name, chance: FROG_CHANCE[i], returnTenths: FROG_RETURN_TENTHS[i] })) };
   },
 
   [OP.PLAY_MINIGAME]: (ctx, data) => {

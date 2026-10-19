@@ -1322,6 +1322,14 @@ function paintBook(img: Icon, s: Extract<Spec, { kind: 'book' }>): void {
 
 // ---------------------------------------------------------------- entry points
 
+// Any 16x16 grid in the same style (hex palette per character, '.' empty, outlined): the tavern frogs use it.
+export function drawPixelGrid(rows: readonly string[], palette: Record<string, string>): Uint8ClampedArray {
+  const img = new Icon();
+  img.grid(rows, Object.fromEntries(Object.entries(palette).map(([k, v]) => [k, C(v)])));
+  img.outline();
+  return img.data();
+}
+
 // Every key with an icon: all GAME_ITEMS (weapons, spellbooks, manuals and items).
 export function iconKeys(): string[] {
   return [...specs().keys()];

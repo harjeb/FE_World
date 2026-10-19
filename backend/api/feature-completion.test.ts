@@ -15,7 +15,7 @@ import { createClassicBattle } from '../common/game/battles.ts';
 import { actionOptions } from '../common/engine/ranges.ts';
 import { step } from '../common/engine/step.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
-import { dicePayout, frogRace, MINIGAME_PLAYS_PER_QUARTER } from '../common/game/minigames.ts';
+import { dicePayout, FROG_CHANCE, frogPayout, FROG_RETURN_TENTHS, frogRace, MINIGAME_PLAYS_PER_QUARTER } from '../common/game/minigames.ts';
 import { SPELLBOOKS } from '../common/data/spellbooks.ts';
 import { WEAPON_ARTS } from '../common/data/weapon-arts.ts';
 import { replayCompatibility, RULESET_VERSION } from '../common/game/version.ts';
@@ -98,6 +98,18 @@ test('minigame odds and quarterly quota follow the documented rules', () => {
   assert.equal(dicePayout(50, 'big', { dice: [6, 6, 6], total: 18, triple: true, big: true }), 0);
   const race = frogRace('fixed');
   assert.equal(new Set(race.order).size, 4);
+  // 固定强弱：夺冠率 40/20/30/10%，返还 2.4/4.8/3.2/9.6 倍，每只期望返还都是 96%，各档下注都整除。
+  for (let frog = 0; frog < 4; frog++) {
+    assert.equal(FROG_CHANCE[frog] * FROG_RETURN_TENTHS[frog], 960);
+    for (const bet of [20, 50, 100]) {
+      const paid = frogPayout(bet, frog, { order: [frog], winner: frog });
+      assert.ok(Number.isInteger(paid) && paid === bet * FROG_RETURN_TENTHS[frog] / 10);
+    }
+  }
+  assert.equal(frogPayout(100, 1, { order: [0, 1, 2, 3], winner: 0 }), 0);
+  const wins = [0, 0, 0, 0];
+  for (let i = 0; i < 20_000; i++) wins[frogRace(`odds-${i}`).winner]++;
+  wins.forEach((n, frog) => assert.ok(Math.abs(n / 200 - FROG_CHANCE[frog]) < 1.5, `frog ${frog}: ${n / 200}%`));
   const { store, accountId, player } = setup('minigame');
   const ctx = ctxFor(store, accountId, player);
   const plays = dispatch(ctx, OP.GET_MINIGAMES, {}) as { limit: number; played: number };

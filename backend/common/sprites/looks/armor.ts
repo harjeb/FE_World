@@ -1,0 +1,261 @@
+// 重甲路线 6 个职业的交战形象（见 ../battle.ts 的调色约定、./kit.ts 与 ./mounts.ts 的坐标）。
+// 盾牌拿在远侧手上，画在躯干之前，从身体左侧露出来；盾面是阵营色。
+import type { ClassLook } from '../battle.ts';
+import { cape, recolor } from './kit.ts';
+import { ARMORED_LEG, onHorse, SADDLE_CLOTH } from './mounts.ts';
+
+const PLATE_LEGS = [
+  '...mmm...mmm...',
+  '...mMm...mmMm..',
+  '..mnM.....mnM..',
+  '..mmM.....mmM..',
+  '.mmM.......mmM.',
+  '.mMM.......mMM.',
+  '.MnM.......MnM.',
+  'MMmm........Mmm',
+  'MMMM.......MMMM',
+];
+const KITE_SHIELD = [
+  '.MMMMMM.',
+  'MmmmmmmM',
+  'MaaaaaaM',
+  'MaaaaaaM',
+  'MaayyaaM',
+  'MayyyyaM',
+  'MaayyaaM',
+  'MaaaaaaM',
+  'MaaaaaaM',
+  '.MaaaaM.',
+  '..MaaM..',
+  '...MM...',
+];
+const TOWER_SHIELD = [
+  '.MMMMMMMMM.',
+  'MmmmmmmmmmM',
+  'MmnnnnnnnmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnaayaanmM',
+  'MmnayyyanmM',
+  'MmnaayaanmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnaaaaanmM',
+  'MmnnnnnnnmM',
+  'MmmmmmmmmmM',
+  '.MMMMMMMMM.',
+];
+const ARMORED_ARM = ['mm.....', 'mMm....', '.MmMm..', '..mmmm.', '...MMm.'];
+
+// 铁甲骑兵的鳞甲马铠：盖住马颈、马身和大腿，鳞片 m/n 交错。
+const SCALE_BARDING = [
+  '....................................',
+  '....................................',
+  '...........................mnm......',
+  '..........................mnmn......',
+  '.........................mnmn.......',
+  '........................mnmn........',
+  '.......................mnmn.........',
+  '......................mnmnm.........',
+  '.....................mnmnmn.........',
+  '....................mnmnmnm.........',
+  '..................mnmnmnmnm.........',
+  '.....mnmnmnmnmnmnmnmnmnmnmn.........',
+  '....mnmnmnmnmnmnmnmnmnmnmnm.........',
+  '....nmnmnmnmnmnmnmnmnmnmnmn.........',
+  '....mnmnmnmnmnmnmnmnmnmnmnm.........',
+  '....nmnmnmnmnmnmnmnmnmnmnm..........',
+  '....mnmnmnmnmnmnmnmnmnmnm...........',
+  '.....nmnmnmnmnmnmnmnmnmn............',
+  '.....mnm..........mnm...............',
+];
+
+export const ARMOR_LOOKS = {
+  // 士兵：米色绗缝棉甲罩阵营色罩衣、宽檐铁笠盔、粗布裤与皮鞋。
+  lancer: {
+    hand: [32, 31],
+    signature: 'lance',
+    palette: { k: '#E8DCC0', K: '#B8A888' },
+    layers: [
+      { part: 'legsStance', x: 16, y: 38 },
+      { part: [
+        '....kKKk......',
+        '..kKkKaaKkK...',
+        '.kKkKaaaaKkK..',
+        '.KkKkaaaakKk..',
+        '.kKkKaaaaKkK..',
+        '.KkKkaaaakKk..',
+        '..kKkaaaaKk...',
+        '..KkKaaaakK...',
+        '..WwwwwwwwwW..',
+        '..kKkaaaaKkK..',
+        '.kKkKaaaaKkKk.',
+        '.KkKkk..kKkKK.',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: ['....mmmm....', '..mmmmmmmm..', '..mmmmmmmm..', 'MMMMMMMMMMMM', 'nnnnnnnnnnnn'], x: 17, y: 11 },
+      { part: ['kK.....', 'KkK....', '.kKss..', '..ssss.', '...sss.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 重装步兵：全身钢板甲、阵营色腰带、掀起面甲的护颈盔，远侧手持阵营色鸢盾。
+  knight: {
+    hand: [32, 31],
+    signature: 'lance',
+    palette: { m: '#D0D6DA', M: '#8A9298', n: '#545C62' },
+    layers: [
+      { part: KITE_SHIELD, x: 10, y: 25 },
+      { part: PLATE_LEGS, x: 16, y: 38 },
+      { part: [
+        '....mMMm......',
+        '..mmmmmmmmm...',
+        '.mmmmmmmmmmm..',
+        '.MmmmmmmmmmM..',
+        '.Mmmmmmmmmmm..',
+        '.MMmmmmmmmmM..',
+        '..Mmmmmmmmm...',
+        '..MMmmmmmmM...',
+        '..aaaaaaaaaa..',
+        '..MmmmnmmmmM..',
+        '.MMmmnnnmmmMM.',
+        '.MMmmmmmmmmmM.',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: ['...mmmmmm...', '..mmmmmmmmm.', '.mmmmmmmmmmm', 'mmmmmmmmmmm.', 'mmMMMMMMMMM.', 'mmm.........', 'mmm.........', 'mmm.........', 'mMm.........', '.MM.........'], x: 17, y: 11 },
+      { part: ARMORED_ARM, x: 27, y: 28 },
+    ],
+  },
+
+  // 巨型重甲兵：铁黑的超大护肩与板甲、只留一道视缝的桶盔、身侧立着阵营色塔盾。
+  dreadnought: {
+    hand: [32, 31],
+    signature: 'axe',
+    palette: { m: '#A8B0B6', M: '#6E767C', n: '#40464C' },
+    layers: [
+      { part: TOWER_SHIELD, x: 6, y: 21 },
+      { part: [
+        '...mmmm..mmmm...',
+        '...mMMm..mmMMm..',
+        '..mnnM....mnnM..',
+        '..mmmM....mmmM..',
+        '.mmmM......mmmM.',
+        '.mMMM......mMMM.',
+        '.MnnM......MnnM.',
+        'MMmmm.......Mmmm',
+        'MMMMM......MMMMM',
+      ], x: 15, y: 38 },
+      { part: [
+        '..mmm....mmm....',
+        '.mmmmm..mmmmm...',
+        'mmmmmmmmmmmmmm..',
+        'MMmmmmmmmmmmMM..',
+        '.MnmmmmmmmmmnM..',
+        '.MmmmmnmmmmmmM..',
+        '.MMmmmmmmmmmMM..',
+        '..MmmmmmmmmmM...',
+        '..MMmmmmmmmMM...',
+        '..aaaaaaaaaaa...',
+        '..MmmmmnmmmmM...',
+        '.MMmmmnnnmmmMM..',
+        '.MMmmmmmmmmmMM..',
+      ], x: 15, y: 25 },
+      { part: ['...mmmmmm...', '..mmmmmmmmm.', '.mmmmmmmmmmm', '.mmmmmmmmmmm', '.mmmmmmmmmmm', '.mmmmmmeeeee', '.mmmmmmmmmmm', '.mmmmmmmnmmm', '.Mmmmmmmnmmm', '.MMmmmmmnmm.', '..MMMMMMMM..'], x: 17, y: 13 },
+      { part: ['mmmm...', 'MmmMm..', '.nMMm..', '..mmmm.', '...MMm.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 要塞：四阶。城垛顶的阵营色巨型塔盾、石灰色重甲镶金、头盔顶一道金色高冠。
+  fortress: {
+    hand: [32, 31],
+    signature: 'lance',
+    palette: { m: '#B8B2A6', M: '#7E786C', n: '#4E4A42' },
+    layers: [
+      { part: ['M.M.M.M.M..', ...TOWER_SHIELD.slice(0, 16), 'MmnnnnnnnmM', 'MmmmmmmmmmM', '.MMMMMMMMM.'], x: 5, y: 19 },
+      { part: [
+        '...mmmm..mmmm...',
+        '...mMMm..mmMMm..',
+        '..myyM....myyM..',
+        '..mmmM....mmmM..',
+        '.mmmM......mmmM.',
+        '.mMMM......mMMM.',
+        '.MyyM......MyyM.',
+        'MMmmm.......Mmmm',
+        'MMMMM......MMMMM',
+      ], x: 15, y: 38 },
+      { part: [
+        '..yyy....yyy....',
+        '.mmmmm..mmmmm...',
+        'mmmmmmmmmmmmmm..',
+        'MMmmmmyymmmmMM..',
+        '.Mmmmmyymmmmm...',
+        '.MmmyyyyyymmM...',
+        '.MMmmmyymmmMM...',
+        '..MmmmyymmmM....',
+        '..MMmmmmmmMM....',
+        '..aaaaaaaaaaa...',
+        '..MmmmmnmmmmM...',
+        '.MMmmmnnnmmmMM..',
+        '.MMmmmmmmmmmMM..',
+      ], x: 15, y: 25 },
+      { part: 'head', x: 18, y: 15 },
+      { part: ['.....y......', '....yyy.....', '....yYy.....', '...mmmmmm...', '..mmmmmmmmm.', '.mmmmmmmmmmm', 'mmmmmmmmmmm.', 'mmMMMMMMMMM.', 'mmm.........', 'mmm.........', 'mmm.........', 'mMm.........', '.MM.........'], x: 17, y: 8 },
+      { part: ['mmmm...', 'MyyMm..', '.MMMm..', '..mmmm.', '...MMm.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 将军：金边重铠、阵营色长披风、头盔插一束红缨、远侧手持金边圆盾。
+  general: {
+    hand: [32, 31],
+    signature: 'lance',
+    palette: { m: '#C8CED2', M: '#868E94', n: '#4E565C', d: '#C8443A', D: '#8E2A24' },
+    layers: [
+      { part: cape('a', 'A'), x: 10, y: 26 },
+      { part: ['..yyyy..', '.yMMMMy.', 'yMmmmmMy', 'yMmyymMy', 'yMmyymMy', 'yMmmmmMy', '.yMMMMy.', '..yyyy..'], x: 9, y: 28 },
+      { part: recolor(PLATE_LEGS, { n: 'y' }), x: 16, y: 38 },
+      { part: [
+        '...ymMMmy.....',
+        '..mmmmmmmmm...',
+        '.ymmmmmmmmmy..',
+        '.MmmmyyymmmM..',
+        '.Mmmmmymmmmm..',
+        '.MMmmmymmmmM..',
+        '..Mmmmmmmmm...',
+        '..MMmmmmmmM...',
+        '..yyyyyyyyyy..',
+        '..MmmmnmmmmM..',
+        '.MMmmnnnmmmMM.',
+        '.MMyyyyyyyyyM.',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: ['.dd.........', 'ddDd........', '.dDDmmmmm...', '..mmmmmmmmm.', '.mmmmmmmmmmm', 'mmmmmmmmmmm.', 'mmyyyyyyyyy.', 'mmm.........', 'mmm.........', 'mMm.........', '.MM.........'], x: 17, y: 9 },
+      { part: ['yy.....', 'mMm....', '.MmMm..', '..mmmm.', '...MMm.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 铁甲骑兵：人马同披鳞甲（马颈到大腿都覆满鳞片），骑手鳞片札甲、带护颈垂帘的尖顶盔与红缨。
+  cataphract: {
+    hand: [32, 27],
+    signature: 'lance',
+    palette: { r: '#6A4A2E', R: '#4A321E', q: '#2A1E14', m: '#C8B890', n: '#8A7A50', M: '#6E6040', d: '#C8443A' },
+    layers: onHorse([
+      '....nMMn......',
+      '..mnmnmnmn....',
+      '.mnmnmnmnmnm..',
+      '.nmnmnmnmnmn..',
+      '.mnmnmnmnmnm..',
+      '.nmnmnmnmnmn..',
+      '..mnmnmnmnm...',
+      '..aaaaaaaaaa..',
+      '..MmnmnmnmnmM.',
+      '.MMnmnmnmnmnmn',
+    ], ['mn.....', 'nmn....', '.mnms..', '..ssss.', '...sss.'], {
+      leg: ARMORED_LEG,
+      before: [{ part: SCALE_BARDING, x: 5, y: 22 }, { part: SADDLE_CLOTH, x: 13, y: 32 }],
+      head: [{ part: ['.....d......', '....dd......', '....mm......', '...mmmm.....', '..mmmmmm....', '.mmmmmmmm...', 'MMMMMMMMMM..', 'nmn.........', 'mnm.........', 'nmn.........', '.nm.........'], x: 17, y: 4 }],
+    }),
+  },
+} satisfies Record<string, ClassLook>;

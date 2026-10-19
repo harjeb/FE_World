@@ -1,0 +1,230 @@
+// 兽人路线 5 个职业的交战形象（见 ../battle.ts 的调色约定、./kit.ts 的坐标）。兽耳和尾巴用发色 h/H，
+// 所以同一个角色从幼战士一路升到兽神将，耳朵尾巴的颜色都不变；手上的爪击由武器层 beast 画。
+import type { ClassLook } from '../battle.ts';
+import { cape } from './kit.ts';
+
+// 立在头顶的一对尖耳（内侧粉色），叠在头部之后、头饰之前。
+const EARS = [
+  '.h.....h..',
+  'hph...hph.',
+  'hph...hph.',
+  'hhhh.hhhh.',
+];
+// 从腰后翘起、尾尖上扬的狼尾（尾尖发白）；右下角是尾根，画在身体之前、被躯干盖住。
+const TAIL = [
+  'k.........',
+  'kk........',
+  'hkh.......',
+  '.hhh......',
+  '.hhhh.....',
+  '..hhhhh...',
+  '...hhhhhh.',
+  '....HhhhhH',
+  '......HHH.',
+];
+const BIG_TAIL = [
+  'kk..........',
+  'kkk.........',
+  'hkkh........',
+  'hhhhh.......',
+  '.hhhhh......',
+  '.hhhhhhh....',
+  '..hhhhhhhh..',
+  '...HhhhhhhhH',
+  '....HHhhhhH.',
+  '......HHHH..',
+];
+
+export const BEAST_LOOKS = {
+  // 幼战士：个头小一圈的兽族少年——大耳朵、毛边小背心、阵营色短裤、赤足戴毛脚环。
+  beast_cub: {
+    hand: [32, 34],
+    signature: 'beast',
+    palette: { f: '#C8A070', F: '#8E6A44', p: '#E8A0A0' },
+    layers: [
+      { part: TAIL, x: 10, y: 30 },
+      { part: [
+        '..sss..sss...',
+        '..sss...sss..',
+        '.sss.....sss.',
+        '.sss.....sss.',
+        '.sSs.....sSs.',
+        '.fff.....fff.',
+        '.fFf.....fFf.',
+        'ssss.....ssss',
+        'SSSS.....SSSS',
+      ], x: 17, y: 38 },
+      { part: [
+        '...sSSs.....',
+        '.ffssssff...',
+        'fffssssfff..',
+        'Fffssssff...',
+        'FFfsssffF...',
+        '.wwwwwwww...',
+        '.aaaaaaaaa..',
+        '.aaaaaaaaa..',
+        'AAAA..AAAA..',
+      ], x: 18, y: 29 },
+      { part: 'head', x: 18, y: 18 },
+      { part: EARS, x: 19, y: 15 },
+      { part: ['ff.....', 'sss....', '.ssss..', '..ssss.', '...sss.'], x: 27, y: 30 },
+    ],
+  },
+
+  // 兽战士：赤膊斜披一张兽皮、阵营色腰布、护腕、腿缠兽毛，竖耳长尾。
+  beast_fighter: {
+    hand: [32, 31],
+    signature: 'beast',
+    palette: { f: '#8A7A6A', F: '#5A4E42', p: '#E8A0A0' },
+    layers: [
+      { part: TAIL, x: 9, y: 28 },
+      { part: [
+        '...sss...sss...',
+        '...sss...ssss..',
+        '..sss.....sss..',
+        '..sss.....sss..',
+        '.sSs.......sSs.',
+        '.fff.......fff.',
+        '.fFf.......fFf.',
+        'ssss........sss',
+        'SSSS.......SSSS',
+      ], x: 16, y: 38 },
+      { part: [
+        '....sSSs......',
+        '..ffssssss....',
+        '.fffssssssss..',
+        '.FfffsssSsss..',
+        '.FFfffsssssS..',
+        '..FFfffsssss..',
+        '..SssFffssss..',
+        '..SSsssFfssS..',
+        '..WWWWWWWWWW..',
+        '...aaaaaaaa...',
+        '...aaaaaaaa...',
+        '...AaaaaaaA...',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: EARS, x: 19, y: 12 },
+      { part: ['ss.....', 'sss....', '.ssss..', '..wsss.', '...sss.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 兽勇士：兽牙项链、皮甲胸口缝着阵营色布、脸颊两道红色战纹、身后半截兽皮披风。
+  beast_hero: {
+    hand: [32, 31],
+    signature: 'beast',
+    palette: { c: '#B0342A', f: '#8A7A6A', F: '#5A4E42', p: '#E8A0A0' },
+    layers: [
+      { part: cape('f', 'F', 11), x: 11, y: 26 },
+      { part: TAIL, x: 9, y: 28 },
+      { part: [
+        '...www...www...',
+        '...www...wwww..',
+        '..www.....www..',
+        '..www.....www..',
+        '.wWw.......wWw.',
+        '.fff.......fff.',
+        '.fFf.......fFf.',
+        'ssss........sss',
+        'SSSS.......SSSS',
+      ], x: 16, y: 38 },
+      { part: [
+        '....kSkk......',
+        '..wwkwkwkw....',
+        '.wwwwwwwwwww..',
+        '.Wwwwaaawwww..',
+        '.Wwwwaaawwww..',
+        '.WWwwwwwwwwW..',
+        '..Wwwwwwwww...',
+        '..WWwwwwwwW...',
+        '..WWWyWWWWWW..',
+        '..aaaaaaaaaa..',
+        '.aaaaaaaaaaaa.',
+        '.AAaaaa.aaaAA.',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: EARS, x: 19, y: 12 },
+      { part: ['cc', '..', 'cc'], x: 25, y: 22 },
+      { part: ['ff.....', 'sss....', '.ssss..', '..wsss.', '...sss.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 兽王卫：四阶。钢胸甲配毛皮翻领、只护额头的铁额甲（兽耳从上面露出）、阵营色兽皮斗篷、铁护胫。
+  beast_guard: {
+    hand: [32, 31],
+    signature: 'beast',
+    palette: { f: '#8A6A4A', F: '#5A4430', m: '#B4BCC2', M: '#7C868E', n: '#4A5258', p: '#E8A0A0' },
+    layers: [
+      { part: cape('a', 'A'), x: 11, y: 26 },
+      { part: BIG_TAIL, x: 7, y: 27 },
+      { part: [
+        '...bbb...bbb...',
+        '...bbb...bbbb..',
+        '..mmm.....mmm..',
+        '..mMm.....mMm..',
+        '.mmM.......mmM.',
+        '.mMM.......mMM.',
+        '.MMM.......MMM.',
+        'ssss........sss',
+        'SSSS.......SSSS',
+      ], x: 16, y: 38 },
+      { part: [
+        '..ffffffff....',
+        '.ffFfffFfff...',
+        'fFMmmmmmmmFf..',
+        '.MmmmmnmmmmM..',
+        '.Mmmmnmmmmmm..',
+        '.MMmmmmmmmmM..',
+        '..Mmmmmmmmm...',
+        '..MMmmmmmmM...',
+        '..WwywwwwwwW..',
+        '..aAaAaAaAaA..',
+        '.aAaAaAaAaAa..',
+        '.AA.AA.AA.AA..',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: EARS, x: 19, y: 12 },
+      { part: ['.mmmmmmmmm.', 'MMMMMMMMMMn', '.........n.'], x: 18, y: 16 },
+      { part: ['mmmm...', 'MmmMm..', '.nMss..', '..mmss.', '...sss.'], x: 27, y: 28 },
+    ],
+  },
+
+  // 兽神将：兽系五阶。雪白鬃毛披肩、两耳之间的金额环、阵营色金纹长衣、臂上发光的金色兽纹、长尾。
+  beast_lord: {
+    hand: [32, 31],
+    signature: 'beast',
+    palette: { f: '#F0EADF', F: '#C8C0B0', g: '#FCE08A', p: '#E8A0A0' },
+    layers: [
+      { part: BIG_TAIL, x: 7, y: 27 },
+      { part: [
+        '...kkk...kkk...',
+        '...kkk...kkkk..',
+        '..kkK.....kkK..',
+        '..kkK.....kkK..',
+        '.kkK.......kkK.',
+        '.kKK.......kKK.',
+        '.yyy.......yyy.',
+        'ssss........sss',
+        'SSSS.......SSSS',
+      ], x: 16, y: 38 },
+      { part: [
+        '.ffffffffff...',
+        'fffFffffFfff..',
+        'fFfaaayaaafFf.',
+        '.Ffaaayaaaff..',
+        '..Faayyyaaa...',
+        '..aaaayaaaaa..',
+        '..Aaaayaaaaa..',
+        '..AAaayaaaaA..',
+        '..yyyyyyyyyy..',
+        '..aaaaaaaaaa..',
+        '.aaaaayaaaaaa.',
+        '.AAaaay.aaaAA.',
+      ], x: 17, y: 26 },
+      { part: 'head', x: 18, y: 15 },
+      { part: EARS, x: 19, y: 12 },
+      { part: ['..yyyyyy.', '....g....'], x: 19, y: 16 },
+      { part: ['ff.....', 'sgs....', '.ssgs..', '..ysss.', '...sss.'], x: 27, y: 28 },
+    ],
+  },
+} satisfies Record<string, ClassLook>;
