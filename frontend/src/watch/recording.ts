@@ -26,7 +26,7 @@ export interface Recording {
 // The unit an event starts acting with, if it is an action event.
 function actorOf(e: BattleEvent): string | null {
   switch (e.t) {
-    case 'move': case 'wait': case 'seize': case 'spawn': case 'dance': case 'cast': case 'statusRoll': return e.unit;
+    case 'terrain': case 'move': case 'wait': case 'seize': case 'spawn': case 'dance': case 'cast': case 'statusRoll': return e.unit;
     case 'object': return e.by;
     case 'treasure': case 'hazard': case 'status': return e.unit;
     case 'combat': return e.attacker;
@@ -75,6 +75,9 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
         u.movedTurn = d.turn;
         break;
       }
+      case 'terrain':
+        d.map.tiles[e.at[1]][e.at[0]] = e.terrain;
+        break;
       case 'combat':
         for (const s of e.strikes) {
           unit(s.target).hp = s.hpAfter;

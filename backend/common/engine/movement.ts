@@ -19,9 +19,16 @@ export function enterCost(state: BattleState, unit: UnitState, [x, y]: Point): n
   return TERRAINS[state.map.tiles[y][x]].costs[MOVEMENT[classOf(unit).moveType].index];
 }
 
+export function movementBudget(state: BattleState, unit: UnitState): number {
+  if (unit.artEffects?.statuses?.includes('root')) return 0;
+  const cls = classOf(unit), tile = state.map.tiles[unit.pos[1]][unit.pos[0]];
+  const ground = cls.moveType === 'flying' ? 0 : tile === 'snow' ? -1 : tile === 'ice' ? 1 : 0;
+  return Math.max(1, cls.move + ground + artBonus(unit, 'move') - (unit.artEffects?.movementPenalty ?? 0));
+}
+
 // Dijkstra over terrain costs. Enemy units block; allies can be passed through but not stopped on.
 // Ties resolve by cell order so the same state always yields the same paths.
-export function moveRange(state: BattleState, unit: UnitState, budget = Math.max(1, classOf(unit).move + artBonus(unit, 'move') - (unit.artEffects?.movementPenalty ?? 0))): MoveRange {
+export function moveRange(state: BattleState, unit: UnitState, budget = movementBudget(state, unit)): MoveRange {
   if (unit.artEffects?.statuses?.includes('root')) budget = 0;
   const origin = cellKey(state, unit.pos);
   const others = living(state).filter(u => u.id !== unit.id);

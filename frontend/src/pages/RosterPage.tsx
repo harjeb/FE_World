@@ -14,7 +14,7 @@ import { go, links } from '../router.ts';
 import type { RosterTab } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { toast } from '../ui/toast.tsx';
-import { EquipmentPanel, GrowthPanels, MasteryPanel, ProfileHeader, StatsPanel, StatusTag, StoryPanel, WeaponRanksPanel } from './RosterParts.tsx';
+import { AbilityPanel, EquipmentPanel, GrowthPanels, MasteryPanel, ProfileHeader, SkillsPanel, StatusTag, StoryPanel, WeaponRanksPanel } from './RosterParts.tsx';
 import { ClassMarketPanel, RetireTab } from './RosterLegacy.tsx';
 import { UnitFace } from './SystemParts.tsx';
 
@@ -128,17 +128,19 @@ export function RosterPage({ unit: wanted, tab }: { unit: string | null; tab: Ro
         <div className="roster-detail">
           <ProfileHeader unit={unit} current={tab} />
           {tab === 'stats' && (
-            <div className="cols2">
-              <div className="flex min-w-0 flex-col gap-3">
-                <StatsPanel unit={unit} />
-                <StoryPanel detail={detail} />
+            <>
+              {/* 三栏，对应官方状态页：能力（战斗／基本 + 雷达图）、装备与武器等级、按来源分组的技能。 */}
+              <div className="status-cols">
+                <AbilityPanel unit={unit} />
+                <div className="flex min-w-0 flex-col gap-3">
+                  <EquipmentPanel unit={unit}
+                    onEquip={id => void session.run(OP.TRANSFER_ITEM, { unitId: unit.id, item: id, action: 'equip' }).then(() => toast(`${unit.name}装备了${WEAPONS[id].name}`), e => toast(`操作失败：${e instanceof Error ? e.message : String(e)}`))} />
+                  <WeaponRanksPanel unit={unit} />
+                </div>
+                <SkillsPanel unit={unit} />
               </div>
-              <div className="flex min-w-0 flex-col gap-3">
-                <EquipmentPanel unit={unit}
-                  onEquip={id => void session.run(OP.TRANSFER_ITEM, { unitId: unit.id, item: id, action: 'equip' }).then(() => toast(`${unit.name}装备了${WEAPONS[id].name}`), e => toast(`操作失败：${e instanceof Error ? e.message : String(e)}`))} />
-                <WeaponRanksPanel unit={unit} />
-              </div>
-            </div>
+              <StoryPanel detail={detail} />
+            </>
           )}
           {tab === 'growth' && <GrowthPanels unit={unit} />}
           {tab === 'mastery' && <MasteryPanel key={unit.id} unit={unit} />}

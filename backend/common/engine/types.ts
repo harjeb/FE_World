@@ -161,7 +161,7 @@ export interface BattleState {
   // Arena battles use frozen snapshots and give no experience (docs/03).
   kind: 'field' | 'arena';
   name: string;
-  map: { width: number; height: number; tiles: Terrain[][] };
+  map: { width: number; height: number; tiles: Terrain[][]; season?: number };
   units: UnitState[];
   turn: number;
   turnLimit: number;
@@ -206,6 +206,7 @@ export interface Strike { by: string; target: string; hit: boolean; crit: boolea
 
 export type BattleEvent =
   | { t: 'move'; unit: string; path: Point[] }
+  | { t: 'terrain'; unit: string; at: Point; terrain: Terrain }
   | { t: 'combat'; attacker: string; defender: string; weapons: [WeaponId, WeaponId | null]; strikes: Strike[]; forecast?: Forecast }
   | { t: 'defeated'; unit: string }
   | { t: 'shield'; unit: string }

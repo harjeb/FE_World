@@ -67,6 +67,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 5, text: 'v5: COMPLETE_SETUP保留固定基础属性，allocation改为额外10点加成，每项0–5、未填按0计；GET_STATE.setup.protagonist新增baseStats，默认加点为0，倾向只按额外加点推导。已有角色属性与成长不重算。' },
     { version: 6, text: 'v6: 十二地区新增持久化flags.regionExploration（0–100，新账号为0）；普通随机野外遭遇战胜利+3，单图任务完成+5，每个副本（含多图任务）仅首次完整通关+20，中间图及重复副本不增加，任务与副本不叠加；单独领奖、失败、撤退、扫荡和后台派遣均+0。初选1–4自由，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；探索度独立于clearedRegions，首次胜利仍按原规则开放战斗功能与扫荡。旧档仅在缺失探索度字段时惰性初始化，只有此前已讨伐地区设为100，其他地区为0，既有探索度不再次回填，已开通权限与历史数据保留。世界、任务、随机野外准备及副本准备页展示探索条。' },
     { version: 7, text: 'v7: 补齐请求参数 schema 与公共 commandId，agent-api.json 同步提供 dataSchema；MCP 排除 WebSocket 专用 LOGIN／LOGOUT，写操作使用稳定命令 ID 重试并在结果未确认时返回恢复 ID；维修纳入控制权、赛事、战斗和版本校验，报价执行复用同一操作校验且仅递增一次版本；GET_AGENT_INFO 按账号最近五分钟心跳判断在线。' },
+    { version: 8, text: 'v8: 冬季新战斗草地转雪地、水域与浅滩转冰面，行动起点雪地移动−1／冰面+1，飞行不受影响；重甲踩过的冰格永久碎为水域。GET_BATTLE新增map.season及单位terrain/move/moveType/armored，GET_REACHABLE新增move和stops[].path；terrain事件记录碎冰，完整状态保留动态地形。瓦恩要塞与莱斯米尔湖镇新增大河浅洲／湖心群岛野图。规则rules-v8、目录23；旧战斗地图不重绘，旧规则回放保持冻结。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

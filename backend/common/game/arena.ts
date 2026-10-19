@@ -4,6 +4,7 @@ import { OPPONENTS } from '../arena/demo.ts';
 import { applyBans, arenaPoints, createArenaBattle, validateAttack } from '../arena/rules.ts';
 import type { AttackPlan, Defense, Reveal, SnapshotUnit } from '../arena/rules.ts';
 import { trialAttack } from '../arena/defense.ts';
+import { dateOf } from './calendar.ts';
 import type { BattleState } from '../engine/types.ts';
 
 // One player's arena day (docs/05): three opponents, each attackable once. The server owns this;
@@ -74,7 +75,7 @@ export function banFor(day: ArenaDayRecord, opponentId: string, bans: CharacterI
   return reveal;
 }
 
-export function startAttack(day: ArenaDayRecord, opponentId: string, roster: SnapshotUnit[], plan: AttackPlan, seed: string): BattleState {
+export function startAttack(day: ArenaDayRecord, opponentId: string, roster: SnapshotUnit[], plan: AttackPlan, seed: string, departureDay = day.day): BattleState {
   const opponent = day.opponents.find(o => o.id === opponentId);
   if (!opponent) throw new Error(`没有对手 ${opponentId}`);
   const attack = day.attacks[opponentId];
@@ -85,7 +86,7 @@ export function startAttack(day: ArenaDayRecord, opponentId: string, roster: Sna
   const errors = validateAttack(opponent, reveal, roster, plan);
   if (errors.length > 0) throw new Error(errors.join('；'));
   attack.reveal = reveal;
-  const state = createArenaBattle(opponent, attack.bans, roster, plan, seed);
+  const state = createArenaBattle(opponent, attack.bans, roster, plan, seed, dateOf(departureDay).season);
   attack.status = 'fighting';
   return state;
 }

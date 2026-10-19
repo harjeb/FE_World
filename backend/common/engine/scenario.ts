@@ -3,6 +3,7 @@ import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { attackWeapons, cellKey, classOf, inBounds, living, samePoint, unitAt, wake } from './units.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import { EngineError } from './types.ts';
+import { breakIce } from './terrain.ts';
 import type {
   BattleEvent, BattleObject, BattleState, Point, ScenarioAction, ScenarioEvent, ScenarioMapChange, UnitState,
 } from './types.ts';
@@ -184,6 +185,7 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
       });
       state.units.push(enemy);
       events.push({ t: 'spawn', unit: id, event: event.id, spawned: structuredClone(enemy) });
+      breakIce(state, enemy, [pos], events);
     });
   } else if (action.kind === 'setObject') {
     const object = objectById(state, action.object);

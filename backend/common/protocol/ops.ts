@@ -106,8 +106,8 @@ export const OPS: readonly OpDef[] = [
   { op: 141, name: 'GET_WORLD_MAP', group: '地图', agentNote: '读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions、各地区0–100探索度；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区继续可访问，探索度独立于讨伐记录。' },
   { op: 142, name: 'CHOOSE_ROUTE', group: '地图', agentNote: '把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次可自由选择1–4，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；需先完成开局自捏。' },
 
-  { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。' },
-  { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
+  { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。' },
+  { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
   { op: 52, name: 'PREVIEW_COMBAT', group: '战斗', agentNote: '从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。' },
   { op: 53, name: 'GET_THREAT_MAP', group: '战斗', agentNote: '敌方下个阶段所有单位能攻击到的格子与每格威胁数。' },
   { op: 54, name: 'UNIT_ACT', group: '战斗', agentNote: '原子提交「移动 + 行动」，action 取 attack／heal／item／seize／escape／interact／wait／dance／art／cast／staff；传送与临时墙带 dest；战技可带 allyId 选友军、secondaryId 选分流次目标，postTo 选战后移动；support 为一次自付资源的非敌对追加 {target, spell 或 weapon, dest?}（target 不是 targetId，禁止嵌套 action/art）。先查 GET_REACHABLE。确认后不能悔棋，先查询再提交。' },
@@ -162,7 +162,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 7;
+export const DOC_VERSION = 8;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

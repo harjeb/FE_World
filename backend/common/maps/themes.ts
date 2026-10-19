@@ -7,6 +7,8 @@ export const THEMES = {
   palace: { name: '王宫内', ground: 'floor' },
   town: { name: '城镇街道', ground: 'plain' },
   mountain: { name: '山地', ground: 'plain' },
+  riverlands: { name: '大河浅洲', ground: 'plain' },
+  lakeland: { name: '湖心群岛', ground: 'plain' },
   forest: { name: '树林', ground: 'plain' },
 } as const;
 export type Theme = keyof typeof THEMES;
@@ -44,6 +46,33 @@ export function generateTerrain(width: number, height: number, theme: Theme, ran
   const area = width * height;
 
   switch (theme) {
+    case 'riverlands': {
+      const span = Math.max(4, Math.floor(width * 0.65));
+      let left = Math.floor((width - span) / 2);
+      for (let y = 0; y < height; y++) {
+        left = Math.max(1, Math.min(width - span - 1, left + integer(3) - 1));
+        rectangle(left, y, span, 1, 'water');
+        paint(left, y, 'shallows');
+        paint(left + span - 1, y, 'shallows');
+      }
+      for (let y = 3; y < height - 2; y += 6) {
+        const x = Math.floor(width / 2) - 1 + integer(3);
+        rectangle(x, y, 2, 2, 'shallows');
+        paint(x, y, ground);
+      }
+      break;
+    }
+    case 'lakeland': {
+      rectangle(2, 1, width - 4, height - 2, 'water');
+      for (let y = 4; y < height - 3; y += 7) {
+        for (let x = 5; x < width - 4; x += 7) {
+          const cx = x + integer(3) - 1, cy = y + integer(3) - 1;
+          rectangle(cx - 1, cy - 1, 3, 3, 'shallows');
+          rectangle(cx, cy, 1 + integer(2), 1 + integer(2), ground);
+        }
+      }
+      break;
+    }
     case 'grassland':
       patches('forest', Math.max(2, Math.floor(area / 65)), 18, true);
       patches('mountain', Math.max(2, Math.floor(area / 140)), 12);

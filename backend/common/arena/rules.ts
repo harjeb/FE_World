@@ -9,7 +9,7 @@ import type { WeaponId } from '../data/weapons.ts';
 import { seedRng } from '../engine/rng.ts';
 import { EngineError } from '../engine/types.ts';
 import type { BattleState, Behavior, ItemStack, Point, Side, UnitState } from '../engine/types.ts';
-import { tilesFromGlyphs } from '../maps/map.ts';
+import { seasonalMap, tilesFromGlyphs } from '../maps/map.ts';
 import { ARENA_MAPS, throneOf } from './maps.ts';
 import type { ArenaMap, ArenaMapId } from './maps.ts';
 
@@ -170,7 +170,7 @@ export const defenderId = (character: CharacterId) => `d-${character}`;
 
 // Builds the battle: attacker = player side and moves first, defender units run the rule AI with
 // the behaviors from the defense setup. Arena battles give no experience.
-export function createArenaBattle(defense: Defense, bans: string[], roster: SnapshotUnit[], plan: AttackPlan, seed: string): BattleState {
+export function createArenaBattle(defense: Defense, bans: string[], roster: SnapshotUnit[], plan: AttackPlan, seed: string, season = 1): BattleState {
   const map = arenaMap(defense);
   const reveal = applyBans(defense, bans, roster);
   const errors = validateAttack(defense, reveal, roster, plan);
@@ -188,7 +188,7 @@ export function createArenaBattle(defense: Defense, bans: string[], roster: Snap
     id: `arena-${defense.id}-${seed}`,
     kind: 'arena',
     name: map.name,
-    map: { width: tiles[0].length, height: tiles.length, tiles },
+    map: seasonalMap(tiles, season),
     units: [...attackers, ...defenders],
     turn: 1,
     turnLimit: map.turnLimit,

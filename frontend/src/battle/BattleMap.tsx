@@ -152,7 +152,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
   const ghostElsewhere = !!ghost && !!selected && (ghost.at[0] !== selected.pos[0] || ghost.at[1] !== selected.pos[1]);
   const infoAt = target?.pos ?? hover ?? selected?.pos ?? null;
   const W = view.map.width;
-  const image = mapArt(view.name, view.map.tiles);
+  const image = mapArt(view.name, view.map.tiles, view.map.season);
   // 王座: always framed; named while hovered or while our commander is selected, unless the
   // planned destination already sits there.
   const goal = view.goal;

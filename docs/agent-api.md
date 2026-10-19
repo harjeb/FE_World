@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 7
+docVersion: 8
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -199,8 +199,8 @@ MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT�
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 50 | GET_BATTLE | 读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。 |
-| 51 | GET_REACHABLE | 某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。 |
+| 50 | GET_BATTLE | 读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。 |
+| 51 | GET_REACHABLE | 某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。 |
 | 52 | PREVIEW_COMBAT | 从某格用某武器（可加 art 战技，或用 spell 代替武器预测攻击法术）打某个目标：双方伤害、命中、必杀、出手次数、反噬／附毒／书次数与击杀概率；状态杖或控场法术只返回 status 命中率（首领减半）；art 支持 allyId/secondaryId/postTo/support，破墙目标返回物件 HP/伤害/成本，无 EXP。 |
 | 53 | GET_THREAT_MAP | 敌方下个阶段所有单位能攻击到的格子与每格威胁数。 |
 | 54 | UNIT_ACT | 原子提交「移动 + 行动」，action 取 attack／heal／item／seize／escape／interact／wait／dance／art／cast／staff；传送与临时墙带 dest；战技可带 allyId 选友军、secondaryId 选分流次目标，postTo 选战后移动；support 为一次自付资源的非敌对追加 {target, spell 或 weapon, dest?}（target 不是 targetId，禁止嵌套 action/art）。先查 GET_REACHABLE。确认后不能悔棋，先查询再提交。 |

@@ -19,7 +19,7 @@ const AILMENT: Record<string, string> = { poison: '中毒', root: '定身', sile
 function terrainNote(side: SideForecast) {
   if (!side.terrain.applies) return '飞行，不受地形加成';
   if (side.terrain.avoid === 0 && side.terrain.def === 0) return `${side.terrain.name} · 无地形加成`;
-  return `${side.terrain.name} · 回避 ${side.terrain.avoid >= 0 ? '+' : ''}${side.terrain.avoid} 防御 +${side.terrain.def}`;
+  return `${side.terrain.name} · 回避 ${side.terrain.avoid >= 0 ? '+' : ''}${side.terrain.avoid} 物防 +${side.terrain.def}`;
 }
 
 // HP bar: solid = current HP, hatched = what this exchange could take away if every strike lands.

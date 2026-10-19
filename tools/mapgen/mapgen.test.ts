@@ -49,7 +49,7 @@ function plainMap(): BattleMap {
   return map;
 }
 
-test('2400 theme/seed/size combinations: all traversable cells and targets are connected', () => {
+test('theme/seed/size combinations: all traversable cells and targets are connected', () => {
   for (const theme of Object.keys(THEMES) as Theme[]) {
     for (let seed = 0; seed < 100; seed++) {
       for (const [width, height] of [[10, 10], [20, 20], [25, 25], [32, 18]]) {
@@ -79,7 +79,7 @@ test('same version, seed and options reproduce exact JSON; different seeds vary'
 
 test('themes change structure, indoor maps contain no outdoor terrain', () => {
   const generated = (Object.keys(THEMES) as Theme[]).map(theme => generateMap({ seed: 'theme', theme, width: 25 }));
-  assert.equal(new Set(generated.map(map => JSON.stringify(map.tiles))).size, 6);
+  assert.equal(new Set(generated.map(map => JSON.stringify(map.tiles))).size, Object.keys(THEMES).length);
   for (const map of generated.filter(map => ['city', 'palace', 'town'].includes(map.theme))) {
     assert.ok(map.tiles.flat().includes('wall'));
     assert.ok(!map.tiles.flat().includes('water'));
@@ -128,10 +128,44 @@ test('repaired paths cross rivers on bridges, so only river themes have bridges'
     for (let seed = 0; seed < 50; seed++) {
       if (!generateMap({ seed: `bridge-${seed}`, theme }).tiles.flat().includes('bridge')) continue;
       bridged++;
-      assert.ok(['grassland', 'forest', 'mountain'].includes(theme));
+      assert.ok(['grassland', 'forest', 'mountain', 'riverlands', 'lakeland'].includes(theme));
     }
   }
   assert.ok(bridged > 0);
+});
+
+test('water themes retain broad water regions after repairs and reproduce distinct layouts', () => {
+  for (const seed of ['winter', '大河', '0', '42']) {
+    const layouts = [];
+    for (const theme of ['riverlands', 'lakeland'] as const) {
+      for (const unitsPerSide of [1, 6, 8]) {
+        const options = { seed, theme, width: 20, height: 20, unitsPerSide };
+        const map = generateMap(options);
+        assert.ok(map.tiles.flat().filter(tile => tile === 'water').length >= 100, `${theme}/${seed}/${unitsPerSide}: water coverage`);
+        assert.ok(map.tiles.flat().includes('bridge'));
+        assert.equal(validateMap(map).valid, true);
+        independentlyCheck(map);
+        assert.deepEqual(map, generateMap(options));
+        assert.notDeepEqual(map.tiles, generateMap({ ...options, seed: `${seed}-other` }).tiles);
+        const unseen = new Set(map.tiles.flat().flatMap((tile, i) => tile === 'water' ? [i] : []));
+        let largest = 0;
+        while (unseen.size) {
+          const queue = [unseen.values().next().value!];
+          unseen.delete(queue[0]);
+          for (let i = 0; i < queue.length; i++) {
+            const x = queue[i] % 20, y = Math.floor(queue[i] / 20);
+            for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+              if (nx >= 0 && nx < 20 && ny >= 0 && ny < 20 && unseen.delete(ny * 20 + nx)) queue.push(ny * 20 + nx);
+            }
+          }
+          largest = Math.max(largest, queue.length);
+        }
+        assert.ok(largest >= 40, `${theme}/${seed}: connected water region`);
+        layouts.push(JSON.stringify(map.tiles));
+      }
+    }
+    for (let i = 0; i < 3; i++) assert.notEqual(layouts[i], layouts[i + 3]);
+  }
 });
 
 test('a water barrier passes flying but fails ground movement', () => {

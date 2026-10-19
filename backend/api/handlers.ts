@@ -4,7 +4,7 @@ import { OP, OP_BY_NUMBER, WRITE_OPS } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import type { Action, ActAction, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
-import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, moveRange, spellForecast, spellKind, statusChance, step, threatMap, unitById } from '../common/engine/index.ts';
+import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, movementBudget, moveRange, pathTo, spellForecast, spellKind, statusChance, step, threatMap, unitById } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
 import { validateArt, availableArts } from '../common/engine/arts.ts';
 import { TERRAINS } from '../common/maps/map.ts';
@@ -193,8 +193,11 @@ export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0
     npcRoute: state.npcRoute ?? null,
     result: state.result ?? null,
     embers: state.embers ?? [],
-    map: asciiMap(state),
-    units: state.units.filter(u => u.alive).map(u => detail ? fullUnit(u) : compactUnit(u)),
+    map: { ...asciiMap(state), season: state.map.season ?? null },
+    units: state.units.filter(u => u.alive).map(u => ({
+      ...(detail ? fullUnit(u) : compactUnit(u)), move: movementBudget(state, u),
+      terrain: state.map.tiles[u.pos[1]][u.pos[0]], moveType: CLASSES[u.classId].moveType, armored: CLASSES[u.classId].armored,
+    })),
     events: record.events.slice(sinceEvent),
     eventCount: record.events.length,
   };
@@ -1195,7 +1198,7 @@ const handlers: Record<number, Handler> = {
     ctx.player.day += DUNGEON_STAGE_DAYS;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
-    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, seed, level, stageIndex: 0, runId: run.id });
+    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, day: ctx.player.day - DUNGEON_STAGE_DAYS, seed, level, stageIndex: 0, runId: run.id });
     record.playerId = ctx.player.id;
     run.battleId = record.id;
     ctx.store.saveRun(run);
@@ -1228,8 +1231,9 @@ const handlers: Record<number, Handler> = {
     const seed = randomUUID().slice(0, 8);
     const record = run.scenarioIds?.length
       ? createClassicBattle(units, { mapId: run.scenarioIds[run.stageIndex], seed, quest: run.questId ? questById(run.questId) : undefined,
-          stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day })
-      : createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest });
+          stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day,
+          season: dateOf(ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS)).season })
+      : createFieldBattle(units, { region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS), seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest });
     record.playerId = ctx.player.id;
     run.state = 'battle';
     run.battleId = record.id;
@@ -1476,7 +1480,7 @@ const handlers: Record<number, Handler> = {
       const options = actionOptions(record.state, unit, pos);
       const dest = (rule: Parameters<typeof destinationCells>[3] | null) => (rule ? { ...rule, cells: destinationCells(record.state, unit, pos, rule) } : null);
       return {
-        pos, cost: range.cost.get(key) ?? 0,
+        pos, cost: range.cost.get(key) ?? 0, path: pathTo(record.state, range, pos),
         attackable: options.attack.flatMap(o => o.targets.map(t => ({ target: t.id, weapon: o.weapon }))),
         healable: options.heal.flatMap(o => o.targets.map(t => ({ target: t.id, weapon: o.weapon }))),
         seize: options.seize,
@@ -1489,7 +1493,7 @@ const handlers: Record<number, Handler> = {
         dance: options.dance,
       };
     });
-    return { unit: unit.id, origin: unit.pos, stops };
+    return { unit: unit.id, origin: unit.pos, move: movementBudget(record.state, unit), stops };
   },
 
   [OP.PREVIEW_COMBAT]: (ctx, data) => {
@@ -1685,7 +1689,7 @@ const handlers: Record<number, Handler> = {
     const seed = randomUUID().slice(0, 8);
     let state: BattleState;
     try {
-      state = startAttack(record, opponentId, roster, plan, seed);
+      state = startAttack(record, opponentId, roster, plan, seed, ctx.player.day);
     } catch (error) {
       if (error instanceof EngineError) throw new OpError(error.code, error.message);
       throw error;
@@ -1881,7 +1885,7 @@ const handlers: Record<number, Handler> = {
     const round = nextFestivalRound(entry);
     entry.matchSeeds ??= Array.from({ length: 9 }, () => randomUUID());
     const seed = entry.matchSeeds[round - 1];
-    const record = createFestivalBattle(units, round, seed, { day: entry.annualIndex * DAYS_PER_YEAR, annualId: entry.id, edition: entry.annualIndex, carry: entry.carry });
+    const record = createFestivalBattle(units, round, seed, { day: entry.annualIndex * DAYS_PER_YEAR, season: dateOf(ctx.player.day).season, annualId: entry.id, edition: entry.annualIndex, carry: entry.carry });
     record.playerId = ctx.player.id;
     ctx.player.day += ACTION_DAYS.festivalMatch;
     syncPlayer(ctx.store, ctx.player);
@@ -2172,7 +2176,7 @@ const handlers: Record<number, Handler> = {
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += costDays;
       syncPlayer(ctx.store, ctx.player);
-      const record = createClassicBattle(ready, { mapId: quest.scenarioIds[0], seed, quest, stageIndex: 0, runId: run.id, day: ctx.player.day });
+      const record = createClassicBattle(ready, { mapId: quest.scenarioIds[0], seed, quest, stageIndex: 0, runId: run.id, day: ctx.player.day, season: dateOf(ctx.player.day - costDays).season });
       record.playerId = ctx.player.id;
       run.battleId = record.id;
       ctx.store.saveRun(run);
@@ -2200,7 +2204,7 @@ const handlers: Record<number, Handler> = {
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += stageDays;
       syncPlayer(ctx.store, ctx.player);
-      const record = createFieldBattle(ready, { region: quest.region, cleared: run.clearedAtStart, seed, level, stageIndex: 0, runId: run.id, quest });
+      const record = createFieldBattle(ready, { region: quest.region, cleared: run.clearedAtStart, day: ctx.player.day - stageDays, seed, level, stageIndex: 0, runId: run.id, quest });
       record.playerId = ctx.player.id;
       run.battleId = record.id;
       ctx.store.saveRun(run);

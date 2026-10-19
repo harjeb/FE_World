@@ -1645,6 +1645,21 @@ def fill(px, ox, oy, c):
             px[ox + i, oy + j] = c
 
 
+def p_snow(px, ox, oy, ctx):
+    fill(px, ox, oy, C('#e4edf1'))
+    for i in range(2, T, 5):
+        j = i * 3 % 14
+        px[ox + i, oy + j] = C('#c5d6df')
+        px[ox + i + 1, oy + j] = C('#ffffff')
+
+
+def p_ice(px, ox, oy, ctx):
+    fill(px, ox, oy, C('#a7dce8'))
+    for i in range(2, 14):
+        px[ox + i, oy + i - 1] = C('#effbff')
+        px[ox + i, oy + (i + 7) % T] = C('#79b8d1')
+
+
 def p_grass(px, ox, oy, ctx, flowers=True):
     r = ctx.rng
     fill(px, ox, oy, GR[0])
@@ -1961,11 +1976,11 @@ def p_throne(px, ox, oy, ctx):
 
 
 # Glyphs match the terrain table in docs/03-combat.md and backend/common/maps/map.ts.
-PAINTERS = {'.': p_grass, 'f': p_forest, 'm': p_mountain, 'w': p_water,
+PAINTERS = {'.': p_grass, 'n': p_snow, 'i': p_ice, 'f': p_forest, 'm': p_mountain, 'w': p_water,
             's': lambda px, ox, oy, ctx: p_water(px, ox, oy, ctx, shallow=True),
             'r': p_road, 'b': p_bridge, '#': p_wall, 'p': p_floor, 'F': p_fort, 'v': p_village,
             'T': p_throne}
-TERRAIN_ORDER = '.rbpvfmFsw#T'
+TERRAIN_ORDER = '.rbpvfmFsw#Tni'
 
 
 def render_map(rows, seed):

@@ -1,7 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v7';
+export const RULESET_VERSION = 'rules-v8';
+// v23 / rules-v8: new battles freeze the departure season; winter plain/water become snow/ice.
+// Armored movement breaks ice persistently. Existing boards are not repainted; old replays stay frozen.
+// Riverlands/lakeland are additional field layouts in regions 4/5; no player progression is migrated.
 // v17 / rules-v7: special equipment effects (magic weapons, poison, backlash, reaver, purify, guard and
 // avoid/res bonuses, multi-rank requirements), per-cast book charges for follow-ups and counters, spell
 // effects (defense stat, fixed hits, drain, status hit rolls, buffs, area heals) and spellbook items.
@@ -18,7 +21,7 @@ export const RULESET_VERSION = 'rules-v7';
 // 单图任务完成+5、每个副本（含多图任务）仅首次完整通关+20，不叠加、不计中间图或重刷。
 // 缺失字段的旧档惰性初始化，仅此前已讨伐地区设100；已有进度不再回填，已开通地区访问权、
 // clearedRegions、养成与冻结历史保留。探索满100才可选择相邻新路线，初选1–4仍自由。
-export const CATALOG_VERSION = 22;
+export const CATALOG_VERSION = 23;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

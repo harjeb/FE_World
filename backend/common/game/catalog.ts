@@ -54,6 +54,8 @@ export function catalog() {
     ageBands: AGE_BANDS,
     terrains: Object.fromEntries(Object.entries(TERRAINS).map(([id, t]) => [id, {
       name: t.name, glyph: t.glyph, costs: t.costs, avoid: t.avoid, def: t.def, heal: t.heal,
+      ...(id === 'snow' ? { effect: '以此格开始行动时移动力−1，飞行不受影响' }
+        : id === 'ice' ? { effect: '以此格开始行动时移动力+1，飞行不受影响；重甲经过或落脚即碎为水域，无额外伤害' } : {}),
     }])),
     items: GAME_ITEMS,
     characterStories: CHARACTER_STORIES,

@@ -288,10 +288,17 @@ try {
     check('roster compares real arena snapshots', snaps.includes('1002年12月41日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_erin`, '#eq-h');
-    const charm = await page.evaluate(`(() => { const row = [...document.querySelectorAll('tbody tr')].find(r => r.querySelector('th')?.innerText === '魅力'); return row ? [...row.querySelectorAll('td')].map(td => td.innerText.trim()) : null; })()`);
+    // 基本能力格：数值视图读「值 /上限」，切到成长率视图再读合计成长。
+    const charmCell = `(() => { const cell = [...document.querySelectorAll('.ability .ab-cell')].find(c => c.querySelector('.ab-k')?.innerText === '魅力'); return cell ? [cell.querySelector('.ab-v')?.innerText.trim(), cell.querySelector('.ab-cap')?.innerText.trim() ?? null] : null; })()`;
+    const charmValue = await page.evaluate(charmCell);
+    await page.click('.ability .seg button:nth-child(2)');
+    await sleep(150);
+    const charmGrowth = await page.evaluate(charmCell);
+    await page.click('.ability .seg button:nth-child(1)');
+    const charm = [charmValue?.[0], charmValue?.[1], charmGrowth?.[0]];
     const erin = await api(page, 21, { unitId: 'u_erin' });
     check('roster shows independent charm values, cap and growth from the server',
-      charm?.[0] === String(erin.stats.cha) && charm?.[1] === String(erin.caps.cha) && charm?.at(-1) === `${erin.totalGrowth.cha}%`, JSON.stringify(charm));
+      charm[0] === String(erin.stats.cha) && charm[1] === `/${erin.caps.cha}` && charm[2] === `${erin.totalGrowth.cha}%`, JSON.stringify(charm));
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster`, '.panel');
     const roster = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
@@ -387,12 +394,17 @@ try {
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     await page.type('input', 'duplicates-seeded');
     await page.click('button[type=submit]');
-    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#st-h');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#ab-h');
     const original = await api(page, 21, { unitId: 'u_owen' });
-    const rowValue = () => page.evaluate(`(() => { const row = [...document.querySelector('#st-h').closest('section').querySelectorAll('tbody tr')].find(row => row.querySelector('th').innerText === '力'); return row?.lastElementChild.innerText.trim(); })()`);
+    // 基本能力切到成长率视图后读「力」格的合计成长。
+    const rowValue = async () => {
+      if (await page.evaluate(`document.querySelector('.ability .seg button:nth-child(2)').getAttribute('aria-pressed') !== 'true'`)) await page.click('.ability .seg button:nth-child(2)');
+      await sleep(150);
+      return page.evaluate(`[...document.querySelectorAll('.ability .ab-cell')].find(c => c.querySelector('.ab-k')?.innerText === '力')?.querySelector('.ab-v')?.innerText.trim()`);
+    };
     const originalValue = await rowValue();
     check('duplicate templates keep the first instance growth', originalValue === `${original.totalGrowth.str}%`, `first ${originalValue} vs ${original.totalGrowth.str}%`);
-    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen_twin`, '#st-h');
+    await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen_twin`, '#ab-h');
     const twin = await api(page, 21, { unitId: 'u_owen_twin' });
     const twinValue = await rowValue();
     check('duplicate templates keep the second instance growth', twinValue === `${twin.totalGrowth.str}%` && twinValue !== originalValue, `second ${twinValue} vs ${twin.totalGrowth.str}%`);

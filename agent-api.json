@@ -1,5 +1,5 @@
 {
-  "docVersion": 7,
+  "docVersion": 8,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -2175,7 +2175,7 @@
       "op": 50,
       "name": "GET_BATTLE",
       "group": "战斗",
-      "agentNote": "读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。",
+      "agentNote": "读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -2208,7 +2208,7 @@
       "op": 51,
       "name": "GET_REACHABLE",
       "group": "战斗",
-      "agentNote": "某个单位能走到哪些格，每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。",
+      "agentNote": "某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。",
       "push": false,
       "dataSchema": {
         "type": "object",

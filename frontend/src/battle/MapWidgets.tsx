@@ -6,16 +6,20 @@ import { MOVEMENT, TERRAINS } from '@common/maps/map.ts';
 import { MinusIcon, PlusIcon } from '../ui/icons.tsx';
 
 export function TerrainWindow({ state, at, mover }: { state: BattleState; at: Point; mover: UnitState | null }) {
-  const terrain = TERRAINS[terrainAt(state, at)];
+  const kind = terrainAt(state, at);
+  const terrain = TERRAINS[kind];
+  const effect = kind === 'snow' ? '从雪地出发：移动 −1（飞行不受影响）'
+    : kind === 'ice' ? '从冰面出发：移动 +1；重甲经过或落脚会踩裂冰面，变为水域（飞行不受影响）' : undefined;
   const moveType = mover ? classOf(mover).moveType : 'foot';
   const cost = terrain.costs[MOVEMENT[moveType].index];
   const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
   return (
-    <div className="widget terrain-win" aria-label={`地形：${terrain.name}`}>
+    <div className="widget terrain-win" title={effect} aria-label={`地形：${terrain.name}`}>
       <div className="t"><span>{terrain.name}</span><span className="pixel" style={{ fontSize: 10, color: '#6A6256' }}>X{at[0]} Y{at[1]}</span></div>
       <div className="r"><span>回避</span><b>{sign(terrain.avoid)}</b></div>
-      <div className="r"><span>防御</span><b>{sign(terrain.def)}</b></div>
+      <div className="r" title="只挡物理伤害，魔法不计"><span>物防</span><b>{sign(terrain.def)}</b></div>
       <div className="r"><span>{MOVE_TYPE_NAMES[moveType]}消耗</span><b>{cost ?? '不可进入'}</b></div>
+      {effect && <div style={{ fontSize: 12 }}>{effect}</div>}
       {terrain.heal > 0 && <div className="r"><span>阶段开始</span><b>回复 {terrain.heal}%</b></div>}
     </div>
   );

@@ -5,6 +5,7 @@ import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { decide } from './ai.ts';
 import { moveRange, pathTo, travelCosts } from './movement.ts';
+import { breakIce, moveUnit } from './terrain.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runAreaHeal, runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { artCombatOptions } from './combat.ts';
@@ -161,10 +162,10 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
   const artOptions = action.act === 'art' && art ? hits.map((hit, index) => artCombatOptions(state, unit, action.to, action.weapon, art, hit, index, walked)) : [];
   beginArtAction(state, unit, events);
   if (cellKey(state, action.to) !== range.origin) {
-    events.push({ t: 'move', unit: unit.id, path: pathTo(state, range, action.to) });
-    unit.pos = [action.to[0], action.to[1]];
+    moveUnit(state, unit, pathTo(state, range, action.to), events);
     unit.movedTurn = state.turn;
   }
+  breakIce(state, unit, [unit.pos], events);
   // 抢物资：站上物资箱即自动拾取（docs/20 §2）。
   if (!(unit.carried ?? 0) && state.boxes?.some(b => samePoint(b, unit.pos))) {
     const index = state.boxes.findIndex(b => samePoint(b, unit.pos));
@@ -205,8 +206,8 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     if (unit.alive && !unit.petrified && !state.result) {
       if (action.postTo && artPostMoves(state, unit, unit.pos, art).some(p => samePoint(p, action.postTo!))) {
         const range = moveRange(state, unit, mechanics!.postMove!);
-        events.push({ t: 'move', unit: unit.id, path: pathTo(state, range, action.postTo) });
-        unit.pos = [...action.postTo]; unit.movedTurn = state.turn; displace(unit, events);
+        moveUnit(state, unit, pathTo(state, range, action.postTo), events);
+        unit.movedTurn = state.turn; displace(unit, events);
       }
       if (action.support && artSupportOptions(state, unit, unit.pos, art).some(option => sameArtSupport(option, action.support!))) {
         const support = action.support;
@@ -257,7 +258,7 @@ function performSupport(state: BattleState, unit: UnitState, action: ActAction, 
     const w = WEAPONS[action.weapon];
     if (action.weapon === 'warp_staff' || action.weapon === 'rescue_staff') {
       const dest = action.dest ?? adjacentFree(state, unit);
-      if (dest) { const from = [...target.pos] as Point; target.pos = [...dest]; events.push({ t: 'move', unit: target.id, path: [from, [...dest]] }); displace(target, events); }
+      if (dest) { moveUnit(state, target, [[...target.pos], [...dest]], events); displace(target, events); }
     } else if (w.status) {
       if (rollStatus(state, unit, target, w.status.kind, w.status.hit, events)) {
         if (w.status.kind === 'sleep') target.statuses = { ...target.statuses, sleep: true, sleepPhases: 1 };
@@ -285,7 +286,7 @@ function performSupport(state: BattleState, unit: UnitState, action: ActAction, 
       state.objects.push({ id: `spell-wall-${state.turn}-${dest[0]}-${dest[1]}`, kind: 'wall', pos: [...dest], state: 'intact', hp: 15, maxHp: 15, label: '临时墙', expiresTurn: state.turn + 2, owner: unit.id });
     } else if (kind === 'warp' || kind === 'rescue') {
       const dest = action.dest ?? adjacentFree(state, unit);
-      if (dest) { const from = [...target.pos] as Point; target.pos = [...dest]; events.push({ t: 'move', unit: target.id, path: [from, [...dest]] }); displace(target, events); }
+      if (dest) { moveUnit(state, target, [[...target.pos], [...dest]], events); displace(target, events); }
     } else if (kind === 'regen') {
       target.statuses = { ...target.statuses, regen: 5 };
       events.push({ t: 'status', unit: target.id, status: 'regen', active: true });
@@ -366,8 +367,7 @@ function advanceNpcs(state: BattleState, events: BattleEvent[]): void {
     }
     const to = keyPoint(state, best);
     if (cellKey(state, to) !== range.origin) {
-      events.push({ t: 'move', unit: npc.id, path: pathTo(state, range, to) });
-      npc.pos = to;
+      moveUnit(state, npc, pathTo(state, range, to), events);
     }
     if (exits.some(e => samePoint(e, npc.pos))) {
       events.push({ t: 'escape', unit: npc.id });

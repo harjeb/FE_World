@@ -94,7 +94,7 @@ function Login() {
         </label>
         {error && <p role="alert" style={{ color: '#93392F', fontSize: 13 }}>{error}</p>}
         <button type="submit" className="btn btn-primary" disabled={loading || name.trim().length < 2}>
-          {loading ? '进入中…' : '进入军营'}
+          {loading ? '进入中…' : '进入阵营'}
         </button>
       </form>
     </div>

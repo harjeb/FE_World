@@ -157,6 +157,10 @@ export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: W
     crit: w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(unit, 'crit') : 0,
     attackSpeed: as + mods.attackSpeed + artBonus(unit, 'as'),
     avoid: as * 2 + s.lck + terrainBonus(state, unit, pos).avoid + mods.avoid + artBonus(unit, 'avoid') + (w?.bonus?.avoid ?? 0),
+    // 守方一侧（sideVs 的 defense / dodge，不含对手战技）：物防含地形防御，魔防不含；必杀回避。
+    protection: s.def + mods.def + terrainBonus(state, unit, pos).def,
+    resistance: s.res + mods.res + (w?.bonus?.res ?? 0),
+    dodge: s.lck + artBonus(unit, 'dodge'),
   };
 }
 function matches(unit: UnitState, kind: NonNullable<ArtMechanics['effective']>[number]): boolean {
@@ -184,10 +188,13 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
   const ft = terrainBonus(state, foe.unit, foe.pos), foeAm = incoming?.mods, foeIm = art?.foeMods;
   const defense = vsRes ? (!art && w?.ignoreRes ? 0 : fs.res) + fm.res + (foeAm?.res ?? 0) + (foeIm?.res ?? 0) + (fw?.bonus?.res ?? 0)
     : fs.def + fm.def + (foeAm?.def ?? 0) + (foeIm?.def ?? 0) + (role === 'attacker' ? fw?.guard?.def ?? 0 : 0);
-  const protection = Math.max(0, defense - (art?.pierce ?? 0)) + (art?.ignoreTerrain ? 0 : ft.def);
+  // 地形防御只挡物理伤害；魔法（对魔防）不吃地形。
+  const protection = Math.max(0, defense - (art?.pierce ?? 0)) + (art?.ignoreTerrain || vsRes ? 0 : ft.def);
   const hitRaw = w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + tri * 15 + mods.hit + artBonus(me.unit, 'hit') + (art?.hit ?? 0) + (am?.hit ?? 0) + (im?.hit ?? 0)
     + (art ? w.artHit ?? 0 : 0) + (foe.unit.artEffects?.scent?.includes(me.unit.side) && art?.id !== 'fe_art_king_fang' ? 10 : 0) : 0;
-  const avoid = attackSpeed(foe.unit, foeWeapon) * 2 + fs.lck + (art?.ignoreTerrain ? 0 : Math.max(0, ft.avoid - (art?.terrainAvoid ?? 0))) + fm.avoid + artBonus(foe.unit, 'avoid') + (foeAm?.avoid ?? 0) + (foeIm?.avoid ?? 0)
+  // 地形回避：削减战技只减正加成（最低 0）；浅滩这类负值照常扣。无视地形的战技两者都不计。
+  const terrainAvoid = art?.ignoreTerrain ? 0 : ft.avoid > 0 ? Math.max(0, ft.avoid - (art?.terrainAvoid ?? 0)) : ft.avoid;
+  const avoid = attackSpeed(foe.unit, foeWeapon) * 2 + fs.lck + terrainAvoid + fm.avoid + artBonus(foe.unit, 'avoid') + (foeAm?.avoid ?? 0) + (foeIm?.avoid ?? 0)
     + (fw?.bonus?.avoid ?? 0);
   const critRaw = w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(me.unit, 'crit') + (art?.crit ?? 0) + (am?.crit ?? 0) + (im?.crit ?? 0) : 0;
   const dodge = fs.lck + artBonus(foe.unit, 'dodge') + (foeAm?.dodge ?? 0) + (foeIm?.dodge ?? 0);

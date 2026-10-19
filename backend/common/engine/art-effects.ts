@@ -2,6 +2,7 @@ import type { ArtMechanics } from '../data/art-mechanics.ts';
 import type { Stats } from '../data/types.ts';
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { objectBlocks } from './scenario.ts';
+import { moveUnit } from './terrain.ts';
 import { classOf, distance, inBounds, unitAt } from './units.ts';
 import type { ArtAilment, ArtBuff, ArtStat, BattleEvent, BattleState, Point, Side, UnitState } from './types.ts';
 
@@ -109,9 +110,7 @@ export function afterClassicArt(state: BattleState, unit: UnitState, target: Uni
   const to: Point = [target.pos[0] * 2 - unit.pos[0], target.pos[1] * 2 - unit.pos[1]];
   if (!inBounds(state, to) || unitAt(state, to) || objectBlocks(state, to)
     || TERRAINS[state.map.tiles[to[1]][to[0]]].costs[MOVEMENT[classOf(target).moveType].index] === null) return;
-  const from: Point = [...target.pos];
-  target.pos = to;
-  events.push({ t: 'move', unit: target.id, path: [from, to] });
+  moveUnit(state, target, [[...target.pos], to], events);
   target.artEffects = { ...target.artEffects, displaced: true };
   emit(target, events);
 }

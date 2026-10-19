@@ -14,6 +14,8 @@ import type { Player } from './store.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { ALL_QUESTS } from '../common/game/quests.ts';
 import { createClassicBattle } from '../common/game/battles.ts';
+import { dateOf } from '../common/game/calendar.ts';
+import { seasonalMap } from '../common/maps/map.ts';
 
 function setup() {
   const store = new Store(openDb(':memory:'));
@@ -81,7 +83,7 @@ test('a classic single-map quest uses the source map, pays its days and resolves
   const battle = store.battle(player.id, started.battleId)!;
   assert.equal(battle.state.map.width, source.width);
   assert.equal(battle.state.map.height, source.height);
-  assert.deepEqual(battle.state.map.tiles, source.terrain);
+  assert.deepEqual(battle.state.map.tiles, seasonalMap(source.terrain, dateOf(startDay).season).tiles);
   assert.equal(battle.state.units.filter(unit => unit.side === 'enemy').length, source.enemies.length);
   assert.equal(playOut(ctx, started.battleId), 'player');
   const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; quests: { id: string; done: boolean; claimed: boolean }[] }[] };

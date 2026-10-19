@@ -7,6 +7,7 @@ import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
 import { enterCost, moveRange, pathTo } from './movement.ts';
 import { objectBlocks } from './scenario.ts';
+import { moveUnit } from './terrain.ts';
 import { artObjects, objectArtDamage, validateArtExtras } from './art-options.ts';
 import { attackWeapons, distance, inBounds, inRange, living, samePoint, unitById } from './units.ts';
 import { EngineError } from './types.ts';
@@ -203,8 +204,8 @@ export function afterArt(state: BattleState, unit: UnitState, target: UnitState,
     const ally = unitById(state, action.ally);
     if (art.id === 'fe_art_cover_exchange') {
       const from = [...unit.pos] as Point, other = [...ally.pos] as Point;
-      unit.pos = other; ally.pos = from;
-      events.push({ t: 'move', unit: unit.id, path: [from, other] }, { t: 'move', unit: ally.id, path: [other, from] });
+      moveUnit(state, unit, [from, other], events);
+      moveUnit(state, ally, [other, from], events);
       displace(unit, events); displace(ally, events);
     } else if (art.id === 'fe_art_scale_rebuff') {
       if ((ally.artEffects?.barrier?.amount ?? 0) <= 3) ally.artEffects = { ...ally.artEffects, barrier: { amount: 3, by: unit.id } };

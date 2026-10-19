@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { SnapshotUnit } from '@common/arena/rules.ts';
 import { CHARACTERS } from '@common/data/characters.ts';
+import { CLASS_ABILITIES, CLASS_ABILITY_BY_ID } from '@common/data/class-abilities.ts';
 import { CLASSES } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { SKILLS } from '@common/data/skills.ts';
@@ -14,7 +15,8 @@ import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { regionById } from '@common/game/calendar.ts';
 import { spellbookItem } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
-import { itemIconFor } from '../assets.ts';
+import { itemIconFor, weaponIcon } from '../assets.ts';
+import { Radar } from '../ui/Radar.tsx';
 import { session, useSession } from '../api/session.ts';
 import type { ServerSnapshot, ServerUnit, ServerUnitDetail } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
@@ -22,7 +24,8 @@ import { canPromote, expLine, LIFESPAN_TEXT, ORIGIN_TEXT, STATUS_TAG, STATUS_TEX
 import { links } from '../router.ts';
 import type { RosterTab } from '../router.ts';
 import { plainDate, shortDate } from '../ui/calendar.ts';
-import { asUnit, combatLine } from './profile.ts';
+import { asUnit, COMBAT_KEYS, combatProfile } from './profile.ts';
+import type { CombatKey } from './profile.ts';
 import { ArtTrainingPanel } from './ArtTrainingPanel.tsx';
 import { UnitFace } from './SystemParts.tsx';
 
@@ -125,40 +128,87 @@ export function personalGrowth(unit: ServerUnit, key: (typeof STAT_KEYS)[number]
   return (unit.inheritedGrowth?.[key] ?? unit.personalGrowth?.[key] ?? CHARACTERS[unit.character].growth[key]) + (unit.growthAllocation[key] ?? 0);
 }
 
-export function StatsPanel({ unit }: { unit: ServerUnit }) {
+const COMBAT_LABEL: Record<CombatKey, string> = {
+  attack: '攻击', protection: '物防', attackSpeed: '攻速', resistance: '魔防', hit: '命中', avoid: '回避', crit: '必杀', dodge: '必避',
+};
+// 基本能力按两列成对排（力／防、魔／魔防、速／运、技／魅），雷达图按一圈的顺序。
+const BASIC_PAIRS = [['str', 'def'], ['mag', 'res'], ['spd', 'lck'], ['skl', 'cha']] as const;
+const BASIC_RING = ['str', 'mag', 'skl', 'spd', 'lck', 'def', 'res', 'cha'] as const;
+const COMBAT_RING: CombatKey[] = ['attack', 'hit', 'crit', 'attackSpeed', 'avoid', 'dodge', 'resistance', 'protection'];
+// 没有可攻击的武器时，攻击／命中／必杀不成立，只显示防守一侧。
+const OFFENSE = new Set<CombatKey>(['attack', 'hit', 'crit']);
+
+function engineUnit(unit: ServerUnit) {
+  return { ...asUnit(unit.snapshot), weaponInstances: unit.weaponInstances.map(w => ({ ...w, id: w.id as WeaponId })), bookInstances: unit.bookInstances.map(b => ({ ...b, id: b.id as WeaponId })), spellbooks: unit.spellbooks };
+}
+
+function Up({ amount }: { amount: number }) {
+  return amount > 0 ? <span className="ab-up" title={`含技能或装备加成 +${amount}`} aria-label={`加成 +${amount}`}>▲</span> : null;
+}
+
+// 属性页左栏：战斗能力（与交战公式同源，平地、未移动）与基本能力，各配一张雷达图。
+// 基本能力可切到成长率，个人与职业成长的拆分在悬停提示里。
+export function AbilityPanel({ unit }: { unit: ServerUnit }) {
+  const [view, setView] = useState<'value' | 'growth'>('value');
   const cls = CLASSES[unit.classId as ClassId];
   const stats = unit.snapshot.stats;
-  const line = combatLine({ ...asUnit(unit.snapshot), weaponInstances: unit.weaponInstances.map(w => ({ ...w, id: w.id as WeaponId })), bookInstances: unit.bookInstances.map(b => ({ ...b, id: b.id as WeaponId })), spellbooks: unit.spellbooks });
+  const p = combatProfile(engineUnit(unit), cls.caps);
+  const armed = p.weapon !== null;
+  const combatCell = (k: CombatKey) => {
+    const offense = OFFENSE.has(k);
+    const label = k === 'attack' ? (p.magic ? '魔攻' : '物攻') : COMBAT_LABEL[k];
+    return (
+      <div key={k} className="ab-cell">
+        <span className="ab-k">{label}</span>
+        <span className="ab-v">{offense && !armed ? '—' : p.now[k]}</span>
+        {(!offense || armed) && <Up amount={p.bonus[k]} />}
+      </div>
+    );
+  };
+  const growth = (key: (typeof STAT_KEYS)[number]) => unit.totalGrowth[key] ?? 0;
+  const basicCell = (key: (typeof BASIC_RING)[number]) => (
+    <div key={key} className="ab-cell" title={view === 'value' ? `上限 ${cls.caps[key]}` : `个人 ${pct(personalGrowth(unit, key))} · 职业 ${signed(cls.growth[key])}`}>
+      <span className="ab-k">{STAT_NAMES[key]}</span>
+      <span className="ab-v">{view === 'value' ? stats[key] ?? 0 : `${growth(key)}%`}</span>
+      {view === 'value' && <span className="ab-cap">/{cls.caps[key]}</span>}
+    </div>
+  );
+  const total = BASIC_RING.reduce((n, k) => n + (stats[k] ?? 0), 0);
+  const growthTotal = BASIC_RING.reduce((n, k) => n + growth(k), 0);
   return (
-    <section className="panel" aria-labelledby="st-h">
-      <div className="ph"><h2 id="st-h">属性</h2><span style={{ fontSize: 12, color: '#6A6256' }}>成长率 = 每次升级该项 +1 的概率</span></div>
-      <div className="tbl-scroll">
-        <table className="st">
-          <thead><tr><th scope="col" style={{ textAlign: 'left' }}>属性</th><th scope="col">当前</th><th scope="col">上限</th><th scope="col">个人</th><th scope="col">职业·{cls.name}</th><th scope="col">合计成长</th></tr></thead>
-          <tbody>
-            {STAT_KEYS.map(key => {
-              const total = unit.totalGrowth[key] ?? 0;
-              return (
-                <tr key={key}>
-                  <th scope="row">{STAT_NAMES[key]}</th>
-                  <td className="v">{stats[key] ?? 0}</td>
-                  <td className="cap">{cls.caps[key]}</td>
-                  <td className="g">{pct(personalGrowth(unit, key))}</td>
-                  <td className="g">{signed(cls.growth[key])}</td>
-                  <td className="tot"><b>{total}%</b><span className="gbar" aria-hidden="true"><i style={{ width: `${Math.min(100, total)}%` }} /></span></td>
-                </tr>
-              );
-            })}
-            <tr><th scope="row">体格</th><td className="v">{unit.snapshot.con}</td><td className="cap">—</td><td colSpan={3} className="note">不随升级成长，转职也不改变</td></tr>
-            <tr><th scope="row">移动</th><td className="v">{cls.move}</td><td className="cap">—</td><td colSpan={3} className="note">由职业决定（{cls.name} {cls.move}）</td></tr>
-          </tbody>
-        </table>
+    <section className="panel ability" aria-labelledby="ab-h">
+      <div className="ab-strip">
+        <span><small>HP</small><b className="num">{view === 'value' ? stats.hp : `${growth('hp')}%`}</b>{view === 'value' && <span className="ab-cap">/{cls.caps.hp}</span>}</span>
+        <span><small>移动</small><b className="num">{cls.move}</b></span>
+        <span><small>体格</small><b className="num">{unit.snapshot.con}</b></span>
+      </div>
+      <div className="ph"><h2 id="ab-h">战斗能力</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{armed ? `装备 ${WEAPONS[p.weapon!].name}` : unit.snapshot.weapons.length ? '没有可攻击的武器' : '没有携带武器'}</span></div>
+      <div className="ab-body">
+        <div className="ab-grid">
+          {COMBAT_KEYS.map(combatCell)}
+          <div className="ab-cell wide"><span className="ab-k">射程</span><span className="ab-v">{p.range ? (p.range[0] === p.range[1] ? p.range[0] : `${p.range[0]}–${p.range[1]}`) : '—'}</span></div>
+        </div>
+        <Radar label="战斗能力（离职业上限）" axes={COMBAT_RING.map(k => ({ label: COMBAT_LABEL[k], value: armed || !OFFENSE.has(k) ? p.now[k] : 0, max: p.cap[k] }))} />
+      </div>
+      <div className="ph">
+        <h2>基本能力</h2>
+        <span className="flex items-center gap-2">
+          <span style={{ fontSize: 12, color: '#6A6256' }}>{view === 'value' ? <>综合能力 <b className="num" style={{ color: '#302D28', fontSize: 15 }}>{total}</b></> : <>成长合计 <b className="num" style={{ color: '#302D28', fontSize: 15 }}>{growthTotal}%</b></>}</span>
+          <span className="seg seg-sm" role="group" aria-label="基本能力显示">
+            <button type="button" aria-pressed={view === 'value'} onClick={() => setView('value')}>数值</button>
+            <button type="button" aria-pressed={view === 'growth'} onClick={() => setView('growth')}>成长率</button>
+          </span>
+        </span>
+      </div>
+      <div className="ab-body">
+        <div className="ab-grid">{BASIC_PAIRS.flat().map(basicCell)}</div>
+        <Radar label={view === 'value' ? '基本能力（离职业上限）' : '合计成长率'}
+          axes={BASIC_RING.map(k => ({ label: STAT_NAMES[k], value: view === 'value' ? stats[k] ?? 0 : growth(k), max: view === 'value' ? cls.caps[k] : 100 }))} />
       </div>
       <div className="pfoot">
-        {line
-          ? <>装备{WEAPONS[line.weapon].name}时：攻击 <b>{line.attack}</b> · 命中 <b>{line.hit}</b> · 必杀 <b>{line.crit}</b> · 攻速 <b>{line.attackSpeed}</b> · 回避 <b>{line.avoid}</b></>
-          : unit.snapshot.weapons.length === 0 ? <>没有携带武器，不能攻击。</> : <>不能攻击；治疗量 = 魔 + 10（当前 <b>{stats.mag + 10}</b>）。</>}
-        <div style={{ color: '#6A6256', marginTop: 2 }}>合计成长是升级时实际使用的数值（含装备授予的成长）。成长为概率：整级无提升时自动重掷（最多 2 次）。</div>
+        {view === 'value'
+          ? <>数值与交战公式相同（平地、未移动）；▲ 表示含技能或装备加成。雷达图按{cls.name}的能力上限画，外圈即上限。{!armed && unit.snapshot.weapons.length > 0 && <> 治疗量 = 魔 + 10（当前 <b>{stats.mag + 10}</b>）。</>}</>
+          : <>合计成长 = 个人 + 职业（含装备授予），是每次升级该项 +1 的概率；整级无提升时自动重掷（最多 2 次）。体格不随升级成长。</>}
       </div>
     </section>
   );
@@ -175,7 +225,14 @@ export function weaponSpec(id: WeaponId): string {
 
 export const artName = (id: string) => WEAPON_ART_BY_ID.get(id as never)?.name ?? id;
 export const spellName = (id: string) => SPELLBOOK_BY_ID.get(id)?.name ?? id;
-export const skillName = (id: string) => SKILLS[id as SkillId]?.name ?? id;
+// 职业固有／精通能力的名称写在 class-abilities 的说明里：「战技装备+1 (`sk-97`)；剑必杀+3 (`sk-114`)」。
+const abilityEntries = (text: string) => text.split('；').flatMap(part => {
+  const m = /^(.*?)\s*\(`(sk-\d+)`\)$/.exec(part.trim());
+  return m ? [{ id: m[2], name: m[1] }] : [];
+});
+const ABILITY_NAMES = new Map(CLASS_ABILITIES.flatMap(row => [...abilityEntries(row.inherent), ...abilityEntries(row.mastery)]).map(e => [e.id, e.name]));
+export const classAbilities = (classId: string) => abilityEntries(CLASS_ABILITY_BY_ID.get(classId as never)?.inherent ?? '');
+export const skillName = (id: string) => SKILLS[id as SkillId]?.name ?? ABILITY_NAMES.get(id) ?? id;
 
 // 携带物品: weapons (the first is equipped) with their durability or charges, battle items, class
 // spellbooks and the arts this unit can use. Moving things in or out of the warehouse, repairs, the inn
@@ -185,8 +242,6 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
   const items = unit.snapshot.items;
   const free = Math.max(0, SLOTS - items.length);
   const prep = links.prep(unit.id);
-  const arts = [...new Set([...unit.equippedArts, ...unit.equipmentArts])];
-  const granted = [...new Set(weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
   const row = (id: WeaponId, i: number, equipped: boolean) => {
     const res = instanceFor(unit, weapons, i);
     const refinement = unit.weaponInstances.find(w => w.id === id)?.refinement ?? 0;
@@ -205,10 +260,10 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
   };
   return (
     <section className="panel" aria-labelledby="eq-h">
-      <div className="ph"><h2 id="eq-h">携带物品 <span style={{ fontWeight: 500, color: '#6A6256' }}>武器 {weapons.length} / {SLOTS} · 道具 {items.length} / {SLOTS}</span></h2><a className="btn btn-sm btn-ghost" href={prep}>整备 · 维修 ›</a></div>
-      <div className="grp">武器（第一把是装备中的，也用来反击）</div>
+      <div className="ph"><h2 id="eq-h">携带物品</h2><a className="btn btn-sm btn-ghost" href={prep}>整备 · 维修 ›</a></div>
+      <div className="grp">装备（也用来反击）</div>
       <ul className="eq">
-        {weapons.map((id, i) => row(id, i, i === 0))}
+        {weapons.length > 0 && row(weapons[0], 0, true)}
         {weapons.length === 0 && (
           <li>
             <span className="slot-free" aria-hidden="true" />
@@ -217,7 +272,11 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
           </li>
         )}
       </ul>
-      <div className="grp">消耗道具</div>
+      {weapons.length > 1 && <>
+        <div className="grp">持有武器 · 共 {weapons.length} / {SLOTS}</div>
+        <ul className="eq">{weapons.slice(1).map((id, i) => row(id, i + 1, false))}</ul>
+      </>}
+      <div className="grp">持有道具 · {items.length} / {SLOTS}</div>
       <ul className="eq">
         {items.map((stack, i) => (
           <li key={i}>
@@ -226,13 +285,13 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
             <span />
           </li>
         ))}
-        {Array.from({ length: free }, (_, i) => (
-          <li key={`free${i}`}>
+        {free > 0 && (
+          <li>
             <span className="slot-free" aria-hidden="true" />
-            <div style={{ fontSize: 13, color: '#6A6256' }}>空位</div>
-            {i === 0 ? <a className="btn btn-sm btn-ghost" href={prep}>从仓库放入</a> : <span />}
+            <div style={{ fontSize: 13, color: '#6A6256' }}>空位 × {free}</div>
+            <a className="btn btn-sm btn-ghost" href={prep}>从仓库放入</a>
           </li>
-        ))}
+        )}
       </ul>
       {unit.spellbooks.length > 0 && <>
         <div className="grp">职业法术书（施法消耗每本独立次数；旅馆与食物恢复）</div>
@@ -253,40 +312,77 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
           })}
         </ul>
       </>}
-      <div className="grp">可用战技 · 装备技能</div>
-      <div className="chips-list">
-        {arts.map(id => {
-          const art = WEAPON_ART_BY_ID.get(id as never);
-          return <span key={id} className="chip-static" title={art?.effect}>{art?.name ?? id}<small>{art ? `${WEAPON_TYPE_NAMES[art.weapon as keyof typeof WEAPON_TYPE_NAMES] ?? art.weapon} · 耐久 ${art.cost}` : ''}</small></span>;
-        })}
-        {granted.map(id => <span key={id} className="chip-static" title={SKILLS[id].text}>{SKILLS[id].name}<small>装备授予</small></span>)}
-        {arts.length === 0 && granted.length === 0 && <span className="muted" style={{ fontSize: 13 }}>还没有可用的战技；职业精通与特殊装备会授予。</span>}
-      </div>
     </section>
   );
 }
 
+// 武器等级：每类一格（图标、等级、到下一级的进度），详细说明在悬停提示里。
 export function WeaponRanksPanel({ unit }: { unit: ServerUnit }) {
   const cls = CLASSES[unit.classId as ClassId];
   const rows = weaponProgress(unit);
   return (
-    <section className="panel" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }} aria-label="武器等级">
-      {rows.map(w => {
-        const span = w.next !== null ? w.next - w.floor : 0;
-        const done = w.next !== null ? Math.min(span, w.exp - w.floor) : 0;
-        return (
-          <div key={w.type} className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between"><b>武器等级 · {WEAPON_TYPE_NAMES[w.type]}</b><span className="pixel" style={{ fontSize: 18, color: w.cap ? '#22394A' : '#9C9486' }}>{w.rank}</span></div>
-            <div className="bar"><i style={{ width: w.next !== null && !w.capped ? `${Math.round(100 * done / Math.max(1, span))}%` : '100%', background: w.capped ? '#9C9486' : undefined }} /></div>
-            <div style={{ fontSize: 13, color: '#4E473D' }}>
-              {!w.cap ? `${cls.name}不能使用这类武器；熟练度保留，换回可用的职业后继续累积。`
-                : w.capped ? `已到${cls.name}上限 ${w.cap}；武器经验 ${w.exp}，换上上限更高的职业后继续提升。`
-                  : `武器经验 ${w.exp} / ${w.next} → 升至 ${w.nextRank}；${cls.name}上限 ${w.cap}。`}
-            </div>
-          </div>
-        );
-      })}
-      {rows.length === 0 && <p style={{ fontSize: 13, color: '#6A6256' }}>还没有武器等级。</p>}
+    <section className="panel" aria-labelledby="wr-h">
+      <div className="ph"><h2 id="wr-h">武器等级</h2><span style={{ fontSize: 12, color: '#6A6256' }}>灰色为{cls.name}不能使用</span></div>
+      <ul className="wr-grid">
+        {rows.map(w => {
+          const span = w.next !== null ? w.next - w.floor : 0;
+          const done = w.next !== null ? Math.min(span, w.exp - w.floor) : 0;
+          const tip = !w.cap ? `${cls.name}不能使用这类武器；熟练度保留，换回可用的职业后继续累积。`
+            : w.capped ? `已到${cls.name}上限 ${w.cap}；武器经验 ${w.exp}，换上上限更高的职业后继续提升。`
+              : `武器经验 ${w.exp} / ${w.next} → 升至 ${w.nextRank}；${cls.name}上限 ${w.cap}。`;
+          return (
+            <li key={w.type} className={w.cap ? '' : 'off'} title={tip}>
+              <img className="px" src={weaponIcon(w.type)} width={24} height={24} alt="" />
+              <span className="wr-r pixel">{w.rank}</span>
+              <span className="wr-n">{WEAPON_TYPE_NAMES[w.type]}</span>
+              <span className="wr-bar" aria-label={tip}><i style={{ width: w.next !== null && !w.capped ? `${Math.round(100 * done / Math.max(1, span))}%` : '100%' }} className={w.capped ? 'capped' : ''} /></span>
+            </li>
+          );
+        })}
+      </ul>
+      {rows.length === 0 && <p className="pfoot">还没有武器等级。</p>}
+    </section>
+  );
+}
+
+// 技能，按来源分组（个人／职业固有／技能格／装备授予）。职业固有能力与装备授予不占技能格。
+export function SkillsPanel({ unit }: { unit: ServerUnit }) {
+  const cls = CLASSES[unit.classId as ClassId];
+  const anchor = CHARACTERS[unit.character];
+  const personal = anchor?.skill ? SKILLS[anchor.skill] : null;
+  const classSkills = classAbilities(unit.classId);
+  const weapons = unit.snapshot.weapons as WeaponId[];
+  const granted = [...new Set(weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
+  const row = (key: string, name: string, sub: string, kind: string, title?: string) => (
+    <li key={key} title={title ?? sub}><span className={`sk-dot ${kind}`} aria-hidden="true" /><span className="min-w-0"><b>{name}</b>{sub && <small>{sub}</small>}</span></li>
+  );
+  const art = (id: string) => {
+    const a = WEAPON_ART_BY_ID.get(id as never);
+    return row(`a${id}`, a?.name ?? id, a ? `战技 · ${WEAPON_TYPE_NAMES[a.weapon as keyof typeof WEAPON_TYPE_NAMES] ?? a.weapon} · 耐久 ${a.cost}` : '战技', 'art', a?.effect);
+  };
+  const slotCount = unit.equippedSkills.length + unit.equippedArts.length;
+  return (
+    <section className="panel skills" aria-labelledby="sk2-h">
+      <div className="ph"><h2 id="sk2-h">技能</h2><a className="btn btn-sm btn-ghost" href={links.roster(unit.id, 'mastery')}>调整技能格 ›</a></div>
+      <div className="grp">个人技能</div>
+      <ul className="sk-list">{personal ? row('p', personal.name, personal.text, 'personal') : <li className="muted">没有个人技能</li>}</ul>
+      <div className="grp">职业技能 · {cls.name}</div>
+      <ul className="sk-list">
+        {classSkills.map(c => row(`c${c.id}`, c.name, '职业固有 · 不占格', 'class'))}
+        {classSkills.length === 0 && <li className="muted">{cls.name}没有固有能力</li>}
+      </ul>
+      <div className="grp">技能格 {slotCount} / {SLOTS}</div>
+      <ul className="sk-list">
+        {unit.equippedSkills.map(id => row(`s${id}`, skillName(id), SKILLS[id as SkillId]?.text ?? '已装备技能', 'slot'))}
+        {unit.equippedArts.map(art)}
+        {slotCount === 0 && <li className="muted">还没有装上技能或战技</li>}
+      </ul>
+      <div className="grp">装备授予</div>
+      <ul className="sk-list">
+        {granted.map(id => row(`g${id}`, SKILLS[id].name, SKILLS[id].text, 'gear'))}
+        {unit.equipmentArts.map(art)}
+        {granted.length === 0 && unit.equipmentArts.length === 0 && <li className="muted">携带的武器没有授予技能或战技</li>}
+      </ul>
     </section>
   );
 }

@@ -2,6 +2,7 @@ import { WEAPON_ART_BY_ID } from '@common/data/weapon-arts.ts';
 import { SKILLS } from '@common/data/skills.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
+import { movementBudget } from '@common/engine/movement.ts';
 import { classOf, equipped, staffWeapons, unitCombatStats } from '@common/engine/index.ts';
 import type { BattleState, UnitState } from '@common/engine/index.ts';
 import { portraitFor, spriteFor } from '../assets.ts';
@@ -60,7 +61,7 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
   });
   const base: [string, number | string][] = [
     ['力', unit.stats.str], ['魔', unit.stats.mag], ['技', unit.stats.skl], ['速', unit.stats.spd], ['运', unit.stats.lck],
-    ['防', unit.stats.def], ['魔防', unit.stats.res], ['体格', unit.con], ['移动', cls.move], ['EXP', unit.side === 'player' ? unit.exp : '—'],
+    ['防', unit.stats.def], ['魔防', unit.stats.res], ['体格', unit.con], ['移动', movementBudget(state, unit)], ['EXP', unit.side === 'player' ? unit.exp : '—'],
   ];
   return (
     <section className="panel" aria-label={`${unit.name} 的信息`}>

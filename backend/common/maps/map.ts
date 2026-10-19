@@ -6,6 +6,8 @@ import type { Theme } from './themes.ts';
 // Glyphs match the pixel-art painters in design/pixel-art/gen_art.py, colors come from its palette.
 export const TERRAINS = {
   plain: { name: '平地', glyph: '.', color: '#7ea058', costs: [1, 1, 1, 1], avoid: 0, def: 0, heal: 0 },
+  snow: { name: '雪地', glyph: 'n', color: '#e4edf1', costs: [1, 1, 1, 1], avoid: 0, def: 0, heal: 0 },
+  ice: { name: '冰面', glyph: 'i', color: '#a7dce8', costs: [1, 1, 1, 1], avoid: 0, def: 0, heal: 0 },
   road: { name: '道路', glyph: 'r', color: '#c6a97a', costs: [1, 1, 1, 1], avoid: 0, def: 0, heal: 0 },
   bridge: { name: '桥', glyph: 'b', color: '#b6b3aa', costs: [1, 1, 1, 1], avoid: 0, def: 0, heal: 0 },
   floor: { name: '石地板', glyph: 'p', color: '#c2b8a2', costs: [1, 1, 1, 1], avoid: 0, def: 0, heal: 0 },
@@ -28,6 +30,17 @@ export const MOVEMENT = {
 export type Terrain = keyof typeof TERRAINS;
 export type Movement = keyof typeof MOVEMENT;
 export type Point = [number, number];
+
+export function seasonalTerrain(tile: Terrain, season: number): Terrain {
+  if (season !== 4) return tile;
+  return tile === 'plain' ? 'snow' : tile === 'water' || tile === 'shallows' ? 'ice' : tile;
+}
+
+// Freeze the season into each new battle; never repaint a saved board or refreeze broken ice.
+export function seasonalMap(tiles: Terrain[][], season: number) {
+  return { width: tiles[0].length, height: tiles.length, season,
+    tiles: tiles.map(row => row.map(tile => seasonalTerrain(tile, season))) };
+}
 export interface BattleMap {
   generatorVersion: 3;
   seed: string;

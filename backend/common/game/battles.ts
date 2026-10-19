@@ -3,10 +3,10 @@ import type { WeaponType } from '../data/types.ts';
 import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { Action, BattleEvent, BattleState, Point, UnitState } from '../engine/types.ts';
-import { seedRng } from '../engine/rng.ts';
+import { nextU32, seedRng } from '../engine/rng.ts';
 import { generateMap } from '../maps/generate.ts';
-import type { Theme } from '../maps/themes.ts';
-import { tilesFromGlyphs } from '../maps/map.ts';
+import { THEMES, type Theme } from '../maps/themes.ts';
+import { seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
 import { classicMap } from './classic-catalog.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { assertClassicScenario } from './classic-validation.ts';
@@ -20,7 +20,7 @@ import { toBattleUnit } from './model.ts';
 import { DUNGEON_STAGE_DAYS, DUNGEON_STAGES } from './expedition.ts';
 import type { RunCarry } from './expedition.ts';
 import { createEnemy, pickClasses } from './enemies.ts';
-import { enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
+import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP } from './quests.ts';
 import type { Quest } from './quests.ts';
@@ -101,7 +101,10 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const cap = options.quest?.enemyLevelCap ?? QUEST_LEVEL_CAP[options.quest?.tier ?? 'standard'];
   const base = Math.min(cap, options.level ?? enemyLevel(options.day ?? 0, region.offset));
   const level = dungeon ? Math.min(cap, base + stage * 2) : base;
-  const theme = REGION_THEMES[(options.region - 1) % REGION_THEMES.length];
+  const themes: Theme[] = [REGION_THEMES[(options.region - 1) % REGION_THEMES.length]];
+  if (!dungeon && !options.quest && options.region === 4) themes.push('riverlands');
+  if (!dungeon && !options.quest && options.region === 5) themes.push('lakeland');
+  const theme = themes[nextU32(seedRng(`${options.seed}:theme`)) % themes.length];
   const count = Math.max(1, Math.min(FIELD_BATTLE.maxUnits, units.length));
   const quest = options.quest;
   // 护卫任务多留一个己方出生点给被护送者（unitsPerSide 封顶 8）。
@@ -123,7 +126,8 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const tiles = map.tiles;
   const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
   const name = quest ? `${region.name} · ${quest.name}`
-    : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}` : `${region.name} · 遭遇战`;
+    : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}`
+      : `${region.name} · ${theme === 'riverlands' || theme === 'lakeland' ? THEMES[theme].name : '遭遇战'}`;
   const exit = map.objective.position;
   // 连续副本每图目标不同（docs/00 §8.1.3）：探路压制、消耗战全灭、首领战斩首。
   const configuredGoal = quest?.stageGoals?.[stage];
@@ -146,7 +150,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
       : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
     engineVersion: 1, id: `field-${options.seed}-${stage}`, kind: 'field', name,
-    map: { width: tiles[0].length, height: tiles.length, tiles },
+    map: seasonalMap(tiles, dateOf(options.day ?? 0).season),
     units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
     goal, boxes: quest?.kind === 'gather' ? gatherBoxes(exit, tiles[0].length, tiles.length) : undefined,
     npcRoute: quest?.kind === 'escort' ? (quest.npcRoute?.map(p => [p.x, p.y] as Point) ?? [exit]) : undefined,
@@ -170,6 +174,8 @@ export interface ClassicBattleOptions {
   seed: string;
   // 出发日决定目标等级；经典图按副本曲线缩放，不再直接使用原作等级。
   day?: number;
+  // 出发季节可与经典图的等级取样日分开，跨季时不改变旧等级规则。
+  season?: number;
   quest?: Quest;
   // 覆盖目标等级（测试/预览用）；默认按出发日计算。
   level?: number;
@@ -226,6 +232,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const map = classicMap(options.mapId);
   const stage = options.stageIndex ?? 0;
   const adaptation = classicAdaptation(map.id);
+  const season = options.season ?? dateOf(options.day ?? 0).season;
   if (units.length > adaptation.deployment.max) {
     throw new Error(`经典地图 ${map.id} 最多出战 ${adaptation.deployment.max} 人`);
   }
@@ -266,14 +273,16 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
   const state: BattleState = {
     engineVersion: 1, id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
-    map: { width: map.width, height: map.height, tiles: map.terrain.map(row => [...row]) },
+    map: seasonalMap(map.terrain, season),
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: options.quest?.turnLimit ?? map.turnLimit,
     phase: 'player', goal,
     objects: adaptation.objects.map(object => structuredClone(object)),
     loot: [],
     scenario: {
       id: map.id, adapterVersion: adaptation.adapterVersion, sourceSha256: adaptation.sourceSha256,
-      baseLevel, events: structuredClone(adaptation.events), mapChanges: structuredClone(adaptation.mapChanges),
+      baseLevel, events: structuredClone(adaptation.events), mapChanges: adaptation.mapChanges.map(change => ({
+        ...structuredClone(change), terrain: change.terrain.map(row => row.map(tile => tile === null ? null : seasonalTerrain(tile, season))),
+      })),
       fired: [], flags: [],
     },
     rng: seedRng(`${options.seed}:classic:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
@@ -297,7 +306,7 @@ export function festivalMapId(round: number, edition = 0): ArenaMapId {
   return (['plains', 'pass', 'woods', 'castle'] as ArenaMapId[])[(tier + offset) % 4];
 }
 
-export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; annualId?: string; edition?: number; carry?: Record<string, RunCarry> } = {}): BattleRecord {
+export function createFestivalBattle(units: UnitRecord[], round: number, seed: string, opts: { day?: number; season?: number; annualId?: string; edition?: number; carry?: Record<string, RunCarry> } = {}): BattleRecord {
   const map = ARENA_MAPS[festivalMapId(round, opts.edition ?? 0)];
   const level = Math.min(99, enemyLevel(opts.day ?? 0) + Math.floor((round - 1) / 2));
   const tiles = tilesFromGlyphs(map.rows);
@@ -316,13 +325,14 @@ export function createFestivalBattle(units: UnitRecord[], round: number, seed: s
     : map.goal === 'seize' ? { kind: 'seize', throne: throneOf(map) } : { kind: 'rout' };
   const state: BattleState = {
     engineVersion: 1, id: `festival-${round}-${seed}`, kind: 'arena', name: `${map.name} · 大竞技场第 ${round} 轮`,
-    map: { width: tiles[0].length, height: tiles.length, tiles },
+    map: seasonalMap(tiles, opts.season ?? dateOf(opts.day ?? 0).season),
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: map.turnLimit, phase: 'player', goal,
     rng: seedRng(`${seed}:combat`), growthRng: seedRng(`${seed}:growth`),
   };
   return {
     id: state.id, playerId: '', kind: 'arena', mode: 'festival', name: state.name, goalText: map.goalText,
-    annualId: opts.annualId, initial: structuredClone(state), state, events: [], actions: [], seed, createdAt: Date.now(), updatedAt: Date.now(),
+    annualId: opts.annualId, initial: structuredClone(state), state, events: [], actions: [], seed,
+    rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION, createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 

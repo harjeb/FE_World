@@ -1,4 +1,5 @@
 // Turns engine events into the compact 战况记录 lines. Each command becomes one line.
+import { TERRAINS } from '@common/maps/map.ts';
 import { STAT_NAMES } from '@common/data/types.ts';
 import type { StatKey } from '@common/data/types.ts';
 import { GAME_ITEMS } from '@common/game/items.ts';
@@ -39,6 +40,9 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
         break;
       case 'move':
         moved.add(e.unit);
+        break;
+      case 'terrain':
+        push(`${name(e.unit)} 经过后，X${e.at[0]} Y${e.at[1]} ${e.terrain === 'water' ? '冰面破裂，变为水域' : `地形变为${TERRAINS[e.terrain].name}`}。`, mark(e.unit));
         break;
       case 'wait':
         push(`${name(e.unit)} ${moved.has(e.unit) ? '移动后待机' : '待机'}。`, mark(e.unit));

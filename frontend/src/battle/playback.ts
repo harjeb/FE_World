@@ -71,6 +71,9 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
           await sleep(STEP_MS);
         }
         break;
+      case 'terrain':
+        edit(d => { d.map.tiles[e.at[1]][e.at[0]] = e.terrain; });
+        break;
       case 'combat':
         await combat(e);
         break;

@@ -95,10 +95,11 @@ export const MAPS: Record<string, string> = {
 // painters (backend/common/maps/draw.ts), seeded by its name so it looks the same on every visit. Tiles
 // can change mid-battle (a destroyed wall becomes floor), so the art is keyed by the layout too.
 const painted = new Map<string, string>();
-export function mapArt(name: string, tiles: Terrain[][]): string {
+export function mapArt(name: string, tiles: Terrain[][], season?: number): string {
   // 年度大竞技场的战斗名是「地图名 · 大竞技场第 N 轮」，按前缀也能找到同一张图。
   const png = MAPS[name] ?? MAPS[name.split(' · ')[0]];
-  if (png) return png;
+  // Keep winter procedural even after its last ice tile breaks into water.
+  if (png && season !== 4 && !tiles.some(row => row.some(tile => tile === 'snow' || tile === 'ice'))) return png;
   const rows = glyphRows(tiles);
   const key = `${name}\n${rows.join('\n')}`;
   let url = painted.get(key);

@@ -146,6 +146,23 @@ class Tile {
 }
 
 // ---------------------------------------------------------------- painters, one per glyph
+function snow(t: Tile): void {
+  t.fill(C('#e4edf1'));
+  for (let i = 2; i < TILE; i += 5) {
+    const j = i * 3 % 14;
+    t.set(i, j, C('#c5d6df'));
+    t.set(i + 1, j, C('#ffffff'));
+  }
+}
+
+function ice(t: Tile): void {
+  t.fill(C('#a7dce8'));
+  for (let i = 2; i < 14; i++) {
+    t.set(i, i - 1, C('#effbff'));
+    t.set(i, (i + 7) % TILE, C('#79b8d1'));
+  }
+}
+
 function grass(t: Tile, flowers = true): void {
   const r = t.rng;
   t.fill(GR[0]);
@@ -434,7 +451,7 @@ function throne(t: Tile): void {
 
 // Glyphs follow the terrain table in map.ts.
 const PAINTERS: Record<string, (t: Tile) => void> = {
-  '.': t => grass(t), f: forest, m: mountain, w: t => water(t), s: t => water(t, true),
+  '.': t => grass(t), n: snow, i: ice, f: forest, m: mountain, w: t => water(t), s: t => water(t, true),
   r: road, b: bridge, '#': wall, p: floor, F: fort, v: village, T: throne,
 };
 

@@ -206,3 +206,32 @@ test('tome charges pay per cast: follow-ups and counters each spend one, and run
   foe.bookInstances[0].charges = 0;
   assert.equal(forecast(state, me.id, me.pos, 'fire', foe.id).defender.canAttack, false, 'an empty tome cannot counter');
 });
+
+test('roster defensive numbers match the defending side of a forecast', () => {
+  const { state, me, foe } = duel('fw_weapon_99', 'iron_sword');
+  me.stats.def = 14; me.stats.res = 9; me.stats.lck = 23;
+  const s = unitCombatStats(state, me, 'fw_weapon_99');
+  assert.deepEqual([s.protection, s.resistance, s.dodge], [14, 9 + 3, 23]);
+  // A physical hit against me uses the same 物防; crit is reduced by the same 必避.
+  const f = forecast(state, foe.id, foe.pos, 'iron_sword', me.id);
+  assert.equal(f.attacker.damage, Math.max(0, unitCombatStats(state, foe, 'iron_sword').attack - s.protection));
+  assert.equal(f.attacker.crit, Math.max(0, unitCombatStats(state, foe, 'iron_sword').crit - s.dodge));
+});
+
+test('shallows lower avoid in combat and terrain defense only blocks physical damage', () => {
+  const { state, me, foe } = duel('iron_sword', null);
+  const plainHit = forecast(state, me.id, me.pos, 'iron_sword', foe.id).attacker.hit;
+  state.map.tiles[foe.pos[1]][foe.pos[0]] = 'shallows';
+  assert.equal(forecast(state, me.id, me.pos, 'iron_sword', foe.id).attacker.hit, Math.min(100, plainHit + 10), 'shallows −10 avoid');
+  assert.equal(unitCombatStats(state, foe, null).avoid, unitCombatStats({ ...state, map: { ...state.map, tiles: state.map.tiles.map(r => r.map(() => 'plain' as const)) } }, foe, null).avoid - 10);
+
+  state.map.tiles[foe.pos[1]][foe.pos[0]] = 'fort'; // def +2
+  me.stats.str = 30; me.stats.mag = 30; foe.stats.def = 5; foe.stats.res = 5;
+  const sword = forecast(state, me.id, me.pos, 'iron_sword', foe.id).attacker;
+  assert.equal(sword.damage, 30 + WEAPONS.iron_sword.might - 5 - 2, 'physical hits pay the fort defense');
+  me.weapons = ['levin_sword']; me.weaponInstances = [{ id: 'levin_sword', durability: 40, maxDurability: 40 }];
+  const levin = forecast(state, me.id, me.pos, 'levin_sword', foe.id).attacker;
+  assert.equal(levin.damage, 30 + WEAPONS.levin_sword.might - 5, 'magic ignores the fort defense');
+  assert.equal(unitCombatStats(state, foe, null).resistance, 5, '魔防 has no terrain part');
+  assert.equal(unitCombatStats(state, foe, null).protection, 5 + 2, '物防 includes terrain');
+});
