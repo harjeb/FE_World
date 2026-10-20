@@ -16,8 +16,8 @@ import { toast } from '../ui/toast.tsx';
 import { Flow, MapPreview, RulesGrid, Versus, useFitCell } from './ArenaParts.tsx';
 import { arena, useArena } from './store.ts';
 
-function Face({ unit, size }: { unit: Pick<OpponentUnit, 'classId' | 'character'>; size: 32 | 44 }) {
-  const looks = { classId: unit.classId as ClassId, side: 'enemy' as const, character: unit.character };
+function Face({ unit, size }: { unit: Pick<OpponentUnit, 'classId' | 'character' | 'portrait'>; size: 32 | 44 }) {
+  const looks = { classId: unit.classId as ClassId, side: 'enemy' as const, character: unit.character, portrait: unit.portrait ?? undefined };
   return (
     <span className="pf enemy" style={{ width: size + 2, height: size + 2 }}>
       <img className="px flip" src={portraitFor(looks) ?? spriteFor(looks)} width={size} height={size} alt="" />

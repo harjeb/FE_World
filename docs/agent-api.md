@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 17
+docVersion: 18
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -166,7 +166,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | 124 | START_QUEST | 时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。 |
 | 125 | CLAIM_QUEST_REWARD | 领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。 |
 | 126 | BUY_QUEST_ITEM | 用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。 |
-| 127 | COMPLETE_SETUP | 完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。 |
+| 127 | COMPLETE_SETUP | 完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；portrait为独立随机形象键random:male|female:seed，seed为1–64位字母、数字、下划线或连字符，须与sex一致；不传时按账号生成，不再接受同伴头像预设。同伴仅排除剧情奖励人物，只能提交一次。 |
 ### 日历
 
 | op | 名称 | 说明 |

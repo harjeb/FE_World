@@ -27,8 +27,8 @@ export interface UnitState {
   name: string;
   side: Side;
   character?: CharacterId;
-  // 自捏主角的形象预设（其余单位缺省，回退到 character 的肖像）。
-  portrait?: CharacterId;
+  // 保存的随机形象键或旧预设；缺省时回退到 character 的肖像。
+  portrait?: string;
   classId: ClassId;
   level: number;
   exp: number;

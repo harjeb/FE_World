@@ -22,7 +22,7 @@ export interface SnapshotUnit {
   // 自捏主角的显示名与形象预设（其余角色缺省）。
   name?: string;
   sex?: 'male' | 'female';
-  portrait?: CharacterId;
+  portrait?: string;
   personalSkill?: UnitState['skill'];
   classId: ClassId;
   level: number;
@@ -92,7 +92,7 @@ export function arenaMap(defense: Defense): ArenaMap {
 }
 
 // Portraits are display data. Only snapshots predating instance IDs use them for legacy uniqueness checks.
-export function unitLook(unit: Pick<SnapshotUnit, 'character' | 'portrait'>): CharacterId {
+export function unitLook(unit: Pick<SnapshotUnit, 'character' | 'portrait'>): string {
   return unit.portrait ?? unit.character;
 }
 

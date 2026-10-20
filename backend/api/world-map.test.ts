@@ -21,7 +21,7 @@ function fresh(name: string) {
 function ctxFor(store: Store, accountId: string, player: Player): Context {
   return { store, accountId, player, agentModel: null, push: () => {} };
 }
-const HERO = { name: '星见', sex: 'female', portrait: 'sera', allocation: { mag: 5, spd: 5 } };
+const HERO = { name: '星见', sex: 'female', portrait: 'random:female:world-map-test', allocation: { mag: 5, spd: 5 } };
 function completeSetup(ctx: Context): void {
   dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: HERO, companions: ['victor', 'lina'] });
 }

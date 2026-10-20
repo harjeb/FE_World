@@ -17,8 +17,9 @@ import type { ArtTraining } from '../common/data/weapon-arts.ts';
 import type { WeaponId } from '../common/data/weapons.ts';
 import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
-import { CHARACTERS, CHARACTER_IDS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { CHARACTERS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
+import { generatedPortraitSex } from '../common/portraits/random.ts';
 import { GAME_ITEMS, isCentralShopItem, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
@@ -45,7 +46,7 @@ import { MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/g
 import type { Stats } from '../common/data/types.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, dungeonFirstClearReward, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, hardUnlocks, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, startingCompanionPool, setupNeeded, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, dungeonFirstClearReward, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, hardUnlocks, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, companionPool, setupNeeded, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, recipeUnlocked, slotsUsed } from '../common/game/production.ts';
@@ -1698,7 +1699,7 @@ const handlers: Record<number, Handler> = {
     const opponent = findOpponent(record, asString(data.opponentId, 'opponentId'));
     return {
       opponent: opponentView(opponent),
-      list: opponentList(opponent).map(u => ({ id: u.id, character: u.character, name: u.name ?? CHARACTERS[u.character].name, classId: u.classId, level: u.level, stats: u.stats, weapons: u.weapons, ranks: u.ranks })),
+      list: opponentList(opponent).map(u => ({ id: u.id, character: u.character, name: u.name ?? CHARACTERS[u.character].name, portrait: u.portrait ?? null, classId: u.classId, level: u.level, stats: u.stats, weapons: u.weapons, ranks: u.ranks })),
     };
   },
 
@@ -2411,8 +2412,8 @@ const handlers: Record<number, Handler> = {
       throw new OpError('BAD_REQUEST', `神主角成长类型固定为成长型（只接受 ${PROTAGONIST_GROWTH_TYPE}）`);
     }
     if (p.tendency !== undefined) throw new OpError('BAD_REQUEST', '培养倾向由属性分配自动推导，不能指定');
-    const portrait = (p.portrait === undefined ? 'erin' : asString(p.portrait, 'protagonist.portrait')) as CharacterId;
-    if (!CHARACTER_IDS.includes(portrait)) throw new OpError('BAD_REQUEST', '形象预设不合法');
+    const portrait = p.portrait === undefined ? `random:${sex}:${ctx.player.id}` : asString(p.portrait, 'protagonist.portrait');
+    if (generatedPortraitSex(portrait) !== sex) throw new OpError('BAD_REQUEST', '主角形象需为与性别一致的随机形象键 random:male|female:seed（seed 为1–64位字母、数字、下划线或连字符）');
     const allocation = (p.allocation ?? {}) as Record<string, unknown>;
     for (const key of Object.keys(allocation)) {
       if (!(STAT_KEYS as string[]).includes(key)) throw new OpError('BAD_REQUEST', `未知属性 ${key}`);
@@ -2432,7 +2433,7 @@ const handlers: Record<number, Handler> = {
     const ids = raw.map(value => asString(value, 'companions'));
     if (ids.length !== 2) throw new OpError('BAD_REQUEST', '必须正好选择 2 名同伴');
     if (new Set(ids).size !== 2) throw new OpError('BAD_REQUEST', '两名同伴不能重复');
-    const pool = startingCompanionPool(portrait);
+    const pool = companionPool();
     for (const id of ids) {
       if (!pool.includes(id as CharacterId)) throw new OpError('FORBIDDEN', `${id} 不能作为开局同伴`);
     }
@@ -2440,7 +2441,7 @@ const handlers: Record<number, Handler> = {
     const placeholder = ctx.store.units(ctx.player.id).find(u => u.isProtagonist);
     if (placeholder) ctx.store.removeUnit(ctx.player.id, placeholder.id);
     const base = Object.fromEntries(STAT_KEYS.map(key => [key, PROTAGONIST_BASE_STATS[key] + alloc[key]])) as Stats;
-    const hero = createUnit(portrait, 1, 'u_protagonist', ctx.player.day, true, {
+    const hero = createUnit('erin', 1, 'u_protagonist', ctx.player.day, true, {
       classId: PROTAGONIST_CLASS_ID, growthType: PROTAGONIST_GROWTH_TYPE, age: 16,
       base, personalGrowth: PROTAGONIST_TENDENCIES[tendency].growth, startingGear: 'basic',
     });
@@ -2452,7 +2453,7 @@ const handlers: Record<number, Handler> = {
     for (const id of ids) {
       ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, 1, `u_${id}`, ctx.player.day, true, { classId: CHARACTERS[id as CharacterId].classId, startingGear: 'basic' }));
     }
-    ctx.player.protagonist = portrait;
+    ctx.player.protagonist = hero.character;
     ctx.player.flags.companions = ids as CharacterId[];
     ctx.player.flags.setupCompleted = true;
     ctx.store.savePlayer(ctx.player);

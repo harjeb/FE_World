@@ -36,7 +36,7 @@ export interface UnitRecord {
   // 自捏主角覆盖（docs/00 「神主角」）：显示名、性别与形象预设；其余角色沿用 CHARACTERS[character]。
   name?: string;
   sex?: 'male' | 'female';
-  portrait?: CharacterId;
+  portrait?: string;
   classId: ClassId;
   // 当前轮次起始职业；形象模板不赠送其原人物的职业资格。旧档缺省时沿用旧模板口径。
   homeClassId?: ClassId;

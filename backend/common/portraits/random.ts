@@ -115,11 +115,17 @@ const KITS: Record<ClassRoute, Kit> = {
   dragon: { ...KIT_DEFAULT, outfit: [['robe', 5], ['armor', 5]] },
 };
 
+// Generated portrait IDs carry sex so previews, saved units and replays need only one stable key.
+export function generatedPortraitSex(id: string): Sex | null {
+  const match = /^random:(male|female):[A-Za-z0-9_-]{1,64}$/.exec(id);
+  return match?.[0] === id ? match[1] as Sex : null;
+}
+
 export function randomPortrait(seed: string, opts: PortraitOptions = {}): PortraitSpec {
   const rng = seedRng(`portrait:${seed}`);
   // who they are: never depends on route or side
   const rolledSex: Sex = chance(rng, 50) ? 'female' : 'male';
-  const sex = opts.sex ?? rolledSex;
+  const sex = opts.sex ?? generatedPortraitSex(seed) ?? rolledSex;
   const looks = LOOKS[sex];
   const skin = pick(rng, SKINS);
   const hair = pick(rng, HAIRS);

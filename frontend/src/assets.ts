@@ -204,9 +204,9 @@ export function spriteFor(unit: Looks): string {
 }
 
 // Named units have hand-made portraits. Everyone else gets a generated one (backend/common/portraits)
-// seeded by the unit id, so a unit shows the same face everywhere; clothes follow its class route.
+// seeded by the saved portrait key or unit id; clothes follow its class route.
 export function portraitFor(unit: Looks): string {
-  return PORTRAITS[unit.portrait ?? unit.character ?? unit.id ?? ''] ?? generatedPortrait(unit.id ?? unit.character ?? 'unit', routeOf(unit.classId), unit.side);
+  return PORTRAITS[unit.portrait ?? unit.character ?? unit.id ?? ''] ?? generatedPortrait(unit.portrait ?? unit.id ?? unit.character ?? 'unit', routeOf(unit.classId), unit.side);
 }
 
 const generated = new Map<string, string>();
@@ -230,7 +230,7 @@ function generatedPortrait(seed: string, route: ClassRoute, side: Looks['side'])
 const battleSprites = new Map<string, string>();
 function battleColors(unit: Looks): SpriteColors {
   const named = CHARACTER_COLORS[unit.portrait ?? unit.character ?? ''];
-  const spec = named ? null : randomPortrait(unit.id ?? unit.character ?? 'unit', { route: routeOf(unit.classId), side: unit.side });
+  const spec = named ? null : randomPortrait(unit.portrait ?? unit.id ?? unit.character ?? 'unit', { route: routeOf(unit.classId), side: unit.side });
   return { side: unit.side === 'player' ? 'player' : 'enemy',
     skin: named?.skin ?? spec!.skin, hair: named?.hair ?? [spec!.hair[0], spec!.hair[2]] };
 }

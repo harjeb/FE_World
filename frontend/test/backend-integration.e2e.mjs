@@ -147,6 +147,15 @@ try {
     check('new accounts enter character setup', await until(() => page.evaluate(`document.body.innerText.includes('缔结神约')`)), 'setup shown');
     await page.type('input[placeholder="2–12 字"]', '星海神主');
     const setup = (await api(page, 10)).setup.protagonist;
+    const firstFace = await page.evaluate(`document.querySelector('[aria-label="男性主角形象"] img').src`);
+    await page.evaluate(`[...document.querySelectorAll('button')].find(button => button.innerText === '随机形象').click()`);
+    check('setup rerolls an independent generated portrait',
+      await until(() => page.evaluate(`document.querySelector('[aria-label="男性主角形象"] img').src !== ${JSON.stringify(firstFace)}`))
+        && await page.evaluate(`document.querySelector('[aria-label="男性主角形象"] img').src.startsWith('data:image/png')`), 'random portrait replaces the preview');
+    await page.click('[aria-label="主角性别"] button:nth-of-type(2)');
+    const chosenFace = await page.evaluate(`document.querySelector('[aria-label="女性主角形象"] img').src`);
+    check('changing sex updates the generated portrait', chosenFace !== firstFace
+      && await page.evaluate(`document.querySelector('[aria-label="主角性别"] button[aria-pressed=true]').innerText === '女'`), 'female preview selected');
     check('setup preserves base stats with 10 unspent bonus points',
       await page.evaluate(`document.body.innerText.includes('额外还剩 10 / 10 点') && document.querySelector('[aria-label="HP最终值"]').textContent.includes('20')`), 'base HP 20, extra budget 10');
     await page.evaluate(`[...document.querySelectorAll('section:nth-of-type(2) button')].slice(0, 2).forEach(button => button.click())`);
@@ -163,6 +172,8 @@ try {
       await until(() => page.evaluate(`!!document.querySelector('.topbar')`)) && (await api(page, 10)).units.length === 3, 'three-member party');
     const protagonist = (await api(page, 10)).units.find(unit => unit.isProtagonist);
     check('the custom protagonist retains its identity', protagonist?.id === 'u_protagonist' && protagonist.name === '星海神主', 'custom protagonist');
+    check('the chosen portrait and sex survive setup', protagonist.sex === 'female' && protagonist.portrait.startsWith('random:female:')
+      && await page.evaluate(`[...document.images].some(img => img.src === ${JSON.stringify(chosenFace)})`), 'saved avatar matches its setup preview');
     const heroDetail = await api(page, 21, { unitId: 'u_protagonist' });
     check('saved hero stats retain every base value and add only the allocated bonuses',
       JSON.stringify(heroDetail.stats) === JSON.stringify({ ...setup.baseStats, mag: setup.baseStats.mag + 5, spd: setup.baseStats.spd + 5 }), JSON.stringify(heroDetail.stats));

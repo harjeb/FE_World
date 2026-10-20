@@ -39,8 +39,8 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = TABLE;
 export const CHARACTER_IDS = Object.keys(TABLE) as CharacterId[];
 
 // 自捏神主角（docs/00「神主角」、docs/13 §开局）：职业与成长类型固定（平民／成长型），
-// 自定姓名、性别与形象，保留固定基础属性，另分配 10 点加成。
-// character 只作形象与技能锚点：主角的数值、成长全部来自显式保存的字段，不泄露形象预设。
+// 自定姓名、性别与随机形象，保留固定基础属性，另分配 10 点加成。
+// 新主角以 erin 作为默认技能锚点，形象独立保存；数值与成长全部来自显式保存的字段。
 export const PROTAGONIST_CLASS_ID: ClassId = 'commoner';
 export const PROTAGONIST_GROWTH_TYPE: GrowthType = 'growth';
 

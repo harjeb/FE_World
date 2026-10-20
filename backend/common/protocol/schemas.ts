@@ -108,7 +108,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   CHOOSE_ROUTE: { required: ['region'], properties: { region: { type: 'number', minimum: 1, maximum: 12, description: '必须是世界地图 selectableRegions 中的整数地区 id；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区访问权保留' } } },
   COMPLETE_SETUP: { required: ['protagonist', 'companions'], properties: {
     protagonist: { type: 'object', required: ['name', 'sex', 'allocation'], additionalProperties: false, properties: {
-      name: { type: 'string' }, sex: { type: 'string', enum: ['male', 'female'] }, portrait: { type: 'string' },
+      name: { type: 'string' }, sex: { type: 'string', enum: ['male', 'female'] }, portrait: { type: 'string', description: 'Generated portrait key random:male|female:seed, matching sex; seed must be 1–64 letters, digits, underscores or hyphens. Omission uses an account-specific key. Named teammate portraits are rejected.' },
       classId: { type: 'string', enum: ['commoner'] }, growthType: { type: 'string', enum: ['growth'] },
       allocation: { type: 'object', additionalProperties: false,
         description: `填写基础属性之上的额外加点，总计必须正好${PROTAGONIST_ALLOCATION_BUDGET}点，每项0–5，未填写项按0计；倾向由加点自动推导。`,

@@ -38,7 +38,7 @@ export function campaign(years = 8, postgameDays = 30) {
     let commands = 0;
     const call = (op: number, data: Record<string, any> = {}) => dispatch(ctx, op, { ...data, commandId: `campaign-${commands++}` });
     call(OP.COMPLETE_SETUP, {
-      protagonist: { name: '长期验证', sex: 'female', portrait: 'sera', allocation: { str: 5, def: 5 } },
+      protagonist: { name: '长期验证', sex: 'female', portrait: 'random:female:campaign', allocation: { str: 5, def: 5 } },
       companions: ['victor', 'lina'],
     });
     call(OP.CHOOSE_ROUTE, { region: 1 });

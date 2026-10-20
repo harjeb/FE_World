@@ -801,14 +801,9 @@ export function unitDetail(unit: UnitRecord, day = unit.ageEpochDay ?? unit.join
 
 
 // The whole visible state, shared by GET_STATE and the browser's camp page.
-// 开局可自选的同伴：全部预设角色，去掉主角所选形象与剧情奖励人物（ren/ig/mira）。
-export function companionPool(exclude: string[] = []): CharacterId[] {
-  return CHARACTER_IDS.filter(id => !exclude.includes(id) && !QUEST_RECRUITS.includes(id));
-}
-
-// 神主角的 character 即所选形象：同伴池排除该形象，避免同名同脸重复。
-export function startingCompanionPool(portrait: string): CharacterId[] {
-  return companionPool([portrait]);
+// 开局可自选的同伴：全部预设角色，去掉剧情奖励人物（ren/ig/mira）。
+export function companionPool(): CharacterId[] {
+  return CHARACTER_IDS.filter(id => !QUEST_RECRUITS.includes(id));
 }
 
 // 新账号只发占位主角，需要先完成自捏开局；老存档（已有多人）不再要求。
@@ -870,7 +865,6 @@ export function stateView(store: Store, player: Player) {
         classId: PROTAGONIST_CLASS_ID,
         className: CLASSES[PROTAGONIST_CLASS_ID].name,
         growthType: PROTAGONIST_GROWTH_TYPE,
-        portraits: CHARACTER_IDS.map(id => ({ id, name: CHARACTERS[id].name })),
         baseStats: { ...PROTAGONIST_BASE_STATS },
         budget: PROTAGONIST_ALLOCATION_BUDGET,
         defaultAllocation: { ...PROTAGONIST_ALLOCATION_DEFAULT },

@@ -5,7 +5,7 @@ import { CLASS_PATHS } from '../data/classes.ts';
 import type { ClassRoute } from '../data/classes.ts';
 import { drawPortrait, SIZE } from './draw.ts';
 import type { PortraitSpec } from './draw.ts';
-import { randomPortrait } from './random.ts';
+import { generatedPortraitSex, randomPortrait } from './random.ts';
 import { readPng } from '../testing/png.ts';
 
 const ART = new URL('../../../design/pixel-art/', import.meta.url);
@@ -39,6 +39,24 @@ test('the TypeScript renderer reproduces every portrait PNG of gen_art.py', () =
       assert.fail(`por_${key}: pixel (${px % SIZE}, ${Math.floor(px / SIZE)}) is ${got.slice(px * 4, px * 4 + 4)}, the PNG has ${want.slice(px * 4, px * 4 + 4)}`);
     }
   }
+});
+
+test('saved generated portrait keys preserve sex and appearance across screens and routes', () => {
+  for (const sex of ['male', 'female'] as const) {
+    for (let i = 0; i < 50; i++) {
+      const id = `random:${sex}:hero-${i}`;
+      assert.equal(generatedPortraitSex(id), sex);
+      const portrait = randomPortrait(id, { route: 'sword' });
+      assert.equal(!!portrait.fem, sex === 'female');
+      assert.deepEqual(randomPortrait(id, { route: 'sword' }), portrait);
+      const changed = randomPortrait(id, { route: 'magic', side: 'enemy' });
+      assert.equal(changed.fem, portrait.fem);
+      assert.equal(changed.face, portrait.face);
+      assert.deepEqual(changed.hair, portrait.hair);
+    }
+  }
+  assert.notDeepEqual(randomPortrait('random:male:one'), randomPortrait('random:male:two'));
+  for (const id of ['erin', 'random:female:', 'random:other:seed', 'random:male:<script>', 'random:male:seed\n', `random:male:${'x'.repeat(65)}`]) assert.equal(generatedPortraitSex(id), null);
 });
 
 test('random portraits are reproducible, varied and plain JSON', () => {

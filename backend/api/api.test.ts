@@ -11,6 +11,8 @@ import { CATALOG_VERSION } from '../common/game/version.ts';
 import { CLASSES } from '../common/data/classes.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { PROTAGONIST_BASE_STATS, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
+import { generatedPortraitSex, randomPortrait } from '../common/portraits/random.ts';
+import { toBattleUnit, toSnapshot } from '../common/game/model.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { nextArenaDay, regionById } from '../common/game/calendar.ts';
@@ -82,7 +84,7 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   assert.ok(pool.includes('victor'));
   assert.ok(!pool.includes('ren'), '剧情奖励人物不能当同伴');
   // 仅提交额外加点：魔 5、速 5，魔×2 独高 → 自动推导魔力倾向。
-  const hero = { name: '星见', sex: 'female', portrait: 'sera', allocation: { mag: 5, spd: 5 } };
+  const hero = { name: '星见', sex: 'female', portrait: 'random:female:setup-test', allocation: { mag: 5, spd: 5 } };
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, name: '甲' }, companions: ['victor', 'lina'] }), /2–12/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, classId: 'mage' }, companions: ['victor', 'lina'] }), /平民/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, classId: 'beast' }, companions: ['victor', 'lina'] }), /平民/);
@@ -101,7 +103,7 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor'] }), /2 名/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'victor'] }), /重复/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'ren'] }), /不能作为开局同伴/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['sera', 'victor'] }), /不能作为开局同伴/, '所选形象不能再当同伴');
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, portrait: 'sera' }, companions: ['victor', 'lina'] }), /随机形象键/, '主角不再借用同伴头像');
   // 所有失败尝试都不落账：名册仍只有占位主角（同一事务回滚）。
   assert.equal((stateView(store, player) as View).units.length, 1, 'malformed requests roll back');
   const done = dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['victor', 'lina'] }) as { protagonist: { name: string; classId: string; tendency: string }; companions: string[] };
@@ -114,7 +116,7 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   assert.equal(after.setup.needed, false);
   const heroUnit = after.units.find(u => u.id === 'u_protagonist')!;
   assert.equal(heroUnit.name, '星见');
-  assert.equal(heroUnit.character, 'sera', '形象即主角身份锚点');
+  assert.equal(store.unit(player.id, heroUnit.id)!.portrait, hero.portrait, '所选随机形象独立保存');
   // 九项基础值保留，只叠加本次加点；个人成长取推导倾向，不虚标继承或升级记录。
   const detail = dispatch(ctx, OP.GET_UNIT, { unitId: 'u_protagonist' }) as {
     stats: Record<string, number>; ranks: Record<string, string>; weapons: { id: string }[]; items: { uses: number }[];
@@ -146,14 +148,42 @@ test('a fresh account starts with a placeholder protagonist and completes a self
   assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['karl', 'owen'] }), /已经完成/);
 });
 
+test('setup validates generated portraits without changing the account and defaults to the selected sex', () => {
+  for (const sex of ['male', 'female'] as const) {
+    const store = new Store(openDb(':memory:'));
+    try {
+      const { accountId, player } = loginOrRegister(store, `portrait-${sex}`, undefined, '形象军团');
+      const ctx = ctxFor(store, accountId, player);
+      const hero = { name: '形象神主', sex, allocation: { str: 5, def: 5 } };
+      const beforePlayer = store.getPlayer(player.id);
+      const beforeUnits = store.units(player.id);
+      for (const portrait of ['', 'erin', 'random:other:seed', `random:${sex === 'male' ? 'female' : 'male'}:seed`, `random:${sex}:bad seed`, `random:${sex}:${'x'.repeat(65)}`]) {
+        assert.throws(() => dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: { ...hero, portrait }, companions: ['victor', 'lina'] }), /形象|protagonist.portrait/);
+        assert.deepEqual(store.getPlayer(player.id), beforePlayer);
+        assert.deepEqual(store.units(player.id), beforeUnits);
+      }
+      const done = dispatch(ctx, OP.COMPLETE_SETUP, { protagonist: hero, companions: ['erin', 'lina'] }) as { protagonist: { sex: string; portrait: string } };
+      assert.equal(done.protagonist.sex, sex);
+      assert.equal(generatedPortraitSex(done.protagonist.portrait), sex);
+      assert.equal(!!randomPortrait(done.protagonist.portrait).fem, sex === 'female');
+      const saved = store.unit(player.id, 'u_protagonist')!;
+      assert.equal(saved.sex, sex);
+      assert.equal(saved.portrait, done.protagonist.portrait);
+      assert.equal(toBattleUnit(saved, 'player', saved.id, [0, 0]).portrait, saved.portrait);
+      assert.equal(toSnapshot(saved).portrait, saved.portrait);
+      assert.ok(store.units(player.id).some(unit => unit.id === 'u_erin'), '随机主角不占用同伴形象');
+    } finally { store.db.close(); }
+  }
+});
+
 test('bonus allocation preserves the base and repeated setup commands and reads never add it twice', () => {
   const store = new Store(openDb(':memory:'));
   const { accountId, player } = loginOrRegister(store, 'default-hero', undefined, '均衡军团');
   const ctx = ctxFor(store, accountId, player);
-  const view = stateView(store, player) as { setup: { protagonist: { defaultAllocation: Record<string, number>; portraits: { id: string }[] } } };
+  const view = stateView(store, player) as { setup: { protagonist: { defaultAllocation: Record<string, number> } } };
   assert.equal(Object.values(view.setup.protagonist.defaultAllocation).reduce((a, b) => a + b, 0), 0, 'all 10 bonus points start unspent');
   const allocation = { ...view.setup.protagonist.defaultAllocation, hp: 5, lck: 5 };
-  const portrait = view.setup.protagonist.portraits[0]!.id;
+  const portrait = 'random:male:default-hero';
   const request = { protagonist: { name: '均衡神', sex: 'male', portrait, allocation }, companions: ['karl', 'sera'], commandId: 'create-god-once' };
   const done = dispatch(ctx, OP.COMPLETE_SETUP, request) as { protagonist: { tendency: string; classId: string } };
   assert.deepEqual(dispatch(ctx, OP.COMPLETE_SETUP, request), JSON.parse(JSON.stringify(done)), 'the same commandId returns the first JSON response without adding units');

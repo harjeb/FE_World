@@ -5,6 +5,7 @@ import { deriveProtagonistTendency, PROTAGONIST_TENDENCIES } from '@common/data/
 import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
 import type { StatKey, Stats } from '@common/data/types.ts';
 import { session, useSession } from '../api/session.ts';
+import { newCommandId } from '../api/client.ts';
 import { toast } from '../ui/toast.tsx';
 import { Face } from './SystemParts.tsx';
 
@@ -13,7 +14,7 @@ export function CompanionSetup() {
   const { state } = useSession();
   const [name, setName] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
-  const [portrait, setPortrait] = useState('');
+  const [portraitSeed, setPortraitSeed] = useState(newCommandId);
   const [alloc, setAlloc] = useState<Record<StatKey, number> | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -23,7 +24,7 @@ export function CompanionSetup() {
   const fixedClassId = opts.classId;
   // 默认不预分配额外属性点。
   const current = alloc ?? (opts.defaultAllocation as Record<StatKey, number>);
-  const chosenPortrait = portrait || opts.portraits[0]?.id || 'erin';
+  const chosenPortrait = `random:${sex}:${portraitSeed}`;
   const used = STAT_KEYS.reduce((sum, k) => sum + current[k], 0);
   const tendency = deriveProtagonistTendency(current as Stats);
   const bump = (k: StatKey, d: number) => setAlloc(a => {
@@ -32,12 +33,7 @@ export function CompanionSetup() {
     const after = STAT_KEYS.reduce((sum, x) => sum + (x === k ? next : base[x]), 0);
     return after > opts.budget ? base : { ...base, [k]: next };
   });
-  // 形象即主角的 character 锚点：换形象时把新形象从同伴里移除，旧形象回到可选池。
-  const changePortrait = (id: string) => {
-    setPortrait(id);
-    setPicked(p => p.filter(x => x !== id));
-  };
-  const pool = state.setup.pool.filter(c => c.id !== chosenPortrait);
+  const pool = state.setup.pool;
   const toggle = (id: string) => setPicked(cur => (cur.includes(id) ? cur.filter(x => x !== id) : cur.length < 2 ? [...cur, id] : cur));
   const trimmed = name.trim();
   const ready = trimmed.length >= 2 && trimmed.length <= 12 && picked.length === 2 && used === opts.budget;
@@ -66,10 +62,10 @@ export function CompanionSetup() {
             <input value={name} maxLength={12} onChange={e => setName(e.target.value)} placeholder="2–12 字"
               style={{ flex: 1, maxWidth: 220, padding: '4px 8px', border: '1px solid #C9BFA8', borderRadius: 6 }} />
           </label>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
+          <div role="group" aria-label="主角性别" style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
             <span style={{ width: 64 }}>性别</span>
             {(['male', 'female'] as const).map(s => (
-              <button key={s} type="button" className={`btn btn-sm${sex === s ? ' btn-primary' : ''}`} onClick={() => setSex(s)}>
+              <button key={s} type="button" aria-pressed={sex === s} className={`btn btn-sm${sex === s ? ' btn-primary' : ''}`} onClick={() => setSex(s)}>
                 {s === 'male' ? '男' : '女'}
               </button>
             ))}
@@ -81,14 +77,10 @@ export function CompanionSetup() {
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
             <span style={{ width: 64 }}>形象</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {opts.portraits.map(p => (
-                <button key={p.id} type="button" title={p.name} onClick={() => changePortrait(p.id)}
-                  style={{ padding: 2, cursor: 'pointer', borderRadius: 6, border: chosenPortrait === p.id ? '2px solid #8A6A2F' : '1px solid #C9BFA8', background: '#FFFDF7' }}>
-                  <Face character={p.id} classId={fixedClassId} size={32} />
-                </button>
-              ))}
+            <div role="img" aria-label={`${sex === 'male' ? '男性' : '女性'}主角形象`}>
+              <Face character={chosenPortrait} classId={fixedClassId} size={64} />
             </div>
+            <button type="button" className="btn btn-sm" onClick={() => setPortraitSeed(newCommandId())}>随机形象</button>
           </div>
           <div style={{ fontSize: 14 }}>
             <div style={{ color: '#4E473D' }}>保留基础属性 · 额外还剩 {opts.budget - used} / {opts.budget} 点（每项最多加 {opts.maxPerStat.str} 点）</div>
@@ -109,7 +101,7 @@ export function CompanionSetup() {
 
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <h2 className="serif" style={{ fontSize: 18 }}>初始同伴（{picked.length}/2）</h2>
-          <p style={{ fontSize: 13, color: '#4E473D' }}>从剩余预设中选两名；主角所选形象不可再选。</p>
+          <p style={{ fontSize: 13, color: '#4E473D' }}>从预设中选两名；主角使用独立生成的形象。</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
             {pool.map(c => {
               const on = picked.includes(c.id);

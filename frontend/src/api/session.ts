@@ -28,7 +28,7 @@ export interface ServerUnit {
   crossTimeIdentity?: string | null;
   name: string;
   sex: 'male' | 'female' | null;
-  portrait: CharacterId | null;
+  portrait: string | null;
   classId: string;
   homeClassId: string;
   className: string;
@@ -147,7 +147,6 @@ export interface ServerState {
       classId: string;
       className: string;
       growthType: string;
-      portraits: { id: string; name: string }[];
       baseStats: Record<string, number>;
       budget: number;
       defaultAllocation: Record<string, number>;
@@ -171,7 +170,7 @@ export interface ServerArena {
 }
 
 // GET_OPPONENT: the defender's list with stats and gear (no positions or AI) for the ban step.
-export interface OpponentUnit { id?: string; character: CharacterId; name: string; classId: string; level: number; stats: Stats; weapons: string[]; ranks: Partial<Record<WeaponType, Rank>> }
+export interface OpponentUnit { id?: string; character: CharacterId; portrait?: string | null; name: string; classId: string; level: number; stats: Stats; weapons: string[]; ranks: Partial<Record<WeaponType, Rank>> }
 export interface ServerOpponentDetail { opponent: ServerOpponent; list: OpponentUnit[] }
 // ARENA_BAN: who actually fields and where, the defending commander, and which of mine are barred.
 export interface ArenaReveal { fielded: { id?: string; character: CharacterId; name: string; pos: Point }[]; commander: string; barred: string[] }
