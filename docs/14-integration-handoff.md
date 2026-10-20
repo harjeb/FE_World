@@ -23,7 +23,7 @@ HTTP使用`POST /api/login`、`POST /api/op`，Agent可使用`/ws`或以`AGENT_T
 
 ## 当前功能与连接恢复
 
-- 新档从D0、13,120金币、0公共经验开始，`COMPLETE_SETUP`建立1级主角和两名自选同伴；演示日期仅用于测试夹具。
+- 新档从D0、1,500金币、0公共经验开始，`COMPLETE_SETUP`建立1级主角和两名自选同伴；演示日期仅用于测试夹具。
 - 一年500日、一季125日、八年4000日。十二地各九项任务、500声望、32行动日预算；经典图另有60单图与18连战入口。旧120日存档及未标记500日档通过[33 显式迁移](33-save-migration.md)预演、备份并换算／采纳；生产实迁独立记录。
 - `GET_STATE.world/features`和`GET_WORLD_MAP`提供地图／页面开放状态，`CHOOSE_ROUTE`开通可选路线；尚未开放的任务／章节不显示，浏览器与Agent写操作共用地区门禁，细则见[36](36-playtest-feedback.md)。
 - `session.run`及战斗写操作生成／沿用`commandId`；网络失败用同一ID重试一次。MCP的游戏写操作与Agent叙事也生成／沿用ID，连接或响应解析失败后最多重试一次；结果仍未确认时返回恢复ID，后续重试须显式传入同一`data.commandId`。服务端收据与业务状态同事务，换负载复用ID会拒绝；游戏写命令（含维修）推进`player.version`。

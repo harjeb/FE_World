@@ -1,5 +1,5 @@
 {
-  "docVersion": 30,
+  "docVersion": 31,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -488,7 +488,7 @@
       "op": 40,
       "name": "GET_SHOP",
       "group": "整备",
-      "agentNote": "读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。",
+      "agentNote": "读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。军需处每季轮换 8 件 E／D 级基础装备（每件限量 3），长期每件都会轮到。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1693,7 +1693,7 @@
       "op": 126,
       "name": "BUY_QUEST_ITEM",
       "group": "任务",
-      "agentNote": "用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。",
+      "agentNote": "用金币购买地区声望商店的物品；只能买 GET_QUESTS.regions[].shop 里本季上架的少数高级商品（每季换一批，shopRefreshDay 是下次换批日），每件本季限购 limit 件（bought／remaining 给出已购与剩余），需达到对应声望档位，购买不扣声望。基础装备不在这里卖，见 GET_SHOP 的军需处轮换。",
       "push": false,
       "dataSchema": {
         "type": "object",

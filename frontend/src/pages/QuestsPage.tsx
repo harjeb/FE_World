@@ -15,7 +15,7 @@ import { go, links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { LockIcon } from '../ui/icons.tsx';
 import { RegionExploration } from '../ui/RegionExploration.tsx';
-import { advance, dateLabel } from '../ui/calendar.ts';
+import { advance, dateLabel, plainDate } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 import { CrossTimeEnemyPreview } from './CrossTimeEnemyPreview.tsx';
 import { CrossTimeBrief } from './CrossTimeBrief.tsx';
@@ -265,7 +265,7 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
         })}
       </ol>
       {region.shop.length > 0 && <>
-        <div className="grp">声望商店 · 达到档位才能买，购买不扣声望</div>
+        <div className="grp">声望商店 · 每季只上架少数高级商品，每件限购；达到档位才能买，购买不扣声望{region.shopRefreshDay !== undefined && <> · {plainDate(region.shopRefreshDay)}换一批</>}</div>
         <div className="chips" role="group" aria-label={`${region.name}商店分类`} style={{ padding: '0 14px' }}>
           {ITEM_FILTERS.map(([f, label]) => (
             <button key={f} type="button" className="chip" aria-pressed={shopFilter === f}
@@ -276,13 +276,15 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
           {wares.map(s => (
             <li key={s.item}>
               <span className="slot-free" aria-hidden="true" />
-              <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span></div><div className="sp">需要声望 {s.reputation} · {itemSpec(s.item)}</div></div>
-              {s.unlocked
-                ? <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => onBuy(region.region, s.item)}>{busy === `b${region.region}-${s.item}` ? '购买中…' : '购买'}</button>
-                : <span className="tag tag-grey">声望不足</span>}
+              <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span> <span className="tag tag-grey" title="本季最多购买的件数">限购 {s.bought}/{s.limit}</span></div><div className="sp">需要声望 {s.reputation} · {itemSpec(s.item)}</div></div>
+              {!s.unlocked
+                ? <span className="tag tag-grey">声望不足</span>
+                : s.remaining <= 0
+                  ? <span className="tag tag-brass">本季已买</span>
+                  : <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => onBuy(region.region, s.item)}>{busy === `b${region.region}-${s.item}` ? '购买中…' : '购买'}</button>}
             </li>
           ))}
-          {wares.length === 0 && <li className="empty-row">这个分类下没有在售的物品</li>}
+          {wares.length === 0 && <li className="empty-row">这个分类下本季没有上架的物品</li>}
         </ul>
       </>}
     </section>

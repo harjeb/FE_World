@@ -11,7 +11,7 @@ import { syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { RANKS } from '../common/data/types.ts';
 import { SPELLBOOKS } from '../common/data/spellbooks.ts';
-import { GAME_ITEMS, manualItem, SHOP_STOCK, spellbookItem } from '../common/game/items.ts';
+import { BASIC_GEAR_POOL, GAME_ITEMS, manualItem, SHOP_STOCK, spellbookItem } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { EQUIPMENT_QUALIFICATIONS, itemRank, rankReputation, regionShop } from '../common/game/quest-shop.ts';
 import { RECIPES } from '../common/game/production.ts';
@@ -31,6 +31,7 @@ function acquisition(): Map<string, string[]> {
   const sources = new Map<string, string[]>();
   const add = (item: string, from: string) => sources.set(item, [...(sources.get(item) ?? []), from]);
   for (const row of SHOP_STOCK) add(row.item, 'shop');
+  for (const item of BASIC_GEAR_POOL) add(item, 'quartermaster');
   for (const region of QUEST_REGIONS) for (const row of regionShop(region, Infinity)) add(row.item, `region:${region}`);
   for (const recipe of RECIPES) add(recipe.output.item, `recipe:${recipe.id}`);
   for (const quest of ALL_QUESTS) {
@@ -54,7 +55,7 @@ test('every designed weapon, staff and spellbook has an acquisition route; limit
   const limited: ItemKey[] = ['fw_weapon_8', spellbookItem('fw_spell_60'), spellbookItem('fw_spell_61'), spellbookItem('fw_spell_11'),
     manualItem('fw_spell_60'), manualItem('fw_spell_61'), manualItem('fw_spell_11')];
   for (const item of limited) assert.ok(routes.get(item)!.every(from => from.startsWith('quest:')), `${item}: ${routes.get(item)}`);
-  assert.ok(routes.get('short_bow')!.includes('quest:gw1') && routes.get('short_bow')!.includes('region:2'));
+  assert.ok(routes.get('short_bow')!.includes('quest:gw1') && routes.get('short_bow')!.includes('quartermaster'), 'the short bow is a first-quest reward and a quartermaster item');
 });
 
 test('regional equipment qualifications open by rank and never ask for more reputation than the region can give', () => {
@@ -73,25 +74,33 @@ test('regional equipment qualifications open by rank and never ask for more repu
 test('spellbooks are bought full, carried with their charges, capped per unit and never refilled by moving them', () => {
   const { store, accountId, player } = setup('books');
   const ctx = ctxFor(store, accountId, player);
-  player.flags.regionReputation = { 6: 160, 12: 160 }; player.gold = 200_000; store.savePlayer(player);
-  const ice = spellbookItem('fw_spell_3');
+  player.flags.regionReputation = { 6: 500, 12: 500 }; player.gold = 200_000_000; store.savePlayer(player);
+  // 声望商店每季换一批、每件限购：往后翻季度，直到泽拉斯古都上架一本法术书。
+  const onSale = () => (dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; shop: { item: string }[] }[] }).regions.find(r => r.region === 6)!.shop;
+  const isBook = (item: string) => GAME_ITEMS[item as ItemKey].kind === 'spellbook';
+  for (let i = 0; i < 12 && !onSale().some(row => isBook(row.item)); i++) { player.day += 125; store.savePlayer(player); }
+  const ice = onSale().find(row => isBook(row.item))!.item as ItemKey;
+  const spell = GAME_ITEMS[ice].spell!;
+  const charges = GAME_ITEMS[ice].uses!;
   dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: ice });
-  assert.deepEqual(store.inventory(player.id).filter(row => row.item === ice).map(row => row.uses), [6]);
-  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: spellbookItem('fw_spell_9') }), /出售/);
+  assert.deepEqual(store.inventory(player.id).filter(row => row.item === ice).map(row => row.uses), [charges]);
+  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: ice }), /限购/, 'one copy a season');
+  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: 'iron_sword' }), /没有上架/);
   const sera = store.unit(player.id, 'u_sera')!;
   assert.equal(sera.spellbooks!.length, 4);
   dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_sera', item: ice, action: 'toUnit' });
-  assert.deepEqual(store.unit(player.id, 'u_sera')!.spellbooks!.find(row => row.id === 'fw_spell_3'), { id: 'fw_spell_3', charges: 6, maxCharges: 6 });
+  assert.deepEqual(store.unit(player.id, 'u_sera')!.spellbooks!.find(row => row.id === spell), { id: spell, charges, maxCharges: charges });
+  player.flags.regionShopBought = {}; store.savePlayer(player);
   dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: ice });
   assert.throws(() => dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_sera', item: ice, action: 'toUnit' }), /携带栏已满|同一种/);
   // 用掉几次再放回仓库：剩余次数跟着书走，换人携带也不补满。
   const used = store.unit(player.id, 'u_sera')!;
-  used.spellbooks!.find(row => row.id === 'fw_spell_3')!.charges = 2;
+  used.spellbooks!.find(row => row.id === spell)!.charges = 2;
   store.saveUnit(used, player.id);
   dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_sera', item: ice, action: 'toWarehouse' });
   assert.ok(store.inventory(player.id).some(row => row.item === ice && row.uses === 2));
   dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_noah', item: ice, action: 'toUnit', uses: 2 });
-  assert.equal(store.unit(player.id, 'u_noah')!.spellbooks!.find(row => row.id === 'fw_spell_3')!.charges, 2);
+  assert.equal(store.unit(player.id, 'u_noah')!.spellbooks!.find(row => row.id === spell)!.charges, 2);
 });
 
 test('tome and staff charges stay with the item when it moves between units', () => {

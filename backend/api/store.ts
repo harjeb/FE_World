@@ -3,7 +3,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { Defense } from '../common/arena/rules.ts';
 import type { RandomRecruit } from '../common/game/random-recruit.ts';
 import type { ItemKey } from '../common/game/items.ts';
-import { SHOP_STOCK } from '../common/game/items.ts';
+import { BASIC_ROTATION_STOCK, rotatingBasicGear, SHOP_STOCK } from '../common/game/items.ts';
 import { createUnit, normalizeUnit } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import type { CharacterId } from '../common/data/characters.ts';
@@ -30,6 +30,9 @@ export interface PlayerFlags {
   hardUnlocks?: { regions: number[]; dungeons: number[]; quests: string[] };
   // 已领取的一次性隐藏要素（mapId:objectId），对应物件之后不再生成。
   secretsClaimed?: string[];
+  // 地区声望商店本季的已购数量（键 地区:物品），换季清零。
+  regionShopSeason?: number;
+  regionShopBought?: Record<string, number>;
   // 已完成的主线前置任务（story-N-a 派遣、story-N-b 提交材料），完成后永久记录。
   storyStepsDone?: string[];
   // 竞技场／酒馆胜场等前置任务的进度（stepId → 次数），章节开放之后才开始计。
@@ -125,7 +128,8 @@ export const PROTAGONIST: CharacterId = 'erin';
 // The prototype's fixed moment: the arena day that ends game month 7 (docs/11「演示页面」). A new
 // player starts here with a trained roster so every screen is immediately playable.
 export const NEW_GAME_DAY = 0;
-export const NEW_GAME_GOLD = 13_120;
+// 新档起步金币：只够买几瓶伤药或一件钢制武器，不能开局大采购（旧值 13,120 仅保留给测试夹具 SEED_GOLD）。
+export const NEW_GAME_GOLD = 1_500;
 export const NEW_GAME_BEXP = 0;
 // 演示/测试用的旧起点，仅显式演示或测试夹具使用。
 export const SEED_DAY = 999;
@@ -371,6 +375,8 @@ export class Store {
   refillShop(playerId: string, month: number): void {
     this.db.prepare('DELETE FROM shop WHERE player_id = ?').run(playerId);
     for (const row of SHOP_STOCK) this.setShopStock(playerId, row.item, row.stock);
+    // 军需处：每季轮换一批 E／D 级基础装备（见 items.ts BASIC_GEAR_POOL）。
+    for (const item of rotatingBasicGear(`${playerId}:${month}`)) this.setShopStock(playerId, item, BASIC_ROTATION_STOCK);
   }
 
   // 旧档商店升级：同季度老存档的 shop 表只有旧库存行，缺当前商店新增行；

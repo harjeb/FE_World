@@ -3,6 +3,7 @@ import type { Rank, StatKey } from '../data/types.ts';
 import { SPELLBOOKS } from '../data/spellbooks.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
+import { nextU32, seedRng } from '../engine/rng.ts';
 import { STORY_CHAPTER_QUESTS, STORY_FIND_NOTES, storyClueKey } from './story-quests.ts';
 
 // 职业法术书（cast 用）在仓库里以 spellbook:<法术 id> 存放，避免与同名的魔道书武器（火焰等）混淆；
@@ -160,5 +161,23 @@ export const SHOP_OPEN_DAY: Partial<Record<ItemKey, number>> = {
 export const shopOpenDay = (item: string): number => SHOP_OPEN_DAY[item as ItemKey] ?? 0;
 export const shopItemOpen = (item: string, day: number): boolean => day >= shopOpenDay(item);
 
-const CENTRAL_SHOP_ITEMS = new Set<string>(SHOP_STOCK.map(row => row.item));
+// 王都的“军需处”：E／D 级基础装备（原先塞满地区声望商店的那批）每季轮换 BASIC_ROTATION_SIZE 件，限量 3。
+// 轮换用玩家和季度做种子，同一季内固定；长期看每件都买得到，声望商店则只留少数高级商品（quest-shop.ts）。
+export const BASIC_GEAR_POOL: ItemKey[] = [
+  'iron_sword', 'iron_lance', 'iron_axe', 'steel_sword', 'steel_lance', 'steel_axe', 'fw_weapon_2', 'fw_weapon_25', 'fw_weapon_53', 'fw_weapon_90',
+  'slim_sword', 'slim_lance', 'fw_weapon_66', 'fw_weapon_10', 'short_spear', 'steel_gauntlet', 'steel_bow', 'iron_bow', 'fw_weapon_73', 'short_bow',
+  'fw_weapon_79', 'fw_weapon_85', 'armorslayer', 'hand_axe', 'armor_sword', 'hammer', 'beastkiller', 'dragonslayer', 'javelin', 'horseslayer',
+  'poleaxe', 'rapier', 'fw_weapon_40', 'spellbook:fw_spell_24', 'thunder', 'spellbook:fw_spell_4', 'spellbook:thunder', 'spellbook:fw_spell_6',
+  'gauntlet', 'fw_weapon_18', 'fw_weapon_157', 'devil_sword', 'spellbook:dark', 'spellbook:fw_spell_10', 'spellbook:light', 'spellbook:fw_spell_45',
+] as ItemKey[];
+export const BASIC_ROTATION_SIZE = 8;
+export const BASIC_ROTATION_STOCK = 3;
+export function rotatingBasicGear(seed: string): ItemKey[] {
+  const rng = seedRng(`basic-gear:${seed}`);
+  const pool = [...BASIC_GEAR_POOL];
+  for (let i = pool.length - 1; i > 0; i--) { const j = nextU32(rng) % (i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  return pool.slice(0, BASIC_ROTATION_SIZE);
+}
+
+const CENTRAL_SHOP_ITEMS = new Set<string>([...SHOP_STOCK.map(row => row.item), ...BASIC_GEAR_POOL]);
 export const isCentralShopItem = (item: string): boolean => CENTRAL_SHOP_ITEMS.has(item);

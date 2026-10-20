@@ -93,6 +93,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 28, text: 'v28: 目录44。主线前置任务的奖励改为每个任务单独指定：以伤药、特效药、解毒药和各档武器为主，金币只给少量，单挑另有公共经验。新增战斗消耗品特效药(elixir，回复全部HP，1次)与解毒药(antidote，解除战技造成的中毒，不回复HP，2次)，只能持有携带并在战斗中使用，GET_STORY steps.reward.items给出内容。' },
     { version: 29, text: 'v29: 规则rules-v18、目录45，引擎1不变。普通／困难AI攻击评分改为比较行动前后的威胁，避免远程单位被贴身后因下回合仍可能被追上而放弃后退射击；同等威胁与掩护的落点优先较短移动。固守、护卫范围、定身、睡眠和合法移动规则不变。部署前结束活动战斗／远征并备份，旧规则回放保持冻结。' },
     { version: 30, text: 'v30: 目录46。特效药与解毒药进王都商店（解毒药开局就卖，特效药第2年起）；高级物品按年份上架：特效药、完整料理、六种能力药第2年（第500日）起，不朽盾第3年（第1000日）起，GET_SHOP新增locked（尚未上架的物品及openDay），未到日期BUY被拒绝。属性成长药新增任务与宝箱获取：每个地区的第二个核心任务（-8）给一枚（六种按地区轮换）、主线前置任务（六种各一）、三个伙伴任务各一枚；经典图约四分之一的普通宝箱改放成长药。' },
+    { version: 31, text: 'v31: 目录47。地区声望商店改为只卖少数高级商品并限购：池子只留C级及以上的武器／法术书、能力药、特效药和传承石，每个地区每季只上架4件（账号＋季度做种子，季内固定，长期每件都会轮到），每件本季限购1件（特效药2件）；GET_QUESTS.regions[].shop每行新增limit/bought/remaining，区域新增shopRefreshDay，BUY_QUEST_ITEM拒绝本季未上架或已买满的商品。E／D级基础装备改由王都军需处按季轮换（每季8件、限量3）。新档起步金币由13,120降为1,500。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

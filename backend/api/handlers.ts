@@ -67,7 +67,8 @@ import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
-import { purchasableRank, regionShop, shopEntry } from '../common/game/quest-shop.ts';
+import { purchasableRank } from '../common/game/quest-shop.ts';
+import { boughtThisSeason, nextRefreshDay, regionShopView, stockRow } from './region-shop.ts';
 import { normalizeRegions, routeCandidates, worldMap } from '../common/game/region-map.ts';
 import { addRegionExploration, adoptRegions, combatFeaturesOpen, playerRegions, tavernOpen, workshopFacilities, worldProgress } from './services.ts';
 import { reputationTier } from '../common/game/reputation.ts';
@@ -2133,7 +2134,7 @@ const handlers: Record<number, Handler> = {
         const rep = reputation[region] ?? 0;
         return {
           region, name: regionById(region).name, reputation: rep, tier: reputationTier(rep),
-          shop: regionShop(region, rep),
+          shop: regionShopView(ctx.player, region, rep), shopRefreshDay: nextRefreshDay(ctx.player.day),
           quests: questsForRegion(region).filter(q => !q.archived || ongoing.has(q.id) || (done.has(q.id) && !claimed.has(q.id))).map(q => ({
             id: q.id, name: q.name, objective: q.objective, kind: q.kind, tier: q.tier,
             archived: !!q.archived, dungeonOnly: !!q.dungeonOnly,
@@ -2488,16 +2489,19 @@ const handlers: Record<number, Handler> = {
     const region = asNumber(data.region, 'region');
     if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     const item = asString(data.item, 'item');
-    const found = shopEntry(region, item);
-    if (!found) throw new OpError('NOT_FOUND', '该地区不出售这件物品');
     const reputation = ctx.player.flags.regionReputation?.[region] ?? 0;
-    if (reputation < found.entry.reputation) throw new OpError('FORBIDDEN', `需要 ${regionById(region).name} 声望 ${found.entry.reputation}`);
-    if (ctx.player.gold < found.price) throw new OpError('NOT_ENOUGH_GOLD', `购买需要 ${found.price} 金币`);
-    ctx.player.gold -= found.price;
-    ctx.store.addInventory(ctx.player.id, found.entry.item, stockUses(found.entry.item), 1);
+    const row = stockRow(ctx.player, region, reputation, item);
+    if (!row) throw new OpError('NOT_FOUND', '该地区本季没有上架这件物品（每季换一批，下次换季在第 ' + nextRefreshDay(ctx.player.day) + ' 日）');
+    if (reputation < row.reputation) throw new OpError('FORBIDDEN', `需要 ${regionById(region).name} 声望 ${row.reputation}`);
+    if (row.remaining <= 0) throw new OpError('FORBIDDEN', `${row.name}本季限购 ${row.limit} 件，已经买满`);
+    if (ctx.player.gold < row.price) throw new OpError('NOT_ENOUGH_GOLD', `购买需要 ${row.price} 金币`);
+    ctx.player.gold -= row.price;
+    ctx.store.addInventory(ctx.player.id, row.item, stockUses(row.item), 1);
+    const bought = boughtThisSeason(ctx.player);
+    bought[`${region}:${row.item}`] = (bought[`${region}:${row.item}`] ?? 0) + 1;
     ctx.store.savePlayer(ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'quest-shop' });
-    return { region, item: found.entry.item, name: GAME_ITEMS[found.entry.item].name, price: found.price, gold: ctx.player.gold };
+    return { region, item: row.item, name: GAME_ITEMS[row.item].name, price: row.price, gold: ctx.player.gold, remaining: row.remaining - 1 };
   },
 
   // 开局：自建神主角 + 两名同伴，一次事务完成（docs/00「神主角」、docs/13 §开局）。

@@ -1,5 +1,6 @@
 import type { ItemKey } from './items.ts';
-import { GAME_ITEMS, SHOP_STOCK, spellbookItem } from './items.ts';
+import { BASIC_GEAR_POOL, GAME_ITEMS, SHOP_STOCK, spellbookItem } from './items.ts';
+import { nextU32, seedRng } from '../engine/rng.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
@@ -94,14 +95,30 @@ export function rankReputation(region: number, rank: Rank): number {
   return RANK_REPUTATION[CORE_REGIONS.includes(region) ? 'core' : 'local'][rank];
 }
 
+// 声望商店只留“高级”商品（docs/38 §3.6）：C 级及以上的武器／法术书、能力药、特效药和传承石；
+// E／D 级基础装备归王都军需处按季轮换（items.ts BASIC_GEAR_POOL），药草、料理等补给在王都商店。
+export function isAdvancedStock(item: ItemKey): boolean {
+  const entry = GAME_ITEMS[item];
+  if (entry.kind === 'weapon' || entry.kind === 'spellbook') return !['E', 'D'].includes(itemRank(item));
+  return entry.kind === 'stat' || item === 'elixir' || item === 'legacy_stone_growth';
+}
+
 // 按阶级开放的装备／法术书资格行（供审计与测试）。
 export const EQUIPMENT_QUALIFICATIONS: readonly { region: number; item: ItemKey; reputation: number }[] = Object.entries(EQUIPMENT_SHOPS)
-  .flatMap(([region, items]) => items.map(item => ({ region: Number(region), item, reputation: rankReputation(Number(region), itemRank(item)) })));
+  .flatMap(([region, items]) => items.map(item => ({ region: Number(region), item, reputation: rankReputation(Number(region), itemRank(item)) })))
+  .filter(row => isAdvancedStock(row.item));
 
 for (const row of EQUIPMENT_QUALIFICATIONS) {
   // 既有显式条目保留原资格，避免迁店或补目录时给同一商品展示两行。
   if (!SHOPS[row.region].some(entry => entry.item === row.item)) SHOPS[row.region].push({ item: row.item, price: 0, reputation: row.reputation });
 }
+
+// 少数地区的高级商品太少：补上特效药（按声望档开放）。
+for (const [region, reputation] of [[1, 250], [4, 100], [5, 100], [7, 100], [10, 100]] as const) {
+  if (!SHOPS[region].some(entry => entry.item === 'elixir')) SHOPS[region].push({ item: 'elixir', price: 0, reputation });
+}
+// 去掉不再属于声望商店的低级商品和补给，只保留高级商品。
+for (const region of Object.keys(SHOPS)) SHOPS[Number(region)] = SHOPS[Number(region)].filter(entry => isAdvancedStock(entry.item));
 
 // 价格未单独定价时按商品目录价。
 const priceOf = (entry: ShopEntry) => entry.price || GAME_ITEMS[entry.item].price;
@@ -113,6 +130,20 @@ export function regionShop(region: number, reputation: number): { item: ItemKey;
   }));
 }
 
+// 每个地区每季只上架 REGION_STOCK_SIZE 件，每件本季限购 1 件（特效药限购 2）。上架的一批由账号和季度做种子，
+// 同一季内固定、不随声望变化；池子里的每件长期都会轮到，所以所有高级装备仍有取得途径。
+export const REGION_STOCK_SIZE = 4;
+export const regionLimit = (item: ItemKey): number => item === 'elixir' ? 2 : 1;
+export interface RegionStockRow { item: ItemKey; name: string; price: number; reputation: number; unlocked: boolean; limit: number }
+export function regionStock(region: number, reputation: number, seed: string): RegionStockRow[] {
+  const pool = regionShop(region, reputation);
+  const rng = seedRng(`region-stock:${seed}:${region}`);
+  const order = [...pool];
+  for (let i = order.length - 1; i > 0; i--) { const j = nextU32(rng) % (i + 1); [order[i], order[j]] = [order[j], order[i]]; }
+  const keep = new Set(order.slice(0, REGION_STOCK_SIZE).map(row => row.item));
+  return pool.filter(row => keep.has(row.item)).map(row => ({ ...row, limit: regionLimit(row.item) }));
+}
+
 export function shopEntry(region: number, item: string): { entry: ShopEntry; price: number } | null {
   const entry = (SHOPS[region] ?? []).find(e => e.item === item);
   return entry ? { entry, price: priceOf(entry) } : null;
@@ -121,7 +152,8 @@ export function shopEntry(region: number, item: string): { entry: ShopEntry; pri
 // 玩家此刻能买到的最高装备级：王都每月商店，加上已开通地区里声望已达标的武器／法术书。
 // 密室随机宝箱按这一级再高一级掉落。
 export function purchasableRank(regions: readonly number[], reputation: Readonly<Record<number, number>>): Rank {
-  const items = [...SHOP_STOCK.map(row => row.item),
+  // 王都的固定库存加军需处的基础装备（D 级）也算“买得到”。
+  const items = [...SHOP_STOCK.map(row => row.item), ...BASIC_GEAR_POOL,
     ...regions.flatMap(region => regionShop(region, reputation[region] ?? 0).filter(row => row.unlocked).map(row => row.item))];
   return items.filter(item => GAME_ITEMS[item].kind === 'weapon' || GAME_ITEMS[item].kind === 'spellbook')
     .map(itemRank).reduce<Rank>((best, rank) => RANKS.indexOf(rank) > RANKS.indexOf(best) ? rank : best, 'E');

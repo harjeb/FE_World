@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 30
+docVersion: 31
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -76,7 +76,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 40 | GET_SHOP | 读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。 |
+| 40 | GET_SHOP | 读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。军需处每季轮换 8 件 E／D 级基础装备（每件限量 3），长期每件都会轮到。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。 |
 | 41 | BUY | 用金币购买商品；库存有限，买入再卖出会亏损。 |
 | 42 | SELL | 卖出仓库物品换取金币；uses 可指定剩余次数的一叠，count 为出售数量，默认1。 |
 | 43 | TRANSFER_ITEM | 在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具、法术书（item 为 spellbook:<法术id>，同种只带一本）各最多 5 件；只有武器、法术书和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，耐久与剩余次数随物品走；出战或远征中的角色不能搬运。 |
@@ -165,7 +165,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | 123 | GET_QUESTS | 读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。伙伴任务带 companion（人物 ID），固定人物经地区远征加入名册后才出现，阵亡不撤销，完成后 epilogue 给出后记。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。 |
 | 124 | START_QUEST | 时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。主线任务 story-1..8 不属于任何地区（无需 region），对应章节开放后可接，单图、2 日、每章一次，胜利即完成该章并自动记入 storyCompleted，报酬用 CLAIM_QUEST_REWARD 领取（不记声望）；伙伴任务 companion-ren/ig/mira 需先通过地区远征招募对应人物。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；逐图3／3／2日，共8日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。 |
 | 125 | CLAIM_QUEST_REWARD | 领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。 |
-| 126 | BUY_QUEST_ITEM | 用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。 |
+| 126 | BUY_QUEST_ITEM | 用金币购买地区声望商店的物品；只能买 GET_QUESTS.regions[].shop 里本季上架的少数高级商品（每季换一批，shopRefreshDay 是下次换批日），每件本季限购 limit 件（bought／remaining 给出已购与剩余），需达到对应声望档位，购买不扣声望。基础装备不在这里卖，见 GET_SHOP 的军需处轮换。 |
 | 127 | COMPLETE_SETUP | 完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；portrait为独立随机形象键random:male|female:seed，seed为1–64位字母、数字、下划线或连字符，须与sex一致；不传时按账号生成，不再接受同伴头像预设。同伴仅排除剧情奖励人物，只能提交一次。 |
 ### 日历
 

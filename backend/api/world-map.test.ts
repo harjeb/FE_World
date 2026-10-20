@@ -89,7 +89,7 @@ test('a fresh world is fully locked: no region, no sortie, safe empty reads ever
   const quote = dispatch(ctx, OP.PREVIEW_ACTION, { action: 'sortie', region: 5 }) as { blockers: string[] };
   assert.ok(quote.blockers.some(block => block.includes('尚未解锁')), '报价要给出地区阻挡原因');
   assert.throws(() => dispatch(ctx, OP.CHOOSE_ROUTE, { region: 1 }), /开局/, '完成开局前不能选路线');
-  assert.throws(() => dispatch(ctx, OP.BUY, { item: 'iron_sword' }), /王都/, '旧目录武器不能从王都商店购买');
+  assert.throws(() => dispatch(ctx, OP.BUY, { item: 'killer_bow' }), /王都/, '已迁往地区声望商店的武器不能从王都商店购买');
 });
 
 test('choosing a route costs no days, cannot skip adjacency and is idempotent per commandId', () => {
@@ -282,15 +282,15 @@ test('the central shop only sells current stock; retired rows are hidden and rej
   const { store, accountId, player } = fresh('world-shop');
   const ctx = ctxFor(store, accountId, player);
   // 模拟同季度旧档：shop 表还有已迁店的旧行，且伤药已被买空。
-  store.setShopStock(player.id, 'iron_sword', 5);
+  store.setShopStock(player.id, 'killer_bow', 5);
   store.setShopStock(player.id, 'vulnerary', 0);
   store.ensureShopRows(player.id);
   const shop = dispatch(ctx, OP.GET_SHOP, {}) as { items: { item: string; stock: number }[] };
   const byItem = new Map(shop.items.map(row => [row.item, row.stock]));
-  assert.equal(byItem.has('iron_sword'), false, '旧目录武器不再出现在王都商店');
+  assert.equal(byItem.has('killer_bow'), false, '已迁往地区声望商店的武器不再出现在王都商店');
   assert.equal(byItem.get('fw_weapon_1'), 8, '新增的 E 级基础装备行被补插');
   assert.equal(byItem.get('vulnerary'), 0, '已消耗的库存不被重置');
-  assert.throws(() => dispatch(ctx, OP.BUY, { item: 'iron_sword' }), /王都|地区/, '旧 SQLite 行残留也不能绕过商店迁移');
+  assert.throws(() => dispatch(ctx, OP.BUY, { item: 'killer_bow' }), /王都|地区/, '旧 SQLite 行残留也不能绕过商店迁移');
   const goldBefore = ctx.player.gold;
   const bought = dispatch(ctx, OP.BUY, { item: 'fw_weapon_1' }) as { item: string; price: number };
   assert.equal(bought.item, 'fw_weapon_1');

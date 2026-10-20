@@ -39,12 +39,12 @@ test('rank-up chests roll one rank above the base and never pay out bound weapon
 });
 
 test('the purchasable rank follows unlocked regions and their reputation gates', () => {
-  assert.equal(purchasableRank([], {}), 'E', 'the capital shop only sells rank-E gear');
-  assert.equal(purchasableRank([1], { 1: 0 }), 'E');
-  assert.equal(purchasableRank([1], { 1: 20 }), 'D');
+  assert.equal(purchasableRank([], {}), 'D', 'the capital quartermaster rotates rank-D gear in');
+  assert.equal(purchasableRank([1], { 1: 0 }), 'D');
+  assert.equal(purchasableRank([1], { 1: 250 }), 'D', 'region 1 only sells an elixir now');
   assert.equal(purchasableRank([2], { 2: 250 }), 'B');
   assert.equal(purchasableRank([2], { 2: 500 }), 'A');
-  assert.equal(purchasableRank([1], { 2: 500 }), 'E', 'reputation in a locked region does not count');
+  assert.equal(purchasableRank([1], { 2: 500 }), 'D', 'reputation in a locked region does not count');
 });
 
 test('the FE6 dungeon silver-lance chest holds the unsellable old map only inside the FE6 route', () => {

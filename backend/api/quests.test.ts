@@ -188,23 +188,40 @@ test('a quest cannot start while another battle is in progress', () => {
   assert.throws(() => dispatch(ctx, OP.START_QUEST, { questId: 'ih1', unitIds: ['u_erin'] }), /进行中的战斗/);
 });
 
-test('the reputation shop gates items by reputation and spends gold once unlocked', () => {
+test('the reputation shop shows a few advanced items, gates them by reputation, limits purchases per season and spends gold once unlocked', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  const view = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; shop: { item: string; price: number; unlocked: boolean }[] }[] };
-  const shop = view.regions.find(r => r.region === 2)!.shop;
-  const bow = shop.find(e => e.item === 'killer_bow')!;
-  assert.equal(bow.unlocked, false, 'killer_bow needs reputation 100');
-  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: 'killer_bow' }), /声望/);
-  player.flags.regionReputation = { 2: 100 };
+  type Row = { item: string; name: string; price: number; reputation: number; unlocked: boolean; limit: number; bought: number; remaining: number };
+  const shop = (region = 2) => (dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; shop: Row[]; shopRefreshDay: number }[] }).regions.find(r => r.region === region)!;
+  const first = shop();
+  assert.ok(first.shop.length >= 1 && first.shop.length <= 4, `${first.shop.length} items on sale`);
+  for (const row of first.shop) {
+    assert.ok(row.reputation > 0 || row.price > 0);
+    assert.deepEqual([row.bought, row.remaining], [0, row.limit]);
+  }
+  assert.equal(first.shopRefreshDay, (Math.floor(player.day / 125) + 1) * 125, 'the stock changes at the start of the next season');
+  assert.deepEqual(shop().shop.map(r => r.item), first.shop.map(r => r.item), 'reading again shows the same stock');
+
+  const row = first.shop.find(r => r.reputation > 0)!;
+  assert.equal(row.unlocked, false);
+  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: row.item }), /声望/);
+  assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: 'iron_sword' }), /没有上架/, 'basic gear is not a reputation-shop item');
+  player.flags.regionReputation = { 2: row.reputation };
   player.gold = 100_000;
   store.savePlayer(player);
-  const bought = dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: 'killer_bow' }) as { price: number; gold: number };
-  assert.equal(bought.price, bow.price);
-  assert.equal(player.gold, 100_000 - bow.price);
-  assert.ok(store.countInventory(player.id, 'killer_bow') > 0);
-  // 购买不扣声望。
-  assert.equal(player.flags.regionReputation[2], 100);
+  const bought = dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: row.item }) as { price: number; gold: number; remaining: number };
+  assert.equal(bought.price, row.price);
+  assert.equal(player.gold, 100_000 - row.price);
+  assert.equal(bought.remaining, row.limit - 1);
+  assert.ok(store.countInventory(player.id, row.item as never) > 0);
+  assert.equal(player.flags.regionReputation[2], row.reputation, '购买不扣声望');
+
+  // The limit is per season: a second copy is refused, and the counter resets with the next season.
+  if (row.limit === 1) assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 2, item: row.item }), /限购/);
+  assert.equal(shop().shop.find(r => r.item === row.item)!.bought, 1);
+  player.day += 125;
+  store.savePlayer(player);
+  assert.ok(shop().shop.every(r => r.bought === 0), 'a new season clears the counters');
 });
 
 test('a region expedition runs three maps and only marks the quest done at the end', () => {

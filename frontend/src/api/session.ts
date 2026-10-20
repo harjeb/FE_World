@@ -312,7 +312,8 @@ export interface ServerCrossTimeRecruits {
   }[];
 }
 
-export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean }[]; quests: QuestView[] }
+export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; // 每季只上架少数高级商品，每件限购；shopRefreshDay 是下次换一批的日期。
+  shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean; limit: number; bought: number; remaining: number }[]; shopRefreshDay?: number; quests: QuestView[] }
 export interface ServerQuests { regions: QuestRegion[]; crossTime?: (QuestView & { acceptedRegion: number | null; availableRegions: number[] }) | null }
 
 // GET_CHALLENGES: the tower floors (docs/00 §9.6).
