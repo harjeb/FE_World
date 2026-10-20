@@ -12,18 +12,18 @@ import { catalog } from './catalog.ts';
 import { createUnit, gainExperience, growthRates, normalizeUnit } from './model.ts';
 import { applyInheritanceFloor, claimLegacy, createLegacy, reincarnate, totalStats } from './legacy.ts';
 
-test('charm is an independent ninth stat with the original per-class rates and its own cap', () => {
+test('charm is an independent ninth stat with the original per-class rates and no cap', () => {
   assert.equal(STAT_KEYS.length, 9);
   assert.equal(STAT_NAMES.cha, '魅力');
   assert.equal(catalog().stats.cha, '魅力');
-  assert.equal(CHARACTER_CAPS.cha, 99);
-  assert.equal(totalStats(CHARACTER_CAPS), 942);
+  assert.equal(CHARACTER_CAPS.cha, null);
+  assert.deepEqual(JSON.parse(JSON.stringify(CHARACTER_CAPS)), { hp: 150, str: null, mag: null, skl: null, spd: null, lck: null, def: null, res: null, cha: null });
   for (const id of CATALOG_CLASS_IDS) assert.ok(Number.isFinite(CLASSES[id].growth.cha), id);
   for (const ref of FW_CLASS_REFERENCE.filter(ref => CATALOG_CLASS_IDS.includes(ref.id))) assert.equal(CLASSES[ref.id].growth.cha, ref.growth[8], ref.id);
   assert.equal(CLASSES.swordsman.growth.str, 5, 'the conservative physical growth buff stays unchanged');
 });
 
-test('training and battle level-ups both grow charm independently and stop at its cap', () => {
+test('training and battle level-ups both grow charm independently past 99', () => {
   const unit = createUnit('erin', 20, 'charm-growth', 0, false, { classId: 'commoner', growthType: 'normal' });
   unit.inheritedGrowth = stats(0,0,0,0,0,0,0,0,100);
   unit.stats.cha = 98;
@@ -33,10 +33,10 @@ test('training and battle level-ups both grow charm independently and stop at it
   assert.equal(state.units[0].stats.cha, 99);
   assert.equal(state.units[0].stats.lck, luck);
   gainExperience(unit, 200, seedRng('charm-training'));
-  assert.equal(unit.stats.cha, 99);
+  assert.equal(unit.stats.cha, 100);
   assert.equal(unit.stats.lck, luck);
   assert.equal(unit.growthLog[0].gains.cha, 1);
-  assert.equal(unit.growthLog[1].gains.cha, undefined);
+  assert.equal(unit.growthLog[1].gains.cha, 1);
 });
 
 test('charm participates in permanent totals, growth inheritance and reincarnation allocation', () => {
@@ -71,7 +71,7 @@ test('old unit data gains a zero charm field without changing earned stats or fr
   assert.deepEqual(retained, before);
   assert.equal(old.level, 20);
   assert.equal(old.inheritedGrowth.cha, 0);
-  assert.equal(old.inheritance.caps.cha, 0);
+  assert.equal(old.inheritance.caps.cha, null);
   assert.equal(old.inheritance.clippedTarget, 200);
   assert.equal(old.inheritance.initialTotal, 80);
 });
@@ -93,11 +93,11 @@ test('old battle states without charm retain their original growth RNG behavior'
   const unit = createUnit('erin', 20, 'old-battle', 0, false, { classId: 'commoner', growthType: 'normal' });
   const state = createFieldBattle([unit], { region: 1, cleared: 0, seed: 'old-charm-battle' }).state;
   const old = JSON.parse(JSON.stringify(state.units[0]));
-  old.stats = { ...CHARACTER_CAPS };
+  old.stats = stats(150,99,99,99,99,99,99,99,99);
   delete old.stats.cha;
   old.inheritedGrowth = stats(0,0,0,0,0,0,0,0,50);
   const before = structuredClone(state.growthRng);
-  assert.deepEqual(rollLevelUp(state, old), { gains: {}, rerolls: 0 });
+  assert.deepEqual(rollLevelUp(state, old), { gains: {}, rerolls: 2 });
   assert.deepEqual(state.growthRng, before);
 });
 

@@ -34,7 +34,7 @@ export function expectedUnit(character: CharacterId, level: number, kit: Kit = K
   const stats = {} as Stats;
   for (const key of STAT_KEYS) {
     const rate = Math.max(0, def.growth[key] + cls.growth[key]);
-    stats[key] = Math.min(cls.caps[key], def.base[key] + Math.floor(rate * (level - def.level) / 100));
+    stats[key] = Math.min(cls.caps[key] ?? Infinity, def.base[key] + Math.floor(rate * (level - def.level) / 100));
   }
   return {
     character, classId: def.classId, level, stats, con: def.con,

@@ -3,7 +3,7 @@ import type { Weapon, WeaponAilment, WeaponId } from '../data/weapons.ts';
 import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import type { ArtMechanics } from '../data/art-mechanics.ts';
 import { TERRAINS } from '../maps/map.ts';
-import { skillMods } from './skills.ts';
+import { combatStats, skillMods } from './skills.ts';
 import type { Fighter } from './skills.ts';
 import type { WeaponArt } from '../data/weapon-arts.ts';
 import { artVictims, validateArt, walkedCells } from './arts.ts';
@@ -15,7 +15,7 @@ import type { BattleState, Point, UnitState } from './types.ts';
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 export interface TerrainBonus { name: string; avoid: number; def: number; applies: boolean }
 export interface SideForecast {
-  unit: string; weapon: WeaponId | null; hp: number; maxHp: number;
+  unit: string; weapon: WeaponId | null; hp: number; maxHp: number; skl: number;
   attackSpeed: number; attack: number; damage: number; rawDamage: number; hit: number; crit: number; followUpCrit: number;
   strikes: number; canAttack: boolean; doubles: boolean; triangle: -1 | 0 | 1; effective: boolean;
   terrain: TerrainBonus; barrier: number; protected: boolean; netherProtected: boolean; silenceable: boolean;
@@ -148,10 +148,11 @@ export function isMagicWeapon(w: Weapon): boolean {
   return !!w.magic || w.type === 'tome' || w.type === 'dragon';
 }
 export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: WeaponId | null, pos: Point = unit.pos) {
-  const w = weaponId ? WEAPONS[weaponId] : null, s = artStats(unit);
+  const w = weaponId ? WEAPONS[weaponId] : null, s = combatStats(unit, w);
   const mods = skillMods(state, { unit, pos, weapon: w, moved: unit.movedTurn === state.turn });
   const as = attackSpeed(unit, weaponId);
   return {
+    skl: s.skl,
     attack: w ? (isMagicWeapon(w) ? s.mag : s.str) + w.might + mods.attack + artBonus(unit, 'attack') : 0,
     hit: w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + mods.hit + artBonus(unit, 'hit') : 0,
     crit: w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(unit, 'crit') : 0,
@@ -175,7 +176,7 @@ export function weaponEffective(w: Weapon | null, foe: UnitState): boolean {
     || !!w.effectiveRoutes?.some(route => route === c.route) || !!w.effectiveTags?.some(tag => matches(foe, tag));
 }
 function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null, role: StrikeSpec['side'], art?: CombatArt, incoming?: CombatArt): SideForecast {
-  const w = me.weapon, fw = foe.weapon, s = artStats(me.unit), fs = artStats(foe.unit);
+  const w = me.weapon, fw = foe.weapon, s = combatStats(me.unit, w), fs = combatStats(foe.unit, fw);
   // 逆克制：任一方持逆克制武器时本次克制反转，双方都持有则抵消。
   const raw = w && fw ? triangle(w.type, fw.type) : 0, tri = raw && !!w?.reaver !== !!fw?.reaver ? -raw as -1 | 1 : raw;
   const effective = weaponEffective(w, foe.unit) || !!art?.effective?.some(kind => matches(foe.unit, kind));
@@ -204,7 +205,7 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
   const afflicts = weaponRules ? (w?.onHit?.statuses ?? []).filter(status => !foe.unit.immunities?.includes(status)) : [];
   const debuff = weaponRules && !foe.unit.immunities?.includes('debuff') ? w?.onHit?.debuff : undefined;
   const prior = debuff ? Math.min(0, ...(foe.unit.artEffects?.buffs ?? []).filter(b => b.stat === debuff.stat && b.duration !== 'map').map(b => b.amount)) : 0;
-  return { unit: me.unit.id, weapon: meWeapon, hp: me.unit.hp, maxHp: me.unit.stats.hp,
+  return { unit: me.unit.id, weapon: meWeapon, hp: me.unit.hp, maxHp: me.unit.stats.hp, skl: s.skl,
     attackSpeed: attackSpeed(me.unit, meWeapon) + mods.attackSpeed + artBonus(me.unit, 'as') + (am?.as ?? 0) + (im?.as ?? 0),
     attack, rawDamage, damage: Math.max(0, rawDamage), hit: w ? art?.fixedHit ?? clamp(hitRaw - avoid) : 0,
     crit: w && !art?.noCrit ? clamp(critRaw - dodge) : 0,
@@ -270,7 +271,7 @@ export function forecast(state: BattleState, attackerId: string, from: Point, we
 export function artCombatOptions(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, target: UnitState, index = 0, walked = walkedCells(state, unit, to)): CombatArt {
   const m = ART_MECHANICS[art.id] ?? {}, result: CombatArt = { ...m, id: art.id, might: art.might, hit: art.hit, crit: art.crit, sequence: art.sequence };
   if (!art.original) {
-    const s = artStats(unit), fw = equipped(target), ft = fw ? WEAPONS[fw] : undefined;
+    const s = combatStats(unit, WEAPONS[weapon]), fw = equipped(target), ft = fw ? WEAPONS[fw] : undefined;
     const c = classOf(target), t = terrainBonus(state, unit, to);
     const checks = { foe_half: target.hp * 2 <= target.stats.hp, foe_poison: target.artEffects?.statuses?.includes('poison'), foe_full: target.hp === target.stats.hp,
       self_full: unit.hp === unit.stats.hp, terrain: t.avoid > 0 || t.def > 0,

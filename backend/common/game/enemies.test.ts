@@ -47,7 +47,7 @@ test('hard levels, every stat including zero bases, constitution and movement ob
     assert.ok(hard.level <= Math.max(level, Math.min(99, level + 5)));
     const base = enemyStats(classId, hard.level);
     for (const key of STAT_KEYS) {
-      const cap = CLASSES[classId].caps[key];
+      const cap = CLASSES[classId].caps[key] ?? Infinity;
       const min = key === 'hp' ? 20 : 10, max = key === 'hp' ? 35 : 25;
       assert.ok(hard.stats[key] >= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * min / 100))), `${classId} ${key} minimum`);
       assert.ok(hard.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * max / 100))), `${classId} ${key} maximum`);

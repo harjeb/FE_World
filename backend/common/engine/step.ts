@@ -9,7 +9,8 @@ import { breakIce, moveUnit } from './terrain.ts';
 import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runAreaHeal, runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { artCombatOptions } from './combat.ts';
-import { addArtBuff, afterClassicArt, artStats, expireArtPhase, inflictArtStatus } from './art-effects.ts';
+import { combatStats } from './skills.ts';
+import { addArtBuff, afterClassicArt, expireArtPhase, inflictArtStatus } from './art-effects.ts';
 import { artObjects, artPostMoves, artSupportOptions, objectArtDamage, sameArtSupport } from './art-options.ts';
 import { roll100 } from './rng.ts';
 import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAction, validateArt } from './arts.ts';
@@ -183,7 +184,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     const instance = unit.weaponInstances!.find(row => row.id === action.weapon)!;
     instance.durability -= art.cost;
     const mechanics = ART_MECHANICS[art.id], refund = mechanics?.refund;
-    const refundChance = refund?.stat ? Math.max(0, Math.min(100, Math.floor(artStats(unit)[refund.stat] / (refund.divisor ?? 1)))) : 0;
+    const refundChance = refund?.stat ? Math.max(0, Math.min(100, Math.floor(combatStats(unit, WEAPONS[action.weapon])[refund.stat] / (refund.divisor ?? 1)))) : 0;
     let free = refundChance >= 100 || refundChance > 0 && roll100(state.rng) < refundChance;
     if (!target) {
       damageObject(state, unit, action.target, objectArtDamage(unit, action.weapon, art), events);

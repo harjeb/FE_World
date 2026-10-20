@@ -74,7 +74,7 @@ test('a numeric legacy tops the recipient up to the per-level floor', () => {
   const legacy = legacyFor(source);
   const preview = previewInheritance(legacy, recipient);
   assert.equal(preview.sourceTotal, totalStats(source.stats));
-  assert.equal(preview.clippedTarget, Math.min(preview.sourceTotal, totalStats(effectiveCaps(recipient))));
+  assert.equal(preview.clippedTarget, preview.sourceTotal);
   claimLegacy(legacy, recipient, 'numeric', { hp: 1, str: 1, spd: 1 });
   // At level 1 there is no bonus; raising the level tops the total up to F(level).
   recipient.level = 8;
@@ -87,16 +87,22 @@ test('a numeric legacy tops the recipient up to the per-level floor', () => {
   assert.deepEqual(applyInheritanceFloor(recipient), {});
 });
 
-test('capacity clipping keeps the target at the sum of the recipient caps', () => {
+test('unlimited inheritance transfers totals above 942 without loss and redirects capped HP', () => {
   const source = createUnit('erin', 20, 'src', 0, true);
   const recipient = createUnit('owen', 1, 'dst', 0, true);
   const legacy = legacyFor(source);
-  // A source whose permanent total exceeds the recipient's capacity (e.g. a future higher-cap race).
+  // A large source total must transfer in full, even with HP-only weights.
   for (const key of STAT_KEYS) legacy.sourceStats[key] = 999;
   const preview = previewInheritance(legacy, recipient);
-  assert.equal(preview.capacity, totalStats(effectiveCaps(recipient)));
-  assert.equal(preview.clippedTarget, preview.capacity);
-  assert.ok(preview.lost > 0);
+  assert.equal(preview.capacity, null);
+  assert.equal(preview.clippedTarget, 8991);
+  assert.equal(preview.lost, 0);
+  claimLegacy(legacy, recipient, 'numeric', { hp: 1 });
+  recipient.level = source.level;
+  applyInheritanceFloor(recipient);
+  assert.equal(totalStats(recipient.stats), 8991);
+  assert.equal(recipient.stats.hp, 150);
+  assert.ok(recipient.stats.str > 99);
 });
 
 test('only eligible sources produce legacies and B cannot transmit', () => {

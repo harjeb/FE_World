@@ -33,11 +33,12 @@ test('suggested paths can branch or stop before divine tier, preserving level an
 
 test('progression stops at 99, uses universal caps and weapon ranks belong to the character', () => {
   const u = createUnit('erin', 98, 'test', 0);
+  u.stats.str = 120;
   gainExperience(u, 2000, seedRng('99'));
   assert.equal(u.level, 99);
   assert.equal(u.exp, 0);
   assert.ok(u.stats.hp <= 150);
-  assert.ok(u.stats.str <= 99);
+  assert.ok(u.stats.str >= 120);
   u.classId = 'gladiator';
   u.ranks.sword = 'E';
   assert.equal(addWeaponExp(u, 'sword', 1000), 'S');

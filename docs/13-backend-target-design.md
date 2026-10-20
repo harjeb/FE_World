@@ -6,7 +6,7 @@
 
 > 成长采用原表弱项定向加强：现行58项中20项仅加名单属性、38项保留原值，19项扩展保留独立适配配置。勇者不叠加勇士成长。原始60行参考独立留档；九属性理由和12条八年培养试算见[16](16-class-growth-balance.md)。不重算已有永久属性；固定样本不代表完整经济、全技能或全部后期路线已平衡。
 
-> 魅力遗漏已补入九属性数据、成长、上限、传承与轮回分配，见[17](17-class-growth-review.md)。旧存档只补缺失字段，不重算旧八项或冻结继承目标；旧战斗保留原升级随机序列。示例角色初始魅力5／个人成长20%为首稿；魅力的计略／骑士团用途及官方系数仍待核对接入。
+> 魅力遗漏已补入九属性数据、成长、上限、传承与轮回分配，见[17](17-class-growth-review.md)。旧存档只补缺失字段，不重算旧八项；旧99上限继承合同在读档或下次保底结算时按保存的`sourceTotal`刷新上限与目标；旧战斗保留原升级随机序列。示例角色初始魅力5／个人成长20%为首稿；魅力的计略／骑士团用途及官方系数仍待核对接入。
 
 > 历史来源（2026-10-16）：合并远端`b7d2b8f`后保留的目标设计。当前采用Fastify、SQLite与数字op，版本、commandId、报价和业务／收据原子事务已有实现；规范化表结构与未列入生成协议的候选不自动接入。原型分支已通过`dca536b`纳入主线历史，处置见[32](32-branch-integration.md)。
 
@@ -69,7 +69,7 @@
 | `growth_history` | `unit_id, cycle, level, rates_json, random_gains_json, inherited_gains_json, stats_after_json, rng_checkpoint_ref` | `(unit_id,cycle,level) UNIQUE`，首次一级基准另存；历史不可修改 |
 | `unit_drug_usage` | `unit_id, cycle, stat_key, count` | `(unit_id,cycle,stat_key) UNIQUE`；总额由锁住角色后计算，不能只检查单项 |
 | `legacies` | `id, player_id, source_unit_id, source_lineage_depth, cause, source_level, source_stats_json, source_growth_json, growth_components_json, state, recipient_unit_id, mode` | `source_unit_id UNIQUE`、`recipient_unit_id UNIQUE WHERE NOT NULL`；来源只能depth=0，冻结装备／被动来源；available→claimed |
-| `inheritance_contracts` | `legacy_id, recipient_unit_id, target_level, initial_total, source_total, clipped_target, caps_json, weights_json, cycle` | `legacy_id UNIQUE, recipient_unit_id UNIQUE`；固定预览中确认的上限／权重；轮回不重发 |
+| `inheritance_contracts` | `legacy_id, recipient_unit_id, target_level, initial_total, source_total, clipped_target, caps_json, weights_json, cycle` | `legacy_id UNIQUE, recipient_unit_id UNIQUE`；固定预览中确认的权重；旧99上限合同按保存source_total刷新上限与目标；轮回不重发 |
 | `reincarnations` | `unit_id, source_cycle, target_cycle, base_stats_json, growth_allocation_json, new_age_base_days, receipt_id` | `unit_id UNIQUE`，仅0→1；清技能学习／熟练度／资格，年龄16岁及30点分配同事务，血缘锁保留 |
 | `memorial_records` | `unit_id, cause, at_day, battle_id, final_snapshot_json, lineage_json` | 战死、寿终、退役均记录，原因区分；不能重复产遗产 |
 
@@ -231,7 +231,7 @@ boss = min(99, L + 4)
 
 ### 5.1 成长与上限
 
-九属性使用 `hp,str,mag,skl,spd,lck,def,res,cha`；运和幸运同一属性，体格／移动单列。个人基础、职业、固定类型自身年龄曲线、装备、被动与其他临时修正分别保存；类型曲线只算一次。最终率最低0，每项基础增量`floor(rate/100)`，余数再掷一次，超上限裁剪。空级保护是否启用仍留配置，不假定旧重掷已被取消。
+九属性使用 `hp,str,mag,skl,spd,lck,def,res,cha`；运和幸运同一属性，体格／移动单列；HP上限150，其余八项无数值上限，已获属性与过去成长不重算；个人基础、职业、固定类型自身年龄曲线、装备、被动与其他临时修正分别保存；类型曲线只算一次。最终率最低0，每项基础增量`floor(rate/100)`，余数再掷一次，超上限裁剪。空级保护是否启用仍留配置，不假定旧重掷已被取消。
 
 幸运和魅力按指定原作核对，不增加自创招募加成。技能来源分个人1个可升级、当前职业自带N能力、已学技能库和特殊装备授予。已学装备技能／被动可跨职业自由装备，共享5格，不以“被动”名义免费常驻；装备授予不占格，失去装备即失效。职业自带能力随当前职业重算，已学技能随换职保留；轮回清学习成果。节点改用职业精通，重复效果叠加仍需目录明确。
 
@@ -243,9 +243,9 @@ boss = min(99, L + 4)
 
 - 成长模式替换基础向量，含来源当时装备／有效被动提供的成长；排除职业、年龄曲线、临时战斗状态和单列轮回奖励。只复制合成数值，不授予实际技能／装备；逐项来源仅用于审计，不作为光环再叠加一次。
 - 职业数据自身成长向量与职业授予的成长被动分来源；后者若有效，按被动计入，不因其来自职业就漏掉，也不能同时在两项重复算。
-- 数值模式设 `C=sum(recipient_caps)`、`target=min(source_total,C)`、一级总量S0、来源等级Ld；每级下限 `F(l)=S0+ceil(max(0,target-S0)*(l-1)/(Ld-1))`。先自然成长，再补差额，不修改随机率。
+- 数值模式总容量无上限（API `capacity: null`）、`target=sourceTotal`、`lost=0`、一级总量S0、来源等级Ld；每级下限 `F(l)=S0+ceil(max(0,target-S0)*(l-1)/(Ld-1))`。先自然成长，再补差额，不修改随机率。
 - 采用正整数权重，对尚有容量的属性按“当前已分补点／权重最小者”逐点分配，相同则按固定StatKey顺序；权重全零拒绝。每次重新选择尚有容量项，绝不丢弃剩余补点；同一级可向同项补多点。
-- `Ld=1`直接补到 `max(S0,target)`；`target<=S0`无需补。每级与当前轮次唯一记录阻止重复兑现；来源200、总容量180时到对应等级只保证180，没有隐藏余额。
+- `Ld=1`直接补到 `max(S0,target)`；`target<=S0`无需补。每级与当前轮次唯一记录阻止重复兑现；来源200时目标为200，HP达到150后余点转分配给其余八项。
 - 一个来源一份遗产，一个接受者一种模式。仅A→B，B无论死亡、退役、寿终或轮回都不能再产可兑现遗产；两模式共用锁，不能先数值后成长延续到C。纪念仍保存但不可领取。
 
 ### 5.3 轮回与退役

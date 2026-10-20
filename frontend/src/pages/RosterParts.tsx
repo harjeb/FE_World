@@ -24,7 +24,7 @@ import { canPromote, expLine, LIFESPAN_TEXT, ORIGIN_TEXT, STATUS_TAG, STATUS_TEX
 import { links } from '../router.ts';
 import type { RosterTab } from '../router.ts';
 import { plainDate, shortDate } from '../ui/calendar.ts';
-import { asUnit, COMBAT_KEYS, combatProfile } from './profile.ts';
+import { asUnit, COMBAT_KEYS, combatProfile, displayScale } from './profile.ts';
 import type { CombatKey } from './profile.ts';
 import { ArtTrainingPanel } from './ArtTrainingPanel.tsx';
 import { UnitFace } from './SystemParts.tsx';
@@ -81,8 +81,8 @@ function ageLine(unit: ServerUnit): string {
 }
 
 export function ProfileHeader({ unit, current }: { unit: ServerUnit; current: ProfileTab }) {
-  const anchor = CHARACTERS[unit.character];
-  const skill = anchor?.skill ? SKILLS[anchor.skill] : null;
+  const personalSkill = unit.snapshot.personalSkill ?? CHARACTERS[unit.character]?.skill;
+  const skill = personalSkill ? SKILLS[personalSkill] : null;
   const exp = expLine(unit);
   const warning = LIFESPAN_TEXT[unit.lifespanWarning];
   return (
@@ -152,7 +152,8 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
   const [view, setView] = useState<'value' | 'growth'>('value');
   const cls = CLASSES[unit.classId as ClassId];
   const stats = unit.snapshot.stats;
-  const p = combatProfile(engineUnit(unit), cls.caps);
+  const p = combatProfile(engineUnit(unit));
+  const basicScale = displayScale(BASIC_RING.map(k => stats[k]));
   const armed = p.weapon !== null;
   const combatCell = (k: CombatKey) => {
     const offense = OFFENSE.has(k);
@@ -167,10 +168,10 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
   };
   const growth = (key: (typeof STAT_KEYS)[number]) => unit.totalGrowth[key] ?? 0;
   const basicCell = (key: (typeof BASIC_RING)[number]) => (
-    <div key={key} className="ab-cell" title={view === 'value' ? `上限 ${cls.caps[key]}` : `个人 ${pct(personalGrowth(unit, key))} · 职业 ${signed(cls.growth[key])}`}>
+    <div key={key} className="ab-cell" title={view === 'value' ? (cls.caps[key] == null ? '无上限' : `上限 ${cls.caps[key]}`) : `个人 ${pct(personalGrowth(unit, key))} · 职业 ${signed(cls.growth[key])}`}>
       <span className="ab-k">{STAT_NAMES[key]}</span>
       <span className="ab-v">{view === 'value' ? stats[key] ?? 0 : `${growth(key)}%`}</span>
-      {view === 'value' && <span className="ab-cap">/{cls.caps[key]}</span>}
+      {view === 'value' && cls.caps[key] != null && <span className="ab-cap">/{cls.caps[key]}</span>}
     </div>
   );
   const total = BASIC_RING.reduce((n, k) => n + (stats[k] ?? 0), 0);
@@ -188,7 +189,7 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
           {COMBAT_KEYS.map(combatCell)}
           <div className="ab-cell wide"><span className="ab-k">射程</span><span className="ab-v">{p.range ? (p.range[0] === p.range[1] ? p.range[0] : `${p.range[0]}–${p.range[1]}`) : '—'}</span></div>
         </div>
-        <Radar label="战斗能力（离职业上限）" axes={COMBAT_RING.map(k => ({ label: COMBAT_LABEL[k], value: armed || !OFFENSE.has(k) ? p.now[k] : 0, max: p.cap[k] }))} />
+        <Radar label="战斗能力（展示刻度非属性上限）" axes={COMBAT_RING.map(k => ({ label: COMBAT_LABEL[k], value: armed || !OFFENSE.has(k) ? p.now[k] : 0, max: p.scale[k] }))} />
       </div>
       <div className="ph">
         <h2>基本能力</h2>
@@ -202,12 +203,12 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
       </div>
       <div className="ab-body">
         <div className="ab-grid">{BASIC_PAIRS.flat().map(basicCell)}</div>
-        <Radar label={view === 'value' ? '基本能力（离职业上限）' : '合计成长率'}
-          axes={BASIC_RING.map(k => ({ label: STAT_NAMES[k], value: view === 'value' ? stats[k] ?? 0 : growth(k), max: view === 'value' ? cls.caps[k] : 100 }))} />
+        <Radar label={view === 'value' ? '基本能力（展示刻度非属性上限）' : '合计成长率'}
+          axes={BASIC_RING.map(k => ({ label: STAT_NAMES[k], value: view === 'value' ? stats[k] ?? 0 : growth(k), max: view === 'value' ? basicScale : 100 }))} />
       </div>
       <div className="pfoot">
         {view === 'value'
-          ? <>数值与交战公式相同（平地、未移动）；▲ 表示含技能或装备加成。雷达图按{cls.name}的能力上限画，外圈即上限。{!armed && unit.snapshot.weapons.length > 0 && <> 治疗量 = 魔 + 10（当前 <b>{stats.mag + 10}</b>）。</>}</>
+          ? <>数值与交战公式相同（平地、未移动）；▲ 表示含技能或装备加成。雷达图展示刻度非属性上限；基本能力外圈为 {basicScale}，战斗能力各轴刻度随数值扩展。{!armed && unit.snapshot.weapons.length > 0 && <> 治疗量 = 魔 + 10（当前 <b>{stats.mag + 10}</b>）。</>}</>
           : <>合计成长 = 个人 + 职业（含装备授予），是每次升级该项 +1 的概率；整级无提升时自动重掷（最多 2 次）。体格不随升级成长。</>}
       </div>
     </section>
@@ -348,8 +349,8 @@ export function WeaponRanksPanel({ unit }: { unit: ServerUnit }) {
 // 技能，按来源分组（个人／职业固有／技能格／装备授予）。职业固有能力与装备授予不占技能格。
 export function SkillsPanel({ unit }: { unit: ServerUnit }) {
   const cls = CLASSES[unit.classId as ClassId];
-  const anchor = CHARACTERS[unit.character];
-  const personal = anchor?.skill ? SKILLS[anchor.skill] : null;
+  const personalSkill = unit.snapshot.personalSkill ?? CHARACTERS[unit.character]?.skill;
+  const personal = personalSkill ? SKILLS[personalSkill] : null;
   const classSkills = classAbilities(unit.classId);
   const weapons = unit.snapshot.weapons as WeaponId[];
   const granted = [...new Set(weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
@@ -486,7 +487,7 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
   const count = equipped.length + arts.length;
   const current = data.progress.find(p => p.classId === data.classId) ?? data.progress.find(p => p.name === unit.className);
   const others = data.progress.filter(p => p !== current && p.mastery > 0);
-  const anchorSkill = CHARACTERS[unit.character]?.skill;
+  const anchorSkill = unit.snapshot.personalSkill ?? CHARACTERS[unit.character]?.skill;
   const granted = [...new Set((unit.snapshot.weapons as WeaponId[]).flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
   const toggle = (id: string, art = false) => {
     const list = art ? arts : equipped;

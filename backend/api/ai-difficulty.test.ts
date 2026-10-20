@@ -21,7 +21,7 @@ function assertBoosted(enemy: UnitState) {
   for (const key of STAT_KEYS) {
     const low = key === 'hp' ? HARD_ENEMY_RULES.hpMin : HARD_ENEMY_RULES.statMin;
     const high = key === 'hp' ? HARD_ENEMY_RULES.hpMax : HARD_ENEMY_RULES.statMax;
-    const cap = CLASSES[enemy.classId].caps[key];
+    const cap = CLASSES[enemy.classId].caps[key] ?? Infinity;
     assert.ok(enemy.stats[key] >= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * low / 100))), `${enemy.id} ${key}: minimum bonus`);
     assert.ok(enemy.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * high / 100))), `${enemy.id} ${key}: maximum bonus`);
   }

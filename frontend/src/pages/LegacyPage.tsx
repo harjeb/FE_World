@@ -182,7 +182,7 @@ function ClaimPanel({ legacy }: { legacy: ServerLegacy }) {
           <>
             <dl className="facts">
               <dt>属性总和</dt><dd>{heir.name}现在 {preview.initialTotal} → 目标 <b>{preview.clippedTarget}</b>（来源 {preview.sourceTotal}，Lv {preview.sourceLevel}）</dd>
-              <dt>上限</dt><dd>{CLASSES[heir.classId as ClassId]?.name}九项上限合计 {preview.capacity}{preview.lost > 0 ? <span className="risk">；超出的 {preview.lost} 点不会保留</span> : '，可以完整追平'}</dd>
+              <dt>上限</dt><dd>{CLASSES[heir.classId as ClassId]?.name}九项上限合计 {preview.capacity ?? '无上限'}{preview.lost > 0 ? <span className="risk">；超出的 {preview.lost} 点不会保留</span> : '，可以完整追平'}</dd>
               <dt>承诺</dt><dd>之后每次升级先按成长掷点，若属性总和低于当级保底，就按下面的权重补到保底；补点只进未满上限的属性。保底合同在轮回时清除。</dd>
             </dl>
             <div className="tbl-scroll">
@@ -190,7 +190,7 @@ function ClaimPanel({ legacy }: { legacy: ServerLegacy }) {
                 <thead><tr><th scope="col">属性上限</th>{STAT_KEYS.map(k => <th key={k} scope="col">{STAT_NAMES[k]}</th>)}</tr></thead>
                 <tbody>
                   <tr><th scope="row">{heir.name}现在</th>{STAT_KEYS.map(k => <td key={k}>{heir.snapshot.stats[k] ?? 0}</td>)}</tr>
-                  <tr><th scope="row">上限</th>{STAT_KEYS.map(k => <td key={k}>{caps[k]}</td>)}</tr>
+                  <tr><th scope="row">上限</th>{STAT_KEYS.map(k => <td key={k}>{caps[k] ?? '无上限'}</td>)}</tr>
                   <tr><th scope="row">来源</th>{STAT_KEYS.map(k => <td key={k}>{legacy.sourceStats[k] ?? 0}</td>)}</tr>
                 </tbody>
               </table>

@@ -1,0 +1,127 @@
+{
+  "status": "design-static-check-only",
+  "mapId": "fe8-chfinal-1-eirika",
+  "terrainSha256": "7ee82823d5772b01730b536b1c24112e1aca85eeb35660e978a620bda9aae199",
+  "dimensions": [
+    23,
+    25
+  ],
+  "playerSpawns": [
+    [
+      12,
+      21
+    ],
+    [
+      10,
+      21
+    ],
+    [
+      11,
+      22
+    ],
+    [
+      10,
+      23
+    ],
+    [
+      12,
+      23
+    ],
+    [
+      13,
+      24
+    ],
+    [
+      13,
+      22
+    ],
+    [
+      11,
+      21
+    ]
+  ],
+  "objects": [
+    {
+      "id": "door-object-0",
+      "kind": "door",
+      "pos": [
+        4,
+        19
+      ],
+      "state": "closed",
+      "label": "门",
+      "sourceId": "0x08A5C1CC"
+    },
+    {
+      "id": "door-object-1",
+      "kind": "door",
+      "pos": [
+        18,
+        19
+      ],
+      "state": "closed",
+      "label": "门",
+      "sourceId": "0x08A5C1D8"
+    },
+    {
+      "id": "chest-object-2",
+      "kind": "chest",
+      "pos": [
+        21,
+        18
+      ],
+      "state": "closed",
+      "label": "宝箱",
+      "loot": {
+        "item": "silver_axe",
+        "count": 1
+      },
+      "sourceId": "0x08A5C1E4"
+    },
+    {
+      "id": "chest-object-3",
+      "kind": "chest",
+      "pos": [
+        2,
+        18
+      ],
+      "state": "closed",
+      "label": "宝箱",
+      "loot": {
+        "item": "silver_sword",
+        "count": 1
+      },
+      "sourceId": "0x08A5C1F0"
+    },
+    {
+      "id": "wall-48-1-1",
+      "kind": "wall",
+      "pos": [
+        1,
+        1
+      ],
+      "state": "intact",
+      "hp": 24,
+      "maxHp": 24,
+      "label": "可破坏的墙"
+    },
+    {
+      "id": "wall-49-21-1",
+      "kind": "wall",
+      "pos": [
+        21,
+        1
+      ],
+      "state": "intact",
+      "hp": 24,
+      "maxHp": 24,
+      "label": "可破坏的墙"
+    }
+  ],
+  "units": 17,
+  "uniqueDeploymentCells": 25,
+  "reachableCells": 373,
+  "weaponAndSpellAccess": "passed",
+  "originalTerrainUnmodified": true,
+  "simulationRun": false
+}

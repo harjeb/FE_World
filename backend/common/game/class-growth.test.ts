@@ -111,5 +111,5 @@ test('switching and normalizing keep earned stats; battle and training use only 
   gainExperience(unit, 100, seedRng('growth-switch'));
   assert.equal(unit.level, 21);
   assert.equal(unit.growthLog.length, 1);
-  assert.ok(STAT_KEYS.every(key => unit.stats[key] >= before[key] && unit.stats[key] <= CLASSES[unit.classId].caps[key]));
+  assert.ok(STAT_KEYS.every(key => unit.stats[key] >= before[key] && unit.stats[key] <= (CLASSES[unit.classId].caps[key] ?? Infinity)));
 });

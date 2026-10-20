@@ -109,7 +109,9 @@ test('level-ups respect growth, caps and empty-level protection', () => {
   const erin = unitById(state, 'erin');
   const capped = structuredClone(erin);
   capped.stats = { hp: 150, str: 99, mag: 99, skl: 99, spd: 99, lck: 99, def: 99, res: 99, cha: 99 };
-  assert.deepEqual(rollLevelUp(state, capped), { gains: {}, rerolls: 0 });
+  const uncapped = rollLevelUp(state, capped);
+  assert.equal(uncapped.gains.hp, undefined);
+  assert.ok(Object.values(uncapped.gains).some(gain => gain > 0));
   let empty = 0;
   for (let i = 0; i < 300; i++) {
     const { gains } = rollLevelUp(state, structuredClone(erin));

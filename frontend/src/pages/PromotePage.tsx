@@ -94,7 +94,7 @@ export function PromotePage({ unit: wanted }: { unit: string }) {
               <span className="tag tag-grey">{cls.name} · {cls.stage} 阶 · Lv {unit.level}</span>
               <span className="tag tag-grey">{unit.growthTypeName}</span>
             </div>
-            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>推荐的下一阶职业；转职保留总等级与经验。人物最高 Lv99，HP 上限 150，其他属性上限 99。</div>
+            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>推荐的下一阶职业；转职保留总等级与经验。人物最高 Lv99，HP 上限 150，其他属性无上限。</div>
           </div>
         </div>
         <ProfileTabs unit={unit} current="promote" />

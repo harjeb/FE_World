@@ -12,6 +12,8 @@ import { enemyLevel, regionById } from '../../backend/common/game/calendar.ts';
 import { QUEST_LEVEL_CAP } from '../../backend/common/game/quests.ts';
 import { GAME_ITEMS } from '../../backend/common/game/items.ts';
 import { CLASSES } from '../../backend/common/data/classes.ts';
+import { openDb } from '../../backend/api/db.ts';
+import { Store } from '../../backend/api/store.ts';
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -298,7 +300,7 @@ try {
       return unit.hp === unit.stats.hp && unit.con >= 9 && unit.con <= 11 && STAT_KEYS.every(key => {
         const min = key === 'hp' ? HARD_ENEMY_RULES.hpMin : HARD_ENEMY_RULES.statMin;
         const max = key === 'hp' ? HARD_ENEMY_RULES.hpMax : HARD_ENEMY_RULES.statMax;
-        const cap = CLASSES[unit.classId].caps[key];
+        const cap = CLASSES[unit.classId].caps[key] ?? Infinity;
         return unit.stats[key] >= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * min / 100)))
           && unit.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * max / 100)));
       });
@@ -477,8 +479,20 @@ try {
     const snaps = await page.evaluate(`document.querySelector('#snap-h').closest('.panel').innerText.replace(/\\s+/g, ' ')`);
     check('roster compares real arena snapshots', snaps.includes('1002年12月41日') && snaps.includes('当前') && !snaps.includes('月末'), snaps.slice(0, 160));
 
+    const capPlayerId = (await api(page, 10)).player.id;
+    const capStore = new Store(openDb(join(dbDir, 'e2e.db')));
+    try {
+      const unit = capStore.unit(capPlayerId, 'u_erin');
+      unit.stats.skl = 118;
+      unit.stats.cha = 106;
+      capStore.saveUnit(unit, capPlayerId);
+      const drugUnit = capStore.unit(capPlayerId, 'u_owen');
+      drugUnit.stats.skl = 99;
+      capStore.saveUnit(drugUnit, capPlayerId);
+    } finally { capStore.db.close(); }
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_erin`, '#eq-h');
-    // 基本能力格：数值视图读「值 /上限」，切到成长率视图再读合计成长。
+    await page.reload('#eq-h');
+    // 非HP属性可超过99，界面不再显示有限上限的分母。
     const charmCell = `(() => { const cell = [...document.querySelectorAll('.ability .ab-cell')].find(c => c.querySelector('.ab-k')?.innerText === '魅力'); return cell ? [cell.querySelector('.ab-v')?.innerText.trim(), cell.querySelector('.ab-cap')?.innerText.trim() ?? null] : null; })()`;
     const charmValue = await page.evaluate(charmCell);
     await page.click('.ability .seg button:nth-child(2)');
@@ -487,8 +501,17 @@ try {
     await page.click('.ability .seg button:nth-child(1)');
     const charm = [charmValue?.[0], charmValue?.[1], charmGrowth?.[0]];
     const erin = await api(page, 21, { unitId: 'u_erin' });
-    check('roster shows independent charm values, cap and growth from the server',
-      charm[0] === String(erin.stats.cha) && charm[1] === `/${erin.caps.cha}` && charm[2] === `${erin.totalGrowth.cha}%`, JSON.stringify(charm));
+    check('roster shows independent charm above99, no cap denominator, and server growth',
+      charm[0] === '106' && erin.stats.cha === 106 && charm[1] === null && charm[2] === `${erin.totalGrowth.cha}%`, JSON.stringify(charm));
+    const classCatalog = await api(page, 23);
+    check('unit and class catalog expose explicit JSON-safe unlimited caps',
+      erin.stats.skl === 118 && erin.caps.hp === 150 && STAT_KEYS.filter(key => key !== 'hp').every(key => erin.caps[key] === null)
+      && Object.values(classCatalog.classes).every(cls => cls.caps.hp === 150 && STAT_KEYS.filter(key => key !== 'hp').every(key => cls.caps[key] === null)), 'HP150; all eight other caps null');
+    check('above99 roster charts retain finite coordinates', await page.evaluate(`(() => {
+      const polygons = [...document.querySelectorAll('.ability polygon')];
+      return polygons.length > 0 && polygons.every(el => el.getAttribute('points').trim().split(/[\\s,]+/).every(value => Number.isFinite(Number(value))))
+        && document.querySelector('.ability').innerText.includes('展示刻度');
+    })()`), '118 skill / 106 charm render with display scales');
 
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster`, '.panel');
     const roster = await page.evaluate(`document.body.innerText.replace(/\\s+/g, ' ')`);
@@ -528,8 +551,8 @@ try {
     await press(page, '.gear-shop li', '秘传之书', '买');
     await until(async () => (await page.evaluate(`document.querySelector('#wh-h').closest('.panel').innerText.includes('秘传之书')`)));
     await press(page, '.gear-list li', '秘传之书', '欧文使用');
-    check('prep buys a 能力药 and uses it on the unit', await until(async () => (await owen()).snapshot.stats.skl === owen0.snapshot.stats.skl + 2)
-      && (await api(page, 10)).gold === gold0 - 8000 && (await owen()).drugCounts.skl === 1, `skl ${owen0.snapshot.stats.skl} → ${(await owen()).snapshot.stats.skl}`);
+    check('prep uses a stat drug through99 without losing its use count', await until(async () => (await owen()).snapshot.stats.skl === 101)
+      && owen0.snapshot.stats.skl === 99 && (await api(page, 10)).gold === gold0 - 8000 && (await owen()).drugCounts.skl === 1, `skl ${owen0.snapshot.stats.skl} → ${(await owen()).snapshot.stats.skl}`);
     const herb0 = (await api(page, 22)).inventory.find(r => r.item === 'herb').count;
     await press(page, '.gear-list li', '药草', '卖');
     await press(page, 'section[aria-labelledby=carry-h] li', '伤药', '放回仓库');

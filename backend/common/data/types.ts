@@ -2,6 +2,7 @@ import type { Movement } from '../maps/map.ts';
 
 export type StatKey = 'hp' | 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'cha';
 export type Stats = Record<StatKey, number>;
+export type StatCaps = Record<StatKey, number | null>;
 export type WeaponType = 'sword' | 'lance' | 'axe' | 'bow' | 'tome' | 'staff' | 'fist' | 'dagger' | 'beast' | 'dragon';
 export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S' | 'SS' | 'SSS';
 export type MoveType = Movement;

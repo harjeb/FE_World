@@ -48,6 +48,7 @@ function Fighter({ unit, label, weapon, side, enemy, weaponName }: { unit: UnitS
           {weaponName ? <>{w && weapon && <img className="px" src={itemIconFor(weapon)} width={16} height={16} alt="" />}{weaponName}</> : w && weapon ? <><img className="px" src={itemIconFor(weapon)} width={16} height={16} alt="" />{w.name}</> : weapon ? weaponLabel(weapon) : '无武器'}
         </div>
         <div className="fc-ter">{terrainNote(side)}</div>
+        {(unit.skill === 'lightshot' || unit.skills?.includes('lightshot')) && <div className="fc-ter">光明神射 · 本次有效技巧 {side.skl ?? unit.stats.skl}</div>}
       </div>
     </div>
   );

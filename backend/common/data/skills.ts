@@ -13,5 +13,6 @@ export const SKILLS = {
   grit: { name: '斗志', text: 'HP ≤ 50% 时命中 +20' },
   prayer: { name: '祈愿', text: '治疗量 +5' },
   charge: { name: '冲阵', text: '本回合移动后伤害 +2' },
+  lightshot: { name: '光明神射', text: '开战时满 HP 且使用弓，本次交战有效技巧 ×2；主动、反击、连击、追击及引用技巧的战技均生效，不改变永久属性或射程' },
 } as const;
 export type SkillId = keyof typeof SKILLS;

@@ -182,9 +182,11 @@ test('old saved units and frozen legacies expose charm without rewriting other s
   const unit = store.unit(player.id, 'u_erin')!;
   const old = JSON.parse(JSON.stringify(unit));
   delete old.stats.cha;
+  old.stats.str = 123;
   const before = structuredClone(old.stats);
   db.prepare('UPDATE units SET data = ? WHERE player_id = ? AND id = ?').run(JSON.stringify(old), player.id, old.id);
-  const detail = dispatch(ctxFor(store, accountId, player), OP.GET_UNIT, { unitId: old.id }) as { snapshot: { stats: Record<string, number> } };
+  const detail = dispatch(ctxFor(store, accountId, player), OP.GET_UNIT, { unitId: old.id }) as { caps: Record<string, number | null>; snapshot: { stats: Record<string, number> } };
+  assert.deepEqual(JSON.parse(JSON.stringify(detail.caps)), { hp: 150, str: null, mag: null, skl: null, spd: null, lck: null, def: null, res: null, cha: null });
   const { cha, ...retained } = detail.snapshot.stats;
   assert.equal(cha, 0);
   assert.deepEqual(retained, before);

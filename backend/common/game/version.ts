@@ -1,7 +1,12 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v14';
+export const RULESET_VERSION = 'rules-v15';
+// v33 / rules-v15: only HP retains a stat cap (150); the other eight caps are JSON null.
+// Existing stats stay unchanged; old numeric inheritance targets use their saved source total.
+// Apollo's lightshot doubles opening full-HP bow skill for the exchange; personalSkill overrides
+// the portrait skill in saved units and snapshots. Cross-time dungeon/recruitment follows separately.
+// Finish active battles/runs before deployment; previous-rule replays keep their frozen snapshots.
 // v31: frozen mixed dungeon plans, six three-map classic dungeons, and difficulty-specific first-clear bundles.
 // Legacy runs retain their sequence; matching completed difficulty prevents retroactive grants.
 // Legacy questsDone blocks normal rewards only; exploration/manual quest rewards remain once overall.
@@ -49,7 +54,7 @@ export const RULESET_VERSION = 'rules-v14';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 32;
+export const CATALOG_VERSION = 33;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

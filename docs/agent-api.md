@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 15
+docVersion: 16
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -8,13 +8,16 @@ docVersion: 15
 
 MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。
 
-SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，受职业上限约束，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。耗日及任务固定奖励不变，随机战场的出战上限和敌军规模由地图／难度配置决定，更多高等级敌人会自然增加战斗经验，敌军携带装备不会按概率掉落。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal。
+SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，HP上限150，其余八项属性无上限，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。耗日及任务固定奖励不变，随机战场的出战上限和敌军规模由地图／难度配置决定，更多高等级敌人会自然增加战斗经验，敌军携带装备不会按概率掉落。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal。
 
 随机野外与随机副本先确定战场，再选择队伍：GET_TODAY.sortieRegions 的 encounters／dungeonEncounters 分别提供 normal、hard 的布局、尺寸、maxUnits 与 enemyCount；少带人不会减少敌军。同一账号、日期、地区与活动的战场固定，刷新、换队或切换难度不会重抽布局；推进日期后才更新。PREVIEW_ACTION 返回 encounter.map 的真实地形、双方出生点与 playerGroups，报价按玩家版本绑定。出征名单按unitIds数组顺序分配到map.spawns.player对应落点，首位为主将；必须互不重复、可用且不超过该图该难度的上限；副本开局保存RunRecord.stages，出战上限取整趟所有图的限制（含经典终图）。地图布局含交错遭遇、隔墙分队会合和分散据点；已保存战场不重排。
 
 连续副本按难度分别计固定首通奖励：地区主副本按地区、地区任务远征及经典副本按任务ID，normal/hard各一次。普通为一件固定地区装备、2份伤药、1份完整料理；困难为不同且更高阶的固定装备、4份伤药、2份完整料理，不抽概率。仅完整通关自动入库，中间图不发，失败／撤离作废。GET_TODAY.sortieRegions[].dungeonFirstClearRewards 与 GET_QUESTS.firstClearRewards 返回 {normal:{items,available},hard:{items,available}}，替代旧单数属性；单图任务为null。GET_RUN.run.pendingLoot记录整趟掉落，完整结算后为已入库清单。手动任务奖励与首通探索跨难度仍仅一次。旧完成记录抑制对应难度补发，questsDone仅回退普通档，困难完成独立判断。
 
 副本统一UI内选择路线，不另设随机／经典导航分类。GET_TODAY.sortieRegions[].dungeonStages与PREVIEW_ACTION(dungeon).dungeonStages为{name,scenarioId?}数组：两张生成图＋一张经典终图，全部60张经典地图分为12地区各5张的池，选择种子独立于战斗RNG并在出发时冻结。标准副本每图8日共24日，48项地区任务远征每图2日共6日。固定经典保留六个三图副本clx-fe1/2/3/6/7/8，每作一个，fe1/fe6在地区2、fe2/fe7在地区3、fe3/fe8在地区5，每图2日共6日；START_QUEST继续兼容。GET_QUESTS返回dungeonOnly、archived、stageNames；公开114项定义（108本地＋6经典），78项旧定义（60单图＋18短经典）仅保留查找，拒绝新开，旧进行中／待领奖仍列出。GET_RUN摘要返回stageNames/stageCount；没有stages的旧远征由CONTINUE_DUNGEON沿旧路线继续。
+
+属性上限：GET_UNIT.caps 与 GET_CATALOG.classes[id].caps 的 hp 为150，其余八项均为null表示无上限；stats 始终为数字，可超过99。等级仍为1～99，能力药使用次数与成长分配预算不变。数值传承预览 capacity=null、clippedTarget=sourceTotal、lost=0；HP补点仍限制150，其他点按权重分配。旧合同按保存的sourceTotal恢复未截断目标，已有属性和过去随机成长不重算。
+阿波罗个人特性 lightshot（光明神射）：开战时满HP且使用弓，本次有效技巧×2，覆盖主动、反击、连击、追击和战技技巧引用；不改永久stats及射程，最终概率仍限制0～100%，禁止必杀照常生效。单位快照可带personalSkill覆盖形象默认技能；预测双方skl为本次有效技巧。时空副本与兑换另行接入。
 
 ## 帧格式
 
@@ -44,7 +47,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 20 | GET_ROSTER | 名册摘要与各单位等级、职业、HP、状态；用 GET_UNIT 取完整属性。 |
-| 21 | GET_UNIT | 一个单位的完整属性、成长率、武器经验、物品与升级记录。 |
+| 21 | GET_UNIT | 一个单位的完整属性、成长率、武器经验、物品与升级记录；caps.hp=150，其余八项caps为null表示无上限，stats仍为数字。 |
 ### 仓库
 
 | op | 名称 | 说明 |
@@ -60,7 +63,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 30 | GET_TODAY | 今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，困难装备更高阶且不同；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。 |
-| 31 | SORTIE | 本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级及能力封顶）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。 |
+| 31 | SORTIE | 本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。 |
 | 32 | SWEEP | 对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。 |
 | 33 | TRAIN | 训练一个单位，补武器熟练度；消耗金币或教材并推进日期。 |
 | 34 | REST | 休整指定日数，推进日期、作物与年龄，不直接发金币经验。 |
@@ -131,7 +134,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 100 | GET_RUN | 读取当前或最近一次连续远征：状态、stageNames/stageCount、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落；completed 时 pendingLoot 是已入库清单，包含本次实际获得的首通奖励。 |
-| 101 | START_DUNGEON | 开始三图地区大副本（两张生成图＋一张经典终图，每图8日，共24日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。 |
+| 101 | START_DUNGEON | 开始三图地区大副本（两张生成图＋一张经典终图，每图8日，共24日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。 |
 | 102 | CONTINUE_DUNGEON | 打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。 |
 | 103 | WITHDRAW_RUN | 撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。 |
 ### 派遣
@@ -160,7 +163,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 123 | GET_QUESTS | 读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。 |
-| 124 | START_QUEST | 接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变且封顶），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。 |
+| 124 | START_QUEST | 接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。 |
 | 125 | CLAIM_QUEST_REWARD | 领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。 |
 | 126 | BUY_QUEST_ITEM | 用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。 |
 | 127 | COMPLETE_SETUP | 完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。 |

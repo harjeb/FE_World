@@ -2,7 +2,7 @@ import { FW_CLASS_REFERENCE } from './class-reference.ts';
 import { CLASS_GROWTH } from './class-growth.ts';
 import type { GrowthVector } from './class-growth.ts';
 import { stats, STAT_KEYS } from './types.ts';
-import type { MoveType, Rank, Stats, WeaponType } from './types.ts';
+import type { MoveType, Rank, StatCaps, Stats, WeaponType } from './types.ts';
 
 // Human routes suggest study paths; species routes are closed promotion chains.
 export const CLASS_PATHS = {
@@ -27,7 +27,7 @@ export const ROUTE_NAMES: Record<ClassRoute, string> = {
   sword: '剑术', axe: '斧战', armor: '重甲', cavalry: '骑乘', flying: '飞行', bow: '弓术',
   magic: '魔法', healing: '治疗', stealth: '潜行', fist: '格斗', beast: '兽人', dragon: '龙人',
 };
-export const CHARACTER_CAPS = stats(150, 99, 99, 99, 99, 99, 99, 99, 99);
+export const CHARACTER_CAPS: StatCaps = { hp: 150, str: null, mag: null, skl: null, spd: null, lck: null, def: null, res: null, cha: null };
 // 职业 1 级基础值设计（docs/00「神主角」）：每条路线一个底，再按职业成长率每 5 点加 1（成长可为负，负值不加）。
 // 顺序同 STAT_KEYS：HP/力/魔/技/速/运/防/魔防/魅力。首版数值，可校准。
 const ROUTE_BASE: Record<ClassRoute, Stats> = {
@@ -75,7 +75,7 @@ export interface ClassDef {
   // The selected page currently has empty EXP-bonus cells. Unknown bonuses stay absent.
   trainingBonus: Partial<Record<ClassStudy, number>>;
   growth: Stats;
-  caps: Stats;
+  caps: StatCaps;
   maxLevel: number;
   source: 'fortunes-weave' | 'legacy' | 'species';
   sourceUrl: string;

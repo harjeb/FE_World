@@ -1,5 +1,6 @@
 import type { Weapon } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
+import { artStats } from './art-effects.ts';
 import { distance, living } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 
@@ -17,6 +18,12 @@ export interface Fighter {
 // 个人技能与已装备的习得技能一起生效（docs/00 §4.2）；技能来源只按目录计算一次。
 function hasSkill(unit: UnitState, skill: SkillId): boolean {
   return unit.skill === skill || (unit.skills ?? []).includes(skill);
+}
+
+export function combatStats(unit: UnitState, weapon: Weapon | null) {
+  const stats = artStats(unit);
+  if (hasSkill(unit, 'lightshot') && unit.hp === unit.stats.hp && weapon?.type === 'bow') stats.skl *= 2;
+  return stats;
 }
 
 // 首版只接入可在交战公式中直接验证的固有数值；未知/待核实效果保持目录记录，不臆造。

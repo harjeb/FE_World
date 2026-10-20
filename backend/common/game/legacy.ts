@@ -1,8 +1,8 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { ClassId } from '../data/classes.ts';
-import { CLASSES, canonicalClassId, classSpecies, classUnavailableReason, initialClass } from '../data/classes.ts';
+import { CLASSES, CHARACTER_CAPS, canonicalClassId, classSpecies, classUnavailableReason, initialClass } from '../data/classes.ts';
 import { STAT_KEYS, withCharm } from '../data/types.ts';
-import type { StatKey, Stats } from '../data/types.ts';
+import type { StatCaps, StatKey, Stats } from '../data/types.ts';
 import { effectiveCaps } from './model.ts';
 import type { UnitRecord } from './model.ts';
 
@@ -37,7 +37,7 @@ export interface InheritanceContract {
   initialTotal: number;
   sourceTotal: number;
   clippedTarget: number;
-  caps: Stats;
+  caps: StatCaps;
   weights: Partial<Record<StatKey, number>>;
   cycle: 0 | 1;
 }
@@ -103,25 +103,25 @@ export interface InheritancePreview {
   sourceLevel: number;
   sourceTotal: number;
   initialTotal: number;
-  capacity: number;
+  capacity: number | null;
   clippedTarget: number;
   lost: number;
-  caps: Stats;
+  caps: StatCaps;
   floors: { level: number; total: number }[];
 }
 
 // 接受前预览：来源总量、继承者上限、截断目标与每级下限（docs/00 §7.3.1）。
 export function previewInheritance(legacy: LegacyRecord, recipient: UnitRecord): InheritancePreview {
   const caps = effectiveCaps(recipient);
-  const capacity = totalStats(caps);
+  const capacity = STAT_KEYS.some(key => caps[key] === null) ? null : STAT_KEYS.reduce((sum, key) => sum + caps[key]!, 0);
   const initialTotal = totalStats(recipient.stats);
   const sourceTotal = totalStats(legacy.sourceStats);
-  const clippedTarget = Math.min(sourceTotal, capacity);
+  const clippedTarget = Math.min(sourceTotal, capacity ?? Infinity);
   const floors: { level: number; total: number }[] = [];
   for (let level = 1; level <= legacy.sourceLevel; level++) {
     floors.push({ level, total: numericFloor(level, initialTotal, clippedTarget, legacy.sourceLevel) });
   }
-  return { sourceLevel: legacy.sourceLevel, sourceTotal, initialTotal, capacity, clippedTarget, lost: Math.max(0, sourceTotal - capacity), caps, floors };
+  return { sourceLevel: legacy.sourceLevel, sourceTotal, initialTotal, capacity, clippedTarget, lost: sourceTotal - clippedTarget, caps, floors };
 }
 
 export function canClaim(legacy: LegacyRecord, recipient: UnitRecord): string | null {
@@ -134,7 +134,7 @@ export function canClaim(legacy: LegacyRecord, recipient: UnitRecord): string | 
 }
 
 // 逐点分配补点：正整数权重，当前“已分补点／权重”最小者优先，相同按 StatKey 顺序（docs/00 §7.3.1）。
-export function distributeBackfill(bonus: number, weights: Partial<Record<StatKey, number>>, stats: Stats, caps: Stats): Partial<Stats> {
+export function distributeBackfill(bonus: number, weights: Partial<Record<StatKey, number>>, stats: Stats, caps: StatCaps): Partial<Stats> {
   const gains: Partial<Stats> = {};
   let left = bonus;
   while (left > 0) {
@@ -143,12 +143,12 @@ export function distributeBackfill(bonus: number, weights: Partial<Record<StatKe
     for (const key of STAT_KEYS) {
       const weight = weights[key] ?? 0;
       if (weight <= 0) continue;
-      if (stats[key] + (gains[key] ?? 0) >= caps[key]) continue;
+      if (stats[key] + (gains[key] ?? 0) >= (caps[key] ?? Infinity)) continue;
       const ratio = (gains[key] ?? 0) / weight;
       if (ratio < bestRatio - 1e-9) { best = key; bestRatio = ratio; }
     }
     // Exhaust preferred stats first, then use every remaining point of capacity.
-    if (best === null) best = STAT_KEYS.find(key => stats[key] + (gains[key] ?? 0) < caps[key]) ?? null;
+    if (best === null) best = STAT_KEYS.find(key => stats[key] + (gains[key] ?? 0) < (caps[key] ?? Infinity)) ?? null;
     if (best === null) break;
     gains[best] = (gains[best] ?? 0) + 1;
     left--;
@@ -160,6 +160,9 @@ export function distributeBackfill(bonus: number, weights: Partial<Record<StatKe
 export function applyInheritanceFloor(unit: Pick<UnitRecord, 'level' | 'stats' | 'hp' | 'inheritance'>): Partial<Stats> {
   const contract = unit.inheritance;
   if (!contract) return {};
+  // Stored battle contracts may bypass normalizeUnit; use current rules without replaying growth.
+  contract.caps = { ...CHARACTER_CAPS };
+  contract.clippedTarget = contract.sourceTotal;
   const floor = numericFloor(unit.level, contract.initialTotal, contract.clippedTarget, contract.targetLevel);
   const current = totalStats(unit.stats);
   if (current >= floor) return {};
@@ -186,7 +189,7 @@ export function claimLegacy(legacy: LegacyRecord, recipient: UnitRecord, mode: L
   }
   const caps = effectiveCaps(recipient);
   const initialTotal = totalStats(recipient.stats);
-  const clippedTarget = Math.min(totalStats(legacy.sourceStats), totalStats(caps));
+  const clippedTarget = totalStats(legacy.sourceStats);
   const contract: InheritanceContract = {
     legacyId: legacy.id, targetLevel: legacy.sourceLevel, initialTotal, sourceTotal: totalStats(legacy.sourceStats),
     clippedTarget, caps: { ...caps }, weights: { ...weights }, cycle: recipient.cycle,
@@ -205,7 +208,7 @@ export function reincarnationBase(character: UnitRecord['character'], classId: C
   const def = CHARACTERS[character];
   const cls = CLASSES[classId];
   const stats = {} as Stats;
-  for (const key of STAT_KEYS) stats[key] = Math.min(cls.caps[key], def.base[key]);
+  for (const key of STAT_KEYS) stats[key] = Math.min(cls.caps[key] ?? Infinity, def.base[key]);
   return stats;
 }
 

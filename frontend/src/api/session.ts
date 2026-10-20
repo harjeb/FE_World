@@ -9,7 +9,7 @@ import { OP } from '@common/protocol/ops.ts';
 import type { Action, BattleEvent, BattleState, Point } from '@common/engine/index.ts';
 import type { SnapshotUnit } from '@common/arena/rules.ts';
 import type { CharacterId } from '@common/data/characters.ts';
-import type { Rank, StatKey, Stats, WeaponType } from '@common/data/types.ts';
+import type { Rank, StatCaps, StatKey, Stats, WeaponType } from '@common/data/types.ts';
 import type { FeatureAccess, WorldMapView } from '@common/game/region-map.ts';
 import { ApiError, call, login as apiLogin, newCommandId, setToken, token } from './client.ts';
 import { parseRoute } from '../router.ts';
@@ -92,7 +92,7 @@ export interface CharacterStory {
 
 // GET_UNIT: the summary plus caps, the weapons' numbers, learned/equipment arts and the character story.
 export interface ServerUnitDetail extends ServerUnit {
-  stats: Stats; caps: Stats; con: number;
+  stats: Stats; caps: StatCaps; con: number;
   weapons: { id: string; name: string; type: WeaponType; might: number; hit: number; crit: number; range: [number, number] }[];
   arts: string[]; equipmentSkills: string[];
   promotedFrom: string | null;

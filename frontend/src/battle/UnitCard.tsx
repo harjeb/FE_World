@@ -77,6 +77,7 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
           <div className="mt-1"><HpLine unit={unit} /></div>
           <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>
             {skill ? <>技能 <b>{skill.name}</b>：{skill.text}</> : '无个人技能'}
+            {(unit.skill === 'lightshot' || unit.skills?.includes('lightshot')) && <>（当前有效技巧 {combat.skl}）</>}
           </div>
         </div>
       </div>

@@ -8,7 +8,7 @@ import type { WeaponId } from '../data/weapons.ts';
 import type { AiDifficulty, Behavior, Point, UnitState } from '../engine/types.ts';
 
 export const HARD_ENEMY_RULES = { extraRatio: 0.5, levelMin: 2, levelMax: 5, hpMin: 20, hpMax: 35, statMin: 10, statMax: 25, conMin: 1, conMax: 3 } as const;
-export const HARD_ENEMY_EFFECT = `敌军人数 +${HARD_ENEMY_RULES.extraRatio * 100}%（以合法空位为限），等级 +${HARD_ENEMY_RULES.levelMin}～${HARD_ENEMY_RULES.levelMax}（上限99），HP +${HARD_ENEMY_RULES.hpMin}～${HARD_ENEMY_RULES.hpMax}%，其他${STAT_KEYS.length - 1}项能力值各 +${HARD_ENEMY_RULES.statMin}～${HARD_ENEMY_RULES.statMax}%（独立随机、至少+1、向上取整且不超过职业上限），体格 +${HARD_ENEMY_RULES.conMin}～${HARD_ENEMY_RULES.conMax}，装备升级，移动不变`;
+export const HARD_ENEMY_EFFECT = `敌军人数 +${HARD_ENEMY_RULES.extraRatio * 100}%（以合法空位为限），等级 +${HARD_ENEMY_RULES.levelMin}～${HARD_ENEMY_RULES.levelMax}（上限99），HP +${HARD_ENEMY_RULES.hpMin}～${HARD_ENEMY_RULES.hpMax}%，其他${STAT_KEYS.length - 1}项能力值各 +${HARD_ENEMY_RULES.statMin}～${HARD_ENEMY_RULES.statMax}%（独立随机、至少+1、向上取整；HP上限150，其他能力值无上限），体格 +${HARD_ENEMY_RULES.conMin}～${HARD_ENEMY_RULES.conMax}，装备升级，移动不变`;
 
 // Generic enemies for random encounters (docs/00 §8.1.2). No personal character: they never grow,
 // and their numbers are the class template plus the class growth expectation for the level.
@@ -51,7 +51,7 @@ export function enemyStats(classId: ClassId, level: number): Stats {
   const cls = CLASSES[classId], tpl = templateFor(classId);
   const out = {} as Stats;
   for (const key of STAT_KEYS) {
-    out[key] = Math.min(cls.caps[key], tpl.base[key] + Math.floor(Math.max(0, cls.growth[key] + (key === 'hp' ? 50 : 25)) * (level - 1) / 100));
+    out[key] = Math.min(cls.caps[key] ?? Infinity, tpl.base[key] + Math.floor(Math.max(0, cls.growth[key] + (key === 'hp' ? 50 : 25)) * (level - 1) / 100));
   }
   return out;
 }
@@ -86,7 +86,7 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
   if (hard) {
     for (const key of STAT_KEYS) {
       const percent = key === 'hp' ? int(rules.hpMin, rules.hpMax) : int(rules.statMin, rules.statMax);
-      statsValue[key] = Math.min(CLASSES[spec.classId].caps[key], statsValue[key] + Math.max(1, Math.ceil(statsValue[key] * percent / 100)));
+      statsValue[key] = Math.min(CLASSES[spec.classId].caps[key] ?? Infinity, statsValue[key] + Math.max(1, Math.ceil(statsValue[key] * percent / 100)));
     }
   }
   const tpl = templateFor(spec.classId);

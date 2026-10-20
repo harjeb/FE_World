@@ -51,7 +51,7 @@ export function rollLevelUp(state: BattleState, unit: UnitState): { gains: Parti
   const roll = () => {
     const gains: Partial<Stats> = {};
     for (const key of keys) {
-      const room = caps[key] - unit.stats[key];
+      const room = (caps[key] ?? Infinity) - unit.stats[key];
       if (room <= 0) continue;
       let gain = Math.floor(rates[key] / 100);
       const rest = rates[key] % 100;
@@ -60,7 +60,7 @@ export function rollLevelUp(state: BattleState, unit: UnitState): { gains: Parti
     }
     return gains;
   };
-  const anyRoom = keys.some(key => unit.stats[key] < caps[key]);
+  const anyRoom = keys.some(key => unit.stats[key] < (caps[key] ?? Infinity));
   let gains = roll(), rerolls = 0;
   while (Object.keys(gains).length === 0 && anyRoom && rerolls < 2) {
     gains = roll();

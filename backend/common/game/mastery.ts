@@ -41,7 +41,7 @@ const STAGE_THRESHOLDS: Record<number, [number, number]> = {
 
 const NODE_NAMES: Record<SkillId, string> = {
   opening: '破绽', surge: '怒涛', veteran: '老练', nimble: '轻盈', hawkeye: '鹰眼', focus: '聚魔',
-  shelter: '庇护', steadfast: '坚守', keen: '锐眼', grit: '斗志', prayer: '祈愿', charge: '冲阵',
+  shelter: '庇护', steadfast: '坚守', keen: '锐眼', grit: '斗志', prayer: '祈愿', charge: '冲阵', lightshot: '光明神射',
 };
 
 export const MASTERY_NODES: Record<CatalogClassId, MasteryNode[]> = Object.fromEntries(

@@ -1,13 +1,13 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
-import { CLASSES, classChangeReason, classSpecies, weaponRankCap } from '../data/classes.ts';
+import { CLASSES, CHARACTER_CAPS, classChangeReason, classSpecies, weaponRankCap } from '../data/classes.ts';
 import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
 import type { ClassId, ClassRoute } from '../data/classes.ts';
 import { applyGrowthBonus } from '../data/growth-types.ts';
 import type { GrowthType } from '../data/growth-types.ts';
 import type { Promotion } from '../data/promotions.ts';
 import { RANKS, STAT_KEYS, withCharm } from '../data/types.ts';
-import type { Rank, StatKey, Stats, WeaponType } from '../data/types.ts';
+import type { Rank, StatCaps, StatKey, Stats, WeaponType } from '../data/types.ts';
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import type { ItemId, WeaponId, WeaponInstance } from '../data/weapons.ts';
@@ -29,6 +29,8 @@ import type { SnapshotUnit } from '../arena/rules.ts';
 export interface UnitRecord {
   id: string;
   character: CharacterId;
+  // 身份特性独立于形象；缺省时沿用角色表，且不占习得技能格。
+  personalSkill?: SkillId;
   // 自捏主角覆盖（docs/00 「神主角」）：显示名、性别与形象预设；其余角色沿用 CHARACTERS[character]。
   name?: string;
   sex?: 'male' | 'female';
@@ -142,7 +144,10 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
     const fallback = CHARACTERS[unit.character].growth;
     unit.personalGrowth = Object.fromEntries(STAT_KEYS.map(key => [key, unit.inheritedGrowth?.[key] ?? fallback[key]])) as Stats;
   }
-  if (unit.inheritance) unit.inheritance.caps = withCharm(unit.inheritance.caps);
+  if (unit.inheritance) {
+    unit.inheritance.caps = { ...CHARACTER_CAPS };
+    unit.inheritance.clippedTarget = unit.inheritance.sourceTotal;
+  }
   unit.species ??= classSpecies(unit.classId);
   unit.cycle ??= 0;
   unit.lineageDepth ??= 0;
@@ -181,7 +186,7 @@ export const SPELLBOOK_CARRY = 5;
 // units); without it the legacy/demo kits stay untouched so old fixtures and saves are unaffected.
 export interface UnitOptions {
   growthType?: GrowthType; age?: number; classId?: ClassId; lifespanYears?: number; cycle?: 0 | 1;
-  base?: Stats; personalGrowth?: Stats; startingGear?: StartingGear;
+  base?: Stats; personalGrowth?: Stats; personalSkill?: SkillId; startingGear?: StartingGear;
 }
 
 export function weaponMax(id: WeaponId): number {
@@ -224,7 +229,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
   for (const key of STAT_KEYS) {
     const rate = rates[key];
     stats[key] = expected
-      ? Math.min(cls.caps[key], base[key] + Math.floor(rate * Math.max(0, level - baseLevel) / 100))
+      ? Math.min(cls.caps[key] ?? Infinity, base[key] + Math.floor(rate * Math.max(0, level - baseLevel) / 100))
       : base[key];
   }
   const startingWeapons = (Object.keys(cls.weapons) as WeaponType[]).flatMap(type => {
@@ -236,7 +241,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
   const kit = gear ?? (opts.classId ? { weapons: startingWeapons,
     ranks: Object.fromEntries(Object.keys(cls.weapons).map(type => [type, 'E'])) as UnitRecord['ranks'], items: [] } : KITS[character]);
   return {
-    id, character, classId, homeClassId: classId, species, level, exp: 0, stats, con: classBased ? cls.con : def.con, hp: stats.hp,
+    id, character, ...(opts.personalSkill ? { personalSkill: opts.personalSkill } : {}), classId, homeClassId: classId, species, level, exp: 0, stats, con: classBased ? cls.con : def.con, hp: stats.hp,
     weapons: [...kit.weapons], weaponInstances: kit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) })),
     bookInstances: kit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) })),
     items: (gear ? gear.items : kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
@@ -405,7 +410,7 @@ export function ageAt(unit: UnitRecord, day: number, daysPerYear: number): numbe
   return Math.floor(((unit.ageBaseDays ?? base * daysPerYear) + Math.max(0, day - (unit.ageEpochDay ?? unit.joinedDay))) / daysPerYear);
 }
 
-export function effectiveCaps(unit: UnitRecord): Stats {
+export function effectiveCaps(unit: UnitRecord): StatCaps {
   return CLASSES[unit.classId].caps;
 }
 
@@ -427,7 +432,7 @@ export function rollGrowth(unit: UnitRecord, rng: RngState): { gains: Partial<St
   const roll = () => {
     const gains: Partial<Stats> = {};
     for (const key of STAT_KEYS) {
-      const room = caps[key] - unit.stats[key];
+      const room = (caps[key] ?? Infinity) - unit.stats[key];
       if (room <= 0) continue;
       let gain = Math.floor(rates[key] / 100);
       const rest = rates[key] % 100;
@@ -436,7 +441,7 @@ export function rollGrowth(unit: UnitRecord, rng: RngState): { gains: Partial<St
     }
     return gains;
   };
-  const anyRoom = STAT_KEYS.some(key => unit.stats[key] < caps[key]);
+  const anyRoom = STAT_KEYS.some(key => unit.stats[key] < (caps[key] ?? Infinity));
   let gains = roll(), rerolls = 0;
   while (Object.keys(gains).length === 0 && anyRoom && rerolls < 2) { gains = roll(); rerolls++; }
   return { gains, rerolls };
@@ -483,7 +488,7 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
   return {
     id: unit.id, character: unit.character, classId: unit.classId, level: unit.level, stats: withCharm(unit.stats),
     con: unit.con, weapons: [...unit.weapons], ranks: { ...unit.ranks }, items: unit.items.map(i => ({ ...i })),
-    name: unitName(unit), sex: unit.sex, portrait: unit.portrait,
+    name: unitName(unit), sex: unit.sex, portrait: unit.portrait, personalSkill: unit.personalSkill,
     weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
     bookInstances: unit.bookInstances?.map(row => ({ ...row })),
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),
@@ -513,7 +518,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     id, name: unitName(unit), side, character: unit.character, portrait: unit.portrait, classId: unit.classId,
     level: unit.level, exp: unit.exp, stats: withCharm(unit.stats), con: unit.con, hp: unit.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
-    ranks: { ...unit.ranks }, skill: CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
+    ranks: { ...unit.ranks }, skill: unit.personalSkill ?? CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
     personalGrowth: unit.personalGrowth ? { ...unit.personalGrowth } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
@@ -561,7 +566,7 @@ export function useDrug(unit: UnitRecord, key: ItemKey): { stat: StatKey; amount
   const total = Object.values(unit.drugCounts).reduce((a, b) => a + (b ?? 0), 0);
   if (used >= DRUG_LIMIT_PER_STAT) throw new Error(`${item.name}：单项能力药已达 ${DRUG_LIMIT_PER_STAT} 次上限`);
   if (total >= DRUG_LIMIT_TOTAL) throw new Error(`能力药已达合计 ${DRUG_LIMIT_TOTAL} 次上限`);
-  const cap = effectiveCaps(unit)[item.stat];
+  const cap = effectiveCaps(unit)[item.stat] ?? Infinity;
   if (unit.stats[item.stat] >= cap) throw new Error(`${item.name}：该属性已达上限`);
   const amount = Math.min(item.amount, cap - unit.stats[item.stat]);
   unit.stats[item.stat] += amount;

@@ -74,7 +74,7 @@ export function drugBlock(unit: ServerUnit, key: string): string | null {
   if ((counts[item.stat] ?? 0) >= DRUG_LIMIT_PER_STAT) return `${STAT_NAMES[item.stat]}已用满 ${DRUG_LIMIT_PER_STAT} 次`;
   if (total >= DRUG_LIMIT_TOTAL) return `合计已用满 ${DRUG_LIMIT_TOTAL} 次`;
   const cap = CLASSES[unit.classId as keyof typeof CLASSES]?.caps[item.stat];
-  if (cap !== undefined && unit.snapshot.stats[item.stat] >= cap) return `${STAT_NAMES[item.stat]}已到上限`;
+  if (cap != null && unit.snapshot.stats[item.stat] >= cap) return `${STAT_NAMES[item.stat]}已到上限`;
   return null;
 }
 

@@ -3,7 +3,6 @@
 import type { SnapshotUnit } from '@common/arena/rules.ts';
 import { CLASS_ABILITY_BY_ID } from '@common/data/class-abilities.ts';
 import { CHARACTERS } from '@common/data/characters.ts';
-import type { Stats } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
 import { attackWeapons, isMagicWeapon, seedRng, unitCombatStats } from '@common/engine/index.ts';
@@ -15,7 +14,7 @@ export function asUnit(s: SnapshotUnit, weapons: WeaponId[] = s.weapons): UnitSt
   return {
     id: s.character, name: s.name ?? c.name, side: 'player', character: s.character, portrait: s.portrait ?? undefined, classId: s.classId, level: s.level, exp: 0,
     stats: { ...s.stats }, con: s.con, hp: s.stats.hp, pos: [0, 0], weapons: [...weapons],
-    items: s.items.map(i => ({ ...i })), ranks: { ...s.ranks }, skill: c.skill, acted: false, alive: true,
+    items: s.items.map(i => ({ ...i })), ranks: { ...s.ranks }, skill: s.personalSkill ?? c.skill, acted: false, alive: true,
     weaponInstances: s.weaponInstances?.map(row => ({ ...row })),
     bookInstances: s.bookInstances?.map(row => ({ ...row })),
     spellbooks: s.spellbooks?.map(row => ({ ...row })),
@@ -46,8 +45,8 @@ export interface CombatProfile {
   now: CombatNumbers;
   // 技能（个人、职业固有、已装备）与装备的加成部分；> 0 时数值旁标 ▲。
   bonus: CombatNumbers;
-  // 同一职业属性全到上限、拿同一把武器时的数值：雷达图的刻度。
-  cap: CombatNumbers;
+  // 有限展示刻度，不代表属性上限。
+  scale: CombatNumbers;
 }
 
 function numbers(unit: UnitState, weapon: WeaponId | null): CombatNumbers {
@@ -55,15 +54,22 @@ function numbers(unit: UnitState, weapon: WeaponId | null): CombatNumbers {
   return { attack: s.attack, protection: s.protection, attackSpeed: s.attackSpeed, resistance: s.resistance, hit: s.hit, avoid: s.avoid, crit: s.crit, dodge: s.dodge };
 }
 
-export function combatProfile(unit: UnitState, caps: Stats): CombatProfile {
+// All basic axes share one scale so relative differences remain visible.
+export function displayScale(values: readonly number[], minimum = 100): number {
+  const largest = Math.max(minimum, ...values.filter(Number.isFinite));
+  const rounded = Math.ceil(largest / 10) * 10;
+  return Number.isFinite(rounded) ? rounded : largest;
+}
+
+export function combatProfile(unit: UnitState): CombatProfile {
   const weapon = attackWeapons(unit)[0] ?? null;
   const w = weapon ? WEAPONS[weapon] : null;
   const now = numbers(unit, weapon);
   const bare = numbers({ ...unit, skill: undefined, skills: [], classSkills: [], arts: [] }, weapon);
   const gear = { avoid: w?.bonus?.avoid ?? 0, resistance: w?.bonus?.res ?? 0 } as Partial<CombatNumbers>;
   const bonus = Object.fromEntries(COMBAT_KEYS.map(k => [k, now[k] - bare[k] + (gear[k] ?? 0)])) as CombatNumbers;
-  const cap = numbers({ ...unit, stats: { ...caps } }, weapon);
-  return { weapon, magic: !!w && isMagicWeapon(w), range: w ? [w.range[0], w.range[1]] : null, now, bonus, cap };
+  const scale = Object.fromEntries(COMBAT_KEYS.map(k => [k, displayScale([now[k]], k === 'hit' || k === 'avoid' ? 200 : 100)])) as CombatNumbers;
+  return { weapon, magic: !!w && isMagicWeapon(w), range: w ? [w.range[0], w.range[1]] : null, now, bonus, scale };
 }
 
 // Numbers with the equipped weapon (the first one the unit can attack with), or null for staff users.
