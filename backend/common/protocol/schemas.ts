@@ -68,6 +68,7 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   START_SPARRING: { properties: { legion: string } },
   CLAIM_RATING_REWARD: { required: ['periodId'], properties: { periodId: string } },
   COMPLETE_STORY_EVENT: { required: ['chapter'], properties: { chapter: number } },
+  COMPLETE_STORY_STEP: { required: ['step'], properties: { step: string } },
   CLAIM_REWARD: { required: ['rewardKey'], properties: { rewardKey: string } },
   CLAIM_QUEST_REWARD: { required: ['questId'], properties: { questId: string } },
   AGENT_REPORT_PLAN: { required: ['text'], properties: { text: string } },

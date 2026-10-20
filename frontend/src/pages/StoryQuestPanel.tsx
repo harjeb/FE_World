@@ -1,13 +1,44 @@
 import { useState } from 'react';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
-import type { StoryQuest } from '../api/session.ts';
+import type { StoryQuest, StoryStep } from '../api/session.ts';
 import { annualLive, busyReason } from '../model/roster.ts';
 import { go, links } from '../router.ts';
 import { advance } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 
 const rewardLine = (q: StoryQuest) => [`${q.reward.gold.toLocaleString()} 金币`, ...(q.reward.items ?? []).map(([item, count]) => `${itemName(item)} ×${count}`)].join(' · ');
+
+// 前置任务：派遣满天数（返程自动完成）或提交材料。
+function StepRow({ step, index }: { step: StoryStep; index: number }) {
+  const { busy, act } = useAct();
+  const submit = () => act(`step-${step.id}`, () => session.run(OP.COMPLETE_STORY_STEP, { step: step.id }),
+    () => `提交了「${step.name}」所需的 ${step.count} 份${step.itemName}`);
+  const enough = (step.held ?? 0) >= (step.count ?? 0);
+  return (
+    <li className={`ch-step${step.done ? ' done' : ''}`} data-step={step.id}>
+      <p className="ch-learned">
+        <span className={`tag ${step.done ? 'tag-green' : step.available ? 'tag-blue' : 'tag-grey'}`}>前置 {index + 1}</span>
+        <b className="serif">{step.name}</b>
+        {step.done ? <span className="tag tag-brass">已完成</span> : step.optional && <span className="tag tag-grey">可选</span>}
+      </p>
+      <p className="ch-sub">{step.briefing}</p>
+      {!step.done && step.kind === 'dispatch' && (
+        <p className="ch-sub">
+          在<a href={links.dispatch}>后台派遣</a>里派一支队伍探索（任何已开通地区），<b>本章开放之后出发</b>、一次满 {step.days} 日，返程时自动完成。
+        </p>
+      )}
+      {!step.done && step.kind === 'submit' && (
+        <p className="ch-sub">
+          需要 {step.count} 份{step.itemName}，仓库里有 <b>{step.held ?? 0}</b> 份；提交后从仓库扣除。
+          <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!step.available || !enough || busy !== null} title={!step.available ? '先完成上一项前置任务' : !enough ? '材料不足' : undefined} onClick={() => void submit()}>
+            {busy === `step-${step.id}` ? '提交中…' : '提交材料'}
+          </button>
+        </p>
+      )}
+    </li>
+  );
+}
 
 // 一章的主线任务 (docs/38)：简报、改编地图、线索与出征。任务走地区任务同一套出征和领奖入口，
 // 胜利即完成本章事件；章节公共经验仍在上方单独领取。
@@ -40,10 +71,14 @@ export function StoryQuestPanel({ quest }: { quest: StoryQuest }) {
         {quest.done && <span className={`tag ${quest.claimed ? 'tag-brass' : 'tag-green'}`}>{quest.claimed ? '已完成' : '奖励待领取'}</span>}
         {quest.inProgress && <span className="tag tag-brass">进行中</span>}
       </p>
+      {quest.steps.length > 0 && !quest.done && (
+        <ul className="ch-steps" aria-label="前置任务">{quest.steps.map((step, index) => <StepRow key={step.id} step={step} index={index} />)}</ul>
+      )}
       <p className="ch-sub">{quest.briefing}</p>
       <p className="ch-sub">
         改编自经典地图「{quest.mapName}」· {quest.objective} · {quest.costDays} 日 · 最多 {quest.maxUnits} 人 · 敌 Lv {quest.enemyLevel} · 倒下的普通角色永久死亡
       </p>
+      {quest.prerequisite && !quest.done && <p className="ch-sub ch-req">收尾战要先完成前置任务「{quest.prerequisite}」。</p>}
       <p className="ch-learned"><span className="tag tag-grey">报酬</span>{rewardLine(quest)}</p>
       <p className="ch-learned">
         <span className="tag tag-grey">线索</span>
@@ -69,7 +104,7 @@ export function StoryQuestPanel({ quest }: { quest: StoryQuest }) {
       <div className="ch-acts">
         {quest.inProgress && <a className="btn btn-sm btn-primary" href={links.field}>继续任务</a>}
         {!quest.done && !quest.inProgress && !open && (
-          <button type="button" className="btn btn-sm btn-primary" disabled={!quest.available || busy !== null} title={quest.available ? undefined : '先结束进行中的战斗、远征或大竞技场'} onClick={prepare}>准备出征</button>
+          <button type="button" className="btn btn-sm btn-primary" disabled={!quest.available || busy !== null} title={quest.prerequisite ? `先完成前置任务「${quest.prerequisite}」` : quest.available ? undefined : '先结束进行中的战斗、远征或大竞技场'} onClick={prepare}>准备出征</button>
         )}
         {quest.done && !quest.claimed && (
           <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => void claim()}>{busy === `c${quest.id}` ? '领取中…' : '领取任务报酬'}</button>

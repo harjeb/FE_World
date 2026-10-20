@@ -18,6 +18,16 @@ export function prepareBrowserBattleWin(dbPath, playerId, battleId) {
   } finally { store.db.close(); }
 }
 
+// 主线收尾战要先完成前置任务（派遣＋提交材料）；浏览器流程直接记完，前置任务本身由后端测试覆盖。
+export function skipStoryStepsInDb(dbPath, playerId, chapter) {
+  const store = new Store(openDb(dbPath));
+  try {
+    const player = store.getPlayer(playerId);
+    player.flags.storyStepsDone = [...new Set([...(player.flags.storyStepsDone ?? []), `story-${chapter}-a`, `story-${chapter}-b`])];
+    store.savePlayer(player);
+  } finally { store.db.close(); }
+}
+
 // Existing-account coverage uses an explicit legacy fixture; new-account tests
 // must complete the real setup UI rather than depending on the old starter roster.
 export function seedBrowserAccount(dbPath, name, duplicates = false) {

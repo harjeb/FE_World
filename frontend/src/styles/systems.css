@@ -49,6 +49,9 @@
 .ch-learned { display: flex; gap: 8px; align-items: baseline; margin-top: 6px; font-size: 13px; line-height: 1.6; }
 .ch-quest { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--color-line); }
 .ch-quest .ch-acts { margin-top: 8px; display: flex; gap: 8px; }
+.ch-steps { list-style: none; margin: 6px 0 8px; padding: 0; }
+.ch-step { padding: 6px 0 6px 10px; border-left: 3px solid var(--color-line); margin-bottom: 4px; }
+.ch-step.done { border-left-color: var(--color-green); opacity: .8; }
 .ch-acts { display: flex; gap: 6px; }
 
 /* 生产 */

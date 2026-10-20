@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 19
+docVersion: 20
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -155,7 +155,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 120 | GET_STORY | 读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章主线任务：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。 |
+| 120 | GET_STORY | 读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章收尾战：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed、prerequisite 未完成的前置任务名）及 quest.steps（前置任务：派遣 days 日、提交材料 item/count/held，各带 done/available），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。 |
 | 121 | COMPLETE_STORY_EVENT | 确认一章主线事件完成；必须先打赢本章主线任务（胜利时已自动完成），不能绕过任务。只标记完成，不自动发奖。 |
 | 122 | CLAIM_REWARD | 按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。 |
 ### 任务
@@ -212,6 +212,11 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | --- | --- | --- |
 | 143 | GET_CROSS_TIME_RECRUITS | 读取跨时空固定兑换名单、永久兑换记录、碎片与三个在队名额；普通时空首通解锁。 |
 | 144 | EXCHANGE_CROSS_TIME_RECRUIT | 营地用3枚时空碎片兑换identityId，必须带commandId；每身份账号仅一次，同时最多3名未轮回的存活时空武将，入队20级成长型。 |
+### 故事
+
+| op | 名称 | 说明 |
+| --- | --- | --- |
+| 145 | COMPLETE_STORY_STEP | 提交主线前置任务（story-N-b）所需材料：从仓库扣除指定数量后完成，需先完成同章的派遣任务（story-N-a）。派遣类前置任务不用提交：章节开放后出发的一次派遣满天数、返程时自动完成。前置任务全部完成后才能接收尾战（story-N）。 |
 ### 战斗
 
 | op | 名称 | 说明 |

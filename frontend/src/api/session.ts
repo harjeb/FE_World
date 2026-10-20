@@ -259,12 +259,18 @@ export interface StoryChapter {
   finalBoss?: { floorId: string; available: boolean; defeated: boolean } | null;
   quest?: StoryQuest | null;
 }
+export interface StoryStep {
+  id: string; kind: 'dispatch' | 'submit'; name: string; briefing: string; optional: boolean; done: boolean; available: boolean;
+  days?: number; item?: string; itemName?: string; count?: number; held?: number | null;
+}
 // 主线任务（docs/38）：每章一张改编过的经典地图；胜利即完成本章，线索藏在图里的隐藏箱中。
 export interface StoryQuest {
   id: string; name: string; briefing: string; objective: string; kind: QuestView['kind']; mapName: string;
   turnLimit: number; maxUnits: number; costDays: number; toDay: number; enemyLevel: number;
   reward: { gold: number; reputation: number; items?: [string, number][] };
   done: boolean; claimed: boolean; inProgress: boolean; available: boolean; legacyCompleted: boolean;
+  // 收尾战之前的前置任务：先派遣探索，再提交材料；prerequisite 是第一个没完成的前置任务名。
+  steps: StoryStep[]; prerequisite: string | null;
   clue: { item: string; name: string; held: boolean; note: string | null };
 }
 // 地区固定人物的伙伴任务：人物加入过名册后解锁，任务本身在地区任务页接取。

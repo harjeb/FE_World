@@ -58,9 +58,9 @@ import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRu
 import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, recruitedCharacters, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
-import { COMPANION_EPILOGUES, STORY_QUESTS } from '../common/game/story-quests.ts';
+import { COMPANION_EPILOGUES, STORY_CHAPTER_QUESTS, STORY_QUESTS } from '../common/game/story-quests.ts';
 import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
-import { companionView, storyQuestView } from './story.ts';
+import { companionView, findStoryStep, storyPrerequisite, storyQuestView } from './story.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
@@ -2036,6 +2036,28 @@ const handlers: Record<number, Handler> = {
     return { chapter, completed: true };
   },
 
+  // 提交材料类前置任务（docs/38 §3.4）：从仓库扣除，需先完成同章的派遣任务。
+  [OP.COMPLETE_STORY_STEP]: (ctx, data) => {
+    const found = findStoryStep(asString(data.step, 'step'));
+    if (!found) throw new OpError('NOT_FOUND', '没有这个前置任务');
+    const { chapter, step } = found;
+    if (step.kind !== 'submit') throw new OpError('BAD_REQUEST', '派遣类前置任务不用提交：章节开放后派遣满天数，返程时自动完成');
+    if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+    const done = new Set(ctx.player.flags.storyStepsDone ?? []);
+    if (done.has(step.id)) throw new OpError('FORBIDDEN', '这个前置任务已经完成');
+    const before = STORY_CHAPTER_QUESTS.find(row => row.chapter === chapter)!.steps.find(s => s.id !== step.id && s.kind === 'dispatch');
+    if (before && !done.has(before.id)) throw new OpError('FORBIDDEN', `先完成前置任务「${before.name}」`);
+    if (ctx.store.countInventory(ctx.player.id, step.item) < step.count) {
+      throw new OpError('NO_SUCH_ITEM', `需要 ${step.count} 份${GAME_ITEMS[step.item].name}，仓库里只有 ${ctx.store.countInventory(ctx.player.id, step.item)} 份`);
+    }
+    ctx.store.takeInventory(ctx.player.id, step.item, step.count);
+    ctx.player.flags.storyStepsDone = [...done, step.id];
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'story', `完成主线前置任务「${step.name}」。`, { step: step.id });
+    ctx.push(OP.STATE_CHANGED, { reason: 'story-step' });
+    return { step: step.id, chapter, item: step.item, count: step.count };
+  },
+
   [OP.CLAIM_REWARD]: (ctx, data) => {
     const key = asString(data.rewardKey, 'rewardKey');
     const match = /^chapter:(\d+)$/.exec(key);
@@ -2300,6 +2322,11 @@ const handlers: Record<number, Handler> = {
     if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
     if (quest.archived) throw new OpError('FORBIDDEN', '此经典关卡已编入副本；旧奖励仍可领取，已开始的远征可以继续');
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
+    if (quest.story) {
+      if (!chapterAvailable(quest.story, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+      const missing = storyPrerequisite(ctx.player, quest.story);
+      if (missing) throw new OpError('FORBIDDEN', `先完成本章前置任务「${missing}」`);
+    }
     // 主线任务不属于任何地区（region 0），由章节开放控制；其余任务需要地区已开通。
     if (!quest.story && !playerRegions(ctx.player).includes(quest.region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(quest.region).name}；先在世界地图选择行军路线`);
     const done = new Set(ctx.player.flags.questsDone ?? []);

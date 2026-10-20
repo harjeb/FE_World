@@ -11,7 +11,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
+import { prepareBrowserBattleWin, seedBrowserAccount, skipStoryStepsInDb } from './fixtures.mjs';
 
 const API_PORT = 8613;
 const BASE = `http://127.0.0.1:${API_PORT}`;
@@ -126,7 +126,7 @@ function check(name, ok, detail) {
 
 const OP = {
   GET_STATE: 10, GET_INVENTORY: 22, GET_TODAY: 30, REST: 34, ASSIGN_BEXP: 46, RETREAT: 56, SURRENDER: 67,
-  GET_MEMORIAL: 76, GET_CLASS_MARKET: 78, GET_PRODUCTION: 90, GET_RUN: 100, GET_ANNUAL: 110, GET_STORY: 120, COMPLETE_STORY_EVENT: 121, START_QUEST: 124, GET_LEGACIES: 48,
+  GET_MEMORIAL: 76, GET_CLASS_MARKET: 78, GET_PRODUCTION: 90, GET_RUN: 100, GET_ANNUAL: 110, GET_STORY: 120, COMPLETE_STORY_EVENT: 121, START_QUEST: 124, COMPLETE_STORY_STEP: 145, GET_LEGACIES: 48,
 };
 const count = (inventory, item) => inventory.filter(r => r.item === item).reduce((n, r) => n + r.count, 0);
 
@@ -184,8 +184,13 @@ try {
       story0.includes('主线任务') && story0.includes('盛会·开幕夜') && story0.includes('线索') && story0.includes('准备出征') && await page.evaluate(`[...document.querySelectorAll('button')].every(b => b.innerText.trim() !== '完成本章事件')`), story0.slice(story0.indexOf('盛会'), story0.indexOf('盛会') + 500));
     check('a chapter cannot be completed around its main quest', await api(page, OP.COMPLETE_STORY_EVENT, { chapter: 1 }).then(() => false, error => String(error.message).includes('先完成本章主线任务')), 'gate');
     // Winning the main quest completes the chapter: stage a winnable board server-side, settle through the real op.
+    check('the chapter lists its preliminary tasks and the finale waits for them',
+      story0.includes('城外的传闻') && story0.includes('安置伤者') && story0.includes('提交材料') && story0.includes('收尾战要先完成前置任务'), story0.slice(story0.indexOf('前置'), story0.indexOf('前置') + 200));
+    check('the finale is refused before the preliminaries', await api(page, OP.START_QUEST, { questId: 'story-1', unitIds: ['u_erin', 'u_victor'] }).then(() => false, error => String(error.message).includes('先完成本章前置任务')), 'prerequisite');
+    const playerId = (await api(page, OP.GET_STATE)).player.id;
+    skipStoryStepsInDb(join(dbDir, 'e2e.db'), playerId, 1);
     const started = await api(page, OP.START_QUEST, { questId: 'story-1', unitIds: ['u_erin', 'u_victor'] });
-    await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), (await api(page, OP.GET_STATE)).player.id, started.battleId));
+    await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), playerId, started.battleId));
     check('winning the main quest completes the chapter', await until(async () => (await api(page, OP.GET_STORY)).chapters[0].completed), 'chapter 1');
     await page.reload('#ch-h');
     check('the finished quest offers its own reward claim next to the chapter experience', (await page.text()).includes('领取任务报酬'), 'quest claim');

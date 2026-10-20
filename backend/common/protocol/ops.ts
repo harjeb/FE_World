@@ -80,7 +80,7 @@ export const OPS: readonly OpDef[] = [
   { op: 112, name: 'START_ANNUAL_MATCH', group: '赛事', agentNote: '开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。' },
   { op: 113, name: 'WITHDRAW_ANNUAL', group: '赛事', agentNote: '退出本届年度赛事，保留真实伤亡与消耗、放弃后续比赛；当届不能重新报名。' },
 
-  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章主线任务：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。' },
+  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章收尾战：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed、prerequisite 未完成的前置任务名）及 quest.steps（前置任务：派遣 days 日、提交材料 item/count/held，各带 done/available），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。' },
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '确认一章主线事件完成；必须先打赢本章主线任务（胜利时已自动完成），不能绕过任务。只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
@@ -108,6 +108,7 @@ export const OPS: readonly OpDef[] = [
 
   { op: 143, name: 'GET_CROSS_TIME_RECRUITS', group: '整备', agentNote: '读取跨时空固定兑换名单、永久兑换记录、碎片与三个在队名额；普通时空首通解锁。' },
   { op: 144, name: 'EXCHANGE_CROSS_TIME_RECRUIT', group: '整备', agentNote: '营地用3枚时空碎片兑换identityId，必须带commandId；每身份账号仅一次，同时最多3名未轮回的存活时空武将，入队20级成长型。' },
+  { op: 145, name: 'COMPLETE_STORY_STEP', group: '故事', agentNote: '提交主线前置任务（story-N-b）所需材料：从仓库扣除指定数量后完成，需先完成同章的派遣任务（story-N-a）。派遣类前置任务不用提交：章节开放后出发的一次派遣满天数、返程时自动完成。前置任务全部完成后才能接收尾战（story-N）。' },
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。encounter 返回本次随机战场的布局与人数配置；map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。未揭开的密室物件（state=hidden）及揭开它们的事件不下发，触发后随状态出现。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
@@ -161,12 +162,12 @@ export const WRITE_OPS = new Set<number>([
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.WITHDRAW_ANNUAL, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
   OP.CLAIM_CONTROL, OP.RELEASE_CONTROL, OP.CHOOSE_ROUTE,
   OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP, OP.START_CHALLENGE, OP.CLAIM_CHALLENGE_REWARD, OP.PLAY_MINIGAME, OP.ACCEPT_RECRUIT, OP.DECLINE_RECRUIT, OP.HIRE_TAVERN, OP.INN_REST, OP.USE_FOOD,
-  OP.EXCHANGE_CROSS_TIME_RECRUIT,
+  OP.EXCHANGE_CROSS_TIME_RECRUIT, OP.COMPLETE_STORY_STEP,
   OP.EXECUTE_ACTION, OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 19;
+export const DOC_VERSION = 20;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 
