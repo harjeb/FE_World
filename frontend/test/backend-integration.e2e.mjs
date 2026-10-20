@@ -499,6 +499,9 @@ try {
       capStore.saveUnit(unit, capPlayerId);
       const drugUnit = capStore.unit(capPlayerId, 'u_owen');
       drugUnit.stats.skl = 99;
+      drugUnit.weapons.unshift('iron_sword');
+      drugUnit.ranks.sword = 'S';
+      drugUnit.weaponInstances.unshift({ id: 'iron_sword', durability: 40, maxDurability: 40 });
       capStore.saveUnit(drugUnit, capPlayerId);
     } finally { capStore.db.close(); }
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_erin`, '#eq-h');
@@ -530,6 +533,12 @@ try {
 
     // Confirmation belongs to one character and must reset even when returning to that character.
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#eq-h');
+    check('roster refuses a carried weapon outside the current class even with S proficiency', await page.evaluate(`(() => {
+      const panel = document.querySelector('[aria-labelledby="eq-h"]');
+      const row = [...panel.querySelectorAll('li')].find(li => li.innerText.includes('铁剑'));
+      return row?.innerText.includes('仅携带') && !row.innerText.includes('装备中') && row.querySelector('button')?.disabled
+        && panel.querySelector('.tag-blue')?.closest('li').innerText.includes('弓');
+    })()`), 'archer keeps a legal bow equipped; sword equip disabled');
     await page.evaluate(`[...document.querySelectorAll('button')].find(b => b.innerText === '解雇欧文…').click()`);
     await until(() => page.evaluate(`document.body.innerText.includes('确认解雇欧文')`));
     await page.evaluate(`[...document.querySelectorAll('.roster-list button.row')].find(b => b.innerText.includes('古斯塔夫')).click()`);
@@ -542,6 +551,11 @@ try {
     const dayBefore = (await api(page, 30)).day;
     const owen0 = await owen();
     await page.open(`http://127.0.0.1:${API_PORT}/#/prep/u_owen`, '.gear-shop li .btn');
+    check('prep shows unsupported weapons as carried and disables equipping', await page.evaluate(`(() => {
+      const row = [...document.querySelectorAll('[aria-labelledby="carry-h"] li')].find(li => li.innerText.includes('铁剑'));
+      return row?.innerText.includes('仅携带') && !row.innerText.includes('装备中')
+        && [...row.querySelectorAll('button')].find(button => button.innerText === '装备')?.disabled;
+    })()`), 'same class restriction in prep and roster');
     await page.viewport(390, 844);
     const mobilePrep = await page.evaluate(`(() => { const chooser = document.querySelector('.gear-picker').getBoundingClientRect(); const warehouse = document.querySelector('#wh-h').getBoundingClientRect(); return { chooser: chooser.top, warehouse: warehouse.top, width: document.documentElement.scrollWidth, selected: document.querySelector('.gear-picker .ph').innerText }; })()`);
     check('mobile prep chooses the target before inventory without horizontal overflow', mobilePrep.chooser < mobilePrep.warehouse && mobilePrep.width === 390 && mobilePrep.selected.includes('欧文'), JSON.stringify(mobilePrep));
@@ -559,11 +573,12 @@ try {
     check('prep gives a 伤药 to the selected unit', await until(async () => (await owen()).snapshot.items.length === owen0.snapshot.items.length + 1),
       JSON.stringify((await owen()).snapshot.items));
     const gold0 = (await api(page, 10)).gold;
+    const drugPrice = (await api(page, 40)).items.find(row => row.item === 'secret_book').price;
     await press(page, '.gear-shop li', '秘传之书', '买');
     await until(async () => (await page.evaluate(`document.querySelector('#wh-h').closest('.panel').innerText.includes('秘传之书')`)));
     await press(page, '.gear-list li', '秘传之书', '欧文使用');
     check('prep uses a stat drug through99 without losing its use count', await until(async () => (await owen()).snapshot.stats.skl === 101)
-      && owen0.snapshot.stats.skl === 99 && (await api(page, 10)).gold === gold0 - 8000 && (await owen()).drugCounts.skl === 1, `skl ${owen0.snapshot.stats.skl} → ${(await owen()).snapshot.stats.skl}`);
+      && owen0.snapshot.stats.skl === 99 && (await api(page, 10)).gold === gold0 - drugPrice && (await owen()).drugCounts.skl === 1, `skl ${owen0.snapshot.stats.skl} → ${(await owen()).snapshot.stats.skl}`);
     const herb0 = (await api(page, 22)).inventory.find(r => r.item === 'herb').count;
     await press(page, '.gear-list li', '药草', '卖');
     await press(page, 'section[aria-labelledby=carry-h] li', '伤药', '放回仓库');

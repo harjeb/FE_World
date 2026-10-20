@@ -20,7 +20,7 @@ import { Radar } from '../ui/Radar.tsx';
 import { session, useSession } from '../api/session.ts';
 import type { ServerSnapshot, ServerUnit, ServerUnitDetail } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
-import { canPromote, expLine, LIFESPAN_TEXT, ORIGIN_TEXT, STATUS_TAG, STATUS_TEXT, unitStatus, weaponProgress } from '../model/roster.ts';
+import { canPromote, cannotWield, expLine, LIFESPAN_TEXT, ORIGIN_TEXT, STATUS_TAG, STATUS_TEXT, unitStatus, weaponProgress } from '../model/roster.ts';
 import { links } from '../router.ts';
 import type { RosterTab } from '../router.ts';
 import { plainDate, shortDate } from '../ui/calendar.ts';
@@ -240,10 +240,12 @@ export const skillName = (id: string) => SKILLS[id as SkillId]?.name ?? ABILITY_
 // and food happen on 整备.
 export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (id: WeaponId) => void }) {
   const weapons = unit.snapshot.weapons as WeaponId[];
+  const equippedIndex = unit.equipped ? weapons.indexOf(unit.equipped as WeaponId) : -1;
   const items = unit.snapshot.items;
   const free = Math.max(0, SLOTS - items.length);
   const prep = links.prep(unit.id);
   const row = (id: WeaponId, i: number, equipped: boolean) => {
+    const blocked = cannotWield(unit, id);
     const res = instanceFor(unit, weapons, i);
     const refinement = unit.weaponInstances.find(w => w.id === id)?.refinement ?? 0;
     return (
@@ -252,10 +254,11 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
         <div className="min-w-0">
           <div className="nm">{WEAPONS[id].name}{(id === 'fw_weapon_85' || refinement > 0) && ` +${refinement}`} {equipped && <span className="tag tag-blue">✓ 装备中</span>}{WEAPONS[id].grants?.skill && <span className="tag tag-brass">授予 {skillName(WEAPONS[id].grants!.skill!)}</span>}</div>
           <div className="sp">{weaponSpec(id)}</div>
+          {blocked && <div className="why">仅携带：{blocked}</div>}
           {WEAPONS[id].grants?.arts?.map(grant => <div className="sp" key={grant.art}>装备授予：{artName(grant.art)}{grant.minimumRefinement > 0 && ` · 精炼 +${grant.minimumRefinement} 起`}{unit.equipmentArts.includes(grant.art) ? '（已激活）' : '（未激活）'}</div>)}
           {res && <ResourceBar {...res} />}
         </div>
-        {equipped ? <span /> : <button type="button" className="btn btn-sm" onClick={() => onEquip(id)}>装备</button>}
+        {equipped ? <span /> : <button type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined} onClick={() => onEquip(id)}>装备</button>}
       </li>
     );
   };
@@ -264,18 +267,18 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
       <div className="ph"><h2 id="eq-h">携带物品</h2><a className="btn btn-sm btn-ghost" href={prep}>整备 · 维修 ›</a></div>
       <div className="grp">装备（也用来反击）</div>
       <ul className="eq">
-        {weapons.length > 0 && row(weapons[0], 0, true)}
-        {weapons.length === 0 && (
+        {equippedIndex >= 0 && row(weapons[equippedIndex], equippedIndex, true)}
+        {equippedIndex < 0 && (
           <li>
             <span className="slot-free" aria-hidden="true" />
-            <div style={{ fontSize: 13, color: '#6A6256' }}>没有携带武器</div>
+            <div style={{ fontSize: 13, color: '#6A6256' }}>{weapons.length ? '没有可装备的武器' : '没有携带武器'}</div>
             <a className="btn btn-sm btn-ghost" href={prep}>去整备</a>
           </li>
         )}
       </ul>
-      {weapons.length > 1 && <>
+      {weapons.length > (equippedIndex < 0 ? 0 : 1) && <>
         <div className="grp">持有武器 · 共 {weapons.length} / {SLOTS}</div>
-        <ul className="eq">{weapons.slice(1).map((id, i) => row(id, i + 1, false))}</ul>
+        <ul className="eq">{weapons.map((id, i) => i === equippedIndex ? null : row(id, i, false))}</ul>
       </>}
       <div className="grp">持有道具 · {items.length} / {SLOTS}</div>
       <ul className="eq">

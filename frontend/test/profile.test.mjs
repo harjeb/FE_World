@@ -12,6 +12,21 @@ const { asUnit, combatProfile, displayScale, COMBAT_KEYS } = await import('../sr
 const { CLASSES } = await import('@common/data/classes.ts');
 const { WEAPONS } = await import('@common/data/weapons.ts');
 const { createUnit, toSnapshot } = await import('@common/game/model.ts');
+const { cannotWield } = await import('../src/model/roster.ts');
+
+test('equipment controls distinguish class permission, primary rank and secondary proficiency', () => {
+  const unit = { classId: 'swordsman', className: CLASSES.swordsman.name, ranks: { sword: 'E', bow: 'S' } };
+  assert.match(cannotWield(unit, 'iron_bow'), /不能用/);
+  assert.match(cannotWield(unit, 'silver_sword'), /需要/);
+  assert.equal(cannotWield(unit, 'iron_sword'), null);
+  unit.ranks.sword = 'D';
+  assert.match(cannotWield(unit, 'fw_weapon_10'), /另需/);
+  unit.ranks.axe = 'D';
+  assert.equal(cannotWield(unit, 'fw_weapon_10'), null);
+  unit.classId = 'archer';
+  assert.match(cannotWield(unit, 'iron_sword'), /不能用/);
+  assert.equal(cannotWield(unit, 'iron_bow'), null);
+});
 
 test('profile preserves Apollo personal trait while the permanent skill stat stays unchanged', () => {
   const record = createUnit('owen', 20, 'apollo', 0, true, { personalSkill: 'lightshot' });

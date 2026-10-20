@@ -16,6 +16,8 @@ function setup() {
   store.savePlayer(player);
   store.addInventory(player.id, 'ore', 0, 20);
   const unit = store.units(player.id)[0];
+  unit.classId = 'archer';
+  unit.ranks.bow = 'D';
   unit.weapons = ['fw_weapon_85', 'fw_weapon_85'];
   unit.weaponInstances = [
     { id: 'fw_weapon_85', durability: 7, maxDurability: 50 },

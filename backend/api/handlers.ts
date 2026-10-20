@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { OP, OP_BY_NUMBER, WRITE_OPS } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
+import { canWield } from '../common/engine/units.ts';
 import type { Action, ActAction, AiDifficulty, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
 import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, movementBudget, moveRange, pathTo, spellForecast, spellKind, statusChance, step, threatMap, unitById } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
@@ -829,6 +830,7 @@ const handlers: Record<number, Handler> = {
     const charged = isWeapon && (WEAPONS[item as WeaponId].type === 'tome' || WEAPONS[item as WeaponId].type === 'staff');
     if (action === 'equip') {
       if (!unit.weapons.includes(item as never)) throw new OpError('BAD_REQUEST', '该单位没有携带这件武器');
+      if (!canWield(unit, item as WeaponId)) throw new OpError('FORBIDDEN', '当前职业不能使用这类武器，或武器所需熟练度不足');
       const index = unit.weapons.indexOf(item as never);
       unit.weapons.splice(index, 1);
       unit.weapons.unshift(item as never);

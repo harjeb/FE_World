@@ -14,6 +14,7 @@ import type { DispatchResult } from '../common/game/dispatch.ts';
 import { createPeriod, periodIdFor, rankByRating, ratingDelta, rewardForRank } from '../common/game/ratings.ts';
 import type { RatingPeriod, RatingRow } from '../common/game/ratings.ts';
 import { seedRng } from '../common/engine/rng.ts';
+import { canWield } from '../common/engine/units.ts';
 import { scenarioLoot } from '../common/engine/scenario.ts';
 import { createLegacy, eligibleForLegacy } from '../common/game/legacy.ts';
 import type { LegacyCause } from '../common/game/legacy.ts';
@@ -761,7 +762,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
     id: unit.id, character: unit.character, name: unitName(unit), sex: unit.sex ?? null, portrait: unit.portrait ?? null, classId: unit.classId,
     homeClassId: unit.homeClassId ?? CHARACTERS[unit.character].classId,
     className: cls.name, tier: cls.tier, stage: cls.stage, route: cls.route, species: unit.species, ranks: unit.ranks, level: unit.level, exp: unit.exp, hp: unit.hp, maxHp: unit.stats.hp,
-    status: unit.status, equipped: unit.weapons[0] ?? null, items: unit.items.map(i => GAME_ITEMS[i.id as ItemKey]?.name ?? i.id),
+    status: unit.status, equipped: unit.weapons.find(id => canWield(unit, id)) ?? null, items: unit.items.map(i => GAME_ITEMS[i.id as ItemKey]?.name ?? i.id),
     joinedDay: unit.joinedDay, weaponExp: unit.weaponExp, growthLog: unit.growthLog, drugCounts: unit.drugCounts,
     growthType: unit.growthType, growthTypeName: GROWTH_TYPE_NAMES[unit.growthType],
     age: unit.age, ageBand: band ? band.name : null, growthBonus: growthBonus(unit.growthType, unit.age),

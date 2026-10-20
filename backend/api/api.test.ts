@@ -495,6 +495,52 @@ test('shop buy/sell and item transfer work', () => {
   dispatch(ctx, OP.SELL, { item: 'herb', count: 2 });
 });
 
+test('equipping checks class and every proficiency; carrying and class changes preserve unusable weapons', () => {
+  const { store, accountId, player } = setup();
+  const ctx = ctxFor(store, accountId, player);
+  const unit = store.unit(player.id, 'u_erin')!;
+  unit.classId = 'swordsman';
+  unit.ranks = { sword: 'E', bow: 'S' };
+  unit.weapons = ['iron_bow', 'silver_sword', 'iron_sword', 'fw_weapon_10'];
+  store.saveUnit(unit, player.id);
+  const equip = (item: string) => dispatch(ctx, OP.TRANSFER_ITEM, { unitId: unit.id, item, action: 'equip' });
+  const equipped = () => (dispatch(ctx, OP.GET_UNIT, { unitId: unit.id }) as { equipped: string | null }).equipped;
+  const before = store.unit(player.id, unit.id);
+  for (const item of ['iron_bow', 'silver_sword', 'fw_weapon_10']) {
+    assert.throws(() => equip(item), (error: { code?: string }) => error.code === 'FORBIDDEN', item);
+    assert.deepEqual(store.unit(player.id, unit.id), before, 'failed equips do not reorder or change resources');
+  }
+  assert.equal(equipped(), 'iron_sword', 'unusable first weapon is only carried, not equipped');
+  equip('iron_sword');
+  assert.equal(store.unit(player.id, unit.id)!.weapons[0], 'iron_sword');
+  const trained = store.unit(player.id, unit.id)!;
+  trained.ranks.sword = 'D';
+  store.saveUnit(trained, player.id);
+  assert.throws(() => equip('fw_weapon_10'), (error: { code?: string }) => error.code === 'FORBIDDEN', 'secondary proficiency is also required');
+  trained.ranks.axe = 'D';
+  store.saveUnit(trained, player.id);
+  equip('fw_weapon_10');
+  assert.equal(equipped(), 'fw_weapon_10', 'a learned secondary type needs no current class permission');
+  const changed = store.unit(player.id, unit.id)!;
+  changed.classId = 'archer';
+  store.saveUnit(changed, player.id);
+  assert.equal(equipped(), 'iron_bow', 'class changes stop reporting the previous class weapon as equipped');
+  assert.deepEqual(store.unit(player.id, unit.id)!.weapons, changed.weapons, 'class changes do not delete carried weapons');
+  assert.throws(() => equip('iron_sword'), (error: { code?: string }) => error.code === 'FORBIDDEN');
+  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: unit.id, item: 'iron_sword', action: 'toWarehouse' });
+  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: unit.id, item: 'iron_sword', action: 'toUnit' });
+  assert.ok(store.unit(player.id, unit.id)!.weapons.includes('iron_sword'), 'carrying still does not require weapon permission');
+  const healer = store.unit(player.id, unit.id)!;
+  healer.classId = 'cleric';
+  healer.ranks.staff = 'E';
+  store.saveUnit(healer, player.id);
+  assert.equal(equipped(), null, 'all weapons can remain carried without any being equipped');
+  store.addInventory(player.id, 'heal', 0, 1);
+  dispatch(ctx, OP.TRANSFER_ITEM, { unitId: unit.id, item: 'heal', action: 'toUnit' });
+  equip('heal');
+  assert.equal(equipped(), 'heal', 'legal staves can still be equipped');
+});
+
 test('a half-used 伤药 keeps its uses through the warehouse', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);

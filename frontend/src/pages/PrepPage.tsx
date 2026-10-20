@@ -5,11 +5,12 @@ import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ShopRow } from '../api/session.ts';
 import { filterCounts, ITEM_FILTERS, kindOrder, matchItemFilter } from '../model/item-filter.ts';
+import { cannotWield } from '../model/roster.ts';
 import type { ItemFilter } from '../model/item-filter.ts';
 import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
-import { BexpPanel, CARRY, CarriedPanel, cannotCast, cannotLearn, cannotWield, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
+import { BexpPanel, CARRY, CarriedPanel, cannotCast, cannotLearn, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
 
 const half = (key: string) => Math.floor((itemOf(key)?.price ?? 0) / 2);
 

@@ -3,7 +3,9 @@
 import { CLASSES, hasClassQualification, weaponRankCap } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { promotionsFor } from '@common/data/promotions.ts';
-import { RANKS } from '@common/data/types.ts';
+import { RANKS, WEAPON_TYPE_NAMES, rankAtLeast } from '@common/data/types.ts';
+import { WEAPONS } from '@common/data/weapons.ts';
+import type { WeaponId } from '@common/data/weapons.ts';
 import type { Rank, WeaponType } from '@common/data/types.ts';
 import { RANK_EXP } from '@common/game/model.ts';
 import type { LifespanWarning, ServerAnnual, ServerUnit, UnitOrigin } from '../api/session.ts';
@@ -57,6 +59,16 @@ export function weaponProgress(unit: ServerUnit): WeaponProgress[] {
     const capped = !cap || RANKS.indexOf(rank) >= RANKS.indexOf(cap);
     return { type, rank, exp, floor: RANK_EXP[rank], next: nextRank ? RANK_EXP[nextRank] : null, nextRank, cap, capped };
   }).sort((a, b) => (a.cap ? 0 : 1) - (b.cap ? 0 : 1) || RANKS.indexOf(b.rank) - RANKS.indexOf(a.rank));
+}
+
+// Carrying is unrestricted; equipping needs the current class permission and every required rank.
+export function cannotWield(unit: ServerUnit, weapon: WeaponId): string | null {
+  const w = WEAPONS[weapon];
+  const cap = CLASSES[unit.classId as ClassId]?.weapons[w.type];
+  if (!cap) return `${unit.className}不能用${w.name}`;
+  if (!rankAtLeast(unit.ranks[w.type], w.rank)) return `需要 ${w.rank} 级，现在 ${unit.ranks[w.type] ?? '无'}`;
+  const missing = (w.requires ?? []).find(req => !rankAtLeast(unit.ranks[req.type], req.rank));
+  return missing ? `另需${WEAPON_TYPE_NAMES[missing.type]} ${missing.rank} 级，现在 ${unit.ranks[missing.type] ?? '无'}` : null;
 }
 
 export const classOfUnit = (unit: ServerUnit) => CLASSES[unit.classId as ClassId];

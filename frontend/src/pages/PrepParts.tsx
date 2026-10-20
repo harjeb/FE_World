@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CLASSES } from '@common/data/classes.ts';
 import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
 import { spellBlock } from '@common/engine/index.ts';
-import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES, rankAtLeast } from '@common/data/types.ts';
+import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL, GAME_ITEMS, spellbookItem } from '@common/game/items.ts';
@@ -11,7 +11,7 @@ import { OP } from '@common/protocol/ops.ts';
 import { itemIconFor } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
 import type { BookInstance, ServerUnit } from '../api/session.ts';
-import { annualLive } from '../model/roster.ts';
+import { annualLive, cannotWield } from '../model/roster.ts';
 import { toast } from '../ui/toast.tsx';
 import { instanceFor, ResourceBar, weaponSpec } from './RosterParts.tsx';
 import { stock, UnitFace } from './SystemParts.tsx';
@@ -53,16 +53,6 @@ export function cannotLearn(unit: ServerUnit, spell: string): string | null {
   if (unit.learnedSpells.includes(spell)) return '已经学会';
   const type = book.study === 'whiteMagic' ? 'staff' : 'tome';
   return CLASSES[unit.classId as keyof typeof CLASSES]?.weapons[type] ? null : `${unit.className}没有${type === 'staff' ? '白魔法' : '黑魔法'}权限`;
-}
-
-// Why the selected unit could not wield a weapon it is given (it can still carry it).
-export function cannotWield(unit: ServerUnit, weapon: WeaponId): string | null {
-  const w = WEAPONS[weapon];
-  const cap = CLASSES[unit.classId as keyof typeof CLASSES]?.weapons[w.type];
-  if (!cap) return `${unit.className}不能用${w.name}`;
-  if (!rankAtLeast(unit.ranks[w.type], w.rank)) return `需要 ${w.rank} 级，现在 ${unit.ranks[w.type] ?? 'E'}`;
-  const missing = (w.requires ?? []).find(req => !rankAtLeast(unit.ranks[req.type], req.rank));
-  return missing ? `另需${WEAPON_TYPE_NAMES[missing.type]} ${missing.rank} 级，现在 ${unit.ranks[missing.type] ?? '无'}` : null;
 }
 
 // Why a 能力药 would be refused for this unit (game/model.ts::useDrug), or null if it can be used.
@@ -148,6 +138,7 @@ function BookActions({ unit, id, book, spellbook }: { unit: ServerUnit; id: stri
 export function CarriedPanel({ unit }: { unit: ServerUnit }) {
   const { state } = useSession();
   const weapons = unit.snapshot.weapons as WeaponId[];
+  const equippedIndex = unit.equipped ? weapons.indexOf(unit.equipped as WeaponId) : -1;
   const items = unit.snapshot.items;
   const [busy, setBusy] = useState<string | null>(null);
   const gold = state?.gold ?? 0;
@@ -164,9 +155,10 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
         <h2 id="carry-h">{unit.name}的携带</h2>
         <span style={{ fontSize: 12, color: '#6A6256' }}>武器 {weapons.length} / {CARRY} · 道具 {items.length} / {CARRY}</span>
       </div>
-      <div className="grp">武器（第一把是装备中的）· 物理武器的战技消耗耐久，魔道书与杖每次使用消耗次数</div>
+      <div className="grp">武器（第一把可装备的是当前装备）· 物理武器的战技消耗耐久，魔道书与杖每次使用消耗次数</div>
       <ul className="eq">
         {weapons.map((id, i) => {
+          const blocked = cannotWield(unit, id);
           const res = instanceFor(unit, weapons, i);
           const staff = WEAPONS[id].type === 'staff';
           const damaged = res && res.now < res.max;
@@ -176,8 +168,9 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
             <li key={`${id}${i}`}>
               <img className="px" src={itemIconFor(id)} width={32} height={32} alt="" />
               <div className="min-w-0">
-                <div className="nm">{WEAPONS[id].name}{i === 0 && <span className="tag tag-blue">✓ 装备中</span>}</div>
+                <div className="nm">{WEAPONS[id].name}{i === equippedIndex && <span className="tag tag-blue">✓ 装备中</span>}</div>
                 <div className="sp">{weaponSpec(id)}</div>
+                {blocked && <div className="why">仅携带：{blocked}</div>}
                 {res && <ResourceBar {...res} />}
                 {book && WEAPONS[id].type === 'tome' && <BookActions unit={unit} id={id} book={book} spellbook={false} />}
               </div>
@@ -186,7 +179,7 @@ export function CarriedPanel({ unit }: { unit: ServerUnit }) {
                   <button type="button" className="btn btn-sm" disabled={busy !== null || gold < cost} title={staff ? `补满杖的次数：${cost} 金币` : `修到 ${res.max} / ${res.max}：${cost} 金币`}
                     onClick={() => void repair(id, cost)}>{busy === id ? '维修中…' : `${staff ? '补充' : '维修'} ${cost} 金`}</button>
                 )}
-                {i > 0 && <button type="button" className="btn btn-sm" onClick={() => void move(id, 'equip', `${unit.name}装备了${WEAPONS[id].name}`)}>装备</button>}
+                {i !== equippedIndex && <button type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined} onClick={() => void move(id, 'equip', `${unit.name}装备了${WEAPONS[id].name}`)}>装备</button>}
                 <button type="button" className="btn btn-sm btn-ghost" onClick={() => void move(id, 'toWarehouse', `${WEAPONS[id].name}放回了仓库`)}>放回仓库</button>
               </span>
             </li>
