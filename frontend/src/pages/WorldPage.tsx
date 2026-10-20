@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { REGION_EXPLORATION_GAIN, REGION_EXPLORATION_MAX } from '@common/game/region-map.ts';
-import type { WorldMapView, WorldMapNode } from '@common/game/region-map.ts';
+import type { WorldMapNode } from '@common/game/region-map.ts';
 import { session, useSession } from '../api/session.ts';
 import { featuresOf } from '../model/access.ts';
-import { links } from '../router.ts';
+import { go, links } from '../router.ts';
+import { PixelWorldMap } from '../world/PixelWorldMap.tsx';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel } from '../ui/calendar.ts';
 import { CompassIcon } from '../ui/icons.tsx';
@@ -68,39 +69,30 @@ export function WorldPage() {
       {world && (
         <div className="world-cols">
           <section className="panel" aria-labelledby="wm-h">
-            <div className="ph"><h2 id="wm-h">地图</h2><span style={{ fontSize: 12, color: '#6A6256' }}>Tab 移动焦点，Enter 选择；未开通地区不可提交</span></div>
-            <div className="world-map" role="group" aria-label="世界地图">
-              <svg className="world-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                {world.edges.map(([a, b], i) => {
-                  const pa = pointOf(world, a);
-                  const pb = pointOf(world, b);
-                  if (!pa || !pb) return null;
-                  const status = (id: number) => id === 0 ? 'cleared' : world.nodes.find(n => n.id === id)?.state ?? 'locked';
-                  const sa = status(a), sb = status(b);
-                  const lit = sa !== 'locked' && sb !== 'locked' && (['cleared', 'unlocked'].includes(sa) || ['cleared', 'unlocked'].includes(sb));
-                  return <line key={i} x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} className={lit ? 'lit' : undefined} vectorEffect="non-scaling-stroke" />;
+            <div className="ph"><h2 id="wm-h">地图</h2><span style={{ fontSize: 12, color: '#6A6256' }}>拖动平移、滚轮缩放；点地标选择，双击已开通地区进入</span></div>
+            <div className="world-map pixel" role="group" aria-label="世界地图">
+              <PixelWorldMap world={world} picked={picked} onPick={setPicked}
+                onEnter={id => go(features.quests ? `${links.quests}?region=${id}` : links.world)} />
+              <ul className="world-list" aria-label="地区列表">
+                {world.nodes.map(n => {
+                  const [label, tag] = STATE_TEXT[n.state];
+                  const open = n.state === 'unlocked' || n.state === 'cleared';
+                  return (
+                    <li key={n.id}>
+                      <button type="button" data-region={n.id}
+                        className={`world-node ${n.state}${picked === n.id ? ' picked' : ''}`}
+                        aria-pressed={picked === n.id}
+                        disabled={n.state === 'locked'}
+                        aria-label={`${n.name} · ${label}${open ? ` · 探索度 ${n.exploration} / ${REGION_EXPLORATION_MAX}` : ''}`}
+                        title={n.state === 'locked' ? '未开通：先将相连地区探索度提升至 100' : `${n.name} · ${label}`}
+                        onClick={() => setPicked(n.id)}>
+                        <span className="wn-n">{n.name}</span>
+                        {open ? <RegionExploration region={n} /> : <span className={`tag ${tag}`}>{label}</span>}
+                      </button>
+                    </li>
+                  );
                 })}
-              </svg>
-              <span className="world-capital" style={{ left: `${world.capital.x}%`, top: `${world.capital.y}%` }}>
-                <a href={links.camp} title="王都 · 返回军营">{world.capital.name}</a>
-              </span>
-              {world.nodes.map(n => {
-                const [label, tag] = STATE_TEXT[n.state];
-                const open = n.state === 'unlocked' || n.state === 'cleared';
-                return (
-                  <button key={n.id} type="button" data-region={n.id}
-                    className={`world-node ${n.state}${picked === n.id ? ' picked' : ''}`}
-                    style={{ left: `${n.x}%`, top: `${n.y}%` }}
-                    aria-pressed={picked === n.id}
-                    aria-label={`${n.name} · ${label}${open ? ` · 探索度 ${n.exploration} / ${REGION_EXPLORATION_MAX}` : ''}`}
-                    disabled={n.state === 'locked'}
-                    title={n.state === 'locked' ? '未开通：先将相连地区探索度提升至 100' : `${n.name} · ${label}`}
-                    onClick={() => setPicked(n.id)}>
-                    <span className="wn-n">{n.name}</span>
-                    {open ? <RegionExploration region={n} /> : <span className={`tag ${tag}`}>{label}</span>}
-                  </button>
-                );
-              })}
+              </ul>
             </div>
             <ul className="world-legend" aria-label="图例">
               <li><i className="cap" />王都</li>
@@ -135,11 +127,6 @@ export function WorldPage() {
       )}
     </Shell>
   );
-}
-
-function pointOf(world: WorldMapView, id: number): { x: number; y: number } | null {
-  if (id === 0) return { x: world.capital.x, y: world.capital.y };
-  return world.nodes.find(n => n.id === id) ?? null;
 }
 
 function NodeDetails({ node, busy, onChoose, features }: {

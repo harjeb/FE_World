@@ -22,7 +22,7 @@ export const WORLD_EDGES = [
   [0, 3], [3, 7], [7, 11], [0, 4], [4, 8], [8, 12],
   [1, 2], [2, 4], [4, 3], [3, 1], [5, 6], [6, 8], [8, 7], [7, 5],
 ] as const;
-const POSITIONS: Record<number, readonly [number, number]> = {
+export const POSITIONS: Record<number, readonly [number, number]> = {
   1: [35, 63], 5: [23, 76], 9: [10, 90],
   2: [35, 37], 6: [23, 24], 10: [10, 10],
   3: [65, 63], 7: [78, 76], 11: [90, 90],
