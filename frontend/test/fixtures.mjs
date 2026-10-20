@@ -30,12 +30,17 @@ export function skipStoryStepsInDb(dbPath, playerId, chapter) {
 
 // Existing-account coverage uses an explicit legacy fixture; new-account tests
 // must complete the real setup UI rather than depending on the old starter roster.
-export function seedBrowserAccount(dbPath, name, duplicates = false) {
+export function seedBrowserAccount(dbPath, name, duplicates = false, qualificationRanks = {}) {
   const store = new Store(openDb(dbPath));
   try {
     const { player } = loginOrRegister(store, name, undefined, '浏览器测试军团');
     seedFullRoster(store, player);
     seedDefense(store, player);
+    for (const [id, ranks] of Object.entries(qualificationRanks)) {
+      const unit = store.unit(player.id, id);
+      Object.assign(unit.ranks, ranks);
+      store.saveUnit(unit, player.id);
+    }
     player.flags.setupCompleted = true;
     store.savePlayer(player);
     if (duplicates) {

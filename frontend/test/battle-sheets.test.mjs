@@ -116,7 +116,7 @@ test('every sheet is bundled with its mask and plays only for its own class and 
   const { existsSync } = await import('node:fs');
   const assets = await readFile(new URL('../src/assets.ts', import.meta.url), 'utf8');
   const generated = await readFile(new URL('../src/battle/fe-anim-files.ts', import.meta.url), 'utf8');
-  const weapons = [null, 'sword', 'lance', 'axe', 'bow', 'tome', 'staff', 'dagger', 'fist', 'beast', 'dragon'];
+  const weapons = [null, 'sword', 'lance', 'axe', 'bow', 'tome', 'staff', 'fist', 'beast', 'dragon'];
   assert.equal(new Set(BATTLE_SHEETS.map(sheet => sheet.id)).size, BATTLE_SHEETS.length, 'sheet ids are unique');
   for (const sheet of BATTLE_SHEETS) {
     if (sheet.reacts) {
@@ -135,7 +135,7 @@ test('every sheet is bundled with its mask and plays only for its own class and 
     }
   }
   // Bows, tomes, daggers and dragonstones carry their own shot; melee sheets close the distance instead.
-  assert.deepEqual([...new Set(BATTLE_SHEETS.filter(sheet => sheet.projectile).map(sheet => sheet.weapon))].sort(), ['bow', 'dagger', 'dragon', 'tome']);
+  assert.deepEqual([...new Set(BATTLE_SHEETS.filter(sheet => sheet.projectile).map(sheet => sheet.weapon))].sort(), ['bow', 'dragon', 'sword', 'tome']);
 });
 
 test('converted animations index real atlas frames, land their hit inside the clip and are credited', async () => {

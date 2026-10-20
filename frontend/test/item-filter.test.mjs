@@ -16,8 +16,8 @@ const {
   filterCounts, isItemFilter, ITEM_FILTERS, KIND_ORDER, kindOrder, matchItemFilter, weaponTypeOf, WEAPON_FILTERS,
 } = await import('../src/model/item-filter.ts');
 
-test('the ten weapon-type filters label the shared weapon types in order', () => {
-  assert.deepEqual([...WEAPON_FILTERS], ['sword', 'lance', 'axe', 'bow', 'fist', 'dagger', 'beast', 'dragon', 'tome', 'staff']);
+test('the nine weapon-type filters label the shared weapon types in order', () => {
+  assert.deepEqual([...WEAPON_FILTERS], ['sword', 'lance', 'axe', 'bow', 'fist', 'beast', 'dragon', 'tome', 'staff']);
   // Chip list: 全部 + ten weapon types + the grouped categories, in display order.
   assert.deepEqual(ITEM_FILTERS.map(([f]) => f), [
     'all', ...WEAPON_FILTERS, 'book', 'item', 'food', 'stat', 'material', 'key',

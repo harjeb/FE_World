@@ -1,5 +1,5 @@
 {
-  "docVersion": 24,
+  "docVersion": 25,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -217,7 +217,7 @@
       "op": 31,
       "name": "SORTIE",
       "group": "日历",
-      "agentNote": "本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。",
+      "agentNote": "本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，普通野图推进2日（副本仍每图8日），敌军按等级分阶；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -638,7 +638,7 @@
       "op": 45,
       "name": "PROMOTE",
       "group": "整备",
-      "agentNote": "切换到推荐进阶职业，须已拥有资格；与 SWITCH_CLASS 共用校验，不绕过职业购买或派遣占用。保留等级、经验和已获属性。",
+      "agentNote": "切换到推荐进阶职业，须已拥有资格且目标武器任一种熟练度达阶级门槛（初D／中C／上B／最上A／神将S，当前／起始职业进入例外）；与 SWITCH_CLASS 共用校验，不绕过职业购买或派遣占用。保留等级、经验和已获属性。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -928,7 +928,7 @@
       "op": 78,
       "name": "GET_CLASS_MARKET",
       "group": "名册",
-      "agentNote": "读取现行职业资格、年份与价格；传unitId返回eligibilityReason。人类可跨普通路线，兽／龙只可进阶本族下一阶。",
+      "agentNote": "读取现行职业资格、年份与价格；传unitId返回eligibilityReason（含初D／中C／上B／最上A／神将S，目标允许武器任一种达标；已购按进入规则）。人类可跨普通路线，兽／龙只可进阶本族下一阶。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -949,7 +949,7 @@
       "op": 79,
       "name": "BUY_CLASS_QUALIFICATION",
       "group": "名册",
-      "agentNote": "为角色购买职业资格；校验年份、种族、金币与月额度，兽／龙不能跳阶或降阶。轮回清除资格。",
+      "agentNote": "为角色购买职业资格；校验年份、种族、金币、月额度及目标允许武器任一种熟练度（初D／中C／上B／最上A／神将S），新购当前／起始职业也不豁免；兽／龙不能跳阶或降阶。轮回清除资格。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1001,7 +1001,7 @@
       "op": 85,
       "name": "SWITCH_CLASS",
       "group": "名册",
-      "agentNote": "营地凭资格免费换职，不占购买额度并保留学习成果；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。",
+      "agentNote": "营地凭资格免费换职，不占购买额度并保留学习成果；其他已购职业仍需目标任一种武器熟练度达阶级门槛，当前／起始职业返回免熟练度门槛；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1423,7 +1423,7 @@
       "op": 105,
       "name": "START_DISPATCH",
       "group": "派遣",
-      "agentNote": "派遣未占用角色自动探索／职业训练，自选正整数天数；按个人日历并行，返程一次结算素材、武器、经验、职业精通与武器熟练度。",
+      "agentNote": "派遣未占用角色自动探索／职业训练，自选正整数天数；其他已购职业需目标任一种武器熟练度达阶级门槛，当前／起始职业可从E继续训练；按个人日历并行，返程一次结算素材、武器、经验、职业精通与武器熟练度。",
       "push": false,
       "dataSchema": {
         "type": "object",

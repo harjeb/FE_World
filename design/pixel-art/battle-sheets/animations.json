@@ -197,7 +197,7 @@
       "reference": "ninja-dagger-reference.png",
       "classId": "ninja",
       "mask": "ninja-dagger-mask.png",
-      "weapon": "dagger",
+      "weapon": "sword",
       "projectile": true,
       "durationsMs": [
         130,

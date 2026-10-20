@@ -14,14 +14,14 @@ import { CHARACTER_COLORS } from './character-colors.ts';
 const poses: BattlePose[] = ['idle', 'windup', 'strike', 'recover', 'hurt', 'dodge'];
 const weapons = [null, ...Object.keys(WEAPON_TYPE_NAMES)] as (WeaponType | null)[];
 
-test('default idle pixels retain the original 77-class, two-faction, every-weapon artwork', () => {
+test('default idle pixels match the 77-class, two-faction, active-weapon artwork', () => {
   const hash = createHash('sha256');
   for (const [id] of looks) for (const side of ['player', 'enemy'] as const) for (const weapon of weapons) {
     const legacy = drawBattleSprite(id, { side }, weapon)!;
     assert.deepEqual(legacy, drawBattleSprite(id, { side }, weapon, 'idle', 0));
     hash.update(legacy);
   }
-  assert.equal(hash.digest('hex'), 'e1e8dbbcf29de3e362a6274b5a6a1c9c8acdf6314e757347e749586498f6edbf');
+  assert.equal(hash.digest('hex'), 'f1599e9dc8d238aad101339af46b1a28e0789f4df022259740cc80cfd873cadb');
 });
 
 const filled = (px: Uint8ClampedArray) => px.filter((_, i) => i % 4 === 3 && px[i] !== 0).length;

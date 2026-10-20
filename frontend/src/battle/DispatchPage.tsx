@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { CLASSES, canonicalClassId, classChangeReason, classUnavailableReason } from '@common/data/classes.ts';
+import { CLASSES, canonicalClassId, classEntryReason, classUnavailableReason } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
@@ -23,7 +23,7 @@ function sharedClasses(units: ServerUnit[]): ClassId[] {
   const own = (u: ServerUnit) => new Set([canonicalClassId(u.classId as ClassId), canonicalClassId((u.homeClassId ?? CHARACTERS[u.character].classId) as ClassId), ...u.classQualifications.map(c => canonicalClassId(c as ClassId))]);
   const [first, ...rest] = units.map(own);
   return [...first].filter(id => rest.every(set => set.has(id)) && !classUnavailableReason(id)
-    && units.every(u => !classChangeReason({ classId: u.classId as ClassId, species: u.species, isProtagonist: u.isProtagonist }, id)));
+    && units.every(u => !classEntryReason({ ...u, classId: u.classId as ClassId, homeClassId: u.homeClassId as ClassId }, id, (u.homeClassId ?? CHARACTERS[u.character].classId) as ClassId)));
 }
 
 function Report({ dispatch, units }: { dispatch: DispatchView; units: ServerUnit[] }) {

@@ -1,0 +1,33 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { openDb } from './db.ts';
+import { Store } from './store.ts';
+import { loginOrRegister } from './auth.ts';
+import { seedFullRoster } from './test-support.ts';
+import { dispatch } from './handlers.ts';
+import type { Context } from './handlers.ts';
+import { OP } from '../common/protocol/ops.ts';
+
+test('purchase rejects atomically; old qualifications cannot bypass switch or dispatch; home E training remains possible', () => {
+  const store = new Store(openDb(':memory:'));
+  const { accountId, player } = loginOrRegister(store, 'class-gates', undefined, '测试');
+  seedFullRoster(store, player);
+  player.day = 3000;
+  player.gold = 100_000;
+  player.flags.clearedRegions = [1];
+  const ctx: Context = { store, accountId, player, agentModel: null, push: () => {} };
+  const unit = store.unit(player.id, 'u_erin')!;
+  unit.ranks = { sword: 'E' };
+  unit.classQualifications = ['shido'];
+  store.saveUnit(unit, player.id);
+  const before = structuredClone({ gold: player.gold, flags: player.flags, unit });
+  assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: unit.id, classId: unit.classId }), /熟练度/);
+  assert.equal(player.gold, before.gold);
+  assert.deepEqual(player.flags, before.flags);
+  assert.deepEqual(store.unit(player.id, unit.id), before.unit);
+  assert.throws(() => dispatch(ctx, OP.SWITCH_CLASS, { unitId: unit.id, classId: 'shido' }), /熟练度/);
+  assert.throws(() => dispatch(ctx, OP.START_DISPATCH, { unitIds: [unit.id], region: 1, durationDays: 2, classId: 'shido', weaponType: 'sword' }), /熟练度/);
+  assert.deepEqual(store.unit(player.id, unit.id)!.classQualifications, ['shido']);
+  dispatch(ctx, OP.START_DISPATCH, { unitIds: [unit.id], region: 1, durationDays: 2, classId: unit.classId, weaponType: 'sword' });
+  assert.ok(store.unit(player.id, unit.id)!.lockedDispatchId);
+});

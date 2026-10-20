@@ -204,7 +204,7 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
   const { state } = useSession();
   const exploration = state?.world.nodes.find(node => node.id === region.region);
   const [shopFilter, setShopFilter] = useState<ItemFilter>('all');
-  // 声望商店按物品分类过滤（武器按剑/枪/斧/弓/拳/短刀/兽/龙/魔道书/杖细分），芯片带数量。
+  // 声望商店按物品分类过滤（武器按剑（含短刀）/枪/斧/弓/拳/兽/龙/魔道书/杖细分），芯片带数量。
   const shopKeys = region.shop.map(s => s.item);
   const counts = filterCounts(shopKeys);
   const wares = region.shop

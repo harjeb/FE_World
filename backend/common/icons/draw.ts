@@ -699,8 +699,8 @@ function defaultSpec(id: WeaponId, w: Weapon): Spec {
   const named = NAMED[id];
   const base: Spec = (() => {
     switch (w.type) {
-      case 'sword': case 'dagger':
-        return { kind: 'sword', metal: m, blade: S(w.type === 'dagger' ? 5 : 8, 2, 'point'), guard: 'cross', grip: 'brown', gem: 'red' };
+      case 'sword':
+        return { kind: 'sword', metal: m, blade: S(8, 2, 'point'), guard: 'cross', grip: 'brown', gem: 'red' };
       case 'lance': return { kind: 'lance', metal: m, head: 'spike', shaft: 'brown', gem: 'red' };
       case 'axe': return { kind: 'axe', metal: m, head: 'axe', shaft: 'brown', gem: 'red' };
       case 'bow': return { kind: 'bow', metal: m, shape: 'bow', gem: 'red' };

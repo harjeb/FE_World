@@ -79,7 +79,7 @@ export function nextMonthStart(day: number): number {
 
 // Action costs, docs/00 §9.1 (draft numbers, kept in one place so a balance pass is a one-line change).
 export const ACTION_DAYS = {
-  sortie: 8,
+  sortie: 2,
   dungeon: 24,
   festivalMatch: 2,
   arenaMatch: 1,

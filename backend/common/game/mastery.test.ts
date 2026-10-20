@@ -62,6 +62,7 @@ test('all 408 class teaching nodes unlock only at their own threshold and never 
 
 test('different teachers share one learned art, switching preserves it, and battle units receive it', () => {
   const unit = createUnit('erin', 20, 'shared-art', 0, false, { classId: 'gladiator', age: 20 });
+  unit.ranks.sword = 'C';
   gainMastery(unit, 100, 'commoner');
   const before = [...unit.learnedArts!];
   switchClass(unit, 'swordsman');
@@ -110,6 +111,7 @@ test('learned skills are freely equipped across classes, shared across five slot
 
 test('switching class keeps mastery and learned skills but recomputes the class growth', () => {
   const unit = createUnit('erin', 20, 'm3', 0, false, { classId: 'gladiator', age: 20 });
+  unit.ranks.sword = 'C';
   gainMastery(unit, 20);
   const before = growthRates(unit);
   switchClass(unit, 'swordsman');

@@ -7,7 +7,7 @@ import type { AiDifficulty, Action, BattleEvent, BattleObject, BattleState, Poin
 import { nextU32, seedRng } from '../engine/rng.ts';
 import { generateMap } from '../maps/generate.ts';
 import { THEMES, type Theme } from '../maps/themes.ts';
-import { seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
+import { canEnter, neighbors, seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
 import { classicMap } from './classic-catalog.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { assertClassicScenario } from './classic-validation.ts';
@@ -22,7 +22,7 @@ import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
 import { DUNGEON_STAGE_DAYS, DUNGEON_STAGES } from './expedition.ts';
 import type { RunCarry } from './expedition.ts';
-import { createEnemy, defaultBehavior, pickClasses } from './enemies.ts';
+import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
@@ -135,7 +135,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
-  const classes = pickClasses(`${options.seed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES);
+  const classes = pickClasses(`${options.seed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
   const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
     aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0,
     name: i === 0 ? `${region.name}守将` : undefined,
@@ -312,6 +312,36 @@ export function secretClaims(state: BattleState): string[] {
   return (state.loot ?? []).flatMap(entry => entry.id.startsWith('object:') && once.has(entry.id.slice(7)) ? [`${mapId}:${entry.id.slice(7)}`] : []);
 }
 
+// Low-level flyers can become ground units; move only illegal starts to the nearest free legal tile.
+function placeClassicEnemies(map: ReturnType<typeof classicMap>, specs: EnemySpec[], players: Point[], blocked: Set<number>): void {
+  const key = ([x, y]: Point) => y * map.width + x;
+  const occupied = new Set([...players, ...specs.map(spec => spec.pos)].map(key));
+  for (const spec of specs) {
+    const moveType = CLASSES[spec.classId].moveType;
+    if (canEnter(map.terrain[spec.pos[1]][spec.pos[0]], moveType)) continue;
+    const queue: Point[] = [spec.pos];
+    const seen = new Set([key(spec.pos)]);
+    const origin = key(spec.pos);
+    let placed = false;
+    for (let i = 0; i < queue.length; i++) {
+      const point = queue[i], cell = key(point);
+      if (!occupied.has(cell) && !blocked.has(cell) && canEnter(map.terrain[point[1]][point[0]], moveType)) {
+        occupied.delete(origin);
+        occupied.add(cell);
+        spec.pos = point;
+        placed = true;
+        break;
+      }
+      for (const next of neighbors(point, map.width, map.height)) {
+        if (seen.has(key(next)) || !canEnter(map.terrain[next[1]][next[0]], 'flying')) continue;
+        seen.add(key(next));
+        queue.push(next);
+      }
+    }
+    if (!placed) throw new Error(`经典地图 ${map.id} 没有适合 ${spec.classId} 的敌军落脚点`);
+  }
+}
+
 export function createClassicBattle(units: UnitRecord[], options: ClassicBattleOptions): BattleRecord {
   assertClassicScenario(options.mapId);
   const map = classicMap(options.mapId);
@@ -342,13 +372,15 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     const boss = !!enemy.boss;
     const spread = Math.max(-policy.spread, Math.min(policy.spread, enemy.level - median));
     const level = Math.max(1, Math.min(95, baseLevel + (boss ? policy.bossBonus : spread)));
+    const classId = enemyClassForLevel(enemy.classId as UnitState['classId'], level);
     const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
     return {
-      aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId: enemy.classId as EnemySpec['classId'], level,
+      aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
-      behavior: boss ? 'hold' : guard && defaultBehavior(enemy.classId as UnitState['classId']) !== 'healer' ? 'guard' : undefined,
+      behavior: boss ? 'hold' : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
     };
   });
+  placeClassicEnemies(map, enemySpecs, playerUnits.map(unit => unit.pos), objectBlocked);
   const enemies = enemySpecs.map((spec, index) => createEnemy(`e${index}`, spec));
   if (enemies.length === 0) throw new Error(`经典地图 ${map.id} 没有初始敌军`);
   if (!enemies.some(enemy => enemy.boss)) enemies[0].boss = true;
@@ -408,7 +440,7 @@ export function createFestivalBattle(units: UnitRecord[], round: number, seed: s
     if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.attackerZone[i], extra);
   });
-  const classes = pickClasses(`${seed}:festival`, Math.min(map.deploy, map.defenderZone.length), ENEMY_CLASSES);
+  const classes = pickClasses(`${seed}:festival`, Math.min(map.deploy, map.defenderZone.length), ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
   const enemies = classes.map((classId, i) => createEnemy(`d${i}`, {
     classId, level, pos: map.defenderZone[i], boss: i === 0, name: i === 0 ? `第 ${round} 轮主将` : undefined,
   }));

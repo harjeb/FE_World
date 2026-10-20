@@ -1,4 +1,4 @@
-import { CLASSES } from '../data/classes.ts';
+import { CLASSES, CLASS_PATHS, canonicalClassId, classOpenYear } from '../data/classes.ts';
 import type { ClassId } from '../data/classes.ts';
 import { STAT_KEYS, rankAtLeast, stats } from '../data/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
@@ -6,6 +6,18 @@ import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import type { AiDifficulty, Behavior, Point, UnitState } from '../engine/types.ts';
+import { DAYS_PER_YEAR, enemyLevel } from './calendar.ts';
+
+// Enemy stages follow the existing year/level curve: 1, 20, 47, 66, 81; player unlocks stay separate.
+export function enemyClassForLevel(classId: ClassId, level: number): ClassId {
+  const allowed = (id: ClassId) => level >= enemyLevel((classOpenYear(id) - 1) * DAYS_PER_YEAR);
+  if (allowed(classId)) return classId;
+  const paths = CLASS_PATHS[CLASSES[classId].route] as readonly (readonly ClassId[])[];
+  const path = paths.find(ids => ids.includes(canonicalClassId(classId))) ?? paths[0];
+  return [...path].reverse().find(allowed) ?? path[0];
+}
+
+const ENEMY_NAMES = ['灰岩军团', '黑旗军', '赤牙强盗', '黑巷小偷'];
 
 export const HARD_ENEMY_RULES = { extraRatio: 0.5, levelMin: 2, levelMax: 5, hpMin: 20, hpMax: 35, statMin: 10, statMax: 25, conMin: 1, conMax: 3 } as const;
 export const HARD_ENEMY_EFFECT = `敌军人数 +${HARD_ENEMY_RULES.extraRatio * 100}%（以合法空位为限），等级 +${HARD_ENEMY_RULES.levelMin}～${HARD_ENEMY_RULES.levelMax}（上限99），HP +${HARD_ENEMY_RULES.hpMin}～${HARD_ENEMY_RULES.hpMax}%，其他${STAT_KEYS.length - 1}项能力值各 +${HARD_ENEMY_RULES.statMin}～${HARD_ENEMY_RULES.statMax}%（独立随机、至少+1、向上取整；HP上限150，其他能力值无上限），体格 +${HARD_ENEMY_RULES.conMin}～${HARD_ENEMY_RULES.conMax}，装备升级，移动不变`;
@@ -42,7 +54,7 @@ const TEMPLATES: Partial<Record<ClassId, Template>> = {
 
 export function templateFor(classId: ClassId): Template {
   const cls = CLASSES[classId];
-  const basic: Record<WeaponType, WeaponId> = { sword: 'iron_sword', lance: 'iron_lance', axe: 'iron_axe', bow: 'iron_bow', tome: 'fire', staff: 'heal', fist: 'gauntlet', dagger: 'dagger', beast: 'beast_claw', dragon: 'dragonstone' };
+  const basic: Record<WeaponType, WeaponId> = { sword: 'iron_sword', lance: 'iron_lance', axe: 'iron_axe', bow: 'iron_bow', tome: 'fire', staff: 'heal', fist: 'gauntlet', beast: 'beast_claw', dragon: 'dragonstone' };
   return TEMPLATES[classId] ?? { name: cls.name, base: stats(20,6,6,6,6,3,4,4),
     weapons: (Object.keys(cls.weapons) as WeaponType[]).map(type => basic[type]), ranks: { ...cls.weapons } };
 }
@@ -104,7 +116,7 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
   }
   const behavior = spec.behavior ?? defaultBehavior(spec.classId);
   return {
-    id, name: spec.name ?? `灰岩${tpl.name}`, side: 'enemy', classId: spec.classId, level, exp: 0,
+    id, name: spec.name ?? ENEMY_NAMES[nextU32(seedRng(`${spec.seed ?? id}:name:${id}`)) % ENEMY_NAMES.length], side: 'enemy', classId: spec.classId, level, exp: 0,
     stats: statsValue, con: hard ? 8 + int(rules.conMin, rules.conMax) : 8, hp: statsValue.hp, pos: [spec.pos[0], spec.pos[1]], weapons,
     items: [], ranks, boss: spec.boss, behavior, acted: false, alive: true,
     ...(spec.tags ? { tags: [...spec.tags] } : {}),

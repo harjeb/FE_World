@@ -123,7 +123,7 @@ export const STEALTH_LOOKS = {
   // 忍者：藏青忍装连头罩、额前钢护额、身后长长的阵营色围巾、同色腰带别着手里剑、绑腿与分趾袜。
   ninja: {
     hand: [32, 31],
-    signature: 'dagger',
+    signature: 'sword',
     palette: { c: '#262C4A', C: '#161A30', d: '#C8443A', D: '#8E2A24' },
     layers: [
       { part: ['.........aa', '......aaaaA', '...aaaaAA..', '.aaaAA.....', 'aAA........', 'A..........'], x: 7, y: 24 },

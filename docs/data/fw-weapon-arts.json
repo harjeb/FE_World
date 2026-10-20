@@ -20194,10 +20194,10 @@
       "id": "fe_art_gap_stab",
       "origin": "project_original",
       "name": "贴隙刺",
-      "weapon": "dagger",
+      "weapon": "sword",
       "variant": "base",
       "effectSummary": "本击忽略目标最多15点地形回避，不忽略速度、技能回避或掩体阻挡。",
-      "designIntent": "从地形回避中找突破口，给短刀与剑一个低成本的近身选择。",
+      "designIntent": "从地形回避中找突破口，给剑一个低成本的近身选择。",
       "balanceNotes": "无地形回避时只剩小幅修正；仍正常反击，不提供必中。",
       "project": {
         "status": "implemented",
@@ -20212,7 +20212,6 @@
         ],
         "sequence": "no_speed_follow_up",
         "weaponCompatibility": [
-          "dagger",
           "sword"
         ],
         "unlock": {
@@ -20243,7 +20242,7 @@
       "id": "fe_art_ankle_cut",
       "origin": "project_original",
       "name": "绊足斩",
-      "weapon": "dagger",
+      "weapon": "sword",
       "variant": "base",
       "effectSummary": "命中后目标移动－2，最低1，至目标下次行动结束；同类减移动只取最大值。",
       "designIntent": "用伤害换追逃控制，不把一般小刀攻击变成定身。",
@@ -20261,7 +20260,6 @@
         ],
         "sequence": "no_speed_follow_up",
         "weaponCompatibility": [
-          "dagger",
           "sword"
         ],
         "unlock": {
@@ -20295,7 +20293,7 @@
       "id": "fe_art_cover_exchange",
       "origin": "project_original",
       "name": "掩护换位",
-      "weapon": "dagger",
+      "weapon": "sword",
       "variant": "base",
       "effectSummary": "本次命中且交战双方均未死亡／石化时，可与发动前选定的一名相邻友军换位；不刷新行动。",
       "designIntent": "让脆弱前锋完成一击后交出前排，也可让重装队友接防。",
@@ -20313,7 +20311,6 @@
         ],
         "sequence": "no_speed_follow_up",
         "weaponCompatibility": [
-          "dagger",
           "sword"
         ],
         "unlock": {
@@ -20351,7 +20348,7 @@
       "id": "fe_art_guard_probe",
       "origin": "project_original",
       "name": "卸力探刃",
-      "weapon": "dagger",
+      "weapon": "sword",
       "variant": "base",
       "effectSummary": "本次命中后，目标本场战斗第一段成功命中的反击伤害降低30%；只减一段。",
       "designIntent": "安全试探高威力反击者，付出较低伤害与耐久成本。",
@@ -20369,7 +20366,6 @@
         ],
         "sequence": "no_speed_follow_up",
         "weaponCompatibility": [
-          "dagger",
           "sword"
         ],
         "unlock": {
@@ -20405,7 +20401,7 @@
       "id": "fe_art_pulse_sever",
       "origin": "project_original",
       "name": "截脉刃",
-      "weapon": "dagger",
+      "weapon": "sword",
       "variant": "base",
       "effectSummary": "命中后，目标本场战斗不能凭攻速追加追击；普通反击、勇者连击和固定段数保留。",
       "designIntent": "以高阶短刃技巧对抗高速敌人，保留第一次反击风险。",
@@ -20423,7 +20419,6 @@
         ],
         "sequence": "no_speed_follow_up",
         "weaponCompatibility": [
-          "dagger",
           "sword"
         ],
         "unlock": {

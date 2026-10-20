@@ -47,6 +47,7 @@ test('old qualification aliases cannot be purchased twice and remain valid for f
   player.gold = 100_000;
   const unit = store.unit(player.id, 'u_erin')!;
   unit.classQualifications = ['sword_lord'];
+  unit.ranks.sword = 'S';
   store.saveUnit(unit, player.id);
   assert.throws(() => dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: unit.id, classId: 'blade' }), /已经拥有/);
   const switched = dispatch(ctx, OP.SWITCH_CLASS, { unitId: unit.id, classId: 'sword_lord' }) as { classId: string };
@@ -161,6 +162,10 @@ test('class qualification purchases are limited per real month, switching back i
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   player.gold = 1_000_000;
+  const unit = store.unit(player.id, 'u_erin')!;
+  unit.ranks.bow = 'C';
+  unit.ranks.tome = 'C';
+  store.saveUnit(unit, player.id);
   for (const classId of ['swordsman', 'cavalier', 'archer']) {
     dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_erin', classId });
   }

@@ -21,7 +21,7 @@ function duel(mine: WeaponId, theirs: WeaponId | null, seed = 'equipment-effects
     unit.stats = { hp: 60, str: 20, mag: 20, skl: 20, spd: 10, lck: 40, def: 10, res: 10, cha: 0 };
     unit.hp = 60; unit.con = 100; unit.skill = undefined; unit.skills = []; unit.classSkills = []; unit.items = [];
     unit.acted = false; unit.alive = true; unit.shields = 0; unit.tags = []; unit.immunities = []; delete unit.artEffects; delete unit.statuses;
-    unit.classId = 'commoner'; unit.ranks = { sword: 'SSS', lance: 'SSS', axe: 'SSS', bow: 'SSS', fist: 'SSS', tome: 'SSS', staff: 'SSS', dagger: 'SSS' };
+    unit.classId = 'commoner'; unit.ranks = { sword: 'SSS', lance: 'SSS', axe: 'SSS', bow: 'SSS', fist: 'SSS', tome: 'SSS', staff: 'SSS' };
     unit.weapons = weapon ? [weapon] : [];
     unit.weaponInstances = weapon ? [{ id: weapon, durability: 40, maxDurability: 40 }] : [];
     unit.bookInstances = []; unit.spellbooks = [];

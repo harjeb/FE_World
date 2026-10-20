@@ -75,6 +75,9 @@ export function dispatchSummary(dispatch: DispatchRecord): Record<string, unknow
   return {
     id: dispatch.id, state: dispatch.state, region: dispatch.region, unitIds: dispatch.unitIds,
     startedDay: dispatch.startedDay, durationDays: dispatch.durationDays, returnDay: dispatch.returnDay,
-    classId: dispatch.classId, weaponType: dispatch.weaponType, result: dispatch.result,
+    classId: dispatch.classId, weaponType: (dispatch.weaponType as string) === 'dagger' ? 'sword' : dispatch.weaponType,
+    result: dispatch.result && { ...dispatch.result, unitRewards: dispatch.result.unitRewards.map(reward => ({
+      ...reward, weaponType: (reward.weaponType as string) === 'dagger' ? 'sword' : reward.weaponType,
+    })) },
   };
 }

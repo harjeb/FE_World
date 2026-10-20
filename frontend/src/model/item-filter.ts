@@ -1,5 +1,5 @@
 // 共用的物品分类过滤（整备页与地区声望商店都用它）：纯函数，不读会话、不写状态。
-// 武器按武器类别细分（剑/枪/斧/弓/拳/短刀/兽/龙/魔道书/杖），其余按仓库已有的类别归组。
+// 武器按武器类别细分（剑（含短刀）/枪/斧/弓/拳/兽/龙/魔道书/杖），其余按仓库已有的类别归组。
 import { GAME_ITEMS } from '@common/game/items.ts';
 import type { GameItem, ItemKey } from '@common/game/items.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
@@ -7,7 +7,7 @@ import type { WeaponId } from '@common/data/weapons.ts';
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
 
-export const WEAPON_FILTERS = ['sword', 'lance', 'axe', 'bow', 'fist', 'dagger', 'beast', 'dragon', 'tome', 'staff'] as const;
+export const WEAPON_FILTERS = ['sword', 'lance', 'axe', 'bow', 'fist', 'beast', 'dragon', 'tome', 'staff'] as const;
 export type WeaponFilter = (typeof WEAPON_FILTERS)[number];
 
 export type ItemFilter = 'all' | WeaponFilter | 'book' | 'item' | 'food' | 'stat' | 'material' | 'key';

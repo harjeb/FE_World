@@ -251,7 +251,7 @@ test('a field sortie spends days and can be played to a result', () => {
     .slice(0, fieldEncounter(player.id, player.day, 1).maxUnits);
   const start = dispatch(ctx, OP.SORTIE, { region: 1, unitIds: ids }) as { battleId: string };
   assert.ok(start.battleId);
-  assert.equal(ctx.player.day, 999 + 8);
+  assert.equal(ctx.player.day, 999 + 2);
   playOut(ctx);
   const refreshed = store.getPlayer(ctx.player.id)!;
   const finished = store.battle(refreshed.id, start.battleId);
@@ -283,7 +283,7 @@ test('today lists every action cost and the sortie rules before committing', () 
   const today = dispatch(ctx, OP.GET_TODAY, {}) as { actions: { key: string; costDays: number; costGold?: number; available: boolean; maxUnits?: number; turnLimit?: number; goalText?: string; lethal?: boolean }[] };
   const sortie = today.actions.find(a => a.key === 'sortie')!;
   assert.deepEqual([sortie.costDays, sortie.maxUnits, sortie.turnLimit, sortie.goalText, sortie.lethal, sortie.available],
-    [8, FIELD_BATTLE.maxUnits, FIELD_BATTLE.turnLimit, FIELD_BATTLE.goalText, true, true]);
+    [2, FIELD_BATTLE.maxUnits, FIELD_BATTLE.turnLimit, FIELD_BATTLE.goalText, true, true]);
   assert.equal(today.actions.find(a => a.key === 'train')!.costGold, 200);
   assert.equal((today as { battle?: unknown }).battle, null);
   dispatch(ctx, OP.SORTIE, { region: 1, unitIds: ['u_erin'] });
@@ -423,6 +423,9 @@ test('the defense view follows the live roster after a promotion', () => {
   assert.equal(before.unit.classId, 'cleric');
   player.day = 1500;
   player.gold = 100_000;
+  const noah = store.unit(player.id, 'u_noah')!;
+  noah.ranks.staff = 'B';
+  store.saveUnit(noah, player.id);
   dispatch(ctx, OP.BUY_CLASS_QUALIFICATION, { unitId: 'u_noah', classId: 'bishop' });
   dispatch(ctx, OP.PROMOTE, { unitId: 'u_noah', promotion: 'bishop' });
   const after = (dispatch(ctx, OP.GET_DEFENSE, {}) as View).defense.slots.find(s => s.unit.character === 'noah')!;
@@ -638,6 +641,7 @@ test('the promotion compatibility endpoint requires a purchased qualification an
   const unit = store.unit(player.id, 'u_erin')!;
   unit.level = 1;
   unit.exp = 42;
+  unit.ranks.sword = 'B';
   store.saveUnit(unit, player.id);
   assert.throws(() => dispatch(ctx, OP.PROMOTE, { unitId: unit.id, promotion: 'sword_hero' }), /尚未购买/);
   player.day = 1500;

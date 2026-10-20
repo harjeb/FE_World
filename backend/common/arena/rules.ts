@@ -4,7 +4,7 @@ import type { ClassId } from '../data/classes.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { spellBlock } from '../engine/support.ts';
 import { canWield } from '../engine/units.ts';
-import { withCharm } from '../data/types.ts';
+import { rankAtLeast, withCharm } from '../data/types.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
@@ -174,10 +174,14 @@ export function validateAttack(defense: Defense, reveal: Reveal, roster: Snapsho
 
 function fromSnapshot(snap: SnapshotUnit, side: Side, id: string, pos: Point, extra: Partial<UnitState>): UnitState {
   const character = CHARACTERS[snap.character];
+  // Normalize only the live copy; stored defense history and replays stay frozen.
+  const ranks = { ...snap.ranks } as SnapshotUnit['ranks'] & { dagger?: Rank };
+  if (ranks.dagger && !rankAtLeast(ranks.sword, ranks.dagger)) ranks.sword = ranks.dagger;
+  delete ranks.dagger;
   return {
     id, name: snap.name ?? character.name, side, character: snap.character, portrait: snap.portrait, classId: snap.classId,
     level: snap.level, exp: 0, stats: withCharm(snap.stats), con: snap.con, hp: snap.stats.hp,
-    pos: [pos[0], pos[1]], weapons: [...snap.weapons], items: snap.items.map(i => ({ ...i })), ranks: { ...snap.ranks },
+    pos: [pos[0], pos[1]], weapons: [...snap.weapons], items: snap.items.map(i => ({ ...i })), ranks,
     weaponInstances: snap.weaponInstances?.map(row => ({ ...row })),
     bookInstances: snap.bookInstances?.map(row => ({ ...row })),
     spellbooks: snap.spellbooks?.map(row => ({ ...row })),

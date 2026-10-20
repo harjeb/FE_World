@@ -452,7 +452,7 @@ try {
     check('agent chip follows the heartbeat', topbar.includes('Agent 离线') && !topbar.includes('Agent 在线'), topbar.slice(-40));
     const acts = await page.evaluate(`[...document.querySelectorAll('.act')].map(li => li.innerText.replace(/\\s+/g, ' ')).join(' | ')`);
     check('camp actions show the GET_TODAY costs',
-      ['出击', '训练', '休整', '游历招募'].every(n => acts.includes(n)) && ['8 日 →', '3 日 →', '1 日 →', '4 日 →'].every(c => acts.includes(c)) && !acts.includes('扫荡') && !acts.includes('1 行动日'),
+      ['出击', '训练', '休整', '游历招募'].every(n => acts.includes(n)) && ['2 日 →', '3 日 →', '1 日 →', '4 日 →'].every(c => acts.includes(c)) && !acts.includes('扫荡') && !acts.includes('1 行动日'),
       acts.slice(0, 160));
 
     const encounterRegions = (await api(page, 30)).sortieRegions;

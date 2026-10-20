@@ -21,7 +21,7 @@ SUPPLEMENT_WEAPONS = {
     'helm_breaker': 'axe', 'smash_blow': 'axe', 'axe_sweep': 'axe',
     'curved_shot': 'bow', 'deadeye_shot': 'bow', 'hunter_volley': 'bow',
     'armor_fist': 'fist', 'chariot_line': 'bow', 'spellblade_cut': 'sword',
-    'dagger_disarm': 'dagger', 'beast_pounce': 'beast', 'dragon_pressure': 'dragon',
+    'dagger_disarm': 'sword', 'beast_pounce': 'beast', 'dragon_pressure': 'dragon',
 }
 BANDS = ('foundation', 'core', 'advanced', 'upgrade')
 
@@ -74,7 +74,7 @@ def compatible_weapons(row, weapon, adaptations):
 
 def audit_originals(catalog, classes):
     rows = catalog['originalArts']
-    check(len(rows) == 15 and collections.Counter(r['weapon'] for r in rows) == {'dagger': 5, 'beast': 5, 'dragon': 5}, 'Expected five original arts per native weapon family')
+    check(len(rows) == 15 and collections.Counter(r['weapon'] for r in rows) == {'sword': 5, 'beast': 5, 'dragon': 5}, 'Expected five original arts per native weapon family')
     check(catalog['originalArtPolicy'] == {
         'provenance': 'project_original', 'balanceStatus': 'design_proposal',
         'durabilityPayment': 'once_per_valid_activation', 'invalidActivationCost': 0,
@@ -104,7 +104,7 @@ def audit_originals(catalog, classes):
     sections = re.split(r'^### `([^`]+)` ([^\n]+)\n', text, flags=re.M)
     details = {sections[i]: (sections[i + 1], sections[i + 2]) for i in range(1, len(sections), 3)}
     check(set(table) == set(details) == {r['id'] for r in rows}, 'Original art detail/table inventory differs')
-    names = {'dagger': '短刀', 'sword': '剑', 'beast': '兽爪／兽石', 'dragon': '龙石／龙息'}
+    names = {'sword': '剑', 'beast': '兽爪／兽石', 'dragon': '龙石／龙息'}
     for row in rows:
         identity = row['id']; p = row['project']; m = row['mechanics']
         check(re.fullmatch(r'fe_art_[a-z_]+', identity) and row['origin'] == 'project_original' and 'sourceId' not in row and 'reference' not in row, 'Original art falsely attributed to reference source')
@@ -113,7 +113,7 @@ def audit_originals(catalog, classes):
         check(p['resource'] == 'weapon_durability' and type(p['cost']) is int and 1 <= p['cost'] <= 8, 'Original art durability must be one positive activation cost')
         check(all(type(p[k]) is int for k in ['might', 'hit', 'crit']) and -2 <= p['might'] <= 4 and -15 <= p['hit'] <= 15 and p['crit'] == 0, 'Original art baseline parameters exceed proposal bounds')
         check(len(p['range']) == 2 and all(type(n) is int for n in p['range']) and 1 <= p['range'][0] <= p['range'][1] <= 2, 'Original art range exceeds native proposal')
-        expected = ['dagger', 'sword'] if row['weapon'] == 'dagger' else [row['weapon']]
+        expected = ['sword'] if row['weapon'] == 'sword' else [row['weapon']]
         check(p['weaponCompatibility'] == expected, 'Original compatibility grants unrelated/spellbook weapons')
         check(p['sequence'] == 'no_speed_follow_up' and m['strikesPerTarget'] == 1 and m['rangeMode'] == 'weapon_intersection' and m['respectImmunity'] is True, 'Original art bypasses follow-up, range or immunity limits')
         check(m['maximumTargets'] in [1, 2] and m['critical'] in ['normal', 'disabled'] and m['counterPolicy'] in ['normal_primary_target', 'normal_nearest_target'], 'Original target/critical/counter policy invalid')
@@ -183,7 +183,7 @@ def audit(catalog_path=CATALOG, document_path=DOCUMENT):
     check(len(topics) == len(set(topics)) == len(by_id) and set(topics) == set(by_id), 'Mastery topic groups omit or duplicate arts')
     for identity, adaptation in adaptations.items():
         extra = set(adaptation['additionalWeaponTypes'])
-        check(bool(extra) and extra <= {'dagger', 'beast', 'dragon'}, 'Spellbook/staff or unrelated weapon adaptation added')
+        check(bool(extra) and extra <= {'sword', 'beast', 'dragon'}, 'Spellbook/staff or unrelated weapon adaptation added')
         check(set(adaptation['displayNames']) == extra and all(adaptation['displayNames'].values()), 'Missing adapted display name')
         check(adaptation['resource'] == 'weapon_durability' and adaptation['applyToUpgrade'] is True, 'Adaptation resource or upgrade compatibility changed')
     exceptions = {(entry['artId'], entry['classId']) for entry in catalog['crossTraining']}

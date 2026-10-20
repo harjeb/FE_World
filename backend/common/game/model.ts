@@ -1,6 +1,6 @@
 import { CHARACTERS } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
-import { CLASSES, CHARACTER_CAPS, classChangeReason, classSpecies, weaponRankCap } from '../data/classes.ts';
+import { CLASSES, CHARACTER_CAPS, classEntryReason, classSpecies, weaponRankCap } from '../data/classes.ts';
 import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
 import type { ClassId, ClassRoute } from '../data/classes.ts';
 import { applyGrowthBonus } from '../data/growth-types.ts';
@@ -138,6 +138,13 @@ const KITS: Record<CharacterId, { weapons: WeaponId[]; ranks: Partial<Record<Wea
 };
 
 export function normalizeUnit(unit: UnitRecord): UnitRecord {
+  // Merge the retired weapon category without adding progress or touching item/art IDs.
+  const ranks = unit.ranks as UnitRecord['ranks'] & { dagger?: Rank };
+  const exp = unit.weaponExp as UnitRecord['weaponExp'] & { dagger?: number };
+  if (ranks.dagger && (!ranks.sword || RANKS.indexOf(ranks.dagger) > RANKS.indexOf(ranks.sword))) ranks.sword = ranks.dagger;
+  if (exp.dagger !== undefined) exp.sword = Math.max(exp.sword ?? 0, exp.dagger);
+  delete ranks.dagger;
+  delete exp.dagger;
   // Old IDs, levels and earned attributes stay intact; only absent progression fields are filled.
   unit.stats = withCharm(unit.stats);
   if (unit.inheritedGrowth) unit.inheritedGrowth.cha ??= 0;
@@ -265,7 +272,7 @@ export type StartingGear = 'basic' | 'recruit';
 // still lead with their route's type. Falls back to the first listed type if unsupported.
 const ROUTE_PRIMARY: Record<ClassRoute, WeaponType> = {
   sword: 'sword', axe: 'axe', armor: 'lance', cavalry: 'lance', flying: 'lance', bow: 'bow',
-  magic: 'tome', healing: 'staff', stealth: 'dagger', fist: 'fist', beast: 'beast', dragon: 'dragon',
+  magic: 'tome', healing: 'staff', stealth: 'sword', fist: 'fist', beast: 'beast', dragon: 'dragon',
 };
 
 // A class's primary weapon type drives which single weapon a 'basic' unit receives.
@@ -279,7 +286,7 @@ export function primaryWeaponType(classId: ClassId): WeaponType {
 // 平民只拿一把木剑，不再按职业权限每类发一把、更不送四本法术书。
 const BASIC_WEAPONS: Record<WeaponType, WeaponId> = {
   sword: 'fw_weapon_1', lance: 'fw_weapon_24', axe: 'fw_weapon_52', bow: 'fw_weapon_72',
-  fist: 'fw_weapon_89', tome: 'fire', staff: 'heal', dagger: 'dagger', beast: 'beast_claw', dragon: 'dragonstone',
+  fist: 'fw_weapon_89', tome: 'fire', staff: 'heal', beast: 'beast_claw', dragon: 'dragonstone',
 };
 
 // 'recruit' 成套装备的阶梯：E 档只有铁系/基础款；D 档加钢系；C 档及以上换成钢系主力。
@@ -293,7 +300,6 @@ const RECRUIT_LADDERS: Record<WeaponType, RankLadder> = {
   tome: { e: 'fire', d: 'thunder' },
   staff: { e: 'heal', c: 'recover' },
   fist: { e: 'gauntlet', d: 'steel_gauntlet' },
-  dagger: { e: 'dagger' },
   beast: { e: 'beast_claw', d: 'beast_fang' },
   dragon: { e: 'dragonstone' },
 };
@@ -478,7 +484,7 @@ export function gainExperience(unit: UnitRecord, amount: number, rng: RngState):
 
 // Promotion preserves total level, experience and permanent attributes.
 export function promote(unit: UnitRecord, promotion: Promotion): void {
-  const problem = classChangeReason(unit, promotion.to);
+  const problem = classEntryReason(unit, promotion.to, unit.homeClassId ?? CHARACTERS[unit.character].classId);
   if (problem) throw new Error(problem);
   if (unit.classId !== promotion.from || CLASSES[promotion.to].stage <= CLASSES[unit.classId].stage) throw new Error('无效的职业进阶方向');
   unit.classId = promotion.to;

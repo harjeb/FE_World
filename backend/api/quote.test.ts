@@ -27,9 +27,9 @@ test('an action quote binds to the player version and executes once', () => {
   const day = player.day;
   const quote = dispatch(ctx, OP.PREVIEW_ACTION, { action: 'sortie', region: 1, unitIds: ['u_erin', 'u_victor'] }) as
     { quoteId: string; playerVersion: number; costDays: number; fromDay: number; toDay: number; risk: string; blockers: string[]; events: { kind: string }[] };
-  assert.equal(quote.costDays, 8);
+  assert.equal(quote.costDays, 2);
   assert.equal(quote.fromDay, day);
-  assert.equal(quote.toDay, day + 8);
+  assert.equal(quote.toDay, day + 2);
   assert.equal(quote.risk, 'permadeath');
   assert.deepEqual(quote.blockers, []);
   assert.ok(quote.events.some(e => e.kind === 'arena') || quote.events.length >= 0);
@@ -37,7 +37,7 @@ test('an action quote binds to the player version and executes once', () => {
   assert.equal(player.day, day);
   const executed = dispatch(ctx, OP.EXECUTE_ACTION, { quoteId: quote.quoteId }) as { battleId: string };
   assert.ok(executed.battleId);
-  assert.equal(player.day, day + 8);
+  assert.equal(player.day, day + 2);
 });
 
 test('a quote expires when the player version moves', () => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { CLASSES, classUnavailableReason, hasClassQualification } from '@common/data/classes.ts';
+import { CLASSES, CLASS_REQUIRED_RANK, classEntryReason, classUnavailableReason, hasClassQualification } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
+import { CHARACTERS } from '@common/data/characters.ts';
 import { promotionsFor } from '@common/data/promotions.ts';
 import type { Promotion } from '@common/data/promotions.ts';
 import { MOVE_TYPE_NAMES, STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
@@ -47,6 +48,7 @@ function OptionCard({ unit, option, market, chosen, onPick }: { unit: ServerUnit
               <span key={type}>{i > 0 && '；'}{WEAPON_TYPE_NAMES[type]} · 上限 <b>{cap}</b>{unit.ranks[type] ? `（当前 ${unit.ranks[type]}，${cls.name}上限 ${cls.weapons[type] ?? '—'}）` : '（新武器，从 E 开始）'}</span>
             ))}
           </dd>
+          <dt>准入</dt><dd>上述武器任意一种熟练度达到 <b>{CLASS_REQUIRED_RANK[CLASSES[option.to].stage]}</b>；已购资格也需达标（返回当前／起始职业除外）。</dd>
           <dt>移动</dt><dd><b>{option.move}</b>（{MOVE_TYPE_NAMES[option.moveType]}{option.moveType !== cls.moveType ? `，原为${MOVE_TYPE_NAMES[cls.moveType]}` : ''}{option.move !== cls.move ? `，${option.move > cls.move ? '+' : ''}${option.move - cls.move}` : ''}）</dd>
         </dl>
       </div>
@@ -82,7 +84,8 @@ export function PromotePage({ unit: wanted }: { unit: string }) {
   const cls = CLASSES[unit.classId as ClassId];
   const qualified = !!chosen && hasClassQualification(unit.classQualifications as ClassId[], chosen.to);
   const away = busyReason(unit, annual);
-  const ready = !!chosen && qualified && !classUnavailableReason(chosen.to) && !away;
+  const entryReason = chosen ? classEntryReason({ ...unit, classId: unit.classId as ClassId, homeClassId: unit.homeClassId as ClassId }, chosen.to, (unit.homeClassId ?? CHARACTERS[unit.character].classId) as ClassId) : null;
+  const ready = !!chosen && qualified && !entryReason && !classUnavailableReason(chosen.to) && !away;
   return (
     <Shell current="roster">
       <section className="panel" aria-labelledby="who-h">
@@ -99,7 +102,7 @@ export function PromotePage({ unit: wanted }: { unit: string }) {
         </div>
         <ProfileTabs unit={unit} current="promote" />
         <div className="cond">
-          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? (qualified ? '已拥有资格，可以转职' : '需要先购买资格') : '这条路线没有后续职业，可在职业资格里选择其他职业。'}</span>
+          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? (qualified ? entryReason ?? '已拥有资格，可以转职' : '需要先购买资格') : '这条路线没有后续职业，可在职业资格里选择其他职业。'}</span>
           <span>任何职业都能升到 Lv99。转职保留等级、经验和已有属性，只改变之后的成长与武器上限。</span>
           {away && <span>{unit.name}{away}，现在不能换职。</span>}
           {chosen && !qualified && <a href={links.roster(unit.id, 'classes')}>前往职业资格购买「{chosen.name}」。</a>}

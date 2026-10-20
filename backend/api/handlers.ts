@@ -16,7 +16,7 @@ import { WEAPONS } from '../common/data/weapons.ts';
 import { ART_TRAINING, WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
 import type { ArtTraining } from '../common/data/weapon-arts.ts';
 import type { WeaponId } from '../common/data/weapons.ts';
-import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classEntryReason, classProficiencyReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
@@ -583,7 +583,7 @@ const handlers: Record<number, Handler> = {
     if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在名册中');
     if (unit.lockedDispatchId) throw new OpError('FORBIDDEN', '派遣中的角色不能参加武器专项训练');
     if (ctx.player.gold < TRAIN_GOLD) throw new OpError('NOT_ENOUGH_GOLD', `训练需要 ${TRAIN_GOLD} 金币`);
-    const type = typeof data.weaponType === 'string' ? data.weaponType : null;
+    const type = data.weaponType === 'dagger' ? 'sword' : typeof data.weaponType === 'string' ? data.weaponType : null;
     const allowedWeapons = unit.weapons.filter(w => CLASSES[unit.classId].weapons[WEAPONS[w].type]);
     const weaponId = type ? allowedWeapons.find(w => WEAPONS[w].type === type) : allowedWeapons[0];
     if (!weaponId) throw new OpError('BAD_REQUEST', '当前职业没有携带可训练的该类武器');
@@ -1140,7 +1140,9 @@ const handlers: Record<number, Handler> = {
         source: CLASSES[id].source, sourceUrl: CLASSES[id].sourceUrl, weapons: CLASSES[id].weapons,
         studies: CLASSES[id].studies, trainingBonus: CLASSES[id].trainingBonus,
         unavailableReason: classUnavailableReason(id),
-        eligibilityReason: unit ? classChangeReason(unit, id) : null,
+        eligibilityReason: unit ? (hasClassQualification(unit.classQualifications ?? [], id)
+          ? classEntryReason(unit, id, unit.homeClassId ?? CHARACTERS[unit.character].classId)
+          : classChangeReason(unit, id) ?? classProficiencyReason(unit, id)) : null,
         // 换成该职业后的合计成长（服务端同一公式，含个人、分配、装备与年龄修正）。
         growth: unit ? growthRates({ ...unit, classId: id }) : null,
       })),
@@ -1160,7 +1162,7 @@ const handlers: Record<number, Handler> = {
     if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能购买资格');
     const year = dateOf(ctx.player.day).year;
     if (year < classOpenYear(classId)) throw new OpError('FORBIDDEN', `${CLASSES[classId].name} 要到${dateOf((classOpenYear(classId) - 1) * DAYS_PER_YEAR).label}才开放`);
-    const eligibility = classChangeReason(unit, classId);
+    const eligibility = classChangeReason(unit, classId) ?? classProficiencyReason(unit, classId);
     if (eligibility) throw new OpError('FORBIDDEN', eligibility);
     if (hasClassQualification(unit.classQualifications ?? [], classId)) throw new OpError('FORBIDDEN', '已经拥有该职业资格');
     const price = classPrice(classId);
@@ -1236,11 +1238,11 @@ const handlers: Record<number, Handler> = {
     if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能换职');
     if (unit.lockedRunId || unit.lockedDispatchId) throw new OpError('FORBIDDEN', '远征／派遣中的角色不能换职');
-    const eligibility = classChangeReason(unit, classId);
-    if (eligibility) throw new OpError('FORBIDDEN', eligibility);
     // 已购资格或本轮起始职业可免费切回，形象不授予其原人物的职业资格。
     const owned = hasClassQualification(unit.classQualifications ?? [], classId) || classId === canonicalClassId(unit.classId) || classId === canonicalClassId(unit.homeClassId ?? CHARACTERS[unit.character].classId);
     if (!owned) throw new OpError('FORBIDDEN', '尚未购买该职业资格');
+    const eligibility = classEntryReason(unit, classId, unit.homeClassId ?? CHARACTERS[unit.character].classId);
+    if (eligibility) throw new OpError('FORBIDDEN', eligibility);
     switchClass(unit, classId);
     ctx.store.saveUnit(unit, ctx.player.id);
     ctx.store.addEvent(ctx.player.id, 'class-switch', `${unitName(unit)} 切换职业为 ${CLASSES[classId].name}。`, { unit: unit.id, classId });
@@ -1390,13 +1392,13 @@ const handlers: Record<number, Handler> = {
     const unavailable = classUnavailableReason(classId);
     if (unavailable) throw new OpError('FEATURE_DISABLED', unavailable);
     for (const unit of units) {
-      const eligibility = classChangeReason(unit, classId);
+      const eligibility = classEntryReason(unit, classId, unit.homeClassId ?? CHARACTERS[unit.character].classId);
       if (eligibility) throw new OpError('FORBIDDEN', eligibility);
       const owned = hasClassQualification(unit.classQualifications ?? [], classId) || classId === canonicalClassId(unit.classId) || classId === canonicalClassId(unit.homeClassId ?? CHARACTERS[unit.character].classId);
       if (!owned) throw new OpError('FORBIDDEN', `${unitName(unit)} 没有 ${CLASSES[classId].name} 资格`);
     }
     const defaultWeapon = units[0].weapons[0] ? WEAPONS[units[0].weapons[0]].type : (Object.keys(CLASSES[classId].weapons)[0] as WeaponType);
-    const weaponType = (typeof data.weaponType === 'string' ? data.weaponType : defaultWeapon) as WeaponType;
+    const weaponType = (data.weaponType === 'dagger' ? 'sword' : typeof data.weaponType === 'string' ? data.weaponType : defaultWeapon) as WeaponType;
     if (!CLASSES[classId].weapons[weaponType]) throw new OpError('BAD_REQUEST', `${CLASSES[classId].name} 不能训练该武器`);
     const dispatch = createDispatch(`disp-${randomUUID().slice(0, 8)}`, ctx.player.id, region, units.map(u => u.id), days, classId, weaponType, ctx.player.day);
     for (const unit of units) { unit.lockedDispatchId = dispatch.id; ctx.store.saveUnit(unit, ctx.player.id); }

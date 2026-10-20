@@ -48,6 +48,7 @@ test('a class weapon list does not grant proficiency or impose a beginner-only r
   assert.equal(unit.ranks.sword, 'S');
   assert.equal(unit.ranks.bow, 'E');
   assert.equal(canWield(toBattleUnit(unit, 'player', unit.id, [0, 0]), 'silver_sword'), true);
+  addWeaponExp(unit, 'bow', 70);
   switchClass(unit, 'archer');
   assert.equal(canWield(toBattleUnit(unit, 'player', unit.id, [0, 0]), 'silver_sword'), false);
 });
@@ -56,7 +57,7 @@ test('prior-game additions and species classes are distinct from the reference c
   assert.equal(CLASSES.hero.source, 'legacy');
   assert.deepEqual(Object.keys(CLASSES.hero.weapons).sort(), ['axe', 'sword']);
   assert.deepEqual(Object.keys(CLASSES.assassin.weapons).sort(), ['bow', 'sword']);
-  assert.deepEqual(Object.keys(CLASSES.ninja.weapons), ['dagger']);
+  assert.deepEqual(Object.keys(CLASSES.ninja.weapons), ['sword']);
   assert.equal(CATALOG_CLASS_IDS.filter(id => CLASSES[id].source === 'legacy').length, 9);
   assert.equal(CLASSES.beast_fighter.source, 'species');
   assert.equal(CLASSES.dragonkin.source, 'species');

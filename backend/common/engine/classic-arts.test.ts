@@ -17,7 +17,7 @@ import type { BattleEvent } from './types.ts';
 function setup(id: string, chosen?: WeaponId) {
   const art = WEAPON_ART_BY_ID.get(id)!;
   const link = EQUIPMENT_ART_LINKS.find(l => l.artId === id);
-  const defaults: Record<string, WeaponId> = { sword: 'iron_sword', lance: 'javelin', axe: 'hand_axe', bow: 'iron_bow', dagger: 'dagger', beast: 'beast_claw', dragon: 'dragonstone', fist: 'silver_gauntlet' };
+  const defaults: Record<string, WeaponId> = { sword: 'iron_sword', lance: 'javelin', axe: 'hand_axe', bow: 'iron_bow', beast: 'beast_claw', dragon: 'dragonstone', fist: 'silver_gauntlet' };
   const weapon = chosen ?? (link?.projectWeaponId as WeaponId | undefined) ?? defaults[art.weapon];
   assert.ok(WEAPONS[weapon], `${id}: fixture weapon ${weapon}`);
   const state = createPinepassBattle('classic-engine');

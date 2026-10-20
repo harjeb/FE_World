@@ -98,6 +98,7 @@ test('switching and normalizing keep earned stats; battle and training use only 
   const unit = createUnit('erin', 20, 'growth-switch', 0, true, { classId: 'knight', growthType: 'normal' });
   unit.inheritedGrowth = stats(65,40,40,45,45,35,30,30);
   unit.growthAllocation = { str: 5 };
+  unit.ranks = { lance: 'A', staff: 'A', sword: 'D' };
   const before = structuredClone(unit.stats);
   for (const id of ['fortress', 'wiseman', 'gladiator', 'dragon_commander'] as const) {
     switchClass(unit, id);

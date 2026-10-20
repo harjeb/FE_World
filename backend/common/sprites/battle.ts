@@ -191,16 +191,6 @@ export const WEAPON_LAYERS: Record<WeaponType, { rows: string[]; grip: [number, 
       'W.......',
     ],
   },
-  dagger: {
-    grip: [1, 4],
-    rows: [
-      '......m',
-      '....mmM',
-      '..ymM..',
-      '.yY....',
-      'WW.....',
-    ],
-  },
   fist: {
     grip: [1, 1],
     rows: [

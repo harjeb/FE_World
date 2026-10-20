@@ -107,10 +107,10 @@ test('scripted reinforcements inherit hard bonuses once and persist them in spaw
     assert.deepEqual(restored, JSON.parse(JSON.stringify(state)), 'saved event cannot grant a second bonus or spawn twice');
     spawned.push(enemy);
   }
-  assert.equal(spawned[0].hp, 22);
+  assert.equal(spawned[0].hp, enemyStats(spawned[0].classId, 1).hp);
   assert.equal(spawned[0].level, 1);
   assert.ok(spawned[1].level >= 3 && spawned[1].level <= 6);
-  const base = enemyStats('fighter', spawned[1].level);
+  const base = enemyStats(spawned[1].classId, spawned[1].level);
   for (const key of STAT_KEYS) {
     const percentMin = key === 'hp' ? 20 : 10, percentMax = key === 'hp' ? 35 : 25;
     assert.ok(spawned[1].stats[key] >= base[key] + Math.max(1, Math.ceil(base[key] * percentMin / 100)));

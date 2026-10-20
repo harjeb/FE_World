@@ -19,6 +19,7 @@ test('suggested paths can branch or stop before divine tier, preserving level an
       assert.ok(p, `${path[i - 1]} -> ${path[i]}`);
       assert.ok(CLASSES[p.to].stage > CLASSES[p.from].stage);
       const oldRates = growthRates(toBattleUnit(u, 'player', u.id, [0, 0]))!;
+      u.ranks = { sword: 'S', axe: 'S', lance: 'S', bow: 'S', fist: 'S', tome: 'S', staff: 'S', beast: 'S', dragon: 'S' };
       promote(u, p);
       const newRates = growthRates(toBattleUnit(u, 'player', u.id, [0, 0]))!;
       assert.equal(newRates.str - oldRates.str, CLASSES[p.to].growth.str - CLASSES[p.from].growth.str);

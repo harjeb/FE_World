@@ -1,7 +1,7 @@
 import { FW_CLASS_REFERENCE } from './class-reference.ts';
 import { CLASS_GROWTH } from './class-growth.ts';
 import type { GrowthVector } from './class-growth.ts';
-import { stats, STAT_KEYS } from './types.ts';
+import { stats, STAT_KEYS, rankAtLeast, WEAPON_TYPE_NAMES } from './types.ts';
 import type { MoveType, Rank, StatCaps, Stats, WeaponType } from './types.ts';
 
 // Human routes suggest study paths; species routes are closed promotion chains.
@@ -118,9 +118,9 @@ const EXTRA_CLASSES = {
   berserker: { name: '狂战士', stage: 3, route: 'axe', moveType: 'foot', move: 5, weapons: ['axe'], source: 'legacy', sourceUrl: SACRED_STONES },
   thief: { name: '盗贼', stage: 2, route: 'stealth', moveType: 'foot', move: 5, weapons: ['sword'], source: 'legacy', sourceUrl: AWAKENING },
   assassin: { name: '刺客', stage: 3, route: 'stealth', moveType: 'foot', move: 6, weapons: ['sword','bow'], source: 'legacy', sourceUrl: AWAKENING },
-  ninja: { name: '忍者', stage: 2, route: 'stealth', moveType: 'foot', move: 5, weapons: ['dagger'], source: 'legacy', sourceUrl: FATES },
-  master_ninja: { name: '上忍', stage: 3, route: 'stealth', moveType: 'foot', move: 6, weapons: ['dagger','sword'], source: 'legacy', sourceUrl: FATES },
-  mechanist: { name: '机关师', stage: 3, route: 'stealth', moveType: 'mounted', move: 6, weapons: ['dagger','bow'], source: 'legacy', sourceUrl: FATES },
+  ninja: { name: '忍者', stage: 2, route: 'stealth', moveType: 'foot', move: 5, weapons: ['sword'], source: 'legacy', sourceUrl: FATES },
+  master_ninja: { name: '上忍', stage: 3, route: 'stealth', moveType: 'foot', move: 6, weapons: ['sword'], source: 'legacy', sourceUrl: FATES },
+  mechanist: { name: '机关师', stage: 3, route: 'stealth', moveType: 'mounted', move: 6, weapons: ['sword','bow'], source: 'legacy', sourceUrl: FATES },
   general: { name: '将军', stage: 3, route: 'armor', moveType: 'armored', move: 4, armored: true, weapons: ['lance','axe'], source: 'legacy', sourceUrl: AWAKENING },
   mage_knight: { name: '神军师', stage: 3, route: 'magic', moveType: 'foot', move: 5, weapons: ['sword','tome'], source: 'legacy', sourceUrl: AWAKENING },
   dark_knight: { name: '黑暗骑士', stage: 3, route: 'magic', moveType: 'mounted', move: 6, weapons: ['sword','tome'], source: 'legacy', sourceUrl: AWAKENING },
@@ -226,6 +226,25 @@ export function classChangeReason(
   const index = chain.indexOf(current);
   if (index < 0 || (target !== current && target !== chain[index + 1])) return '特殊职业只能进阶到本族下一阶，不能跳阶或降阶';
   return null;
+}
+
+export const CLASS_REQUIRED_RANK: Record<ClassStage, Rank> = { 0: 'E', 1: 'D', 2: 'C', 3: 'B', 4: 'A', 5: 'S' };
+
+export function classProficiencyReason(unit: { ranks: Partial<Record<WeaponType, Rank>> }, target: ClassId): string | null {
+  const cls = CLASSES[canonicalClassId(target)];
+  const rank = CLASS_REQUIRED_RANK[cls.stage];
+  const types = Object.keys(cls.weapons) as WeaponType[];
+  return types.some(type => rankAtLeast(unit.ranks[type], rank)) ? null
+    : `需要${types.map(type => WEAPON_TYPE_NAMES[type]).join('／')}中任意一种熟练度达到 ${rank}`;
+}
+
+export function classEntryReason(
+  unit: { classId: ClassId; homeClassId?: ClassId; species: 'human' | 'beast' | 'dragon'; isProtagonist?: boolean; ranks: Partial<Record<WeaponType, Rank>> },
+  target: ClassId, home: ClassId = unit.homeClassId ?? unit.classId,
+): string | null {
+  target = canonicalClassId(target);
+  return classChangeReason(unit, target) ?? (target === canonicalClassId(unit.classId) || target === canonicalClassId(home)
+    ? null : classProficiencyReason(unit, target));
 }
 
 // Purchase policy belongs to this game; source-game exams, seals and stat bonuses are not imposed.

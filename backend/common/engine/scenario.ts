@@ -1,4 +1,6 @@
-import { createEnemy, type EnemySpec } from '../game/enemies.ts';
+import { createEnemy, enemyClassForLevel, type EnemySpec } from '../game/enemies.ts';
+import { CLASSES } from '../data/classes.ts';
+import type { MoveType } from '../data/types.ts';
 import { addEnemyReserves } from '../game/enemy-formation.ts';
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { attackWeapons, cellKey, classOf, inBounds, living, samePoint, unitAt, wake } from './units.ts';
@@ -111,9 +113,9 @@ export function interactObject(state: BattleState, unit: UnitState, objectId: st
   runScenarioEvents(state, events);
 }
 
-function freePoint(state: BattleState, wanted: Point, leader: UnitState | undefined): Point | null {
+function freePoint(state: BattleState, wanted: Point, leader: UnitState | undefined, moveType: MoveType): Point | null {
   const fits = (p: Point) => inBounds(state, p) && !objectBlocks(state, p) && !unitAt(state, p)
-    && TERRAINS[state.map.tiles[p[1]][p[0]]].costs[0] !== null;
+    && TERRAINS[state.map.tiles[p[1]][p[0]]].costs[MOVEMENT[moveType].index] !== null;
   if (fits(wanted)) return [wanted[0], wanted[1]];
   const queue: Point[] = [[wanted[0], wanted[1]]];
   const seen = new Set<number>([cellKey(state, wanted)]);
@@ -174,7 +176,9 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
     const leader = living(state, 'enemy')[0];
     const deployed: EnemySpec[] = [];
     action.units.forEach((spec, index) => {
-      const pos = freePoint(state, spec.pos, leader);
+      const level = Math.max(1, Math.min(99, (state.scenario?.baseLevel ?? 1) + spec.levelOffset));
+      const classId = enemyClassForLevel(spec.classId, level);
+      const pos = freePoint(state, spec.pos, leader, CLASSES[classId].moveType);
       if (!pos) {
         events.push({ t: 'scenario', event: event.id, message: '增援没有可用的落脚点' });
         return;
@@ -183,7 +187,7 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
       while (state.units.some(unit => unit.id === id)) id += '-x';
       const enemySpec: EnemySpec = {
         aiDifficulty: state.aiDifficulty, seed: `${state.id}:${event.id}`,
-        classId: spec.classId, level: Math.max(1, Math.min(99, (state.scenario?.baseLevel ?? 1) + spec.levelOffset)),
+        classId, level,
         pos, boss: spec.boss, behavior: spec.behavior,
       };
       const enemy = createEnemy(id, enemySpec);

@@ -21,7 +21,7 @@ for row in catalog['arts'] + catalog['originalArts']:
     })
 
 weapon_types = {'剑': 'sword', '枪': 'lance', '斧': 'axe', '弓': 'bow', '拳': 'fist',
-                '战车': 'bow', '短刀': 'dagger', '兽爪': 'beast', '龙石': 'dragon'}
+                '战车': 'bow', '短刀': 'sword', '兽爪': 'beast', '龙石': 'dragon'}
 for row in catalog['supplements']:
     weapon = weapon_types[row['weaponLabel'].split('／')[0]]
     distances = [int(n) for n in re.findall(r'\d+', row['weaponLabel'])]

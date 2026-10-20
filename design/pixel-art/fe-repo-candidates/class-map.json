@@ -1683,17 +1683,17 @@
       "stage": 2,
       "moveType": "foot",
       "weapons": [
-        "dagger"
+        "sword"
       ],
       "sourceId": "S16",
       "previewKey": "S16:Knife",
       "sourceKind": "custom",
       "fit": "minor",
       "family": "盗贼与忍者",
-      "editNotes": "已有 Knife 对应短刀攻击，可用作当前 dagger；补钢护额、藏青忍装与长阵营围巾。若武器是手里剑，另检查／重绘投掷帧，不能只改小图标。",
+      "editNotes": "已有 Knife 对应短刀攻击，可用作当前剑系短刀；补钢护额、藏青忍装与长阵营围巾。若武器是手里剑，另检查／重绘投掷帧，不能只改小图标。",
       "attribution": "Pikmin1211、DerTheVaporeon、Seliost1",
       "weaponMap": {
-        "dagger": "S16:Knife"
+        "sword": "S16:Knife"
       },
       "donors": [],
       "currentImage": "class-current/ninja.png"

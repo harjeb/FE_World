@@ -38841,7 +38841,7 @@
   {
    "id": "fe-ninja-dagger",
    "classId": "ninja",
-   "weapon": "dagger",
+   "weapon": "sword",
    "source": "S16:Knife",
    "scale": 3,
    "projectile": false,

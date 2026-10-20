@@ -156,7 +156,7 @@ test('every generic enemy template with a usable healing staff defaults to heale
 test('classic automatic guards do not override healers, while authored bosses hold', () => {
   const battle = createClassicBattle([createUnit('erin', 1, 'hero')], { mapId: 'fe1-ch20', seed: 'healers', day: 0 });
   const unit = unitById(battle.state, 'e12');
-  assert.equal(unit.classId, 'cleric');
+  assert.equal(unit.classId, 'adept');
   assert.equal(unit.behavior, 'healer');
   assert.ok(battle.state.units.filter(u => u.side === 'enemy' && u.boss).every(u => u.behavior === 'hold'));
 });

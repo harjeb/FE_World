@@ -16,7 +16,7 @@ function setup(artId: string, weapon: WeaponId = 'iron_sword') {
   const make = (id: string, side: 'player' | 'enemy', x: number, y: number): UnitState => ({
     ...structuredClone(template), id, side, classId: 'swordsman', name: id, pos: [x, y], weapons: ['iron_sword'], skill: undefined, skills: [], classSkills: [],
     stats: { hp: 300, str: 30, mag: 30, skl: 150, spd: 10, lck: 100, def: 20, res: 10, cha: 10 }, hp: 300, con: 30,
-    ranks: { sword: 'SSS', dagger: 'SSS', beast: 'SSS', dragon: 'SSS' }, items: [], acted: false, alive: true,
+    ranks: { sword: 'SSS', beast: 'SSS', dragon: 'SSS' }, items: [], acted: false, alive: true,
     weaponInstances: [{ id: 'iron_sword', durability: 40, maxDurability: 40 }],
   });
   const me = make('me', 'player', 2, 2), foe = make('foe', 'enemy', 3, 2), ally = make('ally', 'player', 2, 3);

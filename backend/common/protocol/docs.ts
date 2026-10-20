@@ -87,6 +87,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 20, text: 'v20: 目录36。每章主线增加前置任务：story-N-a派遣（章节开放后出发的一次派遣满天数，返程自动完成）与story-N-b提交材料（新增COMPLETE_STORY_STEP，从仓库扣除）；前置任务全部完成后才能接收尾战story-N，START_QUEST未完成时拒绝。GET_STORY.quest新增steps与prerequisite。旧档已记为完成的章节不受前置任务限制。' },
     { version: 22, text: 'v22: 目录38。主线前置任务不再固定为派遣＋提交：每章两个、类型各章不同（派遣、提交材料、副本宝箱找任务物品、单挑、普通竞技场胜场、酒馆小游戏胜次）。新增START_STORY_DUEL（单挑，真实死亡，借小型经典图只留一人对一名强敌）；COMPLETE_STORY_STEP只用于提交材料类；GET_STORY.quest.steps按类型返回各自字段，前置任务不再有先后顺序。' },
     { version: 24, text: 'v24: 目录40。主线单挑的对手改为随机人物：名字随机，等级为现役名册最高等级加1～2（第3、5章加1，第8章加2），职业是与应战角色同阶级（同一stage）的随机职业，只从有攻击手段的人类职业里按种子挑选。GET_STORY的duel步骤level按同一规则给出。' },
+    { version: 25, text: 'v25: 规则rules-v17、目录41，引擎1不变。职业资格购买新增目标允许武器任一种熟练度门槛：初级D／中级C／上级B／最上级A／神将S；年份、金币、种族及月额度不变。切换、PROMOTE和派遣选用其他已购职业也检查，当前／本轮起始职业仅进入、返回与训练免熟练度门槛，新购买不免。旧资格保留，GET_CLASS_MARKET.eligibilityReason公开原因。取消独立短刀类型，相关武器、忍者权限与战技统一归剑；旧档短刀等级与经验分别保留其与剑的较高值，不叠加，物品与战技ID不变。新生成敌军按等级分阶（1／20／47／66／81），经典与增援低等级回退，敌方使用独立阵营姓名。普通野图SORTIE推进2日，随机副本仍每图8日，任务既定耗日不变。部署前结束活动战斗／远征／派遣并备份，保留既有装备与快照，旧规则回放保持冻结。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

@@ -23,7 +23,7 @@ export function poseLayers(look: ClassLook, parts: Record<string, string[]>, wea
   kind: WeaponType | null, pose: BattlePose, frame: number): { layers: Layer[]; weapon?: Grid } {
   const active = pose !== 'idle' || Math.abs(Math.trunc(frame)) % 2 === 1;
   if (!active) return { layers: look.layers, weapon: weapon && { rows: weapon.rows, x: look.hand[0] - weapon.grip[0], y: look.hand[1] - weapon.grip[1] } };
-  const slash = kind === 'sword' || kind === 'axe' || kind === 'dagger';
+  const slash = kind === 'sword' || kind === 'axe';
   const cast = kind === 'tome' || kind === 'staff' || kind === 'dragon';
   const lean = { idle: 1, windup: -1, strike: 2, recover: 1, hurt: -2, dodge: -3 }[pose];
   const neck = look.hand[1] - 5, waist = look.hand[1] + 8;

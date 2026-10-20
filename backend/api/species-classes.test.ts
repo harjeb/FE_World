@@ -63,6 +63,8 @@ test('new encounters exclude retired professions while old enemy records remain 
 for (const species of ['beast', 'dragon'] as const) test(`${species} recruits advance one step and cannot use old qualifications to escape their chain`, () => {
   const chain = CLASS_PATHS[species][0];
   const { ctx, unit, player, store } = setup(chain[0]);
+  unit.ranks[species] = 'C';
+  store.saveUnit(unit, player.id);
   const market = dispatch(ctx, OP.GET_CLASS_MARKET, { unitId: unit.id }) as { classes: { id: string; eligibilityReason: string | null }[] };
   assert.equal(market.classes.find(row => row.id === chain[1])!.eligibilityReason, null);
   assert.ok(market.classes.find(row => row.id === chain[2])!.eligibilityReason);
@@ -105,6 +107,7 @@ for (const species of ['beast', 'dragon'] as const) test(`${species} can complet
   Reflect.deleteProperty(unit, 'species');
   normalizeUnit(unit);
   assert.equal(unit.species, species);
+  unit.ranks[species] = 'S';
   for (const target of chain.slice(1)) switchClass(unit, target);
   assert.equal(unit.classId, chain[4]);
   assert.throws(() => switchClass(unit, chain[3]), /下一阶/);

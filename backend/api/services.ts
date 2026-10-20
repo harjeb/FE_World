@@ -658,6 +658,8 @@ export function settleDispatches(store: Store, player: Player): DispatchResult[]
   const settled: DispatchResult[] = [];
   for (const dispatch of store.runningDispatches(player.id)) {
     if (dispatch.returnDay > player.day) continue;
+    // Running legacy dispatches keep their earned days, now under sword proficiency.
+    if ((dispatch.weaponType as string) === 'dagger') dispatch.weaponType = 'sword';
     const materials = dispatchMaterials(dispatch.region, dispatch.durationDays);
     const weaponRoll = seedRng(`dispatch-weapons:${dispatch.id}`)[0] % 4;
     const weapons = dispatchWeapons(dispatch.region, dispatch.durationDays, weaponRoll);

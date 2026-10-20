@@ -102,7 +102,6 @@ import icoBow from '../../design/pixel-art/png/ico_bow.png';
 import icoTome from '../../design/pixel-art/png/ico_tome.png';
 import icoStaff from '../../design/pixel-art/png/ico_staff.png';
 import icoFist from '../../design/pixel-art/png/ico_fist.png';
-import icoDagger from '../../design/pixel-art/png/ico_dagger.png';
 import icoBeast from '../../design/pixel-art/png/ico_beast.png';
 import icoDragon from '../../design/pixel-art/png/ico_dragon.png';
 import icoVulnerary from '../../design/pixel-art/png/ico_vulnerary.png';
@@ -193,7 +192,7 @@ const PORTRAITS: Record<string, string> = {
 
 const WEAPON_ICONS: Record<WeaponType, string> = {
   sword: icoSword, lance: icoLance, axe: icoAxe, bow: icoBow, tome: icoTome, staff: icoStaff,
-  fist: icoFist, dagger: icoDagger, beast: icoBeast, dragon: icoDragon,
+  fist: icoFist, beast: icoBeast, dragon: icoDragon,
 };
 
 type Looks = Pick<UnitState, 'classId' | 'side'> & { character?: string; portrait?: string; id?: string };

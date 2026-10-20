@@ -1,9 +1,16 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v16';
+export const RULESET_VERSION = 'rules-v17';
 // v40: story duel opponents are random people built from the roster's highest level (+1/+1/+2) with a random
 // class of the same tier (stage) as the duelist's, drawn from available human classes that can attack. START_STORY_DUEL needs no new flags; battles already started are unchanged.
+// v41 / rules-v17: generic enemy classes unlock at Lv1/20/47/66/81; classic openings and
+// reinforcements downgrade along their route, relocating illegal ground spawns. Names describe factions.
+// Ordinary field sorties cost two days; dungeon and fixed cross-time costs are unchanged.
+// Class qualifications require any permitted weapon at D/C/B/A/S by stage; current/home entry stays valid.
+// Daggers use sword proficiency; old ranks/experience merge on load, keeping the higher of each.
+// Existing qualifications, equipment and frozen snapshots stay intact. Finish active battles/runs/dispatches
+// and back up before deployment; previous-rule replays remain frozen.
 // v38: the two preliminary tasks per chapter now vary by chapter (dispatch, hand-in, dungeon-chest quest item,
 // duel, arena wins, tavern wins). New key items story_find_2/4/6/8 and chest overlays gated by chapter
 // (secret.chapter), START_STORY_DUEL, flags.storyProgress. Existing saves keep storyStepsDone as is.
@@ -68,7 +75,7 @@ export const RULESET_VERSION = 'rules-v16';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 40;
+export const CATALOG_VERSION = 41;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

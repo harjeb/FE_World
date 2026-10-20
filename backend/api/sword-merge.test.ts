@@ -1,0 +1,37 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { openDb } from './db.ts';
+import { Store } from './store.ts';
+import { loginOrRegister } from './auth.ts';
+import { seedFullRoster } from './test-support.ts';
+import { dispatch, type Context } from './handlers.ts';
+import { settleDispatches, syncPlayer } from './services.ts';
+import { OP } from '../common/protocol/ops.ts';
+
+test('legacy TRAIN and dispatch inputs return sword; old running dispatch earns sword progress', () => {
+  const store = new Store(openDb(':memory:'));
+  const { accountId, player } = loginOrRegister(store, 'sword-merge', undefined, '剑');
+  seedFullRoster(store, player);
+  const ctx: Context = { store, accountId, player: syncPlayer(store, player), agentModel: null, push: () => {} };
+  ctx.player.gold = 100000;
+  ctx.player.day = 999;
+  const trained = dispatch(ctx, OP.TRAIN, { unitId: 'u_erin', weaponType: 'dagger' }) as { weaponType: string };
+  assert.equal(trained.weaponType, 'sword');
+  assert.throws(() => dispatch(ctx, OP.TRAIN, { unitId: 'u_owen', weaponType: 'dagger' }), /可训练/);
+  const unit = store.unit(player.id, 'u_erin')!;
+  unit.ranks.sword = 'C';
+  unit.weaponExp.sword = 70;
+  unit.classQualifications.push('ninja');
+  store.saveUnit(unit, player.id);
+  const start = dispatch(ctx, OP.START_DISPATCH, { region: 1, unitIds: ['u_erin'], durationDays: 5, classId: 'ninja', weaponType: 'dagger' }) as { dispatch: { id: string; weaponType: string; returnDay: number } };
+  assert.equal(start.dispatch.weaponType, 'sword');
+  const old = store.dispatches(player.id).find(row => row.id === start.dispatch.id)!;
+  Object.assign(old, { weaponType: 'dagger' });
+  store.saveDispatch(old);
+  const before = store.unit(player.id, 'u_erin')!.weaponExp.sword ?? 0;
+  ctx.player.day = old.returnDay;
+  const result = settleDispatches(store, ctx.player);
+  assert.equal(store.dispatches(player.id).find(row => row.id === old.id)!.weaponType, 'sword');
+  assert.equal(result[0].unitRewards[0].weaponType, 'sword');
+  assert.equal(store.unit(player.id, 'u_erin')!.weaponExp.sword, before + 5);
+});

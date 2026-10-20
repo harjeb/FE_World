@@ -38,7 +38,7 @@ function train(ctx: Context, extra = {}) {
 test('all 103 upgrades have positive configured fees and require a learned base, not rank or current class', () => {
   const ctx = setup();
   const unit = ready(ctx);
-  unit.ranks = { sword: 'E' };
+  unit.ranks = { sword: 'E', staff: 'B' };
   switchClass(unit, 'troubadour');
   assert.equal(ART_TRAINING.length, 103);
   assert.equal(new Set(ART_TRAINING.map(row => row.art)).size, 103);

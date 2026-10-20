@@ -24,7 +24,7 @@ export const OPS: readonly OpDef[] = [
   { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。' },
 
   { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，困难装备更高阶且不同；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。' },
-  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，立即推进日期；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
+  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，普通野图推进2日（副本仍每图8日），敌军按等级分阶；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
   { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
   { op: 33, name: 'TRAIN', group: '日历', agentNote: '训练一个单位，补武器熟练度；消耗金币或教材并推进日期。' },
   { op: 34, name: 'REST', group: '日历', agentNote: '休整指定日数，推进日期、作物与年龄，不直接发金币经验。' },
@@ -39,7 +39,7 @@ export const OPS: readonly OpDef[] = [
   { op: 42, name: 'SELL', group: '整备', agentNote: '卖出仓库物品换取金币；uses 可指定剩余次数的一叠，count 为出售数量，默认1。' },
   { op: 43, name: 'TRANSFER_ITEM', group: '整备', agentNote: '在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具、法术书（item 为 spellbook:<法术id>，同种只带一本）各最多 5 件；只有武器、法术书和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，耐久与剩余次数随物品走；出战或远征中的角色不能搬运。' },
   { op: 44, name: 'USE_ITEM', group: '整备', agentNote: '使用能力药或限量法术教材（manual:<法术id>，为有对应魔法权限的角色解锁该法术）；超出永久上限、额度或已学会时拦截，道具不扣。' },
-  { op: 45, name: 'PROMOTE', group: '整备', agentNote: '切换到推荐进阶职业，须已拥有资格；与 SWITCH_CLASS 共用校验，不绕过职业购买或派遣占用。保留等级、经验和已获属性。' },
+  { op: 45, name: 'PROMOTE', group: '整备', agentNote: '切换到推荐进阶职业，须已拥有资格且目标武器任一种熟练度达阶级门槛（初D／中C／上B／最上A／神将S，当前／起始职业进入例外）；与 SWITCH_CLASS 共用校验，不绕过职业购买或派遣占用。保留等级、经验和已获属性。' },
   { op: 46, name: 'ASSIGN_BEXP', group: '整备', agentNote: '把公共经验分配给一个单位；不耗行动日，实际消耗不超过库存及距离满级所需，返回 amount 为实际扣除；满级单位不能分配。' },
   { op: 47, name: 'DISMISS', group: '整备', agentNote: '解雇一个单位；普通解雇不等于符合条件的退役传承。' },
   { op: 48, name: 'GET_LEGACIES', group: '整备', agentNote: '读取可用与已兑现的遗产（来源、等级、总量、成长向量）。' },
@@ -49,10 +49,10 @@ export const OPS: readonly OpDef[] = [
   { op: 75, name: 'REINCARNATE_UNIT', group: '名册', agentNote: '让 99 级的存活角色轮回一次：回一级、清学习与资格、年龄 16 岁，并分配 30 个百分点成长；兽人与龙人返回本族第一阶且保留种族，携带装备回仓。' },
   { op: 76, name: 'GET_MEMORIAL', group: '名册', agentNote: '读取纪念名册：战死、寿终、退役的角色与原因、最终状态与传承关系；emergency 给出免费补员的资格与阻挡原因。' },
   { op: 77, name: 'EMERGENCY_RECRUIT', group: '整备', agentNote: '严重损失后的免费酒馆补员：不花钱、不推进日期，每次有效资格随机 2 人。' },
-  { op: 78, name: 'GET_CLASS_MARKET', group: '名册', agentNote: '读取现行职业资格、年份与价格；传unitId返回eligibilityReason。人类可跨普通路线，兽／龙只可进阶本族下一阶。' },
-  { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族、金币与月额度，兽／龙不能跳阶或降阶。轮回清除资格。' },
+  { op: 78, name: 'GET_CLASS_MARKET', group: '名册', agentNote: '读取现行职业资格、年份与价格；传unitId返回eligibilityReason（含初D／中C／上B／最上A／神将S，目标允许武器任一种达标；已购按进入规则）。人类可跨普通路线，兽／龙只可进阶本族下一阶。' },
+  { op: 79, name: 'BUY_CLASS_QUALIFICATION', group: '名册', agentNote: '为角色购买职业资格；校验年份、种族、金币、月额度及目标允许武器任一种熟练度（初D／中C／上B／最上A／神将S），新购当前／起始职业也不豁免；兽／龙不能跳阶或降阶。轮回清除资格。' },
   { op: 84, name: 'GET_MASTERY', group: '名册', agentNote: '读取角色各职业的精通点、技能／战技奖励及阈值、已解锁节点和习得库；参战与派遣返程达到阈值后学会，换职保留，人物等级不直接发奖。' },
-  { op: 85, name: 'SWITCH_CLASS', group: '名册', agentNote: '营地凭资格免费换职，不占购买额度并保留学习成果；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。' },
+  { op: 85, name: 'SWITCH_CLASS', group: '名册', agentNote: '营地凭资格免费换职，不占购买额度并保留学习成果；其他已购职业仍需目标任一种武器熟练度达阶级门槛，当前／起始职业返回免熟练度门槛；人类可跨普通路线，兽／龙只允许当前职业或本族下一阶，不可跳阶、降阶或跨种族。' },
   { op: 86, name: 'EQUIP_SKILLS', group: '名册', agentNote: '营地用skills与arts数组一次调整已学技能和战技，共用最多5格；省略arts保留当前战技选择，空数组卸下。未学会／装备专属战技不可装入；个人／职业自带与装备授予不占格。战斗或角色远征／派遣／年度赛事忙碌时拒绝，换职保留选择。' },
   { op: 87, name: 'GET_ART_TRAINING', group: '名册', agentNote: '读取角色的103项强化战技研修：基础技前提、金币、工期、已学状态和阻挡原因；学习不要求原教学职业或使用武器等级。' },
   { op: 88, name: 'TRAIN_ART', group: '名册', agentNote: '营地研修一项已学基础技对应的独立强化战技，传unitId与art；扣金币并推进工期，重复已学会被拒；commandId重试不重复支付，可先用PREVIEW_ACTION的art_training报价。' },
@@ -73,7 +73,7 @@ export const OPS: readonly OpDef[] = [
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
 
   { op: 104, name: 'GET_DISPATCHES', group: '派遣', agentNote: '读取后台派遣：进行中任务的返程日、参与者、冻结职业／武器，以及已返程的报告。' },
-  { op: 105, name: 'START_DISPATCH', group: '派遣', agentNote: '派遣未占用角色自动探索／职业训练，自选正整数天数；按个人日历并行，返程一次结算素材、武器、经验、职业精通与武器熟练度。' },
+  { op: 105, name: 'START_DISPATCH', group: '派遣', agentNote: '派遣未占用角色自动探索／职业训练，自选正整数天数；其他已购职业需目标任一种武器熟练度达阶级门槛，当前／起始职业可从E继续训练；按个人日历并行，返程一次结算素材、武器、经验、职业精通与武器熟练度。' },
 
   { op: 110, name: 'GET_ANNUAL', group: '赛事', agentNote: '读取年度大竞技场：报名状态、海选战绩、签表轮次与下一场报价。' },
   { op: 111, name: 'REGISTER_ANNUAL', group: '赛事', agentNote: '报名本届大竞技场并锁定名单与快照；一旦淘汰或退赛，当届不能重报。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 24;
+export const DOC_VERSION = 25;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

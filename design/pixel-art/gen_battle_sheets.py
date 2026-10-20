@@ -362,7 +362,7 @@ PROFILES = [
          behind=(), arms={8: JAB, 10: CROSS, 11: CROSS, 12: CROSS}, extras=brawler_extras,
          swaps={8: {3: BAND_LIFT}, 9: {3: BAND_LIFT}, 10: {3: BAND_STREAM}, 11: {3: BAND_STREAM}, 12: {3: BAND_STREAM}, 13: {3: BAND_LIFT}},
          times=[130,130,130,130,100,110,110,180,60,70,60,110,120,100,100,150]),
-    dict(id='ninja', name='忍者 · 反手掷刀', weapon='dagger', poses=NINJA, head=[3,4], legs=[1], cloth=[0], projectile=True,
+    dict(id='ninja', name='忍者 · 反手掷刀', weapon='sword', asset_id='ninja-dagger', poses=NINJA, head=[3,4], legs=[1], cloth=[0], projectile=True,
          behind=(), thrown=(9, 10, 11, 12), props={9: EMPTY_HAND, 10: EMPTY_HAND, 11: EMPTY_HAND, 12: EMPTY_HAND},
          extras=ninja_extras, times=[130,130,130,130,90,100,110,180,50,50,120,80,110,110,100,150]),
     dict(id='dragonkin', name='龙人 · 龙息', weapon='dragon', poses=DRAGONKIN, head=[4,5], legs=[2], cloth=[], projectile=True,
@@ -592,7 +592,7 @@ def main():
     for profile in PROFILES:
         frames = [draw_frame(art,profile,n)[0] for n in range(16)]
         reference = validate(art,profile,frames)
-        name = f"{profile['id']}-{profile['weapon']}"
+        name = profile.get('asset_id', f"{profile['id']}-{profile['weapon']}")
         reference.save(OUT/f'{name}-reference.png')
         sheet = Image.new('RGBA',(SIZE*4,SIZE*4))
         for n, frame in enumerate(frames):

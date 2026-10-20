@@ -94,8 +94,12 @@ async function openPage(profile) {
     async clickText(selector, text, optional = false) {
       let at;
       for (let i = 0; i < 100; i++) {
-        at = await evaluate(`(() => { const el = [...document.querySelectorAll(${JSON.stringify(selector)})].find(e => e.textContent.includes(${JSON.stringify(text)}));
-          if (!el || el.disabled) return null; el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
+        at = await evaluate(`(async () => { const el = [...document.querySelectorAll(${JSON.stringify(selector)})].find(e => e.textContent.includes(${JSON.stringify(text)}));
+          if (!el || el.disabled) return null;
+          el.scrollIntoView({ block: 'center', behavior: 'instant' });
+          await new Promise(requestAnimationFrame);
+          const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+          return el.contains(document.elementFromPoint(x, y)) ? [x, y] : null; })()`);
         if (at || optional) break;
         await sleep(100);
       }
@@ -205,7 +209,7 @@ try {
     const prep = await page.evaluate(`document.querySelector('.prep').innerText.replace(/\\s+/g, ' ')`);
     const dayOnPrep = (await serverOp(page, 30)).day;
     check('sortie prep shows the rules and spends nothing',
-      dayOnPrep === dayBefore && prep.includes('回合上限 20') && prep.includes('永久死亡') && prep.includes('8 日 →') && !(await page.evaluate(`!!document.querySelector('.board')`)),
+      dayOnPrep === dayBefore && prep.includes('回合上限 20') && prep.includes('永久死亡') && prep.includes('2 日 →') && !(await page.evaluate(`!!document.querySelector('.board')`)),
       `day ${dayBefore} → ${dayOnPrep}; ${prep.slice(0, 140)}`);
     await page.clickText('.rg', '希尔瓦林地');
     await page.clickText('.go-bar button', '确认出征');
@@ -272,7 +276,7 @@ try {
     const fieldAfter = await serverOp(page, 50, { full: true });
     const dayAfter = (await serverOp(page, 30)).day;
     check('field sortie is server-backed',
-      fieldBefore.state.turn === 1 && fieldBefore.state.name.includes('希尔瓦林地') && dayAfter === dayBefore + 8
+      fieldBefore.state.turn === 1 && fieldBefore.state.name.includes('希尔瓦林地') && dayAfter === dayBefore + 2
         && fieldAfter.state.turn > fieldBefore.state.turn && fieldAfter.eventCount > 0 && page.errors.length === 0,
       `${fieldBefore.state.name}, day +${dayAfter - dayBefore}, turn ${fieldBefore.state.turn} → ${fieldAfter.state.turn}, events ${fieldAfter.eventCount} ${page.errors.join(' | ')}`);
     await serverOp(page, 56, { battleId: fieldAfter.state.id });

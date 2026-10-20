@@ -1,6 +1,7 @@
 import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
-import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classChangeReason } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classEntryReason } from '../data/classes.ts';
 import type { CatalogClassId, ClassId, ClassRoute } from '../data/classes.ts';
+import { CHARACTERS } from '../data/characters.ts';
 import { SKILLS } from '../data/skills.ts';
 import type { SkillId } from '../data/skills.ts';
 import { CLASS_ART_MASTERY, WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
@@ -126,7 +127,7 @@ export function setEquippedSkills(unit: UnitRecord, skills: SkillId[], arts: str
 
 // 换职后当前职业自带能力重算，但已学技能与精通保留（docs/00 §4.2）。
 export function switchClass(unit: UnitRecord, classId: ClassId): void {
-  const problem = classChangeReason(unit, classId);
+  const problem = classEntryReason(unit, classId, unit.homeClassId ?? CHARACTERS[unit.character].classId);
   if (problem) throw new Error(problem);
   classId = canonicalClassId(classId);
   unit.classId = classId;

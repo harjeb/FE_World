@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { CLASSES, CLASS_PATHS, initialClass, initialClassOf, ROUTE_NAMES, STAGE_NAMES, canonicalClassId } from '@common/data/classes.ts';
+import { CLASSES, CLASS_PATHS, initialClass, initialClassOf, ROUTE_NAMES, STAGE_NAMES, canonicalClassId, classEntryReason, CLASS_REQUIRED_RANK } from '@common/data/classes.ts';
 import type { ClassId, ClassRoute } from '@common/data/classes.ts';
-import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
-import type { StatKey } from '@common/data/types.ts';
+import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
+import type { StatKey, WeaponType } from '@common/data/types.ts';
 import { LEGACY_MIN_LEVEL, REINCARNATION_GOLD, REINCARNATION_LEVEL, REINCARNATION_POINTS, REINCARNATION_STAT_MAX, reincarnationBase, totalStats } from '@common/game/legacy.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { regionById } from '@common/game/calendar.ts';
@@ -43,13 +43,15 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
   const away = busyReason(unit, annual);
   const free = (c: ClassMarketRow) => c.owned || c.id === homeClass(unit);
   const quotaLeft = data.monthLimit - data.monthUsed;
+  const reasonFor = (c: ClassMarketRow) => free(c) ? classEntryReason({ ...unit, classId: unit.classId as ClassId, homeClassId: unit.homeClassId as ClassId }, c.id as ClassId, (unit.homeClassId ?? CHARACTERS[unit.character].classId) as ClassId) : c.eligibilityReason;
+  const entryReason = chosen ? reasonFor(chosen) : null;
 
   const cell = (c: ClassMarketRow) => {
     const isCurrent = c.id === canonicalClassId(unit.classId as ClassId);
     const state = free(c) ? 'owned' : c.eligibilityReason && !c.unavailableReason ? 'locked' : !c.open ? 'locked' : '';
     return (
       <button key={c.id} type="button" className={`mk-cls ${state}`} aria-pressed={pick === c.id} onClick={() => setPick(c.id)}
-        title={c.unavailableReason ?? c.eligibilityReason ?? (c.open ? undefined : `${eraYear(c.openYear)}开放`)}>
+        title={c.unavailableReason ?? reasonFor(c) ?? (c.open ? undefined : `${eraYear(c.openYear)}开放`)}>
         {free(c) && '✓ '}{c.name}{isCurrent && <i>当前</i>}{c.unavailableReason && <i>待实现</i>}
       </button>
     );
@@ -86,11 +88,11 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
           <div className="promo-confirm" style={{ border: 0 }}>
             <span style={{ flex: 1, minWidth: 220 }}>
               <b>「{chosen.name}」</b>（{ROUTE_NAMES[chosen.route as ClassRoute]} · {STAGE_NAMES[chosen.stage - 1]}）
-              {free(chosen) ? ' · 已拥有资格，可以免费切换' : ` · 资格 ${chosen.price.toLocaleString()} 金币${gold >= chosen.price ? `，购买后剩 ${(gold - chosen.price).toLocaleString()}` : '，金币不足'}`}
+              {free(chosen) ? ' · 已有免费切换权限（仍需满足准入条件）' : ` · 资格 ${chosen.price.toLocaleString()} 金币${gold >= chosen.price ? `，购买后剩 ${(gold - chosen.price).toLocaleString()}` : '，金币不足'}`}
             </span>
             <button type="button" className="btn btn-ghost" onClick={() => setPick(null)}>取消</button>
             {free(chosen)
-              ? <button type="button" className="btn btn-primary" disabled={busy !== null || chosen.id === current?.id || !!chosen.eligibilityReason || !!away}
+              ? <button type="button" className="btn btn-primary" disabled={busy !== null || chosen.id === current?.id || !!entryReason || !!away}
                 onClick={() => void act('switch', () => session.run(OP.SWITCH_CLASS, { unitId: unit.id, classId: chosen.id }), () => `${unit.name}切换为${chosen.name}`).then(ok => { if (ok) setPick(null); })}>
                 {busy === 'switch' ? '切换中…' : chosen.id === current?.id ? '当前职业' : '免费切换'}
               </button>
@@ -100,8 +102,9 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
                 {busy === 'buy' ? '购买中…' : '确认购买资格'}
               </button>}
           </div>
-          {(chosen.eligibilityReason || chosen.unavailableReason || !chosen.open || away) && (
-            <p className="pfoot why">{chosen.unavailableReason ?? chosen.eligibilityReason ?? (away ? `${unit.name}${away}，不能换职或购买资格` : `${eraYear(chosen.openYear)}开放`)}</p>
+          <p className="pfoot">准入熟练度：{(Object.keys(chosen.weapons) as WeaponType[]).map(type => WEAPON_TYPE_NAMES[type]).join('／')}中任意一种达到 {CLASS_REQUIRED_RANK[chosen.stage as keyof typeof CLASS_REQUIRED_RANK]}（购买起始职业资格也需要；返回当前／起始职业除外）。</p>
+          {(entryReason || chosen.unavailableReason || !chosen.open || away) && (
+            <p className="pfoot why">{chosen.unavailableReason ?? entryReason ?? (away ? `${unit.name}${away}，不能换职或购买资格` : `${eraYear(chosen.openYear)}开放`)}</p>
           )}
           {chosen.growth && current?.growth && (
             <div className="tbl-scroll">
