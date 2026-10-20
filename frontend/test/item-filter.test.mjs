@@ -20,7 +20,7 @@ test('the ten weapon-type filters label the shared weapon types in order', () =>
   assert.deepEqual([...WEAPON_FILTERS], ['sword', 'lance', 'axe', 'bow', 'fist', 'dagger', 'beast', 'dragon', 'tome', 'staff']);
   // Chip list: 全部 + ten weapon types + the grouped categories, in display order.
   assert.deepEqual(ITEM_FILTERS.map(([f]) => f), [
-    'all', ...WEAPON_FILTERS, 'book', 'item', 'food', 'stat', 'material',
+    'all', ...WEAPON_FILTERS, 'book', 'item', 'food', 'stat', 'material', 'key',
   ]);
 });
 
@@ -72,6 +72,8 @@ test('filterCounts gives honest per-chip numbers over a mixed list', () => {
   );
   // An empty list yields no counts, so a shop with no weapons shows no weapon numbers.
   assert.deepEqual(filterCounts(['herb']), { all: 1, material: 1 });
+  // 任务物品只落在「任务」，不混进材料或道具。
+  assert.deepEqual(filterCounts(['old_map']), { all: 1, key: 1 });
   assert.deepEqual(filterCounts([]), {});
 });
 

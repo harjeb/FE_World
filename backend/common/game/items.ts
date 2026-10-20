@@ -14,7 +14,7 @@ export type ManualItemKey = `manual:${string}`;
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
   | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
   | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal'
-  | SpellbookItemKey | ManualItemKey;
+  | 'old_map' | SpellbookItemKey | ManualItemKey;
 
 // 唯一武器：任务专属 + 挑战塔 A 级以上签名武器。它们可以装备、修理、回收，
 // 但不能出售；银系与勇者属于普通生产，不在此集合。
@@ -29,9 +29,10 @@ export const isBoundWeapon = (id: string): boolean => BOUND_WEAPONS.has(id as We
 
 export interface GameItem {
   name: string;
-  kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food' | 'spellbook' | 'manual';
+  // key：任务物品，只放仓库，用来开启隐藏内容；不能出售、使用或带进战斗。
+  kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food' | 'spellbook' | 'manual' | 'key';
   price: number;
-  // 唯一武器绑定：仓库和整备页不允许出售。
+  // 唯一武器与任务物品绑定：仓库和整备页不允许出售。
   bound?: boolean;
   // Weapons carry the engine id; 伤药 uses uses; 能力药 names the stat and amount; 法术书／教材写法术 id。
   weapon?: WeaponId;
@@ -92,6 +93,7 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   immortal_shield: { name: '不朽盾', kind: 'consumable', price: 6_000, uses: 1, weight: 1, note: '致命时消耗一枚，保留 1HP 并石化至下个己方阶段；只能战前携带' },
   ether_ration: { name: '以太口粮', kind: 'food', price: 300, note: '恢复一本法术书 25% 次数' },
   full_meal: { name: '完整料理', kind: 'food', price: 900, note: '恢复一本法术书全部次数' },
+  old_map: { name: '古旧地图', kind: 'key', price: 0, bound: true, note: '任务物品：标着巴尔格山岭深处的一条旧路；不能出售，也不能带进战斗' },
 };
 
 export const ITEM_KEYS = Object.keys(GAME_ITEMS) as ItemKey[];

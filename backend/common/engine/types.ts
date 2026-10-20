@@ -102,7 +102,8 @@ export type Goal =
   | { kind: 'escort'; exits: Point[]; npc: string };
 
 export type BattleObjectKind = 'door' | 'chest' | 'village' | 'wall' | 'switch' | 'ballista';
-export type BattleObjectState = 'closed' | 'open' | 'opened' | 'visited' | 'intact' | 'destroyed' | 'idle' | 'triggered';
+// hidden：密室物件开局不可见、不可交互，由事件 setObject 揭开（公开状态不下发）。
+export type BattleObjectState = 'closed' | 'open' | 'opened' | 'visited' | 'intact' | 'destroyed' | 'idle' | 'triggered' | 'hidden';
 
 export interface BattleObject {
   id: string;
@@ -114,6 +115,12 @@ export interface BattleObject {
   label?: string;
   // Stable chest/village loot; settlement reads this ledger only once.
   loot?: { item: string; count: number };
+  // 随机升级宝箱：创建战斗时按玩家能买到的最高级再高一级抽成 loot，之后与固定宝箱相同。
+  lootRoll?: 'rank_up';
+  // 隐藏要素（适配文件）：只在指定任务里出现，loot 为该任务里的替换掉落；其他场合保留原物件或整件移除。
+  secret?: { quest: string; loot?: { item: string; count: number } };
+  // 隐藏要素每个账号只发一次：完整结算后记入 flags.secretsClaimed，之后的战斗不再生成。
+  once?: true;
   // Switch-bound map change id.
   change?: string;
   // 临时墙等法术物件在指定回合后消失。

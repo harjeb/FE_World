@@ -1,8 +1,9 @@
 import type { ItemKey } from './items.ts';
-import { GAME_ITEMS, spellbookItem } from './items.ts';
+import { GAME_ITEMS, SHOP_STOCK, spellbookItem } from './items.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
+import { RANKS } from '../data/types.ts';
 import type { Rank } from '../data/types.ts';
 
 // 地区声望商店（docs/20 §5）：声望给资格，金币/材料承担消费。达到声望档位才能购买，
@@ -115,4 +116,13 @@ export function regionShop(region: number, reputation: number): { item: ItemKey;
 export function shopEntry(region: number, item: string): { entry: ShopEntry; price: number } | null {
   const entry = (SHOPS[region] ?? []).find(e => e.item === item);
   return entry ? { entry, price: priceOf(entry) } : null;
+}
+
+// 玩家此刻能买到的最高装备级：王都每月商店，加上已开通地区里声望已达标的武器／法术书。
+// 密室随机宝箱按这一级再高一级掉落。
+export function purchasableRank(regions: readonly number[], reputation: Readonly<Record<number, number>>): Rank {
+  const items = [...SHOP_STOCK.map(row => row.item),
+    ...regions.flatMap(region => regionShop(region, reputation[region] ?? 0).filter(row => row.unlocked).map(row => row.item))];
+  return items.filter(item => GAME_ITEMS[item].kind === 'weapon' || GAME_ITEMS[item].kind === 'spellbook')
+    .map(itemRank).reduce<Rank>((best, rank) => RANKS.indexOf(rank) > RANKS.indexOf(best) ? rank : best, 'E');
 }

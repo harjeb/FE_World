@@ -36,6 +36,7 @@ export function itemSpec(key: string): string {
     case 'material': return item.note ?? '生产材料：在「生产」里播种、炼药或锻造，也可以出售';
     case 'spellbook': return `${item.note ?? ''} · 交给角色后可施法，剩余次数随书走`;
     case 'manual': return item.note ?? '';
+    case 'key': return item.note ?? '任务物品';
   }
 }
 

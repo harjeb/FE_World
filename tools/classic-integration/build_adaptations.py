@@ -253,6 +253,38 @@ def special_events(map_data: dict, asset: dict, used: set[tuple[int, int]], diff
                            'actions': [action]})
             return
 
+# 项目原创的隐藏内容（不来自原作）：生成后逐图覆盖，重建适配文件时保留。
+# 只在 secret.quest 指定的固定经典远征里出现，每个账号一次（见 backend/common/game/battles.ts）；
+# 同图作为地区副本终图或挑战塔层时保持原样。
+# - 封印三图远征第 1 图：银枪宝箱在远征里换成任务物品「古旧地图」。
+# - 烈火三图远征第 1 图：王座旁的旧箱打开王座后的密室，内有 3 个随机升级宝箱
+#   （开战时按玩家能买到的最高装备级再高一级抽取，见 backend/common/game/rank-loot.ts）。
+FLOOR = 'floor'
+
+
+def apply_secrets(entry: dict) -> None:
+    if entry['mapId'] == 'fe6-ch22-main':
+        chest = next(o for o in entry['objects'] if o['id'] == 'chest-object-4')
+        assert chest['loot'] == {'item': 'silver_lance', 'count': 1}, chest
+        chest['secret'] = {'quest': 'clx-fe6', 'loot': {'item': 'old_map', 'count': 1}}
+    elif entry['mapId'] == 'fe7-ch27-eliwood':
+        secret = {'quest': 'clx-fe7'}
+        entry['objects'].append({'id': 'secret-trigger', 'kind': 'chest', 'pos': [8, 5], 'state': 'closed', 'label': '王座旁的旧箱',
+                                 'secret': secret})
+        for i, x in enumerate((6, 7, 8), start=1):
+            entry['objects'].append({'id': f'secret-chest-{i}', 'kind': 'chest', 'pos': [x, 2], 'state': 'hidden',
+                                     'label': '密室宝箱', 'lootRoll': 'rank_up', 'secret': secret})
+        entry['mapChanges'].append({'id': 'secret-room', 'position': [5, 2], 'terrain': [
+            [FLOOR] * 5,
+            [FLOOR] * 5,
+            [None, None, FLOOR, None, None],
+        ]})
+        entry['events'].append({'id': 'secret-room-open', 'trigger': {'kind': 'object', 'object': 'secret-trigger', 'state': 'opened'},
+                                'actions': [{'kind': 'mapChange', 'change': 'secret-room'},
+                                            *({'kind': 'setObject', 'object': f'secret-chest-{i}', 'state': 'closed'} for i in (1, 2, 3)),
+                                            {'kind': 'scenario', 'message': '箱底的机关松动了，王座后方的石墙缓缓移开，露出一间密室。'}]})
+
+
 def build() -> dict:
     catalog = load_json(CATALOG)
     by_game: dict[str, list[dict]] = {}
@@ -342,6 +374,8 @@ def build() -> dict:
             'release': {'status': 'accepted',
                         'checks': ['terrain', 'spawns', 'enemies', 'goal', 'objects', 'reachability', 'loot', 'events', 'special-mechanisms', 'loot-settlement']},
         })
+    for entry in out:
+        apply_secrets(entry)
     return {'format': 'agent-tactics.classic-adaptations', 'schemaVersion': 1, 'count': len(out), 'maps': out}
 
 

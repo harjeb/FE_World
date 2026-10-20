@@ -28,6 +28,8 @@ export interface RunRecord {
   battleId: string | null;
   carry: Record<string, RunCarry>;
   pendingLoot: { item: string; count: number }[];
+  // 本趟已拿到的一次性隐藏要素（mapId:objectId）；完整通关才记入账号，撤离／失败作废。
+  pendingClaims?: string[];
   // 地区远征任务（docs/20）：完成后标记该任务；每图日数可覆盖（任务远征 2 日/图）。
   questId?: string;
   stageDays?: number;

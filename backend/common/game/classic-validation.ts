@@ -25,6 +25,18 @@ function inside(map: ClassicMap, [x, y]: [number, number]): boolean {
   return x >= 0 && y >= 0 && x < map.width && y < map.height;
 }
 
+// 全部地图变化生效后的地形：密室物件开局埋在墙里，揭开后须落在可通行格。
+function changedTerrain(map: ClassicMap, changes: ClassicAdaptation['mapChanges']): Terrain[][] {
+  const terrain = map.terrain.map(row => [...row]);
+  for (const change of changes) {
+    change.terrain.forEach((row, dy) => row.forEach((tile, dx) => {
+      const x = change.position[0] + dx, y = change.position[1] + dy;
+      if (tile !== null && inside(map, [x, y])) terrain[y][x] = tile;
+    }));
+  }
+  return terrain;
+}
+
 function reachable(map: ClassicMap, changes: ClassicAdaptation['mapChanges']): boolean {
   const terrain = map.terrain.map(row => [...row]);
   const applyAll = () => {
@@ -97,9 +109,18 @@ export function validateClassicScenario(mapId: string): ScenarioProblem[] {
     const cell = `${x},${y}`;
     if (objectCells.has(cell)) add('OBJECT_OVERLAP', `${object.id} 与另一物件同格 ${cell}`);
     objectCells.add(cell);
-    const tile = map.terrain[y][x];
+    const tile = (object.state === 'hidden' ? changedTerrain(map, adaptation.mapChanges) : map.terrain)[y][x];
     if (object.kind === 'wall' ? tile !== 'wall' : !passable(tile)) {
       add('OBJECT_TERRAIN', `${object.id} 位于不可用地形 ${tile}`);
+    }
+    if (object.state === 'hidden' && !adaptation.events.some(event => event.actions.some(action => action.kind === 'setObject' && action.object === object.id))) {
+      add('OBJECT_HIDDEN', `${object.id} 没有揭开它的事件`);
+    }
+    if (object.lootRoll !== undefined && (object.kind !== 'chest' || object.lootRoll !== 'rank_up' || object.loot)) {
+      add('LOOT_ROLL', `${object.id} 的随机掉落只能用于没有固定掉落的宝箱`);
+    }
+    if (object.secret?.loot && (!isItemKey(object.secret.loot.item) || !Number.isInteger(object.secret.loot.count) || object.secret.loot.count <= 0)) {
+      add('SECRET_LOOT', `${object.id} 的隐藏替换掉落无效`);
     }
     if (object.loot) {
       if (!isItemKey(object.loot.item)) add('LOOT_ITEM', `${object.id} 掉落未知物品 ${object.loot.item}`);

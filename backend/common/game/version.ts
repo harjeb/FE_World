@@ -44,7 +44,12 @@ export const RULESET_VERSION = 'rules-v14';
 // 单图任务完成+5、每个副本（含多图任务）仅首次完整通关+20，不叠加、不计中间图或重刷。
 // 缺失字段的旧档惰性初始化，仅此前已讨伐地区设100；已有进度不再回填，已开通地区访问权、
 // clearedRegions、养成与冻结历史保留。探索满100才可选择相邻新路线，初选1–4仍自由。
-export const CATALOG_VERSION = 31;
+// v32: hidden content, only inside the fixed FE6/FE7 classic routes and once per account
+// (flags.secretsClaimed, banked on a full clear). In clx-fe6 one silver-lance chest holds the key item
+// old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
+// secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
+// Existing battles keep their frozen objects; no saves are migrated.
+export const CATALOG_VERSION = 32;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

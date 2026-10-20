@@ -30,7 +30,8 @@ export interface Quest {
   maxUnits?: number;
   // escape/gather 需要撤离的人数／箱子数（默认 1）。
   need?: number;
-  requires?: { quest?: string; reputation?: number };
+  // item：仓库里持有该任务物品时才出现（隐藏副本）；不消耗。
+  requires?: { quest?: string; reputation?: number; item?: ItemKey };
   reward: QuestReward;
   // 固定人物加入（docs/20 §5）：领取奖励时加入名册；已拥有则跳过（唯一性）。
   recruit?: CharacterId;
@@ -176,16 +177,17 @@ export const RECRUIT_LINES: Partial<Record<CharacterId, string>> = {
   mira: '「愿我的祈祷护住你们每一个人。」',
 };
 
-// 任务是否可接：前置任务已完成，且当地声望达标（docs/20 §4）。
+// 任务是否可接：前置任务已完成，当地声望达标（docs/20 §4），隐藏副本还要持有指定任务物品。
 export function supportsHardQuest(quest: Pick<Quest, 'tier' | 'scenarioIds'>): boolean {
   return !!quest.scenarioIds?.length || quest.tier === 'region';
 }
 
-export function questAvailable(quest: Quest, state: { done: ReadonlySet<string>; reputation: number }): boolean {
+export function questAvailable(quest: Quest, state: { done: ReadonlySet<string>; reputation: number; holds?: (item: ItemKey) => boolean }): boolean {
   if (state.done.has(quest.id)) return false;
   const req = quest.requires;
   if (!req) return true;
   if (req.quest && !state.done.has(req.quest)) return false;
   if (req.reputation !== undefined && state.reputation < req.reputation) return false;
+  if (req.item && !state.holds?.(req.item)) return false;
   return true;
 }

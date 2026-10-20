@@ -2258,7 +2258,14 @@
       "item": "silver_lance",
       "count": 1
      },
-     "sourceId": "0x08669460"
+     "sourceId": "0x08669460",
+     "secret": {
+      "quest": "clx-fe6",
+      "loot": {
+       "item": "old_map",
+       "count": 1
+      }
+     }
     },
     {
      "id": "chest-object-5",
@@ -4499,6 +4506,61 @@
      "state": "idle",
      "label": "机关",
      "change": "lever-change-0"
+    },
+    {
+     "id": "secret-trigger",
+     "kind": "chest",
+     "pos": [
+      8,
+      5
+     ],
+     "state": "closed",
+     "label": "王座旁的旧箱",
+     "secret": {
+      "quest": "clx-fe7"
+     }
+    },
+    {
+     "id": "secret-chest-1",
+     "kind": "chest",
+     "pos": [
+      6,
+      2
+     ],
+     "state": "hidden",
+     "label": "密室宝箱",
+     "lootRoll": "rank_up",
+     "secret": {
+      "quest": "clx-fe7"
+     }
+    },
+    {
+     "id": "secret-chest-2",
+     "kind": "chest",
+     "pos": [
+      7,
+      2
+     ],
+     "state": "hidden",
+     "label": "密室宝箱",
+     "lootRoll": "rank_up",
+     "secret": {
+      "quest": "clx-fe7"
+     }
+    },
+    {
+     "id": "secret-chest-3",
+     "kind": "chest",
+     "pos": [
+      8,
+      2
+     ],
+     "state": "hidden",
+     "label": "密室宝箱",
+     "lootRoll": "rank_up",
+     "secret": {
+      "quest": "clx-fe7"
+     }
     }
    ],
    "events": [
@@ -4620,6 +4682,39 @@
        "range": 10
       }
      ]
+    },
+    {
+     "id": "secret-room-open",
+     "trigger": {
+      "kind": "object",
+      "object": "secret-trigger",
+      "state": "opened"
+     },
+     "actions": [
+      {
+       "kind": "mapChange",
+       "change": "secret-room"
+      },
+      {
+       "kind": "setObject",
+       "object": "secret-chest-1",
+       "state": "closed"
+      },
+      {
+       "kind": "setObject",
+       "object": "secret-chest-2",
+       "state": "closed"
+      },
+      {
+       "kind": "setObject",
+       "object": "secret-chest-3",
+       "state": "closed"
+      },
+      {
+       "kind": "scenario",
+       "message": "箱底的机关松动了，王座后方的石墙缓缓移开，露出一间密室。"
+      }
+     ]
     }
    ],
    "mapChanges": [
@@ -4644,6 +4739,36 @@
        "floor",
        "floor",
        "floor"
+      ]
+     ]
+    },
+    {
+     "id": "secret-room",
+     "position": [
+      5,
+      2
+     ],
+     "terrain": [
+      [
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       "floor",
+       "floor",
+       "floor",
+       "floor",
+       "floor"
+      ],
+      [
+       null,
+       null,
+       "floor",
+       null,
+       null
       ]
      ]
     }

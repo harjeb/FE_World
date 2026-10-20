@@ -27,6 +27,8 @@ export interface PlayerFlags {
   // 放回仓库的魔道书／杖剩余次数（与 storedWeapons 一样按先进先出对应仓库里的同名实物）。
   storedBooks?: { id: WeaponId; charges: number; maxCharges: number }[];
   hardUnlocks?: { regions: number[]; dungeons: number[]; quests: string[] };
+  // 已领取的一次性隐藏要素（mapId:objectId），对应物件之后不再生成。
+  secretsClaimed?: string[];
   clearedRegions: number[];
   // 世界地图开荒：玩家显式选择的已解锁地区（canonical 列表，含旧档认领结果；clearedRegions 永不重置，
   // 实际可用地区 = unlockedRegions ∪ clearedRegions，见 common/game/region-map.ts）。

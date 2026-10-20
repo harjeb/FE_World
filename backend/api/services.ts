@@ -23,7 +23,7 @@ import type { Quest } from '../common/game/quests.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, enemyLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
-import { summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
+import { secretClaims, summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
@@ -456,6 +456,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       store.addInventory(player.id, item, GAME_ITEMS[item].uses ?? 0, drop.count);
       rewards.items.push({ item, count: drop.count });
     }
+    claimSecrets(player, secretClaims(record.state));
   }
   if (record.mode === 'field' && won && !record.dungeon) {
     const regionId = record.region ?? 1;
@@ -504,6 +505,12 @@ export function dungeonFirstClearReward(store: Store, player: Player, region: nu
   return { items: dungeonFirstClearLoot(region, aiDifficulty), available: !completed };
 }
 
+// 一次性隐藏要素入账：之后创建的战斗不再生成这些物件（docs/22「经典地图密室宝箱」）。
+function claimSecrets(player: Player, claims: readonly string[]): void {
+  if (claims.length === 0) return;
+  player.flags.secretsClaimed = [...new Set([...(player.flags.secretsClaimed ?? []), ...claims])];
+}
+
 // 连续副本结算（docs/00 §8.1.3、docs/13 §4.3）：胜则进入下一图，首领图胜利才完整通关；
 // 撤离／失败作废未带回掉落，但保留死亡与消耗。
 export function handleRunOutcome(store: Store, player: Player, record: BattleRecord): { run: RunRecord; completed: boolean } | null {
@@ -522,6 +529,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
   if (won) {
     run.pendingLoot.push(...stageLoot(run.region, run.stageIndex));
     for (const drop of scenarioLoot(record.state)) run.pendingLoot.push({ item: drop.item, count: drop.count });
+    run.pendingClaims = [...(run.pendingClaims ?? []), ...secretClaims(record.state)];
     if (run.stageIndex >= stageCount(run) - 1) {
       run.state = 'completed';
       completed = true;
@@ -548,6 +556,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
         const item = drop.item as ItemKey;
         store.addInventory(player.id, item, GAME_ITEMS[item]?.uses ?? 0, drop.count);
       }
+      claimSecrets(player, run.pendingClaims ?? []);
       const gold = 300 + record.state.turn * 8;
       player.gold += gold;
       // 整次连战结束，回收袋并入仓库（docs/00 §7.1）。

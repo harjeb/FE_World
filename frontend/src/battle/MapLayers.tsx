@@ -65,7 +65,7 @@ export function ObjectLayer({ state, cell }: { state: BattleState; cell: number 
       {(state.embers ?? []).map(ember => <span key={ember.pos.join(',')} className="map-object"
         title="余烬：敌方行动结束损失 3 HP，最低剩余 1 HP" aria-label="余烬"
         style={{ left: ember.pos[0] * cell, top: ember.pos[1] * cell, fontSize: Math.max(9, cell * 0.42), background: 'repeating-linear-gradient(45deg, #8C3C1ACC 0 4px, #D99042CC 4px 8px)' }}>烬</span>)}
-      {(state.objects ?? []).map(object => {
+      {(state.objects ?? []).filter(object => object.state !== 'hidden').map(object => {
         const done = object.state === 'open' || object.state === 'opened' || object.state === 'visited' || object.state === 'destroyed' || object.state === 'triggered';
         return (
           <span key={object.id} className={`map-object ${object.kind}${done ? ' done' : ''}`}

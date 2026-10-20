@@ -10,13 +10,13 @@ import type { WeaponType } from '@common/data/types.ts';
 export const WEAPON_FILTERS = ['sword', 'lance', 'axe', 'bow', 'fist', 'dagger', 'beast', 'dragon', 'tome', 'staff'] as const;
 export type WeaponFilter = (typeof WEAPON_FILTERS)[number];
 
-export type ItemFilter = 'all' | WeaponFilter | 'book' | 'item' | 'food' | 'stat' | 'material';
+export type ItemFilter = 'all' | WeaponFilter | 'book' | 'item' | 'food' | 'stat' | 'material' | 'key';
 
-// 芯片顺序即显示顺序；武器在前，随后是法术书／道具／食物／能力药／材料。
+// 芯片顺序即显示顺序；武器在前，随后是法术书／道具／食物／能力药／材料／任务物品。
 export const ITEM_FILTERS: readonly (readonly [ItemFilter, string])[] = [
   ['all', '全部'],
   ...WEAPON_FILTERS.map(f => [f, WEAPON_TYPE_NAMES[f]] as const),
-  ['book', '法术书'], ['item', '道具'], ['food', '食物'], ['stat', '能力药'], ['material', '材料'],
+  ['book', '法术书'], ['item', '道具'], ['food', '食物'], ['stat', '能力药'], ['material', '材料'], ['key', '任务'],
 ];
 
 const byKey = (key: string): GameItem | undefined => (GAME_ITEMS as Record<string, GameItem | undefined>)[key];
@@ -45,6 +45,7 @@ export function matchItemFilter(key: string, filter: ItemFilter): boolean {
     case 'food': return item.kind === 'food';
     case 'stat': return item.kind === 'stat';
     case 'material': return item.kind === 'material';
+    case 'key': return item.kind === 'key';
     default: return false;
   }
 }
@@ -62,8 +63,8 @@ export function filterCounts(keys: readonly string[]): Partial<Record<ItemFilter
   return counts;
 }
 
-// 仓库与商店通用的类别排序：武器 → 法术书 → 教材 → 战斗道具 → 食物 → 能力药 → 转职印 → 材料。
-export const KIND_ORDER = ['weapon', 'spellbook', 'manual', 'consumable', 'food', 'stat', 'seal', 'material'] as const;
+// 仓库与商店通用的类别排序：武器 → 法术书 → 教材 → 战斗道具 → 食物 → 能力药 → 转职印 → 材料 → 任务物品。
+export const KIND_ORDER = ['weapon', 'spellbook', 'manual', 'consumable', 'food', 'stat', 'seal', 'material', 'key'] as const;
 
 export function kindOrder(key: string): number {
   const item = byKey(key);

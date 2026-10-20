@@ -16,7 +16,7 @@ import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonica
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, CHARACTER_IDS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
-import { GAME_ITEMS, isBoundWeapon, isCentralShopItem, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
+import { GAME_ITEMS, isCentralShopItem, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
@@ -58,7 +58,7 @@ import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
-import { regionShop, shopEntry } from '../common/game/quest-shop.ts';
+import { purchasableRank, regionShop, shopEntry } from '../common/game/quest-shop.ts';
 import { normalizeRegions, routeCandidates, worldMap } from '../common/game/region-map.ts';
 import { addRegionExploration, adoptRegions, combatFeaturesOpen, playerRegions, tavernOpen, workshopFacilities, worldProgress } from './services.ts';
 import { reputationTier } from '../common/game/reputation.ts';
@@ -185,6 +185,11 @@ function asAiDifficulty(value: unknown): 'normal' | 'hard' {
   throw new OpError('BAD_REQUEST', 'aiDifficulty 必须是 normal 或 hard');
 }
 
+// 开战时玩家能买到的最高装备级，经典图随机升级宝箱据此抽取。
+function lootRankOf(player: Player) {
+  return purchasableRank(playerRegions(player), player.flags.regionReputation ?? {});
+}
+
 export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0) {
   const state = record.state;
   return {
@@ -234,7 +239,21 @@ function publicState(state: BattleState): BattleState {
   delete copy.rng;
   delete copy.growthRng;
   for (const unit of copy.units) { delete unit.behavior; unit.stats = withCharm(unit.stats); }
+  hideSecrets(copy as unknown as BattleState);
   return copy as unknown as BattleState;
+}
+
+// 密室未揭开前不下发：去掉 hidden 物件，以及会揭开它们的未触发事件和其地图变化。
+function hideSecrets(state: BattleState): void {
+  const hidden = new Set((state.objects ?? []).filter(object => object.state === 'hidden').map(object => object.id));
+  if (hidden.size === 0) return;
+  state.objects = state.objects!.filter(object => !hidden.has(object.id));
+  const runtime = state.scenario;
+  if (!runtime) return;
+  const secret = runtime.events.filter(event => event.actions.some(action => action.kind === 'setObject' && hidden.has(action.object)));
+  const changes = new Set(secret.flatMap(event => event.actions.flatMap(action => action.kind === 'mapChange' ? [action.change] : [])));
+  runtime.events = runtime.events.filter(event => !secret.includes(event));
+  runtime.mapChanges = runtime.mapChanges.filter(change => !changes.has(change.id));
 }
 
 function applyAction(ctx: Context, record: BattleRecord, action: Action): { state: BattleState; events: BattleEvent[] } {
@@ -740,7 +759,7 @@ const handlers: Record<number, Handler> = {
     if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 1) throw new OpError('BAD_REQUEST', 'count 需要正整数');
     if (uses !== undefined && (typeof uses !== 'number' || !Number.isSafeInteger(uses) || uses < 0)) throw new OpError('BAD_REQUEST', 'uses 需要非负整数');
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有物品 ${item}`);
-    if (isBoundWeapon(item)) throw new OpError('FORBIDDEN', '这件唯一武器已绑定，不能出售');
+    if (GAME_ITEMS[item].bound) throw new OpError('FORBIDDEN', GAME_ITEMS[item].kind === 'key' ? '任务物品不能出售' : '这件唯一武器已绑定，不能出售');
     const taken = ctx.store.takeInventory(ctx.player.id, item, count, uses as number | undefined);
     if (taken === 0) throw new OpError('NO_SUCH_ITEM', '仓库里没有这件物品');
     for (let i = 0; i < taken; i++) {
@@ -1258,7 +1277,7 @@ const handlers: Record<number, Handler> = {
     const record = scenarioId
       ? createClassicBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', mapId: scenarioId, seed, quest: runQuest,
           level: run.stages || runQuest?.dungeonOnly ? run.level : undefined, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day,
-          season: dateOf(ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS)).season })
+          lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [], season: dateOf(ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS)).season })
       : createFieldBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS), seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest, encounter: run.encounter, legacyDeployment: !run.encounter });
     record.playerId = ctx.player.id;
     record.region = run.region;
@@ -2003,6 +2022,7 @@ const handlers: Record<number, Handler> = {
     const done = new Set(ctx.player.flags.questsDone ?? []);
     const claimed = new Set(ctx.player.flags.questRewardsClaimed ?? []);
     const reputation = ctx.player.flags.regionReputation ?? {};
+    const holds = (item: ItemKey) => ctx.store.countInventory(ctx.player.id, item) > 0;
     // 进行中的任务（活动远征或战斗）即使暂不满足可接条件也保留显示。
     const ongoing = new Set([ctx.store.activeRun(ctx.player.id)?.questId, ctx.store.activeBattle(ctx.player.id)?.questId]
       .filter((id): id is string => typeof id === 'string'));
@@ -2033,7 +2053,7 @@ const handlers: Record<number, Handler> = {
               hard: dungeonFirstClearReward(ctx.store, ctx.player, region, q.id, 'hard'),
             } : null,
             hardUnlocked: !q.archived && supportsHardQuest(q) && hardUnlocks(ctx.store, ctx.player).quests.includes(q.id),
-            available: !q.archived && ((supportsHardQuest(q) && done.has(q.id)) || questAvailable(q, { done, reputation: rep })),
+            available: !q.archived && ((supportsHardQuest(q) && done.has(q.id)) || questAvailable(q, { done, reputation: rep, holds })),
           })).filter(row => row.available || row.done || ongoing.has(row.id)),
         };
       }),
@@ -2141,7 +2161,7 @@ const handlers: Record<number, Handler> = {
     if (units.length > maxUnits) throw new OpError('BAD_REQUEST', `该层最多出战 ${maxUnits} 人`);
     const block = lifespanBlockers(ctx, ctx.player.day + floor.costDays);
     if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
-    const record = createClassicBattle(units, { mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level });
+    const record = createClassicBattle(units, { mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
     record.playerId = ctx.player.id;
     record.challengeId = floor.id;
     record.costDays = floor.costDays;
@@ -2198,7 +2218,7 @@ const handlers: Record<number, Handler> = {
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
     if (!playerRegions(ctx.player).includes(quest.region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(quest.region).name}；先在世界地图选择行军路线`);
     const done = new Set(ctx.player.flags.questsDone ?? []);
-    if (!(supportsHardQuest(quest) && done.has(quest.id)) && !questAvailable(quest, { done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0 })) {
+    if (!(supportsHardQuest(quest) && done.has(quest.id)) && !questAvailable(quest, { done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0, holds: item => ctx.store.countInventory(ctx.player.id, item) > 0 })) {
       throw new OpError('FORBIDDEN', '任务尚未解锁或已完成');
     }
     const maxUnits = questMaxUnits(quest);
@@ -2213,7 +2233,7 @@ const handlers: Record<number, Handler> = {
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += costDays;
       syncPlayer(ctx.store, ctx.player);
-      const record = createClassicBattle(ready, { aiDifficulty, mapId: quest.scenarioIds[0], seed, quest, level: run.level, stageIndex: 0, runId: run.id, day: ctx.player.day, season: dateOf(ctx.player.day - costDays).season });
+      const record = createClassicBattle(ready, { aiDifficulty, mapId: quest.scenarioIds[0], seed, quest, level: run.level, stageIndex: 0, runId: run.id, day: ctx.player.day, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [], season: dateOf(ctx.player.day - costDays).season });
       record.costDays = costDays;
       record.playerId = ctx.player.id;
       run.battleId = record.id;
@@ -2225,7 +2245,7 @@ const handlers: Record<number, Handler> = {
     }
     // 单张经典地图任务。
     if (quest.scenarioId) {
-      const record = createClassicBattle(ready, { aiDifficulty, mapId: quest.scenarioId, seed, quest, day: ctx.player.day });
+      const record = createClassicBattle(ready, { aiDifficulty, mapId: quest.scenarioId, seed, quest, day: ctx.player.day, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
       record.playerId = ctx.player.id;
       ctx.player.day += quest.costDays ?? QUEST_DAY_COST[quest.tier];
       syncPlayer(ctx.store, ctx.player);

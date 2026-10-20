@@ -74,6 +74,8 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
         break;
       case 'object': {
         const label = before.objects?.find(o => o.id === e.object)?.label ?? '物件';
+        // 密室物件由事件揭开：没有操作者，只报出现；揭开前公开状态里没有它，取不到名字。
+        if (e.by === 'event' && e.state === 'closed') { push(`${before.objects?.find(o => o.id === e.object)?.label ?? '隐藏的宝箱'}出现了。`, 'g'); break; }
         push(`${name(e.by)} ${e.state === 'destroyed' ? '破坏' : e.state === 'open' || e.state === 'opened' ? '打开' : e.state === 'visited' ? '访问' : '启动'}了${label}。`, mark(e.by));
         break;
       }

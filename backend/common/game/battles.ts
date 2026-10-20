@@ -1,9 +1,9 @@
 import { fieldEncounter, type FieldEncounter } from './encounters.ts';
 import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
-import type { WeaponType } from '../data/types.ts';
+import type { Rank, WeaponType } from '../data/types.ts';
 import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
-import type { AiDifficulty, Action, BattleEvent, BattleState, Point, UnitState } from '../engine/types.ts';
+import type { AiDifficulty, Action, BattleEvent, BattleObject, BattleState, Point, ScenarioEvent, UnitState } from '../engine/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
 import { generateMap } from '../maps/generate.ts';
 import { THEMES, type Theme } from '../maps/themes.ts';
@@ -11,6 +11,7 @@ import { seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
 import { classicMap } from './classic-catalog.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { assertClassicScenario } from './classic-validation.ts';
+import { rollRankUpLoot } from './rank-loot.ts';
 import { ARENA_MAPS, throneOf } from '../arena/maps.ts';
 import type { ArenaMapId } from '../arena/maps.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
@@ -202,6 +203,10 @@ export interface ClassicBattleOptions {
   stageIndex?: number;
   runId?: string;
   carry?: Record<string, RunCarry>;
+  // 玩家出发时能买到的最高装备级；随机升级宝箱据此再高一级。不填按 E。
+  lootRank?: Rank;
+  // 账号已领取的一次性隐藏要素（mapId:objectId）。
+  claimed?: readonly string[];
 }
 
 function classicPassable(map: ReturnType<typeof classicMap>, x: number, y: number): boolean {
@@ -245,6 +250,60 @@ function classicSpawns(map: ReturnType<typeof classicMap>, need: number, blocked
     for (const p of cells) tryAdd(p);
   }
   return chosen;
+}
+
+// 经典图的物件／事件层：隐藏要素只在指定任务里生成，已领取的一次性物件不再出现；
+// 揭开对象全部消失的密室事件连同触发物件、地图变化一起去掉。随机升级宝箱在开战时一次抽定，
+// 写成普通 loot：回放、重连与结算都只读这份结果。
+function classicScenarioLayer(mapId: string, adaptation: ReturnType<typeof classicAdaptation>,
+  opts: { questId?: string; claimed: readonly string[]; lootRank: Rank; seed: string }) {
+  const claimed = new Set(opts.claimed);
+  const removed = new Set<string>();
+  let objects: BattleObject[] = [];
+  for (const raw of adaptation.objects) {
+    const object = structuredClone(raw);
+    const secret = object.secret;
+    delete object.secret;
+    if (secret && secret.quest !== opts.questId) {
+      // 其他场合：有替换掉落的保留原物件，纯隐藏物件整件不生成。
+      if (!secret.loot) { removed.add(object.id); continue; }
+    } else if (secret) {
+      if (claimed.has(`${mapId}:${object.id}`)) { removed.add(object.id); continue; }
+      if (secret.loot) object.loot = { ...secret.loot };
+      object.once = true;
+    }
+    objects.push(object);
+  }
+  const reveals = (event: ScenarioEvent) => event.actions.flatMap(action => action.kind === 'setObject' ? [action.object] : []);
+  const dropped = adaptation.events.filter(event => reveals(event).length > 0 && reveals(event).every(id => removed.has(id)));
+  for (const event of dropped) {
+    if (event.trigger.kind === 'object' && objects.some(object => object.id === (event.trigger as { object: string }).object && object.once && !object.loot)) {
+      const trigger = (event.trigger as { object: string }).object;
+      objects = objects.filter(object => object.id !== trigger);
+    }
+  }
+  const events = adaptation.events.filter(event => !dropped.includes(event)).map(event => ({
+    ...structuredClone(event), actions: event.actions.filter(action => action.kind !== 'setObject' || !removed.has(action.object)).map(action => structuredClone(action)),
+  }));
+  const used = new Set([...events.flatMap(event => event.actions.flatMap(action => action.kind === 'mapChange' ? [action.change] : [])),
+    ...objects.flatMap(object => object.change ? [object.change] : [])]);
+  const orphaned = new Set(dropped.flatMap(event => event.actions.flatMap(action => action.kind === 'mapChange' ? [action.change] : [])));
+  const mapChanges = adaptation.mapChanges.filter(change => used.has(change.id) || !orphaned.has(change.id));
+  const rolled = objects.filter(object => object.lootRoll === 'rank_up');
+  const items = rollRankUpLoot(opts.lootRank, opts.seed, rolled.length);
+  rolled.forEach((object, index) => {
+    delete object.lootRoll;
+    if (items[index]) object.loot = { item: items[index], count: 1 };
+  });
+  return { objects, events, mapChanges };
+}
+
+// 胜利后要记入账号的一次性隐藏要素：只算真正拿到战利品的 once 物件。
+export function secretClaims(state: BattleState): string[] {
+  const mapId = state.scenario?.id;
+  if (!mapId) return [];
+  const once = new Set((state.objects ?? []).filter(object => object.once).map(object => object.id));
+  return (state.loot ?? []).flatMap(entry => entry.id.startsWith('object:') && once.has(entry.id.slice(7)) ? [`${mapId}:${entry.id.slice(7)}`] : []);
 }
 
 export function createClassicBattle(units: UnitRecord[], options: ClassicBattleOptions): BattleRecord {
@@ -292,16 +351,19 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     : map.goal.kind === 'boss' ? { kind: 'boss', target: boss.id } as BattleState['goal'] : { kind: 'rout' } as BattleState['goal'];
   const name = options.quest?.name ?? map.name;
   const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
+  const layer = classicScenarioLayer(map.id, adaptation, {
+    questId: options.quest?.id, claimed: options.claimed ?? [], lootRank: options.lootRank ?? 'E', seed: `${options.seed}:${stage}`,
+  });
   const state: BattleState = {
     engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
     map: seasonalMap(map.terrain, season),
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: options.quest?.turnLimit ?? map.turnLimit,
     phase: 'player', goal,
-    objects: adaptation.objects.map(object => structuredClone(object)),
+    objects: layer.objects,
     loot: [],
     scenario: {
       id: map.id, adapterVersion: adaptation.adapterVersion, sourceSha256: adaptation.sourceSha256,
-      baseLevel, events: structuredClone(adaptation.events), mapChanges: adaptation.mapChanges.map(change => ({
+      baseLevel, events: layer.events, mapChanges: layer.mapChanges.map(change => ({
         ...structuredClone(change), terrain: change.terrain.map(row => row.map(tile => tile === null ? null : seasonalTerrain(tile, season))),
       })),
       fired: [], flags: [],
