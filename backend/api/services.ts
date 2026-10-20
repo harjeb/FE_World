@@ -1,3 +1,5 @@
+import { CROSS_TIME_QUEST_ID } from '../common/game/cross-time.ts';
+import { crossTimeVictory, grantCrossTimeRewards } from './cross-time.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION } from '../common/data/characters.ts';
 import { CLASSES } from '../common/data/classes.ts';
@@ -53,10 +55,12 @@ export function snapshotData(store: Store, player: Player): SnapshotData {
 // 用服务器当前名册重建防守单位，属性/装备只取服务器数据，杜绝伪造。
 // strict=true 时缺人报错（保存防守用）；false 时丢弃缺人槽位（报名快照用）。
 export function bindDefense(units: UnitRecord[], defense: Defense, strict = true): Defense {
-  const byCharacter = new Map(units.map(u => [u.character, toSnapshot(u)]));
+  const snapshots = units.map(toSnapshot);
+  const byId = new Map(snapshots.map(u => [u.id, u]));
+  const byCharacter = new Map(snapshots.map(u => [u.character, u]));
   const slots: Defense['slots'] = [];
   for (const slot of defense.slots) {
-    const unit = byCharacter.get(slot.unit.character);
+    const unit = slot.unit.id !== undefined ? byId.get(slot.unit.id) : byCharacter.get(slot.unit.character);
     if (!unit) {
       if (strict) throw new Error(`${CHARACTERS[slot.unit.character].name} 不在当前名册中`);
       continue;
@@ -369,7 +373,9 @@ export function hardUnlocks(store: Store, player: Player): { regions: number[]; 
     player.flags.hardUnlocks = normalizeHardUnlocks(unlocked);
     store.savePlayer(player);
   }
-  return normalizeHardUnlocks(player.flags.hardUnlocks);
+  const result = normalizeHardUnlocks(player.flags.hardUnlocks);
+  if (player.flags.crossTime?.clearedNormal) result.quests.push(CROSS_TIME_QUEST_ID);
+  return result;
 }
 
 function normalizeHardUnlocks(value: NonNullable<Player['flags']['hardUnlocks']>) {
@@ -382,6 +388,9 @@ function normalizeHardUnlocks(value: NonNullable<Player['flags']['hardUnlocks']>
 
 // Writes growth, weapon experience, deaths, rewards and replay back to the roster (docs/00 §7.1/§8.3).
 export function applyBattleOutcome(store: Store, player: Player, record: BattleRecord): BattleRewards {
+  const crossTime = record.questId === CROSS_TIME_QUEST_ID;
+  const settled = (record as BattleRecord & { crossTimeRewards?: BattleRewards }).crossTimeRewards;
+  if (crossTime && settled) return settled;
   adoptRegions(store, player);
   const outcome = summarizeOutcome(record);
   const lethal = record.mode === 'field' || record.mode === 'festival';
@@ -439,7 +448,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       }
     }
   }
-  const won = outcome.winner === 'player';
+  const won = outcome.winner === 'player' && (!crossTime || crossTimeVictory(record));
   if (record.mode === 'field' && won && record.region !== undefined
     && !record.questId && !record.runId && !record.dungeon && !record.challengeId) {
     if ((record.state.aiDifficulty ?? 'normal') === 'normal') {
@@ -449,7 +458,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     addRegionExploration(store, player, record.region, 'field');
   }
   // 经典地图宝箱/村庄战利品：稳定 id 去重，只有胜利才入库；副本由 handleRunOutcome 暂存。
-  if (won && !record.dungeon) {
+  if (won && (!record.dungeon || crossTime)) {
     for (const drop of scenarioLoot(record.state)) {
       if (!Object.hasOwn(GAME_ITEMS, drop.item)) continue;
       const item = drop.item as ItemKey;
@@ -458,7 +467,8 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     }
     claimSecrets(player, secretClaims(record.state));
   }
-  if (record.mode === 'field' && won && !record.dungeon) {
+  if (crossTime) grantCrossTimeRewards(store, player, record, rewards);
+  if (record.mode === 'field' && won && !record.dungeon && !crossTime) {
     const regionId = record.region ?? 1;
     rewards.gold = 180 + record.state.turn * 6;
     const region = regionById(regionId);
@@ -495,6 +505,10 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   // 每场结束的战斗都留战报（docs/00 §11「战报保留伤亡与消耗」）。竞技场与大竞技场结束即公开；
   // 野外、任务、副本、挑战塔与练习只给本人看（公开时间待定前不对外）。
   record.endDay = player.day;
+  if (crossTime) {
+    (record as BattleRecord & { crossTimeRewards?: BattleRewards }).crossTimeRewards = rewards;
+    store.saveBattle(record);
+  }
   store.saveReplay(player.id, record, record.mode === 'arena' || record.mode === 'festival' ? Date.now() : PRIVATE_REPLAY);
   return rewards;
 }
@@ -743,6 +757,7 @@ export function unitSummary(unit: UnitRecord, day = unit.ageEpochDay ?? unit.joi
     joinedDay: unit.joinedDay, weaponExp: unit.weaponExp, growthLog: unit.growthLog, drugCounts: unit.drugCounts,
     growthType: unit.growthType, growthTypeName: GROWTH_TYPE_NAMES[unit.growthType],
     age: unit.age, ageBand: band ? band.name : null, growthBonus: growthBonus(unit.growthType, unit.age),
+    crossTimeIdentity: unit.crossTimeIdentity ?? null,
     cycle: unit.cycle, lineageDepth: unit.lineageDepth, isProtagonist: !!unit.isProtagonist,
     ageBaseDays: unit.ageBaseDays, ageEpochDay: unit.ageEpochDay,
     lifespanYears: unit.lifespanYears, lifespanEndDay: lifespanEndDayOf(unit),

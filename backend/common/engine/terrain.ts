@@ -1,4 +1,5 @@
 import { classOf } from './units.ts';
+import { hasTrait } from './personal-traits.ts';
 import type { BattleEvent, BattleState, Point, UnitState } from './types.ts';
 
 export function breakIce(state: BattleState, unit: UnitState, path: Point[], events: BattleEvent[]): void {
@@ -15,5 +16,9 @@ export function breakIce(state: BattleState, unit: UnitState, path: Point[], eve
 export function moveUnit(state: BattleState, unit: UnitState, path: Point[], events: BattleEvent[]): void {
   unit.pos = [...path[path.length - 1]];
   events.push({ t: 'move', unit: unit.id, path });
+  if (hasTrait(unit, 'eight_formations') && path.some(p => p[0] !== unit.pos[0] || p[1] !== unit.pos[1])) {
+    unit.artEffects = { ...unit.artEffects, formationMoved: true };
+    events.push({ t: 'artState', unit: unit.id, effects: structuredClone(unit.artEffects) });
+  }
   breakIce(state, unit, path, events);
 }

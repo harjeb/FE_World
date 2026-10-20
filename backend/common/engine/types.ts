@@ -59,7 +59,7 @@ export interface UnitState {
   petrified?: boolean;
   // 睡眠：无法行动，受击或复原杖解除；睡眠杖另记 sleepPhases，睡过目标自己的阶段数后醒。沉默/混乱按己方阶段计数。
   statuses?: { sleep?: boolean; sleepPhases?: number; silence?: number; berserk?: number; regen?: number };
-  artEffects?: { movementPenalty?: number; scent?: Side[]; barrier?: { amount: number; by: string }; displaced?: boolean; buffs?: ArtBuff[]; statuses?: ArtAilment[] };
+  artEffects?: { formationMoved?: boolean; movementPenalty?: number; scent?: Side[]; barrier?: { amount: number; by: string }; displaced?: boolean; buffs?: ArtBuff[]; statuses?: ArtAilment[] };
   immunities?: ('movement_debuff' | 'follow_up_lock' | 'defense_pierce' | 'poison' | 'root' | 'silence' | 'confusion' | 'debuff' | 'healing' | 'sleep')[];
   tags?: ('large' | 'demon' | 'nether_protection')[];
   // 已学习的主动战技稳定 ID（最多五格；具体学习由成长系统写入）。
@@ -163,7 +163,18 @@ export interface ScenarioRuntime {
   flags: string[];
 }
 
+export interface CrossTimeGroup {
+  id: 'A' | 'B' | 'C' | 'D';
+  name: string;
+  unitIds: string[];
+  thresholdY?: number;
+  active: boolean;
+  activateTurn?: number;
+  reason?: string;
+}
+
 export interface BattleState {
+  crossTimeGroups?: CrossTimeGroup[];
   encounter?: import('../game/encounters.ts').FieldEncounter & { playerGroups?: number[] };
   engineVersion: 1;
   id: string;
@@ -216,6 +227,7 @@ export type Action = ActAction | { type: 'endPhase' } | { type: 'retreat' } | { 
 export interface Strike { by: string; target: string; hit: boolean; crit: boolean; damage: number; hpAfter: number; byHpAfter?: number; proc?: boolean; backlash?: boolean }
 
 export type BattleEvent =
+  | { t: 'cross_time_group'; id: CrossTimeGroup['id']; name: string; turn: number; active: boolean; reason: string }
   | { t: 'move'; unit: string; path: Point[] }
   | { t: 'terrain'; unit: string; at: Point; terrain: Terrain }
   | { t: 'combat'; attacker: string; defender: string; weapons: [WeaponId, WeaponId | null]; strikes: Strike[]; forecast?: Forecast }

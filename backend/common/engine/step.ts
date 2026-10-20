@@ -1,3 +1,4 @@
+import { activateCrossTimeGroups, isCrossTimeDormant, scheduleCrossTimeGroups } from './cross-time-groups.ts';
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
@@ -17,6 +18,8 @@ import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAc
 import { attackWeapons, cellKey, cureStatuses, distance, endPhaseSleep, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
 import { adjacentFree, destinationValid, isHostileSpell, spellBlock, spellDestination, spellKind, spellTargets, staffDestination, staffTargets, withSpellWeapon } from './support.ts';
 import { statusChance } from './magic.ts';
+import { spellRange } from './spells.ts';
+import { prepareTraitExchange } from './personal-traits.ts';
 import type { ControlStatus } from './magic.ts';
 import type { DestinationRule } from './support.ts';
 import { EngineError } from './types.ts';
@@ -112,7 +115,8 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
       const hostile = isHostileSpell(book);
       if (hostile ? target.side === unit.side : target.side !== unit.side) throw new EngineError('TARGET_OUT_OF_RANGE', hostile ? '法术目标必须是敌军' : '法术目标必须是友军');
       const d = Math.abs(target.pos[0] - action.to[0]) + Math.abs(target.pos[1] - action.to[1]);
-      if (d < book.range[0] || d > book.range[1]) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在法术射程内');
+      const [minRange, maxRange] = spellRange(unit, book);
+      if (d < minRange || d > maxRange) throw new EngineError('TARGET_OUT_OF_RANGE', '目标不在法术射程内');
       if (!spellTargets(state, unit, action.to, book.id).some(entry => entry.id === target.id)) {
         throw new EngineError(spellKind(book) === 'heal' ? 'NOTHING_TO_HEAL' : 'TARGET_OUT_OF_RANGE', `${target.name} 不能接受这个法术`);
       }
@@ -146,6 +150,7 @@ function destinationOk(state: BattleState, unit: UnitState, action: ActAction & 
 // Move and action are one atomic command: everything is validated before anything changes.
 function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], auto = false): void {
   const unit = unitById(state, action.unit);
+  if (isCrossTimeDormant(state, unit)) throw new EngineError('UNIT_ALREADY_ACTED', `${unit.name} 待命中`);
   if (!unit.alive) throw new EngineError('UNKNOWN_UNIT', `${unit.name} 已退出战斗`);
   if (unit.npc) throw new EngineError('UNIT_ALREADY_ACTED', `${unit.name} 由系统控制，不能手动操作`);
   if (unit.petrified) throw new EngineError('UNIT_ALREADY_ACTED', `${unit.name} 石化庇护中，无法行动`);
@@ -157,10 +162,10 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     throw new EngineError('UNREACHABLE', '目标格不可达');
   }
   const target = validate(state, unit, action, auto);
+  const attacked = target?.side === 'enemy' && action.act !== 'art' ? [target.id] : [];
   const art = action.act === 'art' ? WEAPON_ART_BY_ID.get(action.art)! : null;
   const hits = action.act === 'art' && art ? validateArt(state, unit, action, art) : [];
   const walked = art ? new Set(pathTo(state, range, action.to).slice(1).map(p => p.join(','))).size : 0;
-  const artOptions = action.act === 'art' && art ? hits.map((hit, index) => artCombatOptions(state, unit, action.to, action.weapon, art, hit, index, walked)) : [];
   beginArtAction(state, unit, events);
   if (cellKey(state, action.to) !== range.origin) {
     moveUnit(state, unit, pathTo(state, range, action.to), events);
@@ -180,6 +185,9 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     // 魔道书的开场与追击次数由 runCombat 逐次扣除。
     runCombat(state, unit, target, action.weapon, events);
   } else if (action.act === 'art' && art) {
+    const scope = hits.length ? prepareTraitExchange(state, [unit, ...hits]) : undefined;
+    try {
+    const artOptions = hits.map((hit, index) => artCombatOptions(state, unit, action.to, action.weapon, art, hit, index, walked, action.target));
     equipWeapon(unit, action.weapon);
     const instance = unit.weaponInstances!.find(row => row.id === action.weapon)!;
     instance.durability -= art.cost;
@@ -196,6 +204,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     }
     for (const [index, hit] of hits.entries()) {
       if (!unit.alive || unit.petrified) break;
+      if (hit.side === 'enemy') attacked.push(hit.id);
       const strikes = runCombat(state, unit, hit, action.weapon, events, artOptions[index]);
       const landed = strikes.some(strike => strike.by === unit.id && strike.hit);
       free ||= !!refund?.critical && strikes.some(strike => strike.by === unit.id && strike.crit);
@@ -217,6 +226,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
         performSupport(state, unit, extra, unitById(state, support.target), events);
       }
     }
+    } finally { scope?.cleanup(); }
   } else if (action.act === 'heal' && target) {
     spendCharge(unit, action.weapon);
     if (WEAPONS[action.weapon].area) runAreaHeal(state, unit, action.weapon, events);
@@ -251,6 +261,7 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
   unit.acted = true;
   endArtAction(state, unit, events);
   checkResult(state, events);
+  scheduleCrossTimeGroups(state, events, unit.side === 'player' ? attacked : []);
 }
 
 function performSupport(state: BattleState, unit: UnitState, action: ActAction, target: UnitState, events: BattleEvent[]): void {
@@ -382,6 +393,7 @@ function advanceNpcs(state: BattleState, events: BattleEvent[]): void {
 
 function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void {
   state.phase = side;
+  if (side === 'enemy') activateCrossTimeGroups(state, events);
   expireArtPhase(state, side, 'start', events);
   if (state.objects) state.objects = state.objects.filter(object => object.expiresTurn === undefined || object.expiresTurn > state.turn);
   // 石化庇护到下一个己方阶段解除（docs/13 §4.2）。

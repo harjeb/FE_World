@@ -11,6 +11,7 @@ import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, 
 import type { BattleState, Point, UnitState } from './types.ts';
 import { interactionOptions } from './scenario.ts';
 import { artTargets, spellBlock, spellDestination, spellTargets, staffDestination, staffEffect, staffTargets } from './support.ts';
+import { spellRange } from './spells.ts';
 import type { DestinationRule, StaffEffect } from './support.ts';
 
 // Foes a weapon can hit from a cell, or injured allies a healing staff can reach (status and
@@ -115,7 +116,7 @@ export function reachCells(state: BattleState, unit: UnitState, range: MoveRange
   const ranges = weapons.map(weapon => weaponRange(unit, weapon));
   if (!isAsleep(unit) && !isSilenced(unit)) for (const row of unit.spellbooks ?? []) {
     const book = SPELLBOOK_BY_ID.get(row.id);
-    if (book && row.charges > 0 && book.role === kind && !spellBlock(unit, book)) ranges.push(book.range);
+    if (book && row.charges > 0 && book.role === kind && !spellBlock(unit, book)) ranges.push(spellRange(unit, book));
   }
   const cells = new Set<number>();
   for (const stop of range.stops) {

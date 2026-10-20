@@ -1,4 +1,5 @@
 import { CHARACTERS } from '../data/characters.ts';
+import { CROSS_TIME_DATA } from './cross-time-data.ts';
 import type { ClassId } from '../data/classes.ts';
 import { CLASSES, CHARACTER_CAPS, canonicalClassId, classSpecies, classUnavailableReason, initialClass } from '../data/classes.ts';
 import { STAT_KEYS, withCharm } from '../data/types.ts';
@@ -204,11 +205,11 @@ export function claimLegacy(legacy: LegacyRecord, recipient: UnitRecord, mode: L
 }
 
 // 轮回归零：等级、经验、第一轮成长、药效与数值补点都清除，回到固定一级基准（docs/00 §5.2）。
-export function reincarnationBase(character: UnitRecord['character'], classId: ClassId): Stats {
-  const def = CHARACTERS[character];
+export function reincarnationBase(character: UnitRecord['character'], classId: ClassId, crossTimeIdentity?: string | null): Stats {
+  const base = CROSS_TIME_DATA.find(row => row.id === crossTimeIdentity)?.base ?? CHARACTERS[character].base;
   const cls = CLASSES[classId];
   const stats = {} as Stats;
-  for (const key of STAT_KEYS) stats[key] = Math.min(cls.caps[key] ?? Infinity, def.base[key]);
+  for (const key of STAT_KEYS) stats[key] = Math.min(cls.caps[key] ?? Infinity, base[key]);
   return stats;
 }
 
@@ -244,7 +245,7 @@ export function reincarnate(unit: UnitRecord, allocation: Partial<Stats>, initia
     if (value < 0) throw new Error('轮回分配不能为负');
     if (value > REINCARNATION_STAT_MAX) throw new Error(`单项分配上限为 ${REINCARNATION_STAT_MAX} 个百分点（${key}）`);
   }
-  const baseStats = reincarnationBase(unit.character, initialClassId);
+  const baseStats = reincarnationBase(unit.character, initialClassId, unit.crossTimeIdentity);
   const record: ReincarnationRecord = {
     unitId: unit.id, sourceCycle: 0, targetCycle: 1, baseStats, growthAllocation: { ...allocation },
     newAgeBaseDays: 16 * daysPerYear,

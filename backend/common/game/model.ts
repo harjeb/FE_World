@@ -31,6 +31,8 @@ export interface UnitRecord {
   character: CharacterId;
   // 身份特性独立于形象；缺省时沿用角色表，且不占习得技能格。
   personalSkill?: SkillId;
+  // Persistent origin; reincarnated units retain identity but no longer occupy a cross-time slot.
+  crossTimeIdentity?: string;
   // 自捏主角覆盖（docs/00 「神主角」）：显示名、性别与形象预设；其余角色沿用 CHARACTERS[character]。
   name?: string;
   sex?: 'male' | 'female';

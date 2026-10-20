@@ -92,7 +92,7 @@ class ArenaStore {
     return reveal;
   }
 
-  async start(id: string, picks: { character: CharacterId; unitId: string; pos: [number, number] }[], commander: CharacterId): Promise<void> {
+  async start(id: string, picks: { character: CharacterId; unitId: string; pos: [number, number] }[], commander: string): Promise<void> {
     if (this.record(id).status !== 'revealed') return;
     const battleId = await session.arenaAttack(id, picks, commander);
     this.overrides.set(id, { status: 'fighting', battle: session.battleFor(id), battleId });

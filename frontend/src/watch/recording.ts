@@ -64,6 +64,11 @@ export function applyEvents(before: BattleState, events: BattleEvent[]): BattleS
   const unit = (id: string) => d.units.find(u => u.id === id)!;
   for (const e of events) {
     switch (e.t) {
+      case 'cross_time_group': {
+        const group = d.crossTimeGroups?.find(group => group.id === e.id);
+        if (group) Object.assign(group, { active: e.active, activateTurn: e.turn, reason: e.reason });
+        break;
+      }
       case 'phase':
         d.phase = e.side;
         d.turn = e.turn;

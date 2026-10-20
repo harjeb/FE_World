@@ -14,7 +14,7 @@ export type ManualItemKey = `manual:${string}`;
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
   | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
   | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal'
-  | 'old_map' | SpellbookItemKey | ManualItemKey;
+  | 'old_map' | 'cross_time_shard' | SpellbookItemKey | ManualItemKey;
 
 // 唯一武器：任务专属 + 挑战塔 A 级以上签名武器。它们可以装备、修理、回收，
 // 但不能出售；银系与勇者属于普通生产，不在此集合。
@@ -93,6 +93,7 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   immortal_shield: { name: '不朽盾', kind: 'consumable', price: 6_000, uses: 1, weight: 1, note: '致命时消耗一枚，保留 1HP 并石化至下个己方阶段；只能战前携带' },
   ether_ration: { name: '以太口粮', kind: 'food', price: 300, note: '恢复一本法术书 25% 次数' },
   full_meal: { name: '完整料理', kind: 'food', price: 900, note: '恢复一本法术书全部次数' },
+  cross_time_shard: { name: '时空碎片', kind: 'key', price: 0, bound: true, note: '固定兑换时空武将，每名消耗3枚；仅存仓库，不能出售、使用或带进战斗' },
   old_map: { name: '古旧地图', kind: 'key', price: 0, bound: true, note: '任务物品：标着巴尔格山岭深处的一条旧路；不能出售，也不能带进战斗' },
 };
 

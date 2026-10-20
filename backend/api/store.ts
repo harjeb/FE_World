@@ -21,6 +21,7 @@ import { isArenaDay } from '../common/game/calendar.ts';
 import type { WeaponId, WeaponInstance } from '../common/data/weapons.ts';
 
 export interface PlayerFlags {
+  crossTime?: { acceptedRegion?: number; clearedNormal?: boolean; clearedHard?: boolean; exchanged?: string[] };
   calendarVersion?: 120 | 500;
   calendarMigration?: { from: 120 | 500; at: number; oldDay: number; newDay: number; legacySnapshotIds: string[] };
   storedWeapons?: WeaponInstance[];

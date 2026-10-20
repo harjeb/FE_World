@@ -1,3 +1,4 @@
+import { isCrossTimeDormant } from './cross-time-groups.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { forecast, terrainBonus } from './combat.ts';
 import type { Forecast } from './combat.ts';
@@ -335,8 +336,9 @@ function searchDecision(state: BattleState, actors: UnitState[], only?: string, 
 }
 
 export function decide(state: BattleState, unit: UnitState): ActAction {
+  if (isCrossTimeDormant(state, unit)) return { type: 'act', unit: unit.id, to: unit.pos, act: 'wait' };
   if (unit.side === 'enemy' && !isBerserk(unit) && !isAsleep(unit) && !unit.petrified && !unit.acted) {
-    const actors = living(state, 'enemy');
+    const actors = living(state, 'enemy').filter(actor => !isCrossTimeDormant(state, actor));
     return (state.aiDifficulty === 'hard' ? searchDecision(state, actors, unit.id)
       : tacticalChoices(state, actors).find(choice => choice.action.unit === unit.id)?.action) ?? normalDecision(state, unit);
   }
@@ -345,5 +347,6 @@ export function decide(state: BattleState, unit: UnitState): ActAction {
 
 // Both levels replan after actual actions; hard additionally compares legal multi-unit continuations.
 export function nextEnemyAction(state: BattleState, units: UnitState[], budget?: { remaining: number }): ActAction | null {
+  units = units.filter(unit => !isCrossTimeDormant(state, unit));
   return state.aiDifficulty === 'hard' ? searchDecision(state, units, undefined, budget) : tacticalChoices(state, units)[0]?.action ?? null;
 }

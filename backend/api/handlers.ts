@@ -1,3 +1,6 @@
+import { CROSS_TIME_QUEST_ID, CROSS_TIME_SHARD, crossTimeById, createCrossTimeRecruit } from '../common/game/cross-time.ts';
+import { createCrossTimeBattle } from '../common/game/cross-time-battle.ts';
+import { crossTimeQuestView, crossTimeRecruitView } from './cross-time.ts';
 import { randomUUID } from 'node:crypto';
 import { createHash } from 'node:crypto';
 import { OP, OP_BY_NUMBER, WRITE_OPS } from '../common/protocol/ops.ts';
@@ -209,6 +212,8 @@ export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0
     nextObjective: state.nextObjective ?? null,
     npcRoute: state.npcRoute ?? null,
     result: state.result ?? null,
+    crossTimeRewards: (record as BattleRecord & { crossTimeRewards?: unknown }).crossTimeRewards ?? null,
+    crossTimeGroups: state.crossTimeGroups ?? [],
     embers: state.embers ?? [],
     map: { ...asciiMap(state), season: state.map.season ?? null },
     units: state.units.filter(u => u.alive).map(u => ({
@@ -274,7 +279,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
   const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
   const annualOutcome = handleAnnualOutcome(ctx.store, ctx.player, record);
   // 地区任务胜利即标记完成；奖励用 CLAIM_QUEST_REWARD 另领（docs/20 §7）。
-  if (record.questId && !record.runId && record.state.result?.winner === 'player') {
+  if (record.questId && record.questId !== CROSS_TIME_QUEST_ID && !record.runId && record.state.result?.winner === 'player') {
     ctx.player.flags.questsDone ??= [];
     if (!ctx.player.flags.questsDone.includes(record.questId)) {
       ctx.player.flags.questsDone.push(record.questId);
@@ -1693,7 +1698,7 @@ const handlers: Record<number, Handler> = {
     const opponent = findOpponent(record, asString(data.opponentId, 'opponentId'));
     return {
       opponent: opponentView(opponent),
-      list: opponentList(opponent).map(u => ({ character: u.character, name: u.name ?? CHARACTERS[u.character].name, classId: u.classId, level: u.level, stats: u.stats, weapons: u.weapons, ranks: u.ranks })),
+      list: opponentList(opponent).map(u => ({ id: u.id, character: u.character, name: u.name ?? CHARACTERS[u.character].name, classId: u.classId, level: u.level, stats: u.stats, weapons: u.weapons, ranks: u.ranks })),
     };
   },
 
@@ -1715,7 +1720,7 @@ const handlers: Record<number, Handler> = {
     ctx.store.saveArenaDay(record);
     return {
       opponentId, reveal: {
-        fielded: reveal.fielded.map(s => ({ character: s.unit.character, name: s.unit.name ?? CHARACTERS[s.unit.character].name, pos: s.pos })),
+        fielded: reveal.fielded.map(s => ({ id: s.unit.id, character: s.unit.character, name: s.unit.name ?? CHARACTERS[s.unit.character].name, pos: s.pos })),
         commander: reveal.commander, barred: reveal.barred,
       },
     };
@@ -2027,6 +2032,7 @@ const handlers: Record<number, Handler> = {
     const ongoing = new Set([ctx.store.activeRun(ctx.player.id)?.questId, ctx.store.activeBattle(ctx.player.id)?.questId]
       .filter((id): id is string => typeof id === 'string'));
     return {
+      crossTime: crossTimeQuestView(ctx.store, ctx.player, unlocked),
       // 只下发已解锁地区；可接或已完成的任务保留，进行中／可领奖的也不丢。
       regions: QUEST_REGIONS.filter(region => unlocked.includes(region)).map(region => {
         const rep = reputation[region] ?? 0;
@@ -2198,7 +2204,52 @@ const handlers: Record<number, Handler> = {
     return { floorId: floor.id, key, gold: reward.gold, items: reward.items, equipment };
   },
 
+  [OP.GET_CROSS_TIME_RECRUITS]: ctx => crossTimeRecruitView(ctx.store, ctx.player),
+
+  [OP.EXCHANGE_CROSS_TIME_RECRUIT]: (ctx, data) => {
+    if (!asString(data.commandId, 'commandId').trim()) throw new OpError('BAD_REQUEST', 'commandId不能为空');
+    const identityId = asString(data.identityId, 'identityId');
+    const identity = crossTimeById(identityId);
+    if (!identity) throw new OpError('NOT_FOUND', '没有这个时空身份');
+    const view = crossTimeRecruitView(ctx.store, ctx.player);
+    const entry = view.recruits.find(row => row.identityId === identityId)!;
+    if (!entry.eligible) throw new OpError('FORBIDDEN', entry.blockedReason!);
+    const unit = createCrossTimeRecruit(identityId, `u_cross_${randomUUID()}`, ctx.player.day);
+    ctx.store.takeInventory(ctx.player.id, CROSS_TIME_SHARD, 3);
+    const flags = ctx.player.flags.crossTime ??= {};
+    flags.exchanged = [...(flags.exchanged ?? []), identityId];
+    ctx.store.addUnit(ctx.player.id, unit);
+    ctx.store.savePlayer(ctx.player);
+    ctx.push(OP.STATE_CHANGED, { reason: 'cross-time-recruit' });
+    return { identityId, unitId: unit.id, unit: unitDetail(unit), cost: 3 };
+  },
+
   [OP.START_QUEST]: (ctx, data) => {
+    if (data.questId === CROSS_TIME_QUEST_ID) {
+      const aiDifficulty = asAiDifficulty(data.aiDifficulty);
+      if (ctx.player.day < 1000) throw new OpError('FORBIDDEN', '第1000日起开放时空试炼');
+      if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+      if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中');
+      if (aiDifficulty === 'hard' && !ctx.player.flags.crossTime?.clearedNormal) throw new OpError('FORBIDDEN', '先普通通关时空试炼');
+      const regions = adoptRegions(ctx.store, ctx.player);
+      const accepted = ctx.player.flags.crossTime?.acceptedRegion;
+      const region = data.region === undefined ? accepted ?? regions[0] : asNumber(data.region, 'region');
+      if (!Number.isInteger(region) || !regions.includes(region) || accepted !== undefined && region !== accepted) throw new OpError('FORBIDDEN', '请选择已开通地区；接取后入口地区固定');
+      const blockers = lifespanBlockers(ctx, ctx.player.day + 8);
+      if (blockers.length) throw new OpError('FORBIDDEN', blockers.join('；'));
+      const units = deploymentUnits(ctx, data.unitIds, 8);
+      const record = createCrossTimeBattle(units, { region, day: ctx.player.day, seed: randomUUID(), aiDifficulty });
+      record.playerId = ctx.player.id;
+      record.questId = CROSS_TIME_QUEST_ID;
+      record.costDays = 8;
+      (ctx.player.flags.crossTime ??= {}).acceptedRegion = region;
+      ctx.player.day += 8;
+      syncPlayer(ctx.store, ctx.player);
+      ctx.store.saveBattle(record);
+      ctx.store.savePlayer(ctx.player);
+      ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+      return { battleId: record.id, questId: CROSS_TIME_QUEST_ID, goalText: record.goalText, battle: battleView(record, false), state: publicState(record.state) };
+    }
     const aiDifficulty = asAiDifficulty(data.aiDifficulty);
     if (aiDifficulty === 'hard') {
       const quest = questById(asString(data.questId, 'questId'));
@@ -2283,6 +2334,7 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.CLAIM_QUEST_REWARD]: (ctx, data) => {
+    if (data.questId === CROSS_TIME_QUEST_ID) throw new OpError('FORBIDDEN', '时空试炼胜利自动发奖，不可另领');
     const quest = questById(asString(data.questId, 'questId'));
     if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
     if (!(ctx.player.flags.questsDone ?? []).includes(quest.id)) throw new OpError('FORBIDDEN', '任务尚未完成');

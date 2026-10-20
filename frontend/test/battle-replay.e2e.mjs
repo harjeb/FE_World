@@ -1,4 +1,4 @@
-// Server-backed browser smoke test for the battle, attack-only arena, reports and live spectate pages
+// Server-backed browser smoke test for battles, arena, replays, spectate and cross-time recruitment
 // (docs/07, docs/11). Starts the Fastify API with a throwaway database, serves the built frontend from
 // it, logs in, then drives real server battles through the UI: ending a phase in the browser must
 // advance the battle the server stores, and the reports/spectate pages must read the same data.
@@ -10,7 +10,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { seedBrowserAccount } from './fixtures.mjs';
+import { prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
 import { moveRange } from '../../backend/common/engine/index.ts';
 
 const API_PORT = 8612;
@@ -92,9 +92,14 @@ async function openPage(profile) {
       await sleep(700);
     },
     async clickText(selector, text, optional = false) {
-      const at = await evaluate(`(() => { const el = [...document.querySelectorAll(${JSON.stringify(selector)})].find(e => e.textContent.includes(${JSON.stringify(text)}));
-        if (!el) return null; el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
-      if (!at && !optional) throw new Error(`no ${selector} containing "${text}"`);
+      let at;
+      for (let i = 0; i < 100; i++) {
+        at = await evaluate(`(() => { const el = [...document.querySelectorAll(${JSON.stringify(selector)})].find(e => e.textContent.includes(${JSON.stringify(text)}));
+          if (!el || el.disabled) return null; el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
+        if (at || optional) break;
+        await sleep(100);
+      }
+      if (!at && !optional) throw new Error(`no ${selector} containing "${text}": ${await evaluate('location.href + "\\n" + document.body.innerText.slice(-2000)')}; ${errors.join(' | ')}`);
       if (at) await click(at);
     },
     async type(selector, text) {
@@ -292,6 +297,42 @@ try {
     await page.open(`${base}/#/spectate`, '.live-badge');
     const spectateText = await page.evaluate(`document.body.innerText.replace(/\\s+/g,' ').slice(0, 240)`);
     check('spectate is live-only when no battle is running', spectateText.includes('实时观战') && spectateText.includes('没有进行中的战斗') && page.errors.length === 0, spectateText.slice(0, 140));
+
+    // The calendar is now past day 1000. Open the shared quest and use the existing victory fixture
+    // to test settlement/exchange through the real API without depending on tactical difficulty.
+    await page.open(`${base}/#/quests`, '.quest-list');
+    await page.reload('.quest-list');
+    await page.clickText('[data-quest="cross-time-throne"] button', '准备出征');
+    await page.clickText('.quest-prep summary', '查看 17 名敌军');
+    check('cross-time preparation shows every enemy and the range map',
+      await page.evaluate(`document.querySelectorAll('.quest-prep select option').length === 17
+        && !!document.querySelector('.quest-prep [aria-label*="激活后的移动"]')
+        && document.querySelector('.quest-prep').innerText.includes('吕布本阵')`), '17 identities, map and activation rules');
+    await page.clickText('.quest-prep .go-bar button', '确认出征');
+    await settle(page);
+    const trial = await serverOp(page, 50, { full: true });
+    const enemies = trial.state.units.filter(unit => unit.side === 'enemy');
+    check('cross-time battle uses fixed enemies and displays dormant groups',
+      enemies.length === 17 && enemies.every(unit => unit.level === 48)
+        && trial.state.crossTimeGroups.length === 4 && trial.state.crossTimeGroups.every(group => !group.active)
+        && await page.evaluate(`!!document.querySelector('[aria-label="敌军分组警戒"]')`), '17 level-48 enemies and four groups');
+    const playerId = (await serverOp(page, 10)).player.id;
+    await serverOp(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), playerId, trial.state.id));
+    const unlocked = await serverOp(page, 143);
+    check('first cross-time victory unlocks the exchange and grants three shards',
+      unlocked.unlocked && unlocked.shards === 3 && unlocked.recruits.length === 17, `shards ${unlocked.shards}`);
+    await page.open(`${base}/#/tavern`, '#cross-time-heading');
+    await page.reload('#cross-time-heading');
+    await page.clickText('#cross-time button', '兑换 阿波罗');
+    let exchanged;
+    for (let i = 0; i < 100; i++) {
+      exchanged = await serverOp(page, 143);
+      if (exchanged.recruits.find(row => row.identityId === 'apollo').exchanged) break;
+      await sleep(100);
+    }
+    check('Apollo can be exchanged once through the tavern UI',
+      exchanged.shards === 0 && exchanged.slotsUsed === 1 && exchanged.recruits.find(row => row.identityId === 'apollo').exchanged
+        && page.errors.length === 0, `shards ${exchanged.shards}, slots ${exchanged.slotsUsed}; ${page.errors.join(' | ')}`);
   } finally {
     await page.close();
   }

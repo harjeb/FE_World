@@ -78,37 +78,21 @@ export function DeployPage({ id }: { id: string }) {
 
   // 派遣中的角色不能出战（服务端 activeSnapshot）。被对方预设禁用的按实例或角色匹配。
   const roster = state.units.filter(u => u.status === 'active' && !u.lockedDispatchId);
-  const barred = (u: { id: string; character: string }) => reveal.barred.includes(u.id) || reveal.barred.includes(u.character);
+  const barredIds = new Set(reveal.barred.map(ref => (roster.find(u => u.id === ref) ?? roster.find(u => u.character === ref))?.id));
+  const barred = (u: { id: string }) => barredIds.has(u.id);
   const allowed = roster.filter(u => !barred(u));
-  const lookOf = (unit: { character: string; portrait?: string | null }) => unit.portrait ?? unit.character;
-  // 同形象只能上一人，出战名额也按可用形象数封顶。
-  const need = Math.min(map.deploy, new Set(allowed.map(lookOf)).size);
+  const need = Math.min(map.deploy, allowed.length);
   const freeCell = (taken: Placement[]) => map.attackerZone.find(z => !taken.some(p => same(p.pos, z)));
-  const defaultPicks = () => {
-    const seen = new Set<string>();
-    return allowed.filter(u => {
-      const look = lookOf(u);
-      if (seen.has(look)) return false;
-      seen.add(look);
-      return true;
-    }).slice(0, need).map((u, i) => ({ unitId: u.id, character: u.character, pos: map.attackerZone[i] }));
-  };
+  const defaultPicks = () => allowed.slice(0, need).map((u, i) => ({ unitId: u.id, character: u.character, pos: map.attackerZone[i] }));
   const current = picks ?? defaultPicks();
   const lead = commander && current.some(p => p.unitId === commander) ? commander : current[0]?.unitId ?? null;
   const placed = (unitId: string) => current.find(p => p.unitId === unitId);
-  // 同形象只能上一人：随机招募与自捏主角可能让两个不同 character 锚点共用一张头像。
-  const clash = (unitId: string) => {
-    const unit = roster.find(u => u.id === unitId);
-    if (!unit) return false;
-    const look = lookOf(unit);
-    return current.some(p => p.unitId !== unitId && lookOf(roster.find(x => x.id === p.unitId) ?? p) === look);
-  };
   const togglePick = (unitId: string) => {
     const unit = roster.find(u => u.id === unitId)!;
     if (placed(unitId)) {
       setPicks(current.filter(p => p.unitId !== unitId));
       if (selected === unitId) setSelected(null);
-    } else if (current.length < need && !clash(unitId)) {
+    } else if (current.length < need && !barred(unit)) {
       setPicks([...current, { unitId, character: unit.character, pos: freeCell(current)! }]);
       setSelected(unitId);
     }
@@ -128,30 +112,29 @@ export function DeployPage({ id }: { id: string }) {
     if (from) onCell([from[0] + dx, from[1] + dy]);
   };
 
-  const leadCharacter = current.find(p => p.unitId === lead)?.character ?? null;
-  const plan: AttackPlan | null = leadCharacter ? { picks: current.map(p => ({ character: p.character, unitId: p.unitId, pos: p.pos })), commander: leadCharacter } : null;
+  const plan: AttackPlan | null = lead ? { picks: current.map(p => ({ character: p.character, unitId: p.unitId, pos: p.pos })), commander: lead } : null;
   const throne = map.goal === 'seize' ? throneOf(map) : null;
   // validateAttack only reads the map from the defense; the fielded units come from the server reveal.
   const shell: Defense = { id: opponent.id, legion: opponent.legion, points: opponent.points, record: opponent.record, map: opponent.map as ArenaMapId, slots: [], commanders: [], bans: [] };
   const errors = plan ? validateAttack(shell, { fielded: [], commander: reveal.commander, barred: reveal.barred }, roster.map(u => u.snapshot), plan) : ['请指定主将'];
-  const enemyInfo = (character: string): OpponentUnit | undefined => detail?.list.find(u => u.character === character);
+  const enemyInfo = (character: string): OpponentUnit | undefined => detail?.list.find(u => (u.id ?? u.character) === character);
   const enemyAt = (at: Point) => reveal.fielded.find(s => same(s.pos, at));
   const hoverEnemy = hover ? enemyAt(hover) : undefined;
   const hoverMine = hover ? current.find(p => same(p.pos, hover)) : undefined;
-  const hovered: UnitInfo | null = hoverEnemy && enemyInfo(hoverEnemy.character)
-    ? { ...enemyInfo(hoverEnemy.character)!, classId: enemyInfo(hoverEnemy.character)!.classId as ClassId }
+  const hovered: UnitInfo | null = hoverEnemy && enemyInfo(hoverEnemy.id ?? hoverEnemy.character)
+    ? { ...enemyInfo(hoverEnemy.id ?? hoverEnemy.character)!, classId: enemyInfo(hoverEnemy.id ?? hoverEnemy.character)!.classId as ClassId }
     : hoverMine ? (() => { const u = roster.find(x => x.id === hoverMine.unitId)!; return { name: u.name, classId: u.classId as ClassId, level: u.level, stats: u.snapshot.stats, weapons: u.snapshot.weapons }; })() : null;
   const units: PreviewUnit[] = [
     ...reveal.fielded.map(s => ({
-      key: `d-${s.character}`, side: 'enemy' as const, pos: s.pos, boss: s.character === reveal.commander,
-      sprite: spriteFor({ classId: (enemyInfo(s.character)?.classId ?? 'fighter') as ClassId, side: 'enemy' }),
+      key: `d-${s.id ?? s.character}`, side: 'enemy' as const, pos: s.pos, boss: (s.id ?? s.character) === reveal.commander,
+      sprite: spriteFor({ classId: (enemyInfo(s.id ?? s.character)?.classId ?? 'fighter') as ClassId, side: 'enemy' }),
     })),
     ...current.map(p => ({
       key: p.unitId, side: 'player' as const, pos: p.pos, lead: p.unitId === lead, selected: p.unitId === selected,
       sprite: spriteFor({ classId: roster.find(u => u.id === p.unitId)!.classId as ClassId, side: 'player' }),
     })),
   ];
-  const commanderName = reveal.fielded.find(s => s.character === reveal.commander)?.name ?? reveal.commander;
+  const commanderName = reveal.fielded.find(s => (s.id ?? s.character) === reveal.commander)?.name ?? reveal.commander;
   const start = async () => {
     if (!plan) return;
     setBusy(true);
@@ -197,7 +180,7 @@ export function DeployPage({ id }: { id: string }) {
           <section className="panel" aria-labelledby="bans-h">
             <div className="ph"><h2 id="bans-h">禁用结果</h2></div>
             <div className="flex flex-col gap-2" style={{ padding: '10px 14px', fontSize: 13 }}>
-              <div><span className="tag tag-red">你禁用了</span> {record.bans.map(c => detail?.list.find(u => u.character === c)?.name ?? c).join('、') || '无'}（对方）</div>
+              <div><span className="tag tag-red">你禁用了</span> {record.bans.map(c => detail?.list.find(u => (u.id ?? u.character) === c)?.name ?? c).join('、') || '无'}（对方）</div>
               <div>
                 <span className="tag tag-red">对方禁用了</span>{' '}
                 {reveal.barred.length > 0
@@ -216,7 +199,6 @@ export function DeployPage({ id }: { id: string }) {
               {roster.map(u => {
                 const ban = barred(u);
                 const spot = placed(u.id);
-                const dupe = !spot && clash(u.id);
                 const looks = { classId: u.classId as ClassId, side: 'player' as const, character: u.character, portrait: u.portrait ?? undefined };
                 return (
                   <li key={u.id} className={`urow${ban ? ' ban' : spot ? '' : ' off'}${selected === u.id ? ' sel' : ''}`}>
@@ -225,8 +207,8 @@ export function DeployPage({ id }: { id: string }) {
                       <span className="nm">{u.name}</span>
                       <span className="cl">{u.className} · Lv {u.level}</span>
                     </button>
-                    <span style={{ fontSize: 12, color: '#4E473D', textAlign: 'center' }}>{ban ? '被禁用' : dupe ? '同形象已上场' : spot ? `(${spot.pos[0]},${spot.pos[1]})` : '待命'}</span>
-                    <button type="button" className="pick" aria-pressed={!!spot} disabled={ban || dupe || (!spot && current.length >= need)} onClick={() => togglePick(u.id)}>
+                    <span style={{ fontSize: 12, color: '#4E473D', textAlign: 'center' }}>{ban ? '被禁用' : spot ? `(${spot.pos[0]},${spot.pos[1]})` : '待命'}</span>
+                    <button type="button" className="pick" aria-pressed={!!spot} disabled={ban || (!spot && current.length >= need)} onClick={() => togglePick(u.id)}>
                       {spot ? '出战' : '待命'}
                     </button>
                     <button type="button" className="star" aria-pressed={lead === u.id} disabled={!spot}

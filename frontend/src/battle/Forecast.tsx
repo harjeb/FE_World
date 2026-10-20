@@ -80,6 +80,21 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         <span className="fc-vs" aria-hidden="true">VS</span>
         <Fighter unit={defender} label={displayName(state, defender.id)} weapon={d.weapon} side={d} enemy />
       </div>
+      {f.branches && f.branches.length > 1 && <div className="fc-sum">
+        <p>概率特性在交战开始时判定；下方基础数值为未触发分支。</p>
+        {f.branches.map((branch, index) => {
+          const bf = branch.forecast;
+          const hits = forecastOnHit(bf);
+          return <div key={index}>
+            <b>{pct(branch.probability)}</b> · {Object.entries(branch.rolls).map(([id, active]) => `${displayName(state, id)}${active ? '触发' : '未触发'}`).join('、')}
+            <div>伤害 {hits.filter(s => s.side === 'attacker').map(s => s.damage).join(' + ')} / 反击 {hits.filter(s => s.side === 'defender').map(s => s.damage).join(' + ') || '—'}
+              {' · '}命中 {bf.attacker.hit}% / {bf.defender.canAttack ? `${bf.defender.hit}%` : '—'}
+              {' · '}必杀 {bf.attacker.crit}% / {bf.defender.crit}%
+              {' · '}攻速 {bf.attacker.attackSpeed} / {bf.defender.attackSpeed}
+              {' · '}击败 {pct(bf.defenderDies)} / 阵亡 {pct(bf.attackerDies)}</div>
+          </div>;
+        })}
+      </div>}
       <div className="fc-hps">
         <HpBox unit={attacker} loss={aLoss} color="#4A7FA6"
           note={dHits.length ? `反击伤害 ${aLoss}` : d.canAttack ? '可能受到反击' : '对方无法反击'} />

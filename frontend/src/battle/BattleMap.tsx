@@ -177,6 +177,7 @@ export function BattleMap({ snap, ctl, overlay }: { snap: Snapshot; ctl: BattleC
           {overlays && <CellLayer cells={overlays.heal} width={W} cell={cell} className="healz" />}
           {overlays && <CellLayer cells={overlays.dest} width={W} cell={cell} className="dest" />}
           {threat && <ThreatLayer cells={threat} width={W} cell={cell} />}
+          {view.crossTimeGroups?.filter(group => group.thresholdY !== undefined).map(group => <div key={group.id} style={{ position: 'absolute', pointerEvents: 'none', left: 0, top: (group.thresholdY! + 1) * cell, width, borderTop: '2px dashed #E8B45B', color: '#fff', textShadow: '1px 1px 2px #000', fontSize: 12, zIndex: 2 }}>{group.id} · Y≤{group.thresholdY} · {group.active ? '已激活' : group.activateTurn !== undefined ? `第${group.activateTurn}回合敌方行动` : '待命警戒线'}</div>)}
           {settings.grid && <div className="gridlines" />}
           {overlays?.path && <PathArrow path={overlays.path} cell={cell} width={width} height={height} />}
           {throne && <span className="throne-mark" style={{ left: throne[0] * cell, top: throne[1] * cell }} aria-hidden="true" />}

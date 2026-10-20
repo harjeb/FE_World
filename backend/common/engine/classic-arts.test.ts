@@ -10,6 +10,7 @@ import { actionOptions, artForecast, step, unitById } from './index.ts';
 import { combatProgress, resolveStrike, strikeRates, strikeDamage } from './combat.ts';
 import { artBonus, expireArtPhase } from './art-effects.ts';
 import { seedRng } from './rng.ts';
+import { createCrossTimeGroups } from './cross-time-groups.ts';
 import type { ArtAction } from './arts.ts';
 import type { BattleEvent } from './types.ts';
 
@@ -178,6 +179,52 @@ test('square area hits nine enemies, including beyond center range, never friend
   const friendly = step(x.state, x.action);
   assert.equal(combats(friendly.events).length, 8);
   assert.equal(unitById(friendly.state, victims[0].id).hp, 10000);
+});
+
+test('area action shares the attacker trait roll across victims and stat-based art options', () => {
+  for (const [seed, active] of [['area-burst-2', true], ['area-burst-3', false]] as const) {
+    const x = setup('fw_art_22'); x.state.rng = seedRng(seed); x.me.skill = 'risky_scheme';
+    x.foe.pos = [5, 4];
+    const second = structuredClone(x.foe); second.id = 'second'; second.pos = [5, 5]; x.state.units.push(second);
+    const before = JSON.stringify(x.state), result = step(x.state, x.action), exchanges = combats(result.events);
+    assert.equal(exchanges.length, 2);
+    assert.equal(exchanges[0].forecast?.traitRolls?.me, active);
+    assert.deepEqual(exchanges[0].forecast?.traitRolls, exchanges[1].forecast?.traitRolls);
+    for (const exchange of exchanges) {
+      assert.equal(exchange.forecast!.attacker.skl, 200 + (exchange.forecast!.traitRolls!.me ? 10 : 0));
+    }
+    assert.equal(unitById(result.state, 'me').stats.skl, 200);
+    assert.equal(JSON.stringify(step(JSON.parse(before), x.action)), JSON.stringify(result));
+    assert.equal(JSON.stringify(x.state), before);
+    const proc = setup('fw_art_24'); proc.me.skill = 'risky_scheme'; proc.me.stats.skl = 20; proc.state.rng = seedRng(seed);
+    const branch = proc.preview().branches!.find(b => b.rolls.me === active)!.forecast;
+    assert.equal(combats(step(proc.state, proc.action).events)[0].forecast!.art!.procChance, branch.art!.procChance);
+  }
+});
+
+test('skipped area victims never trigger their dormant group', () => {
+  const x = setup('axe_sweep');
+  x.state.map.height = 24; x.state.map.tiles = Array.from({ length: 24 }, () => Array(20).fill('plain'));
+  x.me.pos = [3, 19]; x.foe.pos = [4, 19]; x.foe.hp = 1;
+  const second = structuredClone(x.foe); second.id = 'second'; second.pos = [3, 20]; second.hp = 10000;
+  const guard = structuredClone(second); guard.id = 'guard'; guard.pos = [10, 20];
+  x.state.units.push(second, guard);
+  x.state.crossTimeGroups = createCrossTimeGroups([{ id: 'foe', group: 'A' }, { id: 'guard', group: 'A' }, { id: 'second', group: 'B' }]);
+  for (const group of x.state.crossTimeGroups) group.unitIds = group.unitIds.map(id => id.replace('cross-time:', ''));
+  const result = step(x.state, { ...x.action, to: x.me.pos, secondary: second.id });
+  assert.deepEqual(combats(result.events).map(e => e.defender), ['foe']);
+  assert.equal(unitById(result.state, second.id).hp, 10000);
+  assert.equal(result.state.crossTimeGroups!.find(g => g.id === 'B')!.activateTurn, undefined);
+});
+
+test('line area grants first-hit trait damage only to the selected primary target', () => {
+  const x = setup('chariot_line'); x.me.skill = 'capture_banner'; x.foe.pos = [7, 4];
+  const near = structuredClone(x.foe); near.id = 'near'; near.pos = [5, 4]; x.state.units.push(near);
+  const preview = x.preview();
+  for (const entry of preview.targets) assert.equal(entry.forecast.attacker.firstDamage, entry.target === x.foe.id ? 4 : 0);
+  assert.equal(preview.attacker.firstDamage, 4);
+  for (const exchange of combats(step(x.state, x.action).events))
+    assert.equal(exchange.forecast!.attacker.firstDamage, exchange.defender === x.foe.id ? 4 : 0);
 });
 
 test('proc stat clamps to exact zero/full and follow-up-only eligibility is explicit', () => {

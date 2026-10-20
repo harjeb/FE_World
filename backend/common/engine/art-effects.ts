@@ -1,4 +1,5 @@
 import type { ArtMechanics } from '../data/art-mechanics.ts';
+import { burstTrait, traitBurstActive } from './personal-traits.ts';
 import type { Stats } from '../data/types.ts';
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { objectBlocks } from './scenario.ts';
@@ -22,6 +23,12 @@ export function artStats(unit: UnitState): Stats {
   const stats = { ...unit.stats };
   for (const stat of ['str', 'mag', 'skl', 'spd', 'lck', 'def', 'res'] as const) {
     stats[stat] = Math.max(0, stats[stat] + artBonus(unit, stat));
+  }
+  if (traitBurstActive(unit)) {
+    const trait = burstTrait(unit);
+    if (trait === 'xiliang') stats.spd += 10;
+    if (trait === 'risky_scheme') stats.skl += 10;
+    if (trait === 'peerless') { stats.str += 10; stats.mag += 10; }
   }
   return stats;
 }
@@ -61,6 +68,13 @@ export function artHeal(unit: UnitState, amount: number, by: string | null, even
 }
 
 export function expireArtPhase(state: BattleState, side: Side, where: 'start' | 'end', events: BattleEvent[]): void {
+  if (where === 'start') for (const unit of state.units) {
+    const buffs = unit.artEffects?.buffs;
+    if (buffs?.some(b => b.source === `linked_scheme:${side}`)) {
+      unit.artEffects = { ...unit.artEffects, buffs: buffs.filter(b => b.source !== `linked_scheme:${side}`) };
+      emit(unit, events);
+    }
+  }
   for (const unit of state.units.filter(u => u.side === side)) {
     const effects = unit.artEffects;
     if (!effects) continue;
@@ -72,10 +86,12 @@ export function expireArtPhase(state: BattleState, side: Side, where: 'start' | 
         events.push({ t: 'hazard', unit: unit.id, source: 'status', kind: 'damage', amount, hpAfter: unit.hp });
       }
     }
-    const buffs = effects.buffs?.filter(b => b.duration !== (where === 'start' ? 'next_phase' : 'phase'));
-    const changed = buffs?.length !== effects.buffs?.length || (where === 'end' && !!effects.statuses?.length);
+    const buffs = effects.buffs?.filter(b => b.source.startsWith('linked_scheme:') || b.duration !== (where === 'start' ? 'next_phase' : 'phase'));
+    const changed = buffs?.length !== effects.buffs?.length || (where === 'end' && !!effects.statuses?.length)
+      || (where === 'start' && effects.formationMoved);
     if (changed) {
       unit.artEffects = { ...effects, buffs, ...(where === 'end' ? { statuses: [] } : {}) };
+      if (where === 'start') delete unit.artEffects.formationMoved;
       emit(unit, events);
     }
   }

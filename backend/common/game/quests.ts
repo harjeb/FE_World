@@ -108,7 +108,15 @@ import { CLASSIC_QUESTS } from './classic-quests.ts';
 export const BASE_QUESTS: readonly Quest[] = QUESTS;
 export const ALL_QUESTS: Quest[] = [...QUESTS, ...CLASSIC_QUESTS];
 
+export const CROSS_TIME_QUEST: Quest = {
+  id: 'cross-time-throne', region: 0, name: '时空试炼·终焉诸将',
+  objective: '击败吕布并取得胜利', kind: 'rout', tier: 'standard',
+  dungeonOnly: true, turnLimit: 40, maxUnits: 8, costDays: 8, enemyLevelCap: 52,
+  reward: { gold: 2500, reputation: 0, items: [['silver_sword', 1], ['vulnerary', 2], ['cross_time_shard', 3]] },
+};
+
 export function questById(id: string): Quest | undefined {
+  if (id === CROSS_TIME_QUEST.id) return CROSS_TIME_QUEST;
   return ALL_QUESTS.find(q => q.id === id);
 }
 

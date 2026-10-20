@@ -37,6 +37,7 @@ export function HpLine({ unit }: { unit: UnitState }) {
 
 // Selected or hovered unit: identity, HP, skill, combat numbers with the weapon in use, base stats.
 export function UnitCard({ state, unit, weapon, compact = false }: { state: BattleState; unit: UnitState; weapon?: WeaponId | null; compact?: boolean }) {
+  const group = state.crossTimeGroups?.find(group => group.unitIds.includes(unit.id));
   const cls = classOf(unit);
   const shown = weapon ?? equipped(unit) ?? staffWeapons(unit)[0] ?? null;
   const armed = shown !== null && WEAPONS[shown].type !== 'staff';
@@ -65,6 +66,7 @@ export function UnitCard({ state, unit, weapon, compact = false }: { state: Batt
   ];
   return (
     <section className="panel" aria-label={`${unit.name} 的信息`}>
+      {group && <p style={{ padding: '8px 14px' }}>{group.id} {group.name} · {group.active ? '已激活' : group.activateTurn !== undefined ? `待命 · 第 ${group.activateTurn} 回合敌方阶段行动` : '待命'}{group.thresholdY !== undefined && ` · 警戒线 Y≤${group.thresholdY}`} · 范围显示激活后的移动＋攻击</p>}
       <div className="ucard">
         <Portrait unit={unit} flip={unit.side === 'enemy' && !portraitFor(unit)} />
         <div className="flex-1 min-w-0">

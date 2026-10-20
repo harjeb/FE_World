@@ -84,8 +84,8 @@ export const OPS: readonly OpDef[] = [
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '完成一章主线事件；只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
-  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。' },
-  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
+  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。' },
+  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。' },
   { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。' },
@@ -105,6 +105,9 @@ export const OPS: readonly OpDef[] = [
 
   { op: 141, name: 'GET_WORLD_MAP', group: '地图', agentNote: '读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions、各地区0–100探索度；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区继续可访问，探索度独立于讨伐记录。' },
   { op: 142, name: 'CHOOSE_ROUTE', group: '地图', agentNote: '把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次可自由选择1–4，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；需先完成开局自捏。' },
+
+  { op: 143, name: 'GET_CROSS_TIME_RECRUITS', group: '整备', agentNote: '读取跨时空固定兑换名单、永久兑换记录、碎片与三个在队名额；普通时空首通解锁。' },
+  { op: 144, name: 'EXCHANGE_CROSS_TIME_RECRUIT', group: '整备', agentNote: '营地用3枚时空碎片兑换identityId，必须带commandId；每身份账号仅一次，同时最多3名未轮回的存活时空武将，入队20级成长型。' },
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。encounter 返回本次随机战场的布局与人数配置；map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。未揭开的密室物件（state=hidden）及揭开它们的事件不下发，触发后随状态出现。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
@@ -158,11 +161,12 @@ export const WRITE_OPS = new Set<number>([
   OP.REGISTER_ANNUAL, OP.START_ANNUAL_MATCH, OP.WITHDRAW_ANNUAL, OP.COMPLETE_STORY_EVENT, OP.CLAIM_REWARD,
   OP.CLAIM_CONTROL, OP.RELEASE_CONTROL, OP.CHOOSE_ROUTE,
   OP.START_QUEST, OP.CLAIM_QUEST_REWARD, OP.BUY_QUEST_ITEM, OP.COMPLETE_SETUP, OP.START_CHALLENGE, OP.CLAIM_CHALLENGE_REWARD, OP.PLAY_MINIGAME, OP.ACCEPT_RECRUIT, OP.DECLINE_RECRUIT, OP.HIRE_TAVERN, OP.INN_REST, OP.USE_FOOD,
+  OP.EXCHANGE_CROSS_TIME_RECRUIT,
   OP.EXECUTE_ACTION, OP.UNIT_ACT, OP.END_PHASE, OP.RETREAT,
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 16;
+export const DOC_VERSION = 17;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

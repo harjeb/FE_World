@@ -188,7 +188,7 @@ function ReincarnatePanel({ unit }: { unit: ServerUnit }) {
   const initialId = unit.species === 'human' ? initialClassOf((unit.homeClassId ?? CHARACTERS[unit.character].classId) as ClassId) : initialClass(unit.species);
   const initial = CLASSES[initialId];
   // 轮回后 1 级的固定基准（game/legacy.ts::reincarnationBase），与服务端执行用同一个函数。
-  const base = reincarnationBase(unit.character, initialId);
+  const base = reincarnationBase(unit.character, initialId, unit.crossTimeIdentity);
   const prior = STAT_KEYS.some(k => (unit.growthAllocation[k] ?? 0) !== 0);
   const ready = unit.level >= REINCARNATION_LEVEL && unit.cycle === 0 && !unit.isProtagonist && !away && cores > 0 && state.gold >= REINCARNATION_GOLD;
   const bump = (k: StatKey, d: number) => setAlloc(a => {

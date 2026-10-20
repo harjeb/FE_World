@@ -11,6 +11,7 @@ import { legalArtTarget } from './arts.ts';
 import type { WeaponArt } from '../data/weapon-arts.ts';
 import { attackWeapons, distance, hasCurableStatus, inBounds, inRange, isSilenced, living, samePoint } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
+import { spellRange } from './spells.ts';
 
 // 落点：从施法者原位（caster）或本次移动的落点（stand）量起，曼哈顿距离不超过 max。
 // required=false 时可省略，引擎取施法者相邻的第一个空格。wall=true 的落点另按临时墙规则过滤。
@@ -204,7 +205,7 @@ export function spellTargets(state: BattleState, unit: UnitState, to: Point, spe
   if (kind === 'wall' && (state.objects ?? []).filter(object => object.owner === unit.id && object.kind === 'wall' && object.state === 'intact').length >= WALL_LIMIT) return [];
   const hostile = isHostileSpell(book);
   return living(state).filter(target => (hostile ? target.side !== unit.side : target.side === unit.side)
-    && target.id !== unit.id && within(book.range, distance(target.pos, to))
+    && target.id !== unit.id && within(spellRange(unit, book), distance(target.pos, to))
     && (kind !== 'status' || !target.immunities?.includes(book.effects.status!) && !hasStatus(target, book.effects.status!))
     && (kind !== 'heal' || !target.petrified && !target.immunities?.includes('healing') && target.hp < target.stats.hp)
     && (kind !== 'cure' || hasCurableStatus(target))

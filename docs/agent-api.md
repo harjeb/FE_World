@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 16
+docVersion: 17
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -17,7 +17,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 副本统一UI内选择路线，不另设随机／经典导航分类。GET_TODAY.sortieRegions[].dungeonStages与PREVIEW_ACTION(dungeon).dungeonStages为{name,scenarioId?}数组：两张生成图＋一张经典终图，全部60张经典地图分为12地区各5张的池，选择种子独立于战斗RNG并在出发时冻结。标准副本每图8日共24日，48项地区任务远征每图2日共6日。固定经典保留六个三图副本clx-fe1/2/3/6/7/8，每作一个，fe1/fe6在地区2、fe2/fe7在地区3、fe3/fe8在地区5，每图2日共6日；START_QUEST继续兼容。GET_QUESTS返回dungeonOnly、archived、stageNames；公开114项定义（108本地＋6经典），78项旧定义（60单图＋18短经典）仅保留查找，拒绝新开，旧进行中／待领奖仍列出。GET_RUN摘要返回stageNames/stageCount；没有stages的旧远征由CONTINUE_DUNGEON沿旧路线继续。
 
 属性上限：GET_UNIT.caps 与 GET_CATALOG.classes[id].caps 的 hp 为150，其余八项均为null表示无上限；stats 始终为数字，可超过99。等级仍为1～99，能力药使用次数与成长分配预算不变。数值传承预览 capacity=null、clippedTarget=sourceTotal、lost=0；HP补点仍限制150，其他点按权重分配。旧合同按保存的sourceTotal恢复未截断目标，已有属性和过去随机成长不重算。
-阿波罗个人特性 lightshot（光明神射）：开战时满HP且使用弓，本次有效技巧×2，覆盖主动、反击、连击、追击和战技技巧引用；不改永久stats及射程，最终概率仍限制0～100%，禁止必杀照常生效。单位快照可带personalSkill覆盖形象默认技能；预测双方skl为本次有效技巧。时空副本与兑换另行接入。
+阿波罗个人特性 lightshot（光明神射）：开战时满HP且使用弓，本次有效技巧×2，覆盖主动、反击、连击、追击和战技技巧引用；不改永久stats及射程，最终概率仍限制0～100%，禁止必杀照常生效。单位快照可带personalSkill覆盖形象默认技能；预测双方skl为本次有效技巧。时空副本与固定兑换已接入，见v17变更与GET_CROSS_TIME_RECRUITS。
 
 ## 帧格式
 
@@ -162,8 +162,8 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 123 | GET_QUESTS | 读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。 |
-| 124 | START_QUEST | 接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。 |
+| 123 | GET_QUESTS | 读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。 |
+| 124 | START_QUEST | 时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。 |
 | 125 | CLAIM_QUEST_REWARD | 领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。 |
 | 126 | BUY_QUEST_ITEM | 用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。 |
 | 127 | COMPLETE_SETUP | 完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；同伴不能是剧情奖励人物或主角形象，只能提交一次。 |
@@ -206,6 +206,12 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | --- | --- | --- |
 | 141 | GET_WORLD_MAP | 读取世界地图：王都与十二地区节点（locked 未开通／available 当前可选路线／unlocked 已解锁／cleared 已讨伐）、道路与 selectableRegions、各地区0–100探索度；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区继续可访问，探索度独立于讨伐记录。 |
 | 142 | CHOOSE_ROUTE | 把一条可选路线（region 必须在 selectableRegions 内，整数 1–12）正式解锁：不耗日、可多次选择、互不排斥；首次可自由选择1–4，之后须将已开通地区探索至100才可开通其相邻新路线，已开通地区仍可访问；需先完成开局自捏。 |
+### 整备
+
+| op | 名称 | 说明 |
+| --- | --- | --- |
+| 143 | GET_CROSS_TIME_RECRUITS | 读取跨时空固定兑换名单、永久兑换记录、碎片与三个在队名额；普通时空首通解锁。 |
+| 144 | EXCHANGE_CROSS_TIME_RECRUIT | 营地用3枚时空碎片兑换identityId，必须带commandId；每身份账号仅一次，同时最多3名未轮回的存活时空武将，入队20级成长型。 |
 ### 战斗
 
 | op | 名称 | 说明 |

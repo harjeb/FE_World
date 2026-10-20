@@ -1,5 +1,5 @@
 {
-  "docVersion": 16,
+  "docVersion": 17,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -231,7 +231,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard except cross-time-throne: its own normal win unlocks hard, fixed 17 enemies at level48/52 with dedicated stats, eight players, eight days, repeatable and automatic rewards; generic difficulty scaling does not apply. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "region": {
             "type": "number",
@@ -434,7 +434,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard except cross-time-throne: its own normal win unlocks hard, fixed 17 enemies at level48/52 with dedicated stats, eight players, eight days, repeatable and automatic rewards; generic difficulty scaling does not apply. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "times": {
             "type": "number"
@@ -1354,7 +1354,7 @@
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard except cross-time-throne: its own normal win unlocks hard, fixed 17 enemies at level48/52 with dedicated stats, eight players, eight days, repeatable and automatic rewards; generic difficulty scaling does not apply. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "commandId": {
             "type": "string",
@@ -1608,7 +1608,7 @@
       "op": 123,
       "name": "GET_QUESTS",
       "group": "任务",
-      "agentNote": "读取各地区任务与声望：档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。",
+      "agentNote": "读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1626,7 +1626,7 @@
       "op": 124,
       "name": "START_QUEST",
       "group": "任务",
-      "agentNote": "接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
+      "agentNote": "时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1634,13 +1634,18 @@
           "questId"
         ],
         "properties": {
+          "region": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 12
+          },
           "aiDifficulty": {
             "type": "string",
             "enum": [
               "normal",
               "hard"
             ],
-            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
+            "description": "Battle difficulty; defaults to normal and locks for the entire run. Hard requires a normal victory in this wild region or a normal full clear of this exact dungeon. Single-map quests do not support hard except cross-time-throne: its own normal win unlocks hard, fixed 17 enemies at level48/52 with dedicated stats, eight players, eight days, repeatable and automatic rewards; generic difficulty scaling does not apply. Read GET_STATE.hardUnlocks and GET_QUESTS.hardAvailable/hardUnlocked first. Hard adds deeper AI search, 50% more enemies where legal space permits, random +2–5 levels (cap 99), HP +20–35%, each other stat +10–25% (rounded up, minimum +1; HP cap 150, other stats uncapped), constitution +1–3, and upgraded usable equipment. Movement is unchanged. Applies to initial enemies and reinforcement waves; generation is seeded and saved, never rerolled on reload. Day costs and fixed quest rewards stay the same. Random encounters have map/difficulty-specific deployment limits and enemy counts independent of the selected party; read the encounter preview. More/higher-level foes can yield more combat experience; carried enemy gear is not a probabilistic drop. Dungeon first-clear equipment/items are separate per difficulty (hard has different higher-tier gear and more supplies); exploration and manual quest rewards remain once across difficulties."
           },
           "questId": {
             "type": "string"
@@ -2201,6 +2206,49 @@
             "minimum": 1,
             "maximum": 12,
             "description": "必须是世界地图 selectableRegions 中的整数地区 id；初选1–4自由，之后须将已开通地区探索至100才可选择其相邻新路线；已开通地区访问权保留"
+          },
+          "commandId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Caller-supplied retry identifier; reuse for retries of the same command."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "op": 143,
+      "name": "GET_CROSS_TIME_RECRUITS",
+      "group": "整备",
+      "agentNote": "读取跨时空固定兑换名单、永久兑换记录、碎片与三个在队名额；普通时空首通解锁。",
+      "push": false,
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Caller-supplied retry identifier; reuse for retries of the same command."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "op": 144,
+      "name": "EXCHANGE_CROSS_TIME_RECRUIT",
+      "group": "整备",
+      "agentNote": "营地用3枚时空碎片兑换identityId，必须带commandId；每身份账号仅一次，同时最多3名未轮回的存活时空武将，入队20级成长型。",
+      "push": false,
+      "dataSchema": {
+        "type": "object",
+        "required": [
+          "identityId",
+          "commandId"
+        ],
+        "properties": {
+          "identityId": {
+            "type": "string"
           },
           "commandId": {
             "type": "string",

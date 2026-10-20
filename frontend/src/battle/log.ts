@@ -1,5 +1,7 @@
 // Turns engine events into the compact 战况记录 lines. Each command becomes one line.
 import { TERRAINS } from '@common/maps/map.ts';
+import { SKILLS } from '@common/data/skills.ts';
+import { burstTrait } from '@common/engine/personal-traits.ts';
 import { STAT_NAMES } from '@common/data/types.ts';
 import type { StatKey } from '@common/data/types.ts';
 import { GAME_ITEMS } from '@common/game/items.ts';
@@ -33,6 +35,9 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
   for (const e of events) {
     t = e.t;
     switch (e.t) {
+      case 'cross_time_group':
+        push(`${e.id} ${e.name}：${e.active ? '已激活' : '进入警戒'}，第 ${e.turn} 回合敌方阶段行动（${e.reason}）。`, 'e', 'enemy');
+        break;
       case 'phase':
         turn = e.turn;
         phase = e.side;
@@ -48,6 +53,11 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
         push(`${name(e.unit)} ${moved.has(e.unit) ? '移动后待机' : '待机'}。`, mark(e.unit));
         break;
       case 'combat': {
+        for (const [id, active] of Object.entries(e.forecast?.traitRolls ?? {})) {
+          const unit = before.units.find(unit => unit.id === id);
+          const trait = unit && burstTrait(unit);
+          push(`${name(id)}「${trait ? SKILLS[trait].name : '概率特性'}」${active ? '发动' : '未发动'}（本次交战）。`, mark(id));
+        }
         const parts = e.strikes.map(s => {
           const result = !s.hit ? '未命中' : s.backlash ? `反噬，自己承受 ${s.damage}` : s.crit ? `必杀 ${s.damage}` : `命中 ${s.damage}`;
           return `${name(s.by)} ${result}${s.proc ? '（战技触发）' : ''}${s.byHpAfter !== undefined ? `（自身 HP ${s.byHpAfter}）` : ''}`;

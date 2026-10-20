@@ -1,3 +1,5 @@
+import { traitOpeningHP } from './personal-traits.ts';
+import type { TraitOpening } from './personal-traits.ts';
 import type { Weapon } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
 import { artStats } from './art-effects.ts';
@@ -13,6 +15,7 @@ export interface Fighter {
   weapon: Weapon | null;
   // Whether the unit has moved (or is moving) this turn; 坚守 needs it.
   moved: boolean;
+  traits?: TraitOpening;
 }
 
 // 个人技能与已装备的习得技能一起生效（docs/00 §4.2）；技能来源只按目录计算一次。
@@ -22,7 +25,7 @@ function hasSkill(unit: UnitState, skill: SkillId): boolean {
 
 export function combatStats(unit: UnitState, weapon: Weapon | null) {
   const stats = artStats(unit);
-  if (hasSkill(unit, 'lightshot') && unit.hp === unit.stats.hp && weapon?.type === 'bow') stats.skl *= 2;
+  if (hasSkill(unit, 'lightshot') && traitOpeningHP(unit) === unit.stats.hp && weapon?.type === 'bow') stats.skl *= 2;
   return stats;
 }
 
@@ -101,7 +104,9 @@ export function skillMods(state: BattleState, f: Fighter): Mods {
   applyClassSkills(mods, f);
   if (unit.shelteredTurn === state.turn) mods.def += 2;
   const veteranNearby = living(state, unit.side)
-    .some(ally => ally.id !== unit.id && hasSkill(ally, 'veteran') && distance(ally.pos, f.pos) === 1);
+    .some(ally => ally.id !== unit.id && ((hasSkill(ally, 'veteran') && distance(ally.pos, f.pos) === 1)
+      || (hasSkill(ally, 'eight_formations') && !ally.artEffects?.formationMoved && distance(ally.pos, f.pos) <= 2)));
   if (veteranNearby) mods.hit += 10;
+  if (f.traits) { mods.hit += f.traits.hit; mods.avoid += f.traits.avoid; mods.def += f.traits.def; mods.res += f.traits.res; }
   return mods;
 }

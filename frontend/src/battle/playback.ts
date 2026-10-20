@@ -52,6 +52,12 @@ export async function playEvents(ctl: PlaybackHost, events: BattleEvent[], befor
 
   for (const e of events) {
     switch (e.t) {
+      case 'cross_time_group':
+        edit(d => {
+          const group = d.crossTimeGroups?.find(group => group.id === e.id);
+          if (group) Object.assign(group, { active: e.active, activateTurn: e.turn, reason: e.reason });
+        });
+        break;
       case 'phase':
         edit(d => {
           d.phase = e.side;

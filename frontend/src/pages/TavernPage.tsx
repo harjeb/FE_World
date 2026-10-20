@@ -10,6 +10,7 @@ import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { Checks, Face, useAct } from './SystemParts.tsx';
+import { CrossTimeExchange } from './CrossTimeExchange.tsx';
 import { FrogFace, FrogRace } from './FrogRace.tsx';
 import { toast } from '../ui/toast.tsx';
 
@@ -34,6 +35,7 @@ export function TavernPage() {
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>金币 <b className="num">{state.gold.toLocaleString()}</b> · 名册 {state.rosterCount} / {state.rosterLimit}</div>
       </div>
       {!open && <p className="sys-strip" role="status">酒馆在第二年（{plainDate(RECRUIT_UNLOCK_DAY)}）开放，还有 {RECRUIT_UNLOCK_DAY - state.day} 日；游历招募同时开放。紧急补员不受这个限制。</p>}
+      <CrossTimeExchange />
       <div className="sys-cols">
         <div className="colstack">
           {open && <HirePanel />}

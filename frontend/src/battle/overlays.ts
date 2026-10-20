@@ -2,7 +2,7 @@
 // green = can heal, plus the planned route and the ghost at the planned destination.
 import { WEAPONS } from '@common/data/weapons.ts';
 import {
-  cellKey, moveRange, pathTo, reachCells, targetsFrom, threatMap, unitById, weaponRange,
+  cellKey, moveRange, pathTo, reachCells, targetsFrom, threatMap, unitAt, unitById, weaponRange,
 } from '@common/engine/index.ts';
 import type { BattleState, Point, UnitState } from '@common/engine/index.ts';
 import type { Mode } from './selection.ts';
@@ -44,6 +44,10 @@ function reach(state: BattleState, unit: UnitState): Overlays {
 
 export function overlaysFor(state: BattleState, mode: Mode, hover: Point | null): Overlays {
   switch (mode.kind) {
+    case 'idle': {
+      const unit = hover ? unitAt(state, hover) : undefined;
+      return unit?.side === 'enemy' ? reach(state, unit) : EMPTY;
+    }
     case 'inspect':
       return reach(state, unitById(state, mode.unit));
     case 'move': {

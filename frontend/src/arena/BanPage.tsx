@@ -79,9 +79,9 @@ export function BanPage({ id }: { id: string }) {
             </div>
             <ul aria-label="防守方角色">
               {list.map(u => {
-                const banned = bans.includes(u.character);
+                const banned = bans.includes(u.id ?? u.character);
                 return (
-                  <li key={u.character} className={`drow${banned ? ' banned' : ''}`}>
+                  <li key={u.id ?? u.character} className={`drow${banned ? ' banned' : ''}`}>
                     <Face unit={u} size={44} />
                     <span className="min-w-0">
                       <span className="dn">{u.name}</span>
@@ -93,7 +93,7 @@ export function BanPage({ id }: { id: string }) {
                       <span className="wnames">{u.weapons.map(w => WEAPONS[w as WeaponId]?.name ?? w).join(' ')}</span>
                     </span>
                     <button type="button" className="btn btn-sm ban" aria-pressed={banned} disabled={!banned && full}
-                      onClick={() => toggle(u.character)} aria-label={`${banned ? '撤销禁用' : '禁用'} ${u.name}`}>
+                      onClick={() => toggle(u.id ?? u.character)} aria-label={`${banned ? '撤销禁用' : '禁用'} ${u.name}`}>
                       {banned ? '已禁用' : '禁用'}
                     </button>
                   </li>
@@ -126,13 +126,13 @@ export function BanPage({ id }: { id: string }) {
         <div className="flex flex-wrap gap-2">
           {Array.from({ length: map.bans }, (_, i) => {
             const c = bans[i];
-            const u = c ? list.find(x => x.character === c) : null;
+            const u = c ? list.find(x => (x.id ?? x.character) === c) : null;
             return u ? (
               <span key={i} className="slot">
                 <Face unit={u} size={32} />
                 <b style={{ fontSize: 14 }}>{u.name}</b>
                 <button type="button" className="btn btn-sm btn-ghost" style={{ minHeight: 32, padding: '0 8px' }}
-                  onClick={() => toggle(u.character)} aria-label={`撤销禁用 ${u.name}`}>撤销</button>
+                  onClick={() => toggle(u.id ?? u.character)} aria-label={`撤销禁用 ${u.name}`}>撤销</button>
               </span>
             ) : <span key={i} className="slot empty">空位：从左侧名单选择</span>;
           })}

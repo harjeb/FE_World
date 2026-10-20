@@ -39,10 +39,7 @@ const STAGE_THRESHOLDS: Record<number, [number, number]> = {
   1: [15, 40], 2: [30, 80], 3: [60, 140], 4: [100, 220], 5: [160, 320],
 };
 
-const NODE_NAMES: Record<SkillId, string> = {
-  opening: '破绽', surge: '怒涛', veteran: '老练', nimble: '轻盈', hawkeye: '鹰眼', focus: '聚魔',
-  shelter: '庇护', steadfast: '坚守', keen: '锐眼', grit: '斗志', prayer: '祈愿', charge: '冲阵', lightshot: '光明神射',
-};
+const NODE_NAMES = Object.fromEntries(Object.entries(SKILLS).map(([id, skill]) => [id, skill.name])) as Record<SkillId, string>;
 
 export const MASTERY_NODES: Record<CatalogClassId, MasteryNode[]> = Object.fromEntries(
   CATALOG_CLASS_IDS.map(classId => {

@@ -1,5 +1,6 @@
 import { classOf, living, unitAt, unitById } from '@common/engine/index.ts';
 import type { BattleState, UnitState } from '@common/engine/index.ts';
+import { groupViews, groupStatus, planningGroupWarnings } from './cross-time-groups.ts';
 import { ActionPanel } from './ActionPanel.tsx';
 import type { BattleController, Snapshot } from './controller.ts';
 import { CommandConfirm, CommandPreview, ConfirmPanel, ForecastPanel, HealPreview } from './Forecast.tsx';
@@ -48,6 +49,11 @@ export function SidePanel({ snap, ctl }: { snap: Snapshot; ctl: BattleController
 
   return (
     <>
+      {state.crossTimeGroups && <section className="panel" style={{ padding: '10px 14px' }} aria-label="敌军分组警戒">
+        {groupViews(state).map(group => <p key={group.id}><b>{group.id} {group.name}</b> · {groupStatus(group)}{group.boundaryY !== undefined && ` · 警戒线 Y≤${group.boundaryY}`}</p>)}
+        <p className="muted">待命敌军正常反击。悬停或选择敌军可查看激活后的移动＋攻击范围。</p>
+      </section>}
+      {planningGroupWarnings(state, mode, hover).map(warning => <p key={warning} role="alert" className="panel" style={{ padding: '10px 14px', color: '#93392F' }}>{warning}</p>)}
       {focus && focus.alive && <UnitCard state={state} unit={focus} weapon={weapon} compact={ownFlow && mode.kind !== 'move'} />}
       {ownFlow && <Steps index={stepIndex(mode)} />}
       {mode.kind === 'move' && (

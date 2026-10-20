@@ -1,3 +1,4 @@
+import { directHealingRangeBonus } from './personal-traits.ts';
 import { CLASSES } from '../data/classes.ts';
 import type { ClassDef } from '../data/classes.ts';
 import { rankAtLeast } from '../data/types.ts';
@@ -177,8 +178,9 @@ export function equipped(unit: UnitState): WeaponId | null {
 
 export function weaponRange(unit: UnitState, id: WeaponId): [number, number] {
   const w: Weapon = WEAPONS[id];
-  if (w.magRange) return [1, Math.max(1, Math.floor(unit.stats.mag / 2))];
-  return [w.range[0], w.range[1]];
+  const bonus = directHealingRangeBonus(unit, id);
+  if (w.magRange) return [1, Math.max(1, Math.floor(unit.stats.mag / 2)) + bonus];
+  return [w.range[0], w.range[1] + bonus];
 }
 
 export function inRange(unit: UnitState, id: WeaponId, from: Point, to: Point): boolean {

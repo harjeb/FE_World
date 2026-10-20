@@ -25,6 +25,7 @@ export type LifespanWarning = 'none' | 'oneYear' | 'lastSeason' | 'due';
 export interface ServerUnit {
   id: string;
   character: CharacterId;
+  crossTimeIdentity?: string | null;
   name: string;
   sex: 'male' | 'female' | null;
   portrait: CharacterId | null;
@@ -170,10 +171,10 @@ export interface ServerArena {
 }
 
 // GET_OPPONENT: the defender's list with stats and gear (no positions or AI) for the ban step.
-export interface OpponentUnit { character: CharacterId; name: string; classId: string; level: number; stats: Stats; weapons: string[]; ranks: Partial<Record<WeaponType, Rank>> }
+export interface OpponentUnit { id?: string; character: CharacterId; name: string; classId: string; level: number; stats: Stats; weapons: string[]; ranks: Partial<Record<WeaponType, Rank>> }
 export interface ServerOpponentDetail { opponent: ServerOpponent; list: OpponentUnit[] }
 // ARENA_BAN: who actually fields and where, the defending commander, and which of mine are barred.
-export interface ArenaReveal { fielded: { character: CharacterId; name: string; pos: Point }[]; commander: CharacterId; barred: string[] }
+export interface ArenaReveal { fielded: { id?: string; character: CharacterId; name: string; pos: Point }[]; commander: string; barred: string[] }
 
 // GET_TODAY: what each camp action costs right now, and the sortie rules shown before committing days.
 export interface TodayAction {
@@ -276,8 +277,18 @@ export interface QuestView {
   done: boolean; claimed: boolean; available: boolean; inProgress?: boolean;
   classic?: { game: string; mapName: string; stageCount: number; adapted?: boolean } | null;
 }
+export interface ServerCrossTimeRecruits {
+  unlocked: boolean; shards: number; cost: number; slotsUsed: number; slotLimit: number;
+  rosterFull: boolean; busy: boolean;
+  recruits: {
+    identityId: string; name: string; classId: string; personalSkill: string; level: number;
+    growthType: 'growth'; exchanged: boolean; eligible: boolean; blockedReason: string | null;
+    stats?: Stats; growth?: Stats; con?: number;
+  }[];
+}
+
 export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean }[]; quests: QuestView[] }
-export interface ServerQuests { regions: QuestRegion[] }
+export interface ServerQuests { regions: QuestRegion[]; crossTime?: (QuestView & { acceptedRegion: number | null; availableRegions: number[] }) | null }
 
 // GET_CHALLENGES: the tower floors (docs/00 §9.6).
 export interface ChallengeFloor {
@@ -588,7 +599,7 @@ class SessionStore {
     return result.reveal;
   }
 
-  async arenaAttack(opponentId: string, picks: { character: CharacterId; unitId?: string; pos: [number, number] }[], commander: CharacterId): Promise<string> {
+  async arenaAttack(opponentId: string, picks: { character: CharacterId; unitId?: string; pos: [number, number] }[], commander: string): Promise<string> {
     const credential = token();
     const result = await call<{ battleId: string; state: BattleState }>(OP.ARENA_ATTACK, { opponentId, picks, commander }, newCommandId());
     if (credential === token()) this.set({ battles: { ...this.snap.battles, [opponentId]: result.state } });
@@ -702,6 +713,10 @@ class SessionStore {
   async challenges(): Promise<ChallengeFloor[]> {
     const result = await call<{ floors: ChallengeFloor[] }>(OP.GET_CHALLENGES);
     return result.floors;
+  }
+
+  async crossTimeRecruits(): Promise<ServerCrossTimeRecruits> {
+    return call<ServerCrossTimeRecruits>(OP.GET_CROSS_TIME_RECRUITS);
   }
 
   async tavern(region?: number): Promise<ServerTavern> {

@@ -1,3 +1,5 @@
+import { hasTrait, prepareTraitExchange, traitBranches, traitOpening } from './personal-traits.ts';
+import type { TraitRolls } from './personal-traits.ts';
 import { WEAPONS, triangle } from '../data/weapons.ts';
 import type { Weapon, WeaponAilment, WeaponId } from '../data/weapons.ts';
 import { ART_MECHANICS } from '../data/art-mechanics.ts';
@@ -15,6 +17,8 @@ import type { BattleState, Point, UnitState } from './types.ts';
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 export interface TerrainBonus { name: string; avoid: number; def: number; applies: boolean }
 export interface SideForecast {
+  rawHit?: number;
+  firstDamage?: number; firstWard?: number; thunder?: boolean;
   unit: string; weapon: WeaponId | null; hp: number; maxHp: number; skl: number;
   attackSpeed: number; attack: number; damage: number; rawDamage: number; hit: number; crit: number; followUpCrit: number;
   strikes: number; canAttack: boolean; doubles: boolean; triangle: -1 | 0 | 1; effective: boolean;
@@ -28,22 +32,27 @@ export interface StrikeSpec { side: 'attacker' | 'defender'; followUp: boolean; 
 export interface Forecast {
   attacker: SideForecast; defender: SideForecast; order: StrikeSpec[];
   defenderDies: number; attackerDies: number; expectedDealt: number; expectedTaken: number;
+  killHeal?: number;
+  traitRolls?: TraitRolls;
+  branches?: { probability: number; rolls: TraitRolls; forecast: Forecast }[];
   art?: CombatArt;
   assumption?: 'independent_opening_state';
 }
 export interface CombatArt extends ArtMechanics {
+  secondaryTraitTarget?: boolean;
   id: string; might: number; hit: number; crit: number; sequence?: string; hits?: number;
   single?: boolean; noCrit?: boolean; scale?: number; pierce?: number; terrainAvoid?: number;
   firstCounterReduction?: number; reductionOnHit?: boolean; sealOnHit?: boolean;
   procChance?: number; forceProbability?: number; allowFoeFollowUp?: boolean; onHitStatLoss?: number;
 }
 export interface CombatProgress {
+  directKill: boolean; defenderAttempts: number; thunderHit: boolean;
   aHp: number; dHp: number; attackerHit: boolean; counterReduced: boolean; barrierA: number; barrierD: number;
   counterBlocked: boolean; defenderNoFollow: boolean; attackerNoFollow: boolean; misses: number; attacks: number; stopped: boolean;
   defenseLoss: number; speedLoss: number; netherDisabled: boolean; forced: -1 | 0 | 1;
 }
 export function combatProgress(f: Forecast): CombatProgress {
-  return { aHp: f.attacker.hp, dHp: f.defender.hp, attackerHit: false, counterReduced: false,
+  return { directKill: false, defenderAttempts: 0, thunderHit: false, aHp: f.attacker.hp, dHp: f.defender.hp, attackerHit: false, counterReduced: false,
     barrierA: f.attacker.barrier, barrierD: f.defender.barrier, counterBlocked: false,
     defenderNoFollow: !!f.art?.sealFollowUp && !f.art.sealOnHit, attackerNoFollow: false, misses: 0, attacks: 0, stopped: false,
     defenseLoss: 0, speedLoss: 0, netherDisabled: false, forced: -1 };
@@ -57,15 +66,16 @@ export function strikeRates(f: Forecast, spec: StrikeSpec, p: CombatProgress) {
   const me = f[spec.side], art = spec.side === 'attacker' ? f.art : undefined;
   const guaranteed = art?.sureHit === 'all' || (art?.sureHit === 'first' && p.attacks === 0);
   return {
-    hit: guaranteed ? 100 : clamp(me.hit + (art?.hitAfterMiss ?? 0) * p.misses),
+    hit: guaranteed ? 100 : clamp((spec.side === 'defender' && p.thunderHit && me.hit === 100 ? me.rawHit ?? me.hit : me.hit)
+      + (art?.hitAfterMiss ?? 0) * p.misses - (spec.side === 'defender' && p.thunderHit ? 10 : 0)),
     crit: spec.followUp ? me.followUpCrit : me.crit,
     proc: art?.proc && (!spec.followUp || art.proc.followUp) && (art.proc.when !== 'foe_full' || p.dHp === f.defender.maxHp) ? art.procChance ?? 0 : 0,
     backlash: me.backlash,
   };
 }
-export function strikeDamage(f: Forecast, side: StrikeSpec['side'], critical: boolean, p: CombatProgress, followUp = false, proc = false): number {
+export function strikeDamage(f: Forecast, side: StrikeSpec['side'], critical: boolean, p: CombatProgress, followUp = false, proc = false, traitEffects = true): number {
   const me = f[side], art = f.art;
-  let raw = me.rawDamage;
+  let raw = me.rawDamage + (traitEffects && (side === 'attacker' ? p.attacks : p.defenderAttempts) === 0 ? me.firstDamage ?? 0 : 0);
   if (side === 'attacker') raw += (followUp ? art?.followUpAttack ?? 0 : 0) + (proc ? art?.proc?.attack ?? 0 : 0) + p.defenseLoss;
   let damage = Math.floor(Math.max(side === 'attacker' ? art?.minimumDamage ?? 0 : 0, raw) * (side === 'attacker' ? art?.scale ?? 1 : art?.incomingScale ?? 1));
   if ((side === 'attacker' ? f.defender.netherProtected && !p.netherDisabled : f.attacker.netherProtected)) damage = Math.floor(damage / 2);
@@ -75,6 +85,7 @@ export function strikeDamage(f: Forecast, side: StrikeSpec['side'], critical: bo
   const ward = (side === 'attacker' ? f.defender : f.attacker).ward;
   if (ward) damage = Math.floor(damage * (100 - ward) / 100);
   damage = Math.max(0, damage - (side === 'attacker' ? p.barrierD : p.barrierA));
+  if (traitEffects && (side === 'attacker' ? p.attacks : p.defenderAttempts) === 0) damage = Math.max(0, damage - ((side === 'attacker' ? f.defender : f.attacker).firstWard ?? 0));
   if (side === 'attacker' && art?.nonlethal && p.dHp >= 2) damage = Math.min(damage, p.dHp - 1);
   return damage;
 }
@@ -83,7 +94,9 @@ export interface StrikeResolution { damage: number; hpAfter: number; heal: numbe
 export function resolveStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress, hit: boolean, critical: boolean, proc = false, block = false, afflict = false, backlash = false): StrikeResolution {
   const isA = spec.side === 'attacker', art = f.art, me = f[spec.side];
   if (spec.chance !== undefined) p.forced = 1;
-  const damage = hit ? strikeDamage(f, spec.side, critical, p, spec.followUp, proc) : 0;
+  const damage = hit ? strikeDamage(f, spec.side, critical, p, spec.followUp, proc, !backlash) : 0;
+  if (isA && p.attacks === 0 && hit && !backlash && f.attacker.thunder) p.thunderHit = true;
+  if (!isA) p.defenderAttempts++;
   if (hit && backlash) {
     // 反噬：这一击的伤害改由出手者承受；不朽盾照常保命，保命后交战结束。
     let after = Math.max(0, (isA ? p.aHp : p.dHp) - damage), shield = false;
@@ -98,6 +111,7 @@ export function resolveStrike(f: Forecast, spec: StrikeSpec, p: CombatProgress, 
     if (isA) { p.attackerHit = true; p.barrierD = 0; }
     else { p.barrierA = 0; if (!art?.reductionOnHit || p.attackerHit) p.counterReduced = true; }
   }
+  if (isA && hit && after === 0) p.directKill = true;
   // 普通攻击、反击与施法按武器自身的吸血和命中附加；主动战技只按战技自己的规则。
   const weaponRules = !isA || !art;
   const drain = weaponRules ? me.drain : art?.drain ?? 0;
@@ -206,7 +220,9 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
   const debuff = weaponRules && !foe.unit.immunities?.includes('debuff') ? w?.onHit?.debuff : undefined;
   const prior = debuff ? Math.min(0, ...(foe.unit.artEffects?.buffs ?? []).filter(b => b.stat === debuff.stat && b.duration !== 'map').map(b => b.amount)) : 0;
   return { unit: me.unit.id, weapon: meWeapon, hp: me.unit.hp, maxHp: me.unit.stats.hp, skl: s.skl,
+    firstDamage: me.traits?.firstDamage, firstWard: me.traits?.firstWard, thunder: me.traits?.thunder,
     attackSpeed: attackSpeed(me.unit, meWeapon) + mods.attackSpeed + artBonus(me.unit, 'as') + (am?.as ?? 0) + (im?.as ?? 0),
+    rawHit: w ? art?.fixedHit ?? hitRaw - avoid : 0,
     attack, rawDamage, damage: Math.max(0, rawDamage), hit: w ? art?.fixedHit ?? clamp(hitRaw - avoid) : 0,
     crit: w && !art?.noCrit ? clamp(critRaw - dodge) : 0,
     followUpCrit: w && !art?.noCrit ? clamp(critRaw + mods.followUpCrit + (art?.followUpCrit ?? 0) - dodge) : 0,
@@ -242,10 +258,28 @@ export function strikeOrder(a: SideForecast, d: SideForecast, braveA: boolean, b
   return [...opening, ...counter, ...follow, ...dFollow];
 }
 // `cast` marks an attack spell from the unit's spellbooks (its charges live there, not in bookInstances).
-export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: CombatArt, cast = false): Forecast {
+export function forecast(state: BattleState, attackerId: string, from: Point, weaponId: WeaponId, defenderId: string, art?: CombatArt, cast = false, fixedTraits = false): Forecast {
   const au = unitById(state, attackerId), du = unitById(state, defenderId), counter = equipped(du);
+  if (!fixedTraits) {
+    const choices = traitBranches([au, du]);
+    if (choices.some(b => Object.keys(b.rolls).length)) {
+      const branches = choices.map(b => {
+        const scope = prepareTraitExchange(state, [au, du], b.rolls);
+        try { return { ...b, forecast: forecast(state, attackerId, from, weaponId, defenderId, art, cast, true) }; }
+        finally { scope.cleanup(); }
+      });
+      const result = { ...branches[0].forecast, branches };
+      for (const key of ['defenderDies', 'attackerDies', 'expectedDealt', 'expectedTaken'] as const)
+        result[key] = branches.reduce((sum, b) => sum + b.probability * b.forecast[key], 0);
+      return result;
+    }
+  }
   const a: Fighter = { unit: au, pos: from, weapon: WEAPONS[weaponId], moved: !samePoint(from, au.pos) || au.movedTurn === state.turn };
   const d: Fighter = { unit: du, pos: du.pos, weapon: counter ? WEAPONS[counter] : null, moved: du.movedTurn === state.turn };
+  a.traits = traitOpening(state, au, du, from, true, weaponId, cast);
+  d.traits = traitOpening(state, du, au, du.pos, false, counter ?? '', false);
+  d.traits.hit += a.traits.counterHit;
+  if (art?.secondaryTraitTarget) a.traits.firstDamage = 0;
   const attacker = sideVs(state, a, weaponId, d, counter, 'attacker', art), defender = sideVs(state, d, counter, a, weaponId, 'defender', undefined, art);
   attacker.charges = chargeRow(au, weaponId, cast)?.charges ?? null;
   defender.charges = counter ? chargeRow(du, counter, false)?.charges ?? null : null;
@@ -266,10 +300,13 @@ export function forecast(state: BattleState, attackerId: string, from: Point, we
   const order = strikeOrder(attacker, defender, !single && !!a.weapon?.brave, !!d.weapon?.brave, art, hitsA);
   attacker.strikes = order.filter(s => s.side === 'attacker').length; defender.strikes = order.filter(s => s.side === 'defender').length;
   const f: Forecast = { attacker, defender, order, ...(art ? { art } : {}), defenderDies: 0, attackerDies: 0, expectedDealt: 0, expectedTaken: 0 };
+  if (hasTrait(au, 'underworld') && au.side !== du.side && !au.petrified && !au.immunities?.includes('healing')
+    && !au.artEffects?.buffs?.some(b => b.source === 'underworld_used')) f.killHeal = Math.min(6, Math.ceil(au.stats.hp / 10));
   return { ...f, ...outcomes(f) };
 }
-export function artCombatOptions(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, target: UnitState, index = 0, walked = walkedCells(state, unit, to)): CombatArt {
+export function artCombatOptions(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, target: UnitState, index = 0, walked = walkedCells(state, unit, to), primaryTarget = target.id): CombatArt {
   const m = ART_MECHANICS[art.id] ?? {}, result: CombatArt = { ...m, id: art.id, might: art.might, hit: art.hit, crit: art.crit, sequence: art.sequence };
+  result.secondaryTraitTarget = target.id !== primaryTarget;
   if (!art.original) {
     const s = combatStats(unit, WEAPONS[weapon]), fw = equipped(target), ft = fw ? WEAPONS[fw] : undefined;
     const c = classOf(target), t = terrainBonus(state, unit, to);
@@ -331,16 +368,30 @@ export function artCombatOptions(state: BattleState, unit: UnitState, to: Point,
 export function artForecast(state: BattleState, unit: UnitState, to: Point, weapon: WeaponId, art: WeaponArt, target: UnitState, secondary?: string, ally?: string): Forecast & { targets: { target: string; forecast: Forecast }[] } {
   validateArt(state, unit, { type: 'act', unit: unit.id, to, act: 'art', target: target.id, weapon, art: art.id, secondary, ally }, art);
   // shortcut: later targets use opening state, extend to joint branches when exact combined AoE odds are required.
-  const targets = artVictims(state, unit, to, weapon, art, target, secondary).map((victim, index) => ({ target: victim.id,
-    forecast: { ...forecast(state, unit.id, to, weapon, victim.id, artCombatOptions(state, unit, to, weapon, art, victim, index)),
-      ...(index > 0 ? { assumption: 'independent_opening_state' as const } : {}) } }));
-  return { ...targets[0].forecast, targets };
+  const targets = artVictims(state, unit, to, weapon, art, target, secondary).map((victim, index) => {
+    const branches = traitBranches([unit, victim]).map(b => {
+      const scope = prepareTraitExchange(state, [unit, victim], b.rolls);
+      try { return { ...b, forecast: forecast(state, unit.id, to, weapon, victim.id,
+        artCombatOptions(state, unit, to, weapon, art, victim, index, undefined, target.id), false, true) }; }
+      finally { scope.cleanup(); }
+    });
+    const f: Forecast = { ...branches[0].forecast, ...(branches.length > 1 ? { branches } : {}),
+      ...(index > 0 ? { assumption: 'independent_opening_state' as const } : {}) };
+    for (const key of ['defenderDies', 'attackerDies', 'expectedDealt', 'expectedTaken'] as const)
+      f[key] = branches.reduce((sum, b) => sum + b.probability * b.forecast[key], 0);
+    return { target: victim.id, forecast: f };
+  });
+  return { ...targets.find(entry => entry.target === target.id)!.forecast, targets };
 }
 interface Tally { defenderDies: number; attackerDies: number; expectedDealt: number; expectedTaken: number }
 function outcomes(f: Forecast): Tally {
   const memo = new Map<string, Tally>();
   const visit = (i: number, p: CombatProgress): Tally => {
-    if (i === f.order.length || p.aHp <= 0 || p.dHp <= 0 || p.stopped) return { defenderDies: p.dHp <= 0 ? 1 : 0, attackerDies: p.aHp <= 0 ? 1 : 0, expectedDealt: f.defender.hp - p.dHp, expectedTaken: f.attacker.hp - p.aHp };
+    if (i === f.order.length || p.aHp <= 0 || p.dHp <= 0 || p.stopped) {
+      const heal = p.aHp > 0 && p.directKill && p.dHp <= 0 ? Math.min(f.killHeal ?? 0, f.attacker.maxHp - p.aHp) : 0;
+      return { defenderDies: p.dHp <= 0 ? 1 : 0, attackerDies: p.aHp <= 0 ? 1 : 0,
+        expectedDealt: f.defender.hp - p.dHp, expectedTaken: f.attacker.hp - p.aHp - heal };
+    }
     const key = `${i}:${Object.values(p).join(',')}`, cached = memo.get(key); if (cached) return cached;
     const spec = f.order[i];
     if (skipStrike(f, spec, p)) return visit(i + 1, p);

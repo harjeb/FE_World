@@ -39,8 +39,11 @@ export interface Snapshot {
 }
 
 function fresh(state: BattleState, settings: Settings): Snapshot {
+  const initialGroups = state.crossTimeGroups?.filter(group => group.activateTurn !== undefined).map(group => ({
+    t: 'cross_time_group' as const, id: group.id, name: group.name, turn: group.activateTurn!, active: group.active, reason: group.reason ?? '警戒',
+  })) ?? [];
   return {
-    state, view: state, mode: IDLE, hover: null, cursor: null, log: [], floats: [], fading: new Set(),
+    state, view: state, mode: IDLE, hover: null, cursor: null, log: describe(initialGroups, state), floats: [], fading: new Set(),
     banner: null, combat: null, levelUp: null, dialog: null, notice: null, settings,
   };
 }

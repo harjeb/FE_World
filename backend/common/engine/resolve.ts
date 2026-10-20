@@ -1,10 +1,11 @@
+import { afterTraitExchange, hasTrait, prepareTraitExchange } from './personal-traits.ts';
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
 import { combatProgress, forecast, resolveStrike, skipStrike, strikeRates } from './combat.ts';
 import type { CombatArt } from './combat.ts';
 import { artState, clearArtEffects } from './arts.ts';
-import { addArtBuff, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
+import { addArtBuff, artHeal, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
 import { combatExp, gainExp, staffExp } from './growth.ts';
 import { roll100 } from './rng.ts';
 import { chargeRow, cureStatuses, distance, living, wake, weaponRange } from './units.ts';
@@ -13,7 +14,10 @@ import type { BattleEvent, BattleState, Side, Strike, UnitState } from './types.
 // Runs one exchange with the battle RNG. Hit uses two rolls averaged (2RN), crit one roll (docs/03).
 // `cast` marks an attack spell paid from the caster's spellbooks.
 export function runCombat(state: BattleState, attacker: UnitState, defender: UnitState, weaponId: WeaponId, events: BattleEvent[], art?: CombatArt, cast = false): Strike[] {
-  const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art, cast);
+  const scope = prepareTraitExchange(state, [attacker, defender]);
+  try {
+  const f = forecast(state, attacker.id, attacker.pos, weaponId, defender.id, art, cast, true);
+  if (Object.keys(scope.rolls).length) f.traitRolls = scope.rolls;
   const progress = combatProgress(f), oldBuffs = [attacker, defender].map(u => [...(u.artEffects?.buffs ?? [])]);
   const strikes: Strike[] = [];
   const dealt = { attacker: false, defender: false };
@@ -80,7 +84,7 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   events.push({
     t: 'combat', attacker: attacker.id, defender: defender.id,
     weapons: [weaponId, f.defender.canAttack ? f.defender.weapon : null], strikes,
-    ...(art ? { forecast: f } : {}),
+    ...(art || Object.keys(scope.rolls).length ? { forecast: f } : {}),
   });
   if (art) events.push({ t: 'art', unit: attacker.id, target: defender.id, art: art.id });
   for (const unit of [attacker, defender]) {
@@ -100,7 +104,23 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
   for (const [unit, foe, didDamage] of [[attacker, defender, dealt.attacker], [defender, attacker, dealt.defender]] as const) {
     if (!friendly && unit.side === 'player' && unit.alive) gainExp(state, unit, combatExp(unit, foe, didDamage, !foe.alive), events);
   }
+  const directKill = strikes.some(s => s.by === attacker.id && s.hit && !s.backlash && s.hpAfter === 0);
+  afterTraitExchange(state, () => {
+  if (hasTrait(attacker, 'linked_scheme') && defender.alive && !defender.petrified && progress.attackerHit)
+    addArtBuff(state, defender, `linked_scheme:${attacker.side}`, 'spd', -3, 'next_phase', events);
+  if (hasTrait(attacker, 'underworld') && attacker.side !== defender.side && directKill && !defender.alive && attacker.alive
+    && !attacker.petrified && attacker.hp > 0 && !attacker.immunities?.includes('healing')
+    && !attacker.artEffects?.buffs?.some(b => b.source === 'underworld_used')) {
+    artHeal(attacker, Math.min(6, Math.ceil(attacker.stats.hp / 10)), attacker.id, events);
+    {
+      attacker.artEffects = { ...attacker.artEffects, buffs: [...(attacker.artEffects?.buffs ?? []),
+        { source: 'underworld_used', stat: 'str', amount: 0, duration: 'next_phase', turn: state.turn }] };
+      artState(attacker, events);
+    }
+  }
+  });
   return strikes;
+  } finally { scope.cleanup(); }
 }
 
 // Staff and spell healing: 魔 + 基值（缺省 10；祈愿／职业固有各 +5）or full, never above max HP.
