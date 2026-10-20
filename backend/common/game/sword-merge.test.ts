@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createUnit, normalizeUnit, addWeaponExp } from './model.ts';
+import { createUnit, normalizeUnit, addWeaponExp, RANK_EXP } from './model.ts';
 import { CLASSES, classEntryReason } from '../data/classes.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import { WEAPON_TYPE_NAMES } from '../data/types.ts';
@@ -26,7 +26,7 @@ test('dagger items and arts are swords, not a separate active category', () => {
   assert.equal(classEntryReason(applicant, 'ninja', applicant.homeClassId), null);
   ninja.ranks.sword = 'C';
   addWeaponExp(ninja, 'sword', 10);
-  assert.equal(ninja.weaponExp.sword, 80);
+  assert.equal(ninja.weaponExp.sword, RANK_EXP.C + 10);
   assert.deepEqual(Object.keys(CLASSES.ninja.weapons), ['sword']);
 });
 

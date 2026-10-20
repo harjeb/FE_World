@@ -327,7 +327,7 @@ export function WeaponRanksPanel({ unit }: { unit: ServerUnit }) {
         {rows.map(w => {
           const span = w.next !== null ? w.next - w.floor : 0;
           const done = w.next !== null ? Math.min(span, w.exp - w.floor) : 0;
-          const tip = !w.cap ? `${cls.name}不能使用这类武器；熟练度保留，换回可用的职业后继续累积。`
+          const tip = !w.cap ? `武器经验 ${w.exp}${w.next !== null && !w.capped ? ` / ${w.next} → 升至 ${w.nextRank}` : ''}；${cls.name}不能使用这类武器。`
             : w.capped ? `已到${cls.name}上限 ${w.cap}；武器经验 ${w.exp}，换上上限更高的职业后继续提升。`
               : `武器经验 ${w.exp} / ${w.next} → 升至 ${w.nextRank}；${cls.name}上限 ${w.cap}。`;
           return (

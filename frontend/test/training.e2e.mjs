@@ -2,13 +2,15 @@
 // Run after npm run build; CHROME_BIN points to Chromium/Chrome/Edge.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { seedBrowserAccount } from './fixtures.mjs';
 import { stopProcess } from './processes.mjs';
 import { openDb } from '../../backend/api/db.ts';
 import { Store } from '../../backend/api/store.ts';
+import { RANK_EXP } from '../../backend/common/game/model.ts';
 
 const temp = mkdtempSync(join(tmpdir(), 'fe-training-'));
 const dbPath = join(temp, 'test.db');
@@ -95,13 +97,17 @@ try {
     const unitBefore = before.units.find(unit => unit.id === unitId);
     const unitAfter = after.units.find(unit => unit.id === unitId);
     for (const type of ['fist', 'staff', 'tome', 'dragon']) {
-      const thresholds = { E: 0, D: 50, C: 70, B: 120, A: 180, S: 250, SS: 340, SSS: 450 };
-      assert.equal(unitAfter.weaponExp[type], Math.max(unitBefore.weaponExp[type] ?? 0, thresholds[unitBefore.ranks[type] ?? 'E']) + 3);
+      assert.equal(unitAfter.weaponExp[type], Math.max(unitBefore.weaponExp[type] ?? 0, RANK_EXP[unitBefore.ranks[type] ?? 'E']) + 3);
     }
   }
   assert.deepEqual(errors, []);
   console.log('PASS: 3-unit selection limit, groups, 12 rewards, 600 gold/3 days, mobile layout and no browser exceptions');
 } finally {
+  // Let Chromium close its profile and renderers before falling back to process termination.
+  if (socket?.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ id: 1000000000, method: 'Browser.close' }));
+    await sleep(200);
+  }
   const children = [browser, server].filter(Boolean);
   socket?.close();
   await Promise.all(children.map(async child => {
@@ -112,5 +118,5 @@ try {
       throw error;
     }
   }));
-  rmSync(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await rm(temp, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }

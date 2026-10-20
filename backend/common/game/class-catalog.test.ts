@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CATALOG_CLASS_IDS, CLASSES, canonicalClassId, classUnavailableReason } from '../data/classes.ts';
 import { FW_CLASS_REFERENCE } from '../data/class-reference.ts';
-import { createUnit, addWeaponExp, toBattleUnit } from './model.ts';
+import { createUnit, addWeaponExp, toBattleUnit, RANK_EXP } from './model.ts';
 import { canWield } from '../engine/units.ts';
 import { switchClass } from './mastery.ts';
 import { classMasteryOf, gainMastery, unlockedNodes } from './mastery.ts';
@@ -48,7 +48,7 @@ test('a class weapon list does not grant proficiency or impose a beginner-only r
   assert.equal(unit.ranks.sword, 'S');
   assert.equal(unit.ranks.bow, 'E');
   assert.equal(canWield(toBattleUnit(unit, 'player', unit.id, [0, 0]), 'silver_sword'), true);
-  addWeaponExp(unit, 'bow', 70);
+  addWeaponExp(unit, 'bow', RANK_EXP.C);
   switchClass(unit, 'archer');
   assert.equal(canWield(toBattleUnit(unit, 'player', unit.id, [0, 0]), 'silver_sword'), false);
 });

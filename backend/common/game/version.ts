@@ -2,6 +2,11 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v21';
+// v53: Fire Emblem-inspired cumulative WEXP costs 50/60/70/80/90/100/110 per rank.
+// normalizeUnit migrates each old unit once, keeping learned ranks and points within the rank.
+// New battles grant 2 WEXP per actual exchange/cast/staff use; unopened counters grant none,
+// multi-hit/area effects do not multiply a single paid use. Active pre-v53 battles keep old rewards.
+// Combat simulation and saved replays are unchanged; see docs/40-weapon-proficiency.md.
 // v52 / rules-v21: grouped camp training opens 1/3/5/8 slots by year, with shared three-day
 // duration and per-person payment; E→D needs 50 XP. New setup companions use stage-one classes.
 // Human promotion can target any qualified class. Flying movement is 7 at every stage;
@@ -113,7 +118,7 @@ export const RULESET_VERSION = 'rules-v21';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 52;
+export const CATALOG_VERSION = 53;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

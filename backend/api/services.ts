@@ -27,6 +27,7 @@ import type { Quest } from '../common/game/quests.ts';
 import { GROWTH_TYPE_NAMES, ageBandOf, growthBonus } from '../common/data/growth-types.ts';
 import type { UnitRecord } from '../common/game/model.ts';
 import { dateOf, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, enemyLevel, DAYS_PER_SEASON } from '../common/game/calendar.ts';
+import { battleWeaponExperience } from '../common/game/weapon-experience.ts';
 import { secretClaims, summarizeOutcome, weaponsUsed } from '../common/game/battles.ts';
 import type { BattleRecord } from '../common/game/battles.ts';
 import { attackProgress, createArenaDay, officialOpponents, OPPONENT_COUNT, runDefenseTrials, ARENA_GOLD } from '../common/game/arena.ts';
@@ -400,7 +401,9 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
   const lethal = record.mode === 'field' || record.mode === 'festival';
   const rewards: BattleRewards = { gold: 0, items: [], levelUps: [], deaths: [], weaponRanks: [] };
   const units = store.units(player.id);
-  const used = weaponsUsed(record);
+  // Already-started battles retain their old once-per-map rewards.
+  const used = (record.catalogVersion ?? 0) >= 53 ? battleWeaponExperience(record)
+    : new Map([...weaponsUsed(record)].map(([id, types]) => [id, new Map([...types].map(type => [type, 2]))]));
   const participants = new Set<string>();
   for (const event of record.events) {
     if (event.t === 'combat' && event.strikes.length) { participants.add(event.attacker); participants.add(event.defender); }
@@ -432,8 +435,8 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
       unit.items = unit.items.filter(item => !(item.id === 'immortal_shield' && extra-- > 0));
     }
     if (battleUnit.alive || battleUnit.escaped) {
-      for (const type of lethal ? used.get(battleUnit.id) ?? [] : []) {
-        const rank = addWeaponExp(unit, type, 2);
+      for (const [type, amount] of lethal ? used.get(battleUnit.id) ?? [] : []) {
+        const rank = addWeaponExp(unit, type, amount);
         if (rank) rewards.weaponRanks.push({ unit: unit.id, type, rank });
       }
       // 有效参战积累当前职业精通（docs/00 §4.2.1）；普通竞技场／练习不计。

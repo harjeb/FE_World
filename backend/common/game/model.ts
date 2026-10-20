@@ -55,6 +55,8 @@ export interface UnitRecord {
   items: ItemStack[];
   ranks: Partial<Record<WeaponType, Rank>>;
   weaponExp: Partial<Record<WeaponType, number>>;
+  // 累计门槛曲线版本；旧档只迁移一次，保留等级与当前档已赚取的点数。
+  weaponExpVersion?: 2;
   status: 'active' | 'dead' | 'retired';
   joinedDay: number;
   // 成长类型与年龄（docs/02）: baseAge is the age at recruitment; age is refreshed from the calendar.
@@ -146,6 +148,14 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   if (exp.dagger !== undefined) exp.sword = Math.max(exp.sword ?? 0, exp.dagger);
   delete ranks.dagger;
   delete exp.dagger;
+  if (unit.weaponExpVersion !== 2) {
+    for (const type of new Set([...Object.keys(ranks), ...Object.keys(exp)]) as Set<WeaponType>) {
+      const rank = ranks[type] ?? 'E';
+      const progress = Math.max(0, (exp[type] ?? 0) - LEGACY_RANK_EXP[rank]);
+      exp[type] = RANK_EXP[rank] + progress;
+    }
+    unit.weaponExpVersion = 2;
+  }
   // Old IDs, levels and earned attributes stay intact; only absent progression fields are filled.
   unit.stats = withCharm(unit.stats);
   if (unit.inheritedGrowth) unit.inheritedGrowth.cha ??= 0;
@@ -261,7 +271,7 @@ export function createUnit(character: CharacterId, level: number, id: string, jo
     weapons: [...kit.weapons], weaponInstances: kit.weapons.map(id => ({ id, durability: weaponMax(id), maxDurability: weaponMax(id) })),
     bookInstances: kit.weapons.filter(id => WEAPONS[id].type === 'tome' || WEAPONS[id].type === 'staff').map(id => ({ id, charges: bookMax(id), maxCharges: bookMax(id) })),
     items: (gear ? gear.items : kit.items ?? []).map(([item, uses]) => ({ id: item, uses })),
-    ranks: { ...kit.ranks }, weaponExp: gear ? { ...gear.weaponExp } : {}, status: 'active', joinedDay, growthType, personalGrowth: { ...personal }, baseAge: age, age,
+    ranks: { ...kit.ranks }, weaponExp: gear ? { ...gear.weaponExp } : {}, weaponExpVersion: 2, status: 'active', joinedDay, growthType, personalGrowth: { ...personal }, baseAge: age, age,
     ageBaseDays: age * DAYS_PER_YEAR, ageEpochDay: joinedDay,
     lifespanYears: opts.lifespanYears ?? lifespanYearsFor(id, species), growthLog: [], drugCounts: {},
     cycle: opts.cycle ?? 0, growthAllocation: {}, inheritedGrowth: null, classQualifications: [], classMastery: {}, learningProgress: {},
@@ -548,7 +558,10 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
   };
 }
 
-export const RANK_EXP: Record<Rank, number> = { E: 0, D: 50, C: 70, B: 120, A: 180, S: 250, SS: 340, SSS: 450 };
+// Fire Emblem uses cumulative thresholds with rising costs per rank (docs/40-weapon-proficiency.md).
+// Keep the requested E→D cost of 50, then require 60/70/80/90/100/110 more.
+export const RANK_EXP: Record<Rank, number> = { E: 0, D: 50, C: 110, B: 180, A: 260, S: 350, SS: 450, SSS: 560 };
+const LEGACY_RANK_EXP: Record<Rank, number> = { E: 0, D: 50, C: 70, B: 120, A: 180, S: 250, SS: 340, SSS: 450 };
 
 export function rankFromExp(exp: number): Rank {
   let rank: Rank = 'E';

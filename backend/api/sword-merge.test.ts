@@ -6,6 +6,7 @@ import { loginOrRegister } from './auth.ts';
 import { seedFullRoster } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 import { settleDispatches, syncPlayer } from './services.ts';
+import { RANK_EXP } from '../common/game/model.ts';
 import { OP } from '../common/protocol/ops.ts';
 
 test('legacy TRAIN and dispatch inputs return sword; old running dispatch earns sword progress', () => {
@@ -20,7 +21,7 @@ test('legacy TRAIN and dispatch inputs return sword; old running dispatch earns 
   assert.throws(() => dispatch(ctx, OP.TRAIN, { unitId: 'u_owen', weaponType: 'dagger' }), /可训练/);
   const unit = store.unit(player.id, 'u_erin')!;
   unit.ranks.sword = 'C';
-  unit.weaponExp.sword = 70;
+  unit.weaponExp.sword = RANK_EXP.C;
   unit.classQualifications.push('ninja');
   store.saveUnit(unit, player.id);
   const start = dispatch(ctx, OP.START_DISPATCH, { region: 1, unitIds: ['u_erin'], durationDays: 5, classId: 'ninja', weaponType: 'dagger' }) as { dispatch: { id: string; weaponType: string; returnDay: number } };

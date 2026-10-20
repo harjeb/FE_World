@@ -9,6 +9,7 @@ import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
 import type { Rank, WeaponType } from '@common/data/types.ts';
 import { RANK_EXP } from '@common/game/model.ts';
+import { trainingWeaponRankCap } from '@common/game/training.ts';
 import type { LifespanWarning, ServerAnnual, ServerUnit, UnitOrigin } from '../api/session.ts';
 
 export type UnitStatus = 'ready' | 'run' | 'dispatch' | 'annual';
@@ -58,7 +59,7 @@ export function weaponProgress(unit: ServerUnit): WeaponProgress[] {
     const exp = Math.max(unit.weaponExp[type] ?? 0, RANK_EXP[rank]);
     const nextRank = RANKS[RANKS.indexOf(rank) + 1] ?? null;
     const cap = weaponRankCap(unit.classId as ClassId, type) ?? null;
-    const capped = !cap || RANKS.indexOf(rank) >= RANKS.indexOf(cap);
+    const capped = RANKS.indexOf(rank) >= RANKS.indexOf(trainingWeaponRankCap(unit.classId as ClassId, type));
     return { type, rank, exp, floor: RANK_EXP[rank], next: nextRank ? RANK_EXP[nextRank] : null, nextRank, cap, capped };
   }).sort((a, b) => (a.cap ? 0 : 1) - (b.cap ? 0 : 1) || RANKS.indexOf(b.rank) - RANKS.indexOf(a.rank));
 }

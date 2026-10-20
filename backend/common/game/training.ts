@@ -19,14 +19,18 @@ export function trainingLimit(day: number): number {
   return [1, 3, 5, 8][Math.min(3, Math.max(0, Math.floor(day / DAYS_PER_YEAR)))];
 }
 
+export function trainingWeaponRankCap(classId: UnitRecord['classId'], type: WeaponType): Rank {
+  const stage = CLASSES[classId].stage;
+  return weaponRankCap(classId, type) ?? (stage >= 5 ? 'SSS' : stage >= 4 ? 'SS' : 'S');
+}
+
 // Group practice can prepare weapons outside the current class; wielding permissions stay separate.
 // The class stage still limits earned ranks, and already-earned higher ranks never regress.
 export function trainingWeaponProgress(unit: Pick<UnitRecord, 'classId' | 'ranks' | 'weaponExp'>, type: WeaponType, amount: number) {
   const rankBefore = unit.ranks[type] ?? 'E';
   const expBefore = Math.max(unit.weaponExp[type] ?? 0, RANK_EXP[rankBefore]);
   const expAfter = expBefore + amount;
-  const stage = CLASSES[unit.classId].stage;
-  const cap: Rank = weaponRankCap(unit.classId, type) ?? (stage >= 5 ? 'SSS' : stage >= 4 ? 'SS' : 'S');
+  const cap = trainingWeaponRankCap(unit.classId, type);
   const earned = RANKS[Math.min(RANKS.indexOf(rankFromExp(expAfter)), RANKS.indexOf(cap))];
   const rankAfter = RANKS[Math.max(RANKS.indexOf(rankBefore), RANKS.indexOf(earned))];
   return { weaponType: type, rankBefore, rankAfter, rankUp: rankAfter === rankBefore ? null : rankAfter,
