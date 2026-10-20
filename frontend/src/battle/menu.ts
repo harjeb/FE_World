@@ -80,12 +80,12 @@ export function carried(state: BattleState, unitId: string, to: Point): { weapon
     detail: `次数 ${book.charges}/${book.maxCharges}`,
   });
   const consumables = unit.items.map((stack, index) => {
-    const item = ITEMS[stack.id as ItemId] as { name: string; heal: number; uses?: number; shield?: boolean };
+    const item = ITEMS[stack.id as ItemId] as { name: string; heal: number; uses?: number; shield?: boolean; cure?: readonly string[] };
     return {
       kind: 'consumable' as const,
       id: stack.id,
       name: item.name,
-      detail: item.shield ? '致死时自动触发' : `回复 ${item.heal} · 剩 ${stack.uses} 次`,
+      detail: item.shield ? '致死时自动触发' : item.cure ? `解除中毒 · 剩 ${stack.uses} 次` : `回复 ${item.heal >= 999 ? '全部' : item.heal} · 剩 ${stack.uses} 次`,
       index,
       usable: usable.has(index),
     };

@@ -108,6 +108,11 @@ export function endPhaseSleep(unit: UnitState): boolean {
   return unit.statuses.sleepPhases <= 0 && wake(unit);
 }
 
+// 解毒类道具此刻是否有可解除的战技异常状态（回复类道具没有 cure，永远为 false）。
+export function itemCures(item: { cure?: readonly string[] }, unit: Pick<UnitState, 'artEffects'>): boolean {
+  return !!item.cure && !!unit.artEffects?.statuses?.some(status => item.cure!.includes(status));
+}
+
 export function cureStatuses(unit: UnitState, events: BattleEvent[] = []): ('sleep' | 'silence' | 'berserk')[] {
   const cured: ('sleep' | 'silence' | 'berserk')[] = [];
   if (unit.statuses?.sleep) cured.push('sleep');

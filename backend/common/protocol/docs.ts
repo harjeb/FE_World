@@ -90,6 +90,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 25, text: 'v25: 规则rules-v17、目录41，引擎1不变。职业资格购买新增目标允许武器任一种熟练度门槛：初级D／中级C／上级B／最上级A／神将S；年份、金币、种族及月额度不变。切换、PROMOTE和派遣选用其他已购职业也检查，当前／本轮起始职业仅进入、返回与训练免熟练度门槛，新购买不免。旧资格保留，GET_CLASS_MARKET.eligibilityReason公开原因。取消独立短刀类型，相关武器、忍者权限与战技统一归剑；旧档短刀等级与经验分别保留其与剑的较高值，不叠加，物品与战技ID不变。新生成敌军按等级分阶（1／20／47／66／81），经典与增援低等级回退，敌方使用独立阵营姓名。普通野图SORTIE推进2日，随机副本仍每图8日，任务既定耗日不变。部署前结束活动战斗／远征／派遣并备份，保留既有装备与快照，旧规则回放保持冻结。' },
     { version: 26, text: 'v26: 目录42。主线前置任务完成时自动发放奖励：金币按类型和章节递增（派遣／酒馆250+100×章、竞技场／提交材料300+100×章、找物品400+100×章、单挑500+200×章），单挑另给公共经验300和伤药×2。GET_STORY.quest.steps新增reward，COMPLETE_STORY_STEP返回reward与message。' },
     { version: 27, text: 'v27: 目录43，战斗规则不变。新出发的地区副本、地区任务远征和固定经典三图路线统一共8日，逐图3／3／2日。RunRecord冻结stageDayCosts；GET_RUN摘要新增stageDayCosts，stageDays为当前待进入／战斗地图的耗日。PREVIEW_ACTION(dungeon)及实际出发首图均3日，继续第2／3图分别3／2日。旧远征没有stageDayCosts时沿用原stageDays（最早每图8日），已付日期不追退；单图任务与时空试炼耗日不变。' },
+    { version: 28, text: 'v28: 目录44。主线前置任务的奖励改为每个任务单独指定：以伤药、特效药、解毒药和各档武器为主，金币只给少量，单挑另有公共经验。新增战斗消耗品特效药(elixir，回复全部HP，1次)与解毒药(antidote，解除战技造成的中毒，不回复HP，2次)，只能持有携带并在战斗中使用，GET_STORY steps.reward.items给出内容。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

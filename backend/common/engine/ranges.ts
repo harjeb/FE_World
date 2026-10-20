@@ -7,7 +7,7 @@ import { artObjects, artPostMoves, artSupportOptions } from './art-options.ts';
 import type { ArtSupport } from './art-options.ts';
 import { moveRange } from './movement.ts';
 import type { MoveRange } from './movement.ts';
-import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange } from './units.ts';
+import { attackWeapons, cellKey, distance, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, staffWeapons, weaponRange, itemCures } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 import { interactionOptions } from './scenario.ts';
 import { artTargets, spellBlock, spellDestination, spellTargets, staffDestination, staffEffect, staffTargets } from './support.ts';
@@ -50,9 +50,12 @@ export function actionOptions(state: BattleState, unit: UnitState, to: Point): A
     .map(weapon => ({ weapon, targets: targetsFrom(state, unit, to, weapon, 'heal') }))
     .filter(o => o.targets.length > 0);
   // 不朽盾不进入道具菜单，只在致死时自动触发（docs/00 §7.2）。
-  const items = unit.hp < unit.stats.hp
-    ? unit.items.map((_, i) => i).filter(i => !(ITEMS[unit.items[i].id] as { shield?: boolean }).shield)
-    : [];
+  // 回复类要求缺血，解毒类要求身上有可解除的状态。
+  const items = unit.items.map((_, i) => i).filter(i => {
+    const def = ITEMS[unit.items[i].id] as { shield?: boolean; cure?: readonly string[] };
+    if (def.shield) return false;
+    return def.cure ? itemCures(def, unit) : unit.hp < unit.stats.hp;
+  });
   const dance = (unit.classId === 'dancer' || unit.classId === 'apsara')
     ? living(state, unit.side)
       .filter(target => target.id !== unit.id && target.acted && !target.petrified && !target.npc && distance(to, target.pos) === 1)

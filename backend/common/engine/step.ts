@@ -15,7 +15,7 @@ import { addArtBuff, afterClassicArt, expireArtPhase, inflictArtStatus } from '.
 import { artObjects, artPostMoves, artSupportOptions, objectArtDamage, sameArtSupport } from './art-options.ts';
 import { roll100 } from './rng.ts';
 import { afterArt, artState, beginArtAction, clearArtEffects, displace, endArtAction, validateArt } from './arts.ts';
-import { attackWeapons, cellKey, cureStatuses, distance, endPhaseSleep, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById } from './units.ts';
+import { attackWeapons, cellKey, cureStatuses, distance, endPhaseSleep, equipWeapon, hasCurableStatus, inBounds, inRange, isAsleep, isBerserk, isSilenced, keyPoint, living, samePoint, staffWeapons, tickStatuses, unitById, itemCures } from './units.ts';
 import { adjacentFree, destinationValid, isHostileSpell, spellBlock, spellDestination, spellKind, spellTargets, staffDestination, staffTargets, withSpellWeapon } from './support.ts';
 import { statusChance } from './magic.ts';
 import { spellRange } from './spells.ts';
@@ -135,6 +135,11 @@ function validate(state: BattleState, unit: UnitState, action: ActAction, auto: 
     case 'item': {
       const stack = unit.items[action.item];
       if (!stack || !(stack.id in ITEMS) || (ITEMS[stack.id] as { shield?: boolean }).shield) throw new EngineError('NO_SUCH_ITEM', '没有这件道具');
+      const def = ITEMS[stack.id] as { cure?: readonly string[] };
+      if (def.cure) {
+        if (!itemCures(def, unit)) throw new EngineError('NOTHING_TO_HEAL', `${unit.name} 没有可以解除的异常状态`);
+        return null;
+      }
       if (unit.hp >= unit.stats.hp || unit.immunities?.includes('healing')) throw new EngineError('NOTHING_TO_HEAL', `${unit.name} 当前不能治疗`);
       return null;
     }

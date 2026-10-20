@@ -619,6 +619,12 @@ const ITEM_GRIDS: Record<string, readonly string[]> = {
   ],
 };
 
+// Battle consumables: an elixir (golden flask) and an antidote (green vial).
+Object.assign(ITEM_GRIDS, {
+  elixir: ['................', '......eeee......', '......edde......', '.....eddde......', '......eppe......', '.....eppppe.....', '....epyyyype....', '....epyyyype....', '....epyyyype....', '....epppppe.....', '.....eeeeee.....', '................'],
+  antidote: ['................', '.......ee.......', '......eddde.....', '.......ede......', '......eLLLe.....', '.....eLjjjLe....', '....eLjjjjjLe...', '....eLjJjjjLe...', '....eLjjjjJLe...', '.....eLLLLLe....', '......eeeee.....', '................'],
+});
+
 // Story quest items found in classic dungeon chests: a crystal shard, a wax seal, a map scrap and a keystone.
 const FIND_ICONS: Record<string, readonly string[]> = {
   story_find_2: ['................', '.......ee.......', '......egge......', '.....eggcge.....', '....eggccgge....', '...egcccccgge...', '...eggccccgge...', '....eggccgge....', '.....eggcge.....', '......egge......', '.......ee.......', '................'],

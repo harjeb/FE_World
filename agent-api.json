@@ -1,5 +1,5 @@
 {
-  "docVersion": 27,
+  "docVersion": 28,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -2264,7 +2264,7 @@
       "op": 145,
       "name": "COMPLETE_STORY_STEP",
       "group": "故事",
-      "agentNote": "提交主线前置任务中 kind=submit 的材料（step 为前置任务 ID）：从仓库扣除指定数量后完成。其他类型不用提交：派遣满天数返程自动完成；find 在固定经典远征的宝箱里找到任务物品、持有即完成；arena／tavern 在章节开放后累计普通竞技场胜场／酒馆小游戏胜次；duel 用 START_STORY_DUEL。全部完成后才能接收尾战（story-N）。每个前置任务完成的那一刻自动发放奖励（金币为主，单挑另有公共经验与伤药），返回的 reward／message 给出内容。",
+      "agentNote": "提交主线前置任务中 kind=submit 的材料（step 为前置任务 ID）：从仓库扣除指定数量后完成。其他类型不用提交：派遣满天数返程自动完成；find 在固定经典远征的宝箱里找到任务物品、持有即完成；arena／tavern 在章节开放后累计普通竞技场胜场／酒馆小游戏胜次；duel 用 START_STORY_DUEL。全部完成后才能接收尾战（story-N）。每个前置任务完成的那一刻自动发放奖励（每个任务单独指定：伤药、特效药、解毒药等战斗消耗品、各档武器和少量金币，单挑另有公共经验），返回的 reward／message 给出内容。",
       "push": false,
       "dataSchema": {
         "type": "object",

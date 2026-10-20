@@ -91,6 +91,8 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   ...SPELLBOOK_ITEMS,
   ...MANUAL_ITEMS,
   vulnerary: { name: '伤药', kind: 'consumable', price: 300, item: 'vulnerary', uses: 3 },
+  elixir: { name: '特效药', kind: 'consumable', price: 1_500, item: 'elixir', uses: 1, note: '战斗中回复全部 HP · 每件 1 次' },
+  antidote: { name: '解毒药', kind: 'consumable', price: 400, item: 'antidote', uses: 2, note: '战斗中解除战技造成的中毒（不回复 HP）· 每件 2 次' },
   seal_promote: { name: '转职印', kind: 'seal', price: 5000, note: '转职消耗一枚' },
   energy_drop: { name: '天使之衣', kind: 'stat', price: 8000, stat: 'hp', amount: 5 },
   secret_book: { name: '秘传之书', kind: 'stat', price: 8000, stat: 'skl', amount: 2 },

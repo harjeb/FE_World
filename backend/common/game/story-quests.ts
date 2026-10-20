@@ -35,16 +35,32 @@ export interface StoryChapterQuest {
   steps: StoryStep[];
 }
 
-// 前置任务本身的奖励（docs/38 §3.4）：完成的那一刻自动发放，每个前置任务一次。金币随章节递增；
-// 风险最高的单挑额外给公共经验和伤药。数值待校准。
+// 前置任务本身的奖励（docs/38 §3.4）：完成的那一刻自动发放，每个前置任务一次。每个任务单独指定，
+// 以战斗用的消耗品和武器为主（伤药、特效药、解毒药、各档武器），金币只给一点；风险最高的单挑
+// 另给公共经验。数值待校准。
 export interface StepReward { gold: number; bexp?: number; items?: [ItemKey, number][] }
-const STEP_GOLD: Record<StoryStep['kind'], [number, number]> = {
-  tavern: [250, 100], dispatch: [250, 100], arena: [300, 100], submit: [300, 100], find: [400, 100], duel: [500, 200],
+const STEP_REWARDS: Record<string, StepReward> = {
+  'story-1-a': { gold: 150, items: [['antidote', 2], ['vulnerary', 2]] },
+  'story-1-b': { gold: 150, items: [['vulnerary', 3], ['elixir', 1]] },
+  'story-2-a': { gold: 200, items: [['killer_lance', 1], ['antidote', 1]] },
+  'story-2-b': { gold: 200, items: [['vulnerary', 3]] },
+  'story-3-a': { gold: 300, bexp: 300, items: [['killing_edge', 1], ['elixir', 1], ['vulnerary', 2]] },
+  'story-3-b': { gold: 250, items: [['elixir', 1], ['vulnerary', 2]] },
+  'story-4-a': { gold: 300, items: [['longbow', 1], ['antidote', 2]] },
+  'story-4-b': { gold: 300, items: [['elixir', 2], ['vulnerary', 2]] },
+  'story-5-a': { gold: 350, items: [['vulnerary', 4], ['antidote', 2]] },
+  'story-5-b': { gold: 400, bexp: 300, items: [['levin_sword', 1], ['elixir', 1], ['antidote', 1]] },
+  'story-6-a': { gold: 350, items: [['antidote', 3], ['elixir', 1]] },
+  'story-6-b': { gold: 400, items: [['silver_sword', 1], ['elixir', 1]] },
+  'story-7-a': { gold: 450, items: [['elixir', 2], ['ether_ration', 2]] },
+  'story-7-b': { gold: 450, items: [['elixir', 2], ['vulnerary', 3]] },
+  'story-8-a': { gold: 600, bexp: 400, items: [['brave_lance', 1], ['elixir', 2], ['antidote', 2]] },
+  'story-8-b': { gold: 500, items: [['brave_axe', 1], ['elixir', 1]] },
 };
-export function stepReward(step: StoryStep, chapter: number): StepReward {
-  const [base, perChapter] = STEP_GOLD[step.kind];
-  const reward: StepReward = { gold: base + perChapter * chapter };
-  if (step.kind === 'duel') { reward.bexp = 300; reward.items = [['vulnerary', 2]]; }
+export const STORY_STEP_REWARDS: Readonly<Record<string, StepReward>> = STEP_REWARDS;
+export function stepReward(step: StoryStep, _chapter?: number): StepReward {
+  const reward = STEP_REWARDS[step.id];
+  if (!reward) throw new Error(`前置任务 ${step.id} 没有配置奖励`);
   return reward;
 }
 

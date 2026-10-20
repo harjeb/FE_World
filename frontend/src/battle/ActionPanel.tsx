@@ -132,7 +132,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
               return (
                 <button key={i} type="button" className="btn" onClick={() => ctl.useItem(i)}>
                   <img className="px" src={itemIconFor(stack.id)} width={32} height={32} alt="" />
-                  使用{ITEMS[stack.id].name}（回复 {Math.min(ITEMS[stack.id].heal, unit.stats.hp - unit.hp)}，剩 {stack.uses} 次）
+                  使用{ITEMS[stack.id].name}（{'cure' in ITEMS[stack.id] ? '解除中毒' : `回复 ${Math.min(ITEMS[stack.id].heal, unit.stats.hp - unit.hp)}`}，剩 {stack.uses} 次）
                 </button>
               );
             })}

@@ -5,6 +5,8 @@ import { burstTrait } from '@common/engine/personal-traits.ts';
 import { STAT_NAMES } from '@common/data/types.ts';
 import type { StatKey } from '@common/data/types.ts';
 import { GAME_ITEMS } from '@common/game/items.ts';
+import { ITEMS } from '@common/data/weapons.ts';
+import type { ItemId } from '@common/data/weapons.ts';
 import type { ItemKey } from '@common/game/items.ts';
 import type { BattleEvent, BattleState, Side } from '@common/engine/index.ts';
 import { artInfo, spellInfo, weaponLabel } from './commands.ts';
@@ -134,7 +136,10 @@ export function describe(events: BattleEvent[], before: BattleState): LogEntry[]
       case 'heal':
         if (e.source === 'terrain') push(`${name(e.target)} 在据点回复 ${e.amount} HP。`, 'g');
         else if (e.source === 'art') push(`${name(e.target)} 受到战技治疗，回复 ${e.amount} HP。`, mark(e.target));
-        else if (e.source === 'item') push(`${name(e.target)} 使用伤药，回复 ${e.amount} HP。`, mark(e.target));
+        else if (e.source === 'item') {
+          const used = ITEMS[(e.item ?? 'vulnerary') as ItemId];
+          push('cure' in used ? `${name(e.target)} 使用${used.name}，解除了中毒。` : `${name(e.target)} 使用${used.name}，回复 ${e.amount} HP。`, mark(e.target));
+        }
         else push(`${name(e.by!)} 治疗 ${name(e.target)}，回复 ${e.amount} HP。`, mark(e.by!));
         break;
       case 'levelUp': {

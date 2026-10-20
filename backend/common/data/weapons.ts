@@ -184,5 +184,9 @@ export const ITEMS = {
   vulnerary: { name: '伤药', heal: 10, uses: 3 },
   // 不朽盾（docs/00 §7.2）：不是治疗道具，只在致死时自动触发；shield 标记让它不出现在道具菜单。
   immortal_shield: { name: '不朽盾', heal: 0, uses: 1, shield: true },
+  // 特效药：回复全部 HP（受每名角色 HP 上限约束，实际回复 min(缺口, heal)）。
+  elixir: { name: '特效药', heal: 999, uses: 1 },
+  // 解毒药：解除战技造成的中毒（cure 列出可解除的战技异常状态）；不回复 HP。
+  antidote: { name: '解毒药', heal: 0, uses: 2, cure: ['poison'] },
 } as const;
 export type ItemId = keyof typeof ITEMS;

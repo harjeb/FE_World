@@ -235,7 +235,7 @@ export type BattleEvent =
   | { t: 'combat'; attacker: string; defender: string; weapons: [WeaponId, WeaponId | null]; strikes: Strike[]; forecast?: Forecast }
   | { t: 'defeated'; unit: string }
   | { t: 'shield'; unit: string }
-  | { t: 'heal'; by: string | null; target: string; amount: number; hpAfter: number; source: 'staff' | 'item' | 'terrain' | 'art' }
+  | { t: 'heal'; by: string | null; target: string; amount: number; hpAfter: number; source: 'staff' | 'item' | 'terrain' | 'art'; item?: string }
   | { t: 'exp'; unit: string; gained: number; exp: number; level: number }
   | { t: 'levelUp'; unit: string; level: number; gains: Partial<Stats>; rerolls: number }
   | { t: 'wait'; unit: string }

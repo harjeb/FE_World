@@ -161,13 +161,19 @@ export function runAreaHeal(state: BattleState, healer: UnitState, weaponId: Wea
   if (healer.side === 'player') gainExp(state, healer, staffExp(healer), events);
 }
 
+// 道具用法：回复类按 heal 回复；解毒类（cure）解除指定的战技异常状态，不回复 HP。
 export function useItem(unit: UnitState, index: number, events: BattleEvent[]): void {
   const stack = unit.items[index];
-  const amount = unit.petrified || unit.immunities?.includes('healing') ? 0 : Math.min(unit.stats.hp - unit.hp, ITEMS[stack.id].heal);
+  const def = ITEMS[stack.id] as { heal: number; cure?: readonly string[] };
+  const amount = unit.petrified || unit.immunities?.includes('healing') ? 0 : Math.min(unit.stats.hp - unit.hp, def.heal);
   unit.hp += amount;
+  if (def.cure && unit.artEffects?.statuses) {
+    unit.artEffects = { ...unit.artEffects, statuses: unit.artEffects.statuses.filter(status => !def.cure!.includes(status)) };
+    events.push({ t: 'artState', unit: unit.id, effects: structuredClone(unit.artEffects) });
+  }
   stack.uses -= 1;
   if (stack.uses === 0) unit.items.splice(index, 1);
-  events.push({ t: 'heal', by: unit.id, target: unit.id, amount, hpAfter: unit.hp, source: 'item' });
+  events.push({ t: 'heal', by: unit.id, target: unit.id, amount, hpAfter: unit.hp, source: 'item', item: stack.id });
 }
 
 // Forts and thrones restore 20% max HP to the units standing on them when their phase starts.
