@@ -66,7 +66,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '旧档案所在的荒废王都里，有人在抹去冠军的名字。赶在他们之前进入档案库。',
     clue: { name: '被刮去的名册', note: '一页被同一把刀刮过的冠军名册，空白处隐约有压痕。' },
     steps: [
-      step(3, 'a', { kind: 'duel', name: '刮名人', briefing: '一个自称“刮名人”的剑客拦在档案馆门前，只肯和一个人单独较量。选一名角色应战，获胜才能进门。', mapId: 'fe2-map-03', enemy: '刮名人', levelBonus: 3 }),
+      step(3, 'a', { kind: 'duel', name: '刮名人', briefing: '一个自称“刮名人”的剑客拦在档案馆门前，只肯和一个人单独较量。对手是个随机人物，实力按你队伍里最高等级来，职业与你选的应战者相近。选一名角色应战，获胜才能进门。', mapId: 'fe2-map-03', enemy: '刮名人', levelBonus: 1 }),
       step(3, 'b', { kind: 'submit', name: '修复卷宗', briefing: '破损的卷宗需要矿物粉修补。提交 8 份矿石。', item: 'ore', count: 8 }),
     ] },
   { chapter: 4, mapId: 'fe8-ch14-ephraim', name: '旧约·地下祭室',
@@ -81,7 +81,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     clue: { name: '筹备处账本', note: '记录侵蚀材料流向赛事筹备处的账本副页。' },
     steps: [
       step(5, 'a', { kind: 'dispatch', name: '追查货源', briefing: '侵蚀材料从哪里运来？派队伍沿商路追查，满 5 日归来。', days: 5 }),
-      step(5, 'b', { kind: 'duel', name: '走私头目', briefing: '走私头目放话：只和一个人单挑，赢了就交出账本。选一名角色应战。', mapId: 'fe2-map-05', enemy: '走私头目', levelBonus: 3 }),
+      step(5, 'b', { kind: 'duel', name: '走私头目', briefing: '走私头目放话：只和一个人单挑，赢了就交出账本。选一名角色应战，对手的职业与你的应战者相近。', mapId: 'fe2-map-05', enemy: '走私头目', levelBonus: 1 }),
     ] },
   { chapter: 6, mapId: 'fe7-ch25-eliwood-kenneth', name: '夺取·封印节点',
     briefing: '赛程被人为改动，封印节点暴露在决赛场地下方。在对方完成改写之前压制节点所在的王座。',
@@ -101,7 +101,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '守护阵即将闭合，残余的力量涌向封印本身。击败守在阵眼的敌人，完成守护。',
     clue: { name: '守护阵图', note: '守护阵的完整阵图，边缘仍有尚未散去的侵蚀痕迹。' },
     steps: [
-      step(8, 'a', { kind: 'duel', name: '阵眼守卫', briefing: '阵眼的守卫按旧约的规矩，只接受单挑。选一名角色应战。', mapId: 'fe2-map-07', enemy: '阵眼守卫', levelBonus: 4 }),
+      step(8, 'a', { kind: 'duel', name: '阵眼守卫', briefing: '阵眼的守卫按旧约的规矩，只接受单挑，对手实力按你队伍的最高等级来。选一名角色应战。', mapId: 'fe2-map-07', enemy: '阵眼守卫', levelBonus: 2 }),
       step(8, 'b', { kind: 'find', name: '阵眼钥石', briefing: '黑暗龙与光之剑的三图远征里，有一只箱子压着阵眼的钥石。取回「阵眼钥石」。', item: 'story_find_8', route: 'clx-fe3', mapId: 'fe3-book1-ch20' }),
     ] },
 ];

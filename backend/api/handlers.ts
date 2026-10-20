@@ -62,7 +62,7 @@ import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, qu
 import { COMPANION_EPILOGUES, STORY_QUESTS } from '../common/game/story-quests.ts';
 import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
 import { companionView, completeDuelStep, findStoryStep, recordStoryWin, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
-import { createStoryDuel, DUEL_DAYS } from '../common/game/story-duel.ts';
+import { createStoryDuel, DUEL_DAYS, duelLevel } from '../common/game/story-duel.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
@@ -2083,7 +2083,7 @@ const handlers: Record<number, Handler> = {
     const block = lifespanBlockers(ctx, ctx.player.day + DUEL_DAYS);
     if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
     const [unit] = deploymentUnits(ctx, [asString(data.unitId, 'unitId')], 1);
-    const record = createStoryDuel(unit, step, { seed: randomUUID().slice(0, 8), day: ctx.player.day });
+    const record = createStoryDuel(unit, step, { seed: randomUUID().slice(0, 8), day: ctx.player.day, level: duelLevel(ctx.store.units(ctx.player.id), step) });
     record.playerId = ctx.player.id;
     ctx.player.day += DUEL_DAYS;
     syncPlayer(ctx.store, ctx.player);

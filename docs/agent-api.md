@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 22
+docVersion: 24
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -217,7 +217,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 145 | COMPLETE_STORY_STEP | 提交主线前置任务中 kind=submit 的材料（step 为前置任务 ID）：从仓库扣除指定数量后完成。其他类型不用提交：派遣满天数返程自动完成；find 在固定经典远征的宝箱里找到任务物品、持有即完成；arena／tavern 在章节开放后累计普通竞技场胜场／酒馆小游戏胜次；duel 用 START_STORY_DUEL。全部完成后才能接收尾战（story-N）。 |
-| 146 | START_STORY_DUEL | 开始主线单挑类前置任务（story-N-a/b 中 kind=duel）：step 为前置任务 ID、unitId 为应战的一名己方角色。借一张小型经典图，只有该角色对一名带名字的强敌，推进 1 日；真实死亡、正常经验，获胜即完成前置任务，失败可再次挑战。需要章节已开放、没有进行中的战斗／远征／大竞技场。 |
+| 146 | START_STORY_DUEL | 开始主线单挑类前置任务（story-N-a/b 中 kind=duel）：step 为前置任务 ID、unitId 为应战的一名己方角色。借一张小型经典图，该角色对一名随机生成的人物（名字随机，等级为现役名册最高等级加 1～2，职业与应战角色相近，纯治疗职业改为有攻击手段的近似职业），推进 1 日；真实死亡、正常经验，获胜即完成前置任务，失败可再次挑战。需要章节已开放、没有进行中的战斗／远征／大竞技场。 |
 ### 战斗
 
 | op | 名称 | 说明 |

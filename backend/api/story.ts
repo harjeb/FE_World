@@ -10,6 +10,7 @@ import type { DispatchRecord } from '../common/game/dispatch.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
 import { COMPANION_EPILOGUES, COMPANION_QUEST_DEFS, STORY_CHAPTER_QUESTS, STORY_QUESTS, companionQuestId, storyClueKey, storyQuestId } from '../common/game/story-quests.ts';
 import type { StoryStep } from '../common/game/story-quests.ts';
+import { duelLevel } from '../common/game/story-duel.ts';
 
 const stepsDone = (player: Player): Set<string> => new Set(player.flags.storyStepsDone ?? []);
 
@@ -92,7 +93,7 @@ function stepViews(store: Store, player: Player, chapter: number) {
       case 'dispatch': return { ...base, days: step.days };
       case 'submit': return { ...base, item: step.item, itemName: GAME_ITEMS[step.item].name, count: step.count, held: store.countInventory(player.id, step.item) };
       case 'find': return { ...base, item: step.item, itemName: GAME_ITEMS[step.item].name, held: store.countInventory(player.id, step.item), where: questById(step.route)?.name ?? step.route, mapName: classicMap(step.mapId).name };
-      case 'duel': return { ...base, enemy: step.enemy, level: Math.min(99, enemyLevel(player.day, 0) + step.levelBonus + 2) };
+      case 'duel': return { ...base, enemy: step.enemy, level: duelLevel(store.units(player.id), step) };
       case 'arena': case 'tavern': return { ...base, wins: step.wins, have: Math.min(step.wins, player.flags.storyProgress?.[step.id] ?? 0) };
     }
   });

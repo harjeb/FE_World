@@ -86,6 +86,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 19, text: 'v19: 目录35。新增8个主线任务story-1～story-8（不属于任何地区，章节开放后可接，胜利即完成该章）与雷恩／伊格／米拉的伙伴任务companion-*；任务条件新增requires.chapter／character，GET_STORY返回quest与companions，GET_QUESTS的伙伴任务带companion／epilogue；庆典窗口内GET_SHOP整店打折（price为实付单价，新增basePrice／discount），BUY按折后价扣费。' },
     { version: 20, text: 'v20: 目录36。每章主线增加前置任务：story-N-a派遣（章节开放后出发的一次派遣满天数，返程自动完成）与story-N-b提交材料（新增COMPLETE_STORY_STEP，从仓库扣除）；前置任务全部完成后才能接收尾战story-N，START_QUEST未完成时拒绝。GET_STORY.quest新增steps与prerequisite。旧档已记为完成的章节不受前置任务限制。' },
     { version: 22, text: 'v22: 目录38。主线前置任务不再固定为派遣＋提交：每章两个、类型各章不同（派遣、提交材料、副本宝箱找任务物品、单挑、普通竞技场胜场、酒馆小游戏胜次）。新增START_STORY_DUEL（单挑，真实死亡，借小型经典图只留一人对一名强敌）；COMPLETE_STORY_STEP只用于提交材料类；GET_STORY.quest.steps按类型返回各自字段，前置任务不再有先后顺序。' },
+    { version: 24, text: 'v24: 目录40。主线单挑的对手改为随机人物：名字随机，等级为现役名册最高等级加1～2（第3、5章加1，第8章加2），职业与应战角色相近（纯治疗职业换成有攻击手段的近似职业）。GET_STORY的duel步骤level按同一规则给出。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }
