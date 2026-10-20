@@ -1,5 +1,6 @@
 import { CLASSIC_GAME_NAMES, CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
 import { CLASSIC_DUNGEON_IDS } from './dungeon-plans.ts';
+import { DUNGEON_DAYS } from './expedition.ts';
 import type { ClassicGame, ClassicMap } from './classic-catalog.ts';
 import type { Quest, QuestKind } from './quests.ts';
 
@@ -121,7 +122,7 @@ function featuredDungeonQuests(): Quest[] {
       turnLimit: Math.max(...maps.map(map => map.turnLimit)),
       reward: { gold: 3_500, reputation: 0 },
       scenarioIds: maps.map(map => map.id),
-      stageDays: 2, costDays: 6,
+      costDays: DUNGEON_DAYS,
       classic: { game, mapName, stageCount: 3, adapted: maps.some(map => map.adapted) },
     };
   });

@@ -4,7 +4,7 @@ import { CLASS_OPEN_YEAR, CLASS_PRICE, STAGE_NAMES } from '@common/data/classes.
 import type { ClassStage } from '@common/data/classes.ts';
 import { ARENA_GOLD } from '@common/game/arena.ts';
 import { ARENA_DAY_OF_MONTH, DAYS_PER_SEASON, SEASONS_PER_YEAR } from '@common/game/calendar.ts';
-import { DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
+import { DUNGEON_DAYS, DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
 import { DRUG_LIMIT_PER_STAT, DRUG_LIMIT_TOTAL } from '@common/game/items.ts';
 import { LEGACY_MIN_LEVEL, REINCARNATION_GOLD, REINCARNATION_LEVEL, REINCARNATION_POINTS, REINCARNATION_STAT_MAX } from '@common/game/legacy.ts';
 import { ROSTER_LIMIT } from '@common/game/model.ts';
@@ -103,7 +103,7 @@ export function RulesPage() {
         </Section>
 
         <Section id="dungeon" title="三图大副本" link={features.dungeon ? ['大副本', links.dungeon] : undefined}>
-          <li>同一支队伍连打 {DUNGEON_STAGES} 张图，每进一张图推进 {DUNGEON_STAGE_DAYS} 日；名单出发后固定，不能补人。</li>
+          <li>同一支队伍连打 {DUNGEON_STAGES} 张图，合计 {DUNGEON_DAYS} 日，逐图推进 {DUNGEON_STAGE_DAYS.join('、')} 日；名单出发后固定，不能补人。</li>
           <li>HP、道具与武器跨图沿用上一张图结束时的状态，不恢复；出发后的整备改动不会带进远征，远征中的角色不能轮回或购买职业资格。</li>
           <li>打完一张图可以继续或撤离；只有拿下第 {DUNGEON_STAGES} 张图的首领，掉落和金币才带回，首次完整通关讨伐该地区。</li>
           <li>敌人等级在出发时锁定。</li>

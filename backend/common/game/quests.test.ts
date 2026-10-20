@@ -37,7 +37,7 @@ test('all twelve regions reach every reputation tier in the same minimum action 
       quests.forEach((quest, i) => { if (questAvailable(quest, { done, reputation })) reachable.add(mask | (1 << i)); });
     }
     assert.ok(reachable.has((1 << quests.length) - 1), `region ${region} has a deadlock`);
-    assert.deepEqual([...fastest], [[100, 5], [250, 14], [500, 32]], `region ${region}`);
+    assert.deepEqual([...fastest], [[100, 5], [250, 16], [500, 40]], `region ${region}`);
     assert.equal(quests.reduce((maps, q) => maps + (q.tier === 'region' ? 3 : 1), 0), 17);
     for (const item of regionShop(region, Infinity)) assert.ok(item.reputation <= 500, `${region}:${item.item}`);
   }

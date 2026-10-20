@@ -11,7 +11,7 @@
 | 装备／法术目录 | 170 | 170个设计ID逐项齐全且都有取得途径（地区商店资格按级别开放、一次性任务奖励、挑战塔首通；限量书＋教材只经任务发放）；特殊装备效果、40种法术效果与书／杖次数（开场、追击、反击各扣1次）已结算并进入网页／Agent预测，见27 §6；另保留旧武器／书及别名，共187条兼容记录（137武器表＋50书表） | `tools/audit/equipment-catalog.py`、`equipment-effects.test.ts`、`spell-effects.test.ts`、`api/equipment-sources.test.ts` |
 | 武器战技 | 315 | 283参考＋17补充＋15原创；原创逐项结算、目标选择、网页／Agent预测及耐久支付已接；176项精通／408条教学已接入参战、返程和存档；103项营地同步研修已接入（`durability_v1`：`days=max(2,ceil(project.cost/2))`、`gold=days*200`，先学基础、付费耗日、重试安全）；36项装备授予已实现（含毒弓＋3强化路径、实例／资源保存，见27及`backend/api/equipment-grants.test.ts`）；共用五格运行时／API／网页已实现（完整库与独立选择、原子提交及旧档一次迁移见28）；既有300项特殊效果已完成首版显式实现（边界见26）；CLASS-02首版可确认主动战技与12被动已实现，DESIGN-04及ITEM-06已完成首版（特殊装备、法术与投放见27 §6） | `original-arts.test.ts`、`classic-arts.test.ts`（引擎／API）、`art-effects.test.ts`、`api/ui-protocol.test.ts`、`tools/audit/class-art-learning.py` |
 | 职业目录 | 77 | 运行时可用；舞者/神乐再行动、战车直线攻击已接 | `class-data` 测试 |
-| 地区任务 | 12 地区／108项 | 每地九项一次性任务，最快5／14／32行动日达到100／250／500；旧三任务链可续做，经典地图新奖励不再额外加速三地声望，已获声望保留，见[20](20-region-quests-reputation.md) | `quests.test.ts`、`api/quests.test.ts` |
+| 地区任务 | 12 地区／108项 | 每地九项一次性任务，最快5／16／40行动日达到100／250／500；旧三任务链可续做，经典地图新奖励不再额外加速三地声望，已获声望保留，见[20](20-region-quests-reputation.md) | `quests.test.ts`、`api/quests.test.ts` |
 | 挑战塔 | 3 层 | 可开战、首通/重复奖励与保存；终层地图显示名为「神蚀纪 · 终焉王座」 | `challenges.ts`、`classic.test.ts`、`api` 测试 |
 | 酒馆 | 第二年季度候选 | 付费雇佣、候选不重掷 | `GET_TAVERN`／`HIRE_TAVERN` |
 

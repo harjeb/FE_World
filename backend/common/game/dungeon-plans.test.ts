@@ -57,8 +57,8 @@ test('six public classic dungeons each retain three coherent stages and no solo 
     assert.equal(quest.dungeonOnly, true);
     assert.equal(quest.requires, undefined);
     assert.deepEqual(quest.reward, { gold: 3500, reputation: 0 });
-    assert.equal(quest.stageDays, 2);
-    assert.equal(quest.costDays, 6);
+    assert.equal(quest.stageDays, undefined);
+    assert.equal(quest.costDays, 8);
     assert.equal(quest.classic?.stageCount, 3);
     assert.ok(quest.name.endsWith('三图远征'));
     assert.ok(quest.objective.startsWith('3 图连战：'));

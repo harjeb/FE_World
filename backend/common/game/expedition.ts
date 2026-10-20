@@ -7,8 +7,9 @@ import type { ItemKey } from './items.ts';
 // 三图地区大副本（docs/00 §8.1.3、docs/13 §4.3）：固定名单、跨图不自动恢复、只有完整通关才带回掉落。
 
 export const DUNGEON_STAGES = 3;
-// 每进入一张图支付本图全部日数（docs/13 §3.2）。
-export const DUNGEON_STAGE_DAYS = 8;
+export const DUNGEON_DAYS = 8;
+// 每进入一张图支付本图日数，三图合计八日。
+export const DUNGEON_STAGE_DAYS = [3, 3, 2] as const;
 
 export type RunState = 'battle' | 'between_maps' | 'completed' | 'failed' | 'withdrawn';
 
@@ -30,9 +31,10 @@ export interface RunRecord {
   pendingLoot: { item: string; count: number }[];
   // 本趟已拿到的一次性隐藏要素（mapId:objectId）；完整通关才记入账号，撤离／失败作废。
   pendingClaims?: string[];
-  // 地区远征任务（docs/20）：完成后标记该任务；每图日数可覆盖（任务远征 2 日/图）。
+  // 旧远征保留单图耗日；新远征冻结三图的逐图耗日。
   questId?: string;
   stageDays?: number;
+  stageDayCosts?: number[];
   // 经典地图副本：按顺序使用的场景 id 与显示名（不填则沿用随机地图三图副本）。
   // New runs freeze their generated/classic sequence; absent on legacy runs.
   stages?: DungeonStage[];
@@ -49,16 +51,22 @@ export function createRun(id: string, playerId: string, region: number, unitIds:
     encounter: opts.encounter ? structuredClone(opts.encounter) : undefined,
     id, playerId, region, aiDifficulty: opts.aiDifficulty ?? 'normal', state: 'battle', unitIds: [...unitIds], stageIndex: 0,
     level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
+    stageDayCosts: opts.stageDays === undefined ? [...DUNGEON_STAGE_DAYS] : undefined,
     stages: opts.stages?.map(stage => ({ ...stage })),
     scenarioIds: opts.scenarioIds ? [...opts.scenarioIds] : undefined,
     stageNames: opts.stageNames ? [...opts.stageNames] : opts.stages?.map(stage => stage.name),
-    rulesetVersion: opts.stages ? 'run-v3' : 'run-v2', createdAt: Date.now(), updatedAt: Date.now(),
+    rulesetVersion: opts.stageDays === undefined ? 'run-v4' : opts.stages ? 'run-v3' : 'run-v2', createdAt: Date.now(), updatedAt: Date.now(),
   };
 }
 
 // Saved sequences take priority; legacy runs retain their original structure.
 export function stageCount(run: Pick<RunRecord, 'scenarioIds' | 'stages'>): number {
   return run.stages?.length ?? run.scenarioIds?.length ?? DUNGEON_STAGES;
+}
+
+// 没有逐图耗日的旧远征沿用已保存的单图耗日，最早版本为每图八日。
+export function runStageDays(run: Pick<RunRecord, 'stageIndex' | 'stageDays' | 'stageDayCosts'>, index = run.stageIndex): number {
+  return run.stageDayCosts ? run.stageDayCosts[index] ?? 0 : run.stageDays ?? 8;
 }
 
 export function stageScenario(run: Pick<RunRecord, 'scenarioIds' | 'stages'>, index: number): string | undefined {
@@ -122,7 +130,7 @@ export function runSummary(run: RunRecord): Record<string, unknown> {
     // What each survivor brings into the next map: HP and supplies do not recover between maps.
     carry: run.carry,
     pendingLoot: run.pendingLoot, canContinue: run.state === 'between_maps',
-    rulesetVersion: run.rulesetVersion ?? 'run-v1', stageCount: count, stageDays: run.stageDays ?? DUNGEON_STAGE_DAYS, stageNames: run.stageNames ?? null,
+    rulesetVersion: run.rulesetVersion ?? 'run-v1', stageCount: count, stageDays: runStageDays(run), stageDayCosts: run.stageDayCosts, stageNames: run.stageNames ?? null,
     stageName: run.stageNames?.[run.stageIndex] ?? null,
     nextStageName: run.stageNames?.[run.stageIndex + (run.state === 'between_maps' ? 0 : 1)] ?? null,
   };

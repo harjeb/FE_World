@@ -5,7 +5,7 @@ import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import type { BattleState } from '@common/engine/index.ts';
 import { regionById } from '@common/game/calendar.ts';
-import { DUNGEON_STAGES, DUNGEON_STAGE_DAYS } from '@common/game/expedition.ts';
+import { DUNGEON_DAYS, DUNGEON_STAGES, DUNGEON_STAGE_DAYS, runStageDays } from '@common/game/expedition.ts';
 import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
@@ -108,7 +108,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
   if (!state) return null;
   const region = regionById(run.region);
   const next = run.stageIndex + 1;
-  const stageDays = run.stageDays ?? DUNGEON_STAGE_DAYS;
+  const stageDays = runStageDays(run);
   const to = advance(state.day, stageDays);
   const warning = arenaTodayWarning();
   const members = run.unitIds.map(id => state.units.find(u => u.id === id)).filter((u): u is NonNullable<typeof u> => !!u);
@@ -248,8 +248,8 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const enemyLevel = chain?.enemyLevel ?? target.level;
   const stageNames = chain?.stageNames ?? target.dungeonStages.map(s => s.name);
   const stageCount = stageNames.length || DUNGEON_STAGES;
-  const stageDays = chain ? chain.costDays / stageCount : DUNGEON_STAGE_DAYS;
-  const costDays = chain?.costDays ?? stageDays * stageCount;
+  const stageDayCosts = chain?.archived ? Array.from({ length: stageCount }, () => chain.costDays / stageCount) : DUNGEON_STAGE_DAYS;
+  const costDays = chain?.costDays ?? DUNGEON_DAYS;
   const total = advance(today.day, costDays);
   const reward = chain ? chain.firstClearRewards?.[effectiveDifficulty] : target.dungeonFirstClearRewards[effectiveDifficulty];
   const warning = arenaTodayWarning();
@@ -265,7 +265,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
           <div>
             <div className="eyebrow">出击 · 大副本</div>
             <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>大副本准备</h1>
-            <p style={{ fontSize: 14, color: '#4E473D' }}>同一支队伍连打 {stageCount} 张图，每进一张图推进 {stageDays} 日。完整通关后，掉落和金币才会带回。</p>
+            <p style={{ fontSize: 14, color: '#4E473D' }}>同一支队伍连打 {stageCount} 张图，合计 {costDays} 日，逐图推进 {stageDayCosts.join('、')} 日。完整通关后，掉落和金币才会带回。</p>
           </div>
           <div style={{ fontSize: 13, color: '#4E473D' }}>今天 <b>{dateLabel(today.day)}</b></div>
         </div>
@@ -331,7 +331,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
               <dt>本难度首通</dt><dd>{lootLine(reward.items)} · {reward.available ? '未完成' : '已完成'}<br /><span className="muted">本难度首次完整通关自动入库；普通、困难各一次固定奖励，探索度仍只增加一次</span></dd>
             </>}
             <dt>关卡顺序</dt><dd>{stageNames.join(' → ')}</dd>
-            <dt>总耗时</dt><dd>打满 {stageCount} 张共 {costDays} 日 → {total.label}{total.passes ? `；${total.passes}` : ''}（每进一张图才支付那 {stageDays} 日）</dd>
+            <dt>总耗时</dt><dd>打满 {stageCount} 张共 {costDays} 日 → {total.label}{total.passes ? `；${total.passes}` : ''}（逐图支付 {stageDayCosts.join('、')} 日）</dd>
             <dt>阵亡</dt><dd className="risk">倒下的角色永久死亡{lead ? `（主角${lead.name}倒下只撤退）` : ''}；撤离保留已发生的伤亡。</dd>
           </dl>
           <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason={chain ? '以普通难度完整通关本副本后解锁，仅限本副本。' : '以普通难度完整通关本地区远征后解锁，仅限本地区远征。'} onChange={value => { setQuote(); setAiDifficulty(value); }} disabled={busy !== null} />

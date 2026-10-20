@@ -2,6 +2,9 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v17';
+// v43: new three-map dungeon runs cost 3/3/2 days (eight total), frozen in stageDayCosts.
+// Existing runs retain their saved per-map costs (or the legacy eight-day default); no dates are refunded.
+// Battle rules and old replays are unchanged.
 // v40: story duel opponents are random people built from the roster's highest level (+1/+1/+2) with a random
 // class of the same tier (stage) as the duelist's, drawn from available human classes that can attack. START_STORY_DUEL needs no new flags; battles already started are unchanged.
 // v42: preliminary story tasks pay a reward when they complete (gold by kind and chapter; duels also give shared
@@ -77,7 +80,7 @@ export const RULESET_VERSION = 'rules-v17';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 42;
+export const CATALOG_VERSION = 43;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

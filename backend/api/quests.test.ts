@@ -218,17 +218,17 @@ test('a region expedition runs three maps and only marks the quest done at the e
   const day = player.day;
   const started = dispatch(ctx, OP.START_QUEST, { questId: 'gw6', unitIds: ids }) as { battleId: string; run: { stageIndex: number; state: string } };
   assert.equal(started.run.stageIndex, 0);
-  assert.equal(player.day, day + 2, 'region expedition pays 2 days per map');
+  assert.equal(player.day, day + 3, 'region expedition pays its frozen first-stage cost');
   assert.equal(store.battle(player.id, started.battleId)!.state.goal.kind, 'seize', 'map 1 探路 = seize');
   assert.equal(playOut(ctx, started.battleId), 'player');
   assert.ok(!(player.flags.questsDone ?? []).includes('gw6'), 'stage one does not complete the quest');
   assert.equal(player.flags.regionExploration?.[2] ?? 0, 0);
   const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
-  assert.equal(player.day, day + 4);
+  assert.equal(player.day, day + 6);
   assert.equal(store.battle(player.id, second.battleId)!.state.goal.kind, 'rout', 'map 2 消耗战 = rout');
   assert.equal(playOut(ctx, second.battleId), 'player');
   const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
-  assert.equal(player.day, day + 6);
+  assert.equal(player.day, day + 8);
   const finale = classicMap(store.activeRun(player.id)!.stages![2].scenarioId!);
   const battle = store.battle(player.id, third.battleId)!;
   assert.equal(battle.state.goal.kind, finale.goal.kind, 'map 3 keeps its saved classic objective');
@@ -288,8 +288,8 @@ test('core expeditions keep early goals, finish on a classic map and pay only af
     assert.equal(battle.questId, 'r9-7');
     const expectedGoal = stage === 2 ? classicMap(store.activeRun(player.id)!.stages![2].scenarioId!).goal.kind : kind;
     assert.equal(battle.state.goal.kind, expectedGoal);
-    assert.equal(battle.costDays, 2);
-    assert.equal(player.day, day + (stage + 1) * 2);
+    assert.equal(battle.costDays, [3, 3, 2][stage]);
+    assert.equal(player.day, day + [3, 6, 8][stage]);
     // 本例验收逐图配置与结算边界：准备一手可胜的棋盘，避免随机地形下的 AI 寻路左右流程测试。
     const leader = battle.state.units.find(unit => unit.side === 'player')!;
     for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }

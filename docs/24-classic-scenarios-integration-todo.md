@@ -25,8 +25,8 @@
 ### 当前落地（classic-maps-v1）
 
 - 目录：`content/scenarios/classic-maps-v1/catalog.json`，60 张（FE1/FE2/FE3/FE6/FE7/FE8 各 10 张），字段、适配与限制见同目录 [`README.md`](../content/scenarios/classic-maps-v1/README.md)。
-- 任务：当前公开114项定义（108项本地＋6个固定经典三图副本）。经典每作保留一个`clx-fe1/2/3/6/7/8`，fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5，每图2日、共6日；同一副本UI选路线，不另设随机／经典导航分类，`START_QUEST`兼容。旧60单图＋18短经典共78定义归档保留查找、拒绝新开，旧进行中／待领奖仍列出，旧远征继续原路线。
-- 混合副本：60张经典图全部进入12地区各5图的终图池，地区主副本与48项地区任务远征均为两张生成图＋经典终图；主副本每图8日共24日，任务每图2日共6日。选择种子独立于战斗RNG，开局冻结`RunRecord.stages`，无该字段的旧远征不改图。首通固定装备／物品按普通与困难各一次，手动任务奖励与探索度仍跨难度一次，详见[20](20-region-quests-reputation.md)。
+- 任务：当前公开114项定义（108项本地＋6个固定经典三图副本）。经典每作保留一个`clx-fe1/2/3/6/7/8`，fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5，逐图3／3／2日、共8日；同一副本UI选路线，不另设随机／经典导航分类，`START_QUEST`兼容。旧60单图＋18短经典共78定义归档保留查找、拒绝新开，旧进行中／待领奖仍列出，旧远征继续原路线。
+- 混合副本：60张经典图全部进入12地区各5图的终图池，地区主副本与48项地区任务远征均为两张生成图＋经典终图；新开三图副本统一逐图3／3／2日、共8日，并冻结`stageDayCosts`；旧远征保留原耗日。选择种子独立于战斗RNG，开局冻结`RunRecord.stages`，无该字段的旧远征不改图。首通固定装备／物品按普通与困难各一次，手动任务奖励与探索度仍跨难度一次，详见[20](20-region-quests-reputation.md)。
 - 战斗：`createClassicBattle()` 直接读取目录生成 `BattleState`；`START_QUEST` 支持 `scenarioId` / `scenarioIds`，`CONTINUE_DUNGEON` 按顺序续战。
 - 前端：任务页显示经典标签、图数与适配标记；副本页按 `stageCount` / `stageNames` 显示进度。
 - 适配/报告：`adaptations.json`（物件/事件/地图变化/掉落）、`class-map.json`（FE7 39 个数字 ID、FE6/FE8 符号与 encounter-table）、`adaptation-report.json`（逐模板职业/武器/等级/AI/出生时机）。

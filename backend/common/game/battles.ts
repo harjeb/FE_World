@@ -20,7 +20,7 @@ import { expectedUnit } from '../arena/demo.ts';
 import type { CharacterId } from '../data/characters.ts';
 import type { UnitRecord } from './model.ts';
 import { toBattleUnit } from './model.ts';
-import { DUNGEON_STAGE_DAYS, DUNGEON_STAGES } from './expedition.ts';
+import { DUNGEON_STAGE_DAYS } from './expedition.ts';
 import type { RunCarry } from './expedition.ts';
 import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
@@ -181,7 +181,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
-    costDays: dungeon ? (quest?.stageDays ?? (quest ? QUEST_DAY_COST[quest.tier] / DUNGEON_STAGES : DUNGEON_STAGE_DAYS)) : quest ? (quest.costDays ?? QUEST_DAY_COST[quest.tier]) : ACTION_DAYS.sortie,
+    costDays: dungeon ? (quest?.stageDays ?? DUNGEON_STAGE_DAYS[stage]) : quest ? (quest.costDays ?? QUEST_DAY_COST[quest.tier]) : ACTION_DAYS.sortie,
     goalText: dungeon ? (goal.kind === 'seize' ? '压制指定地点' : goal.kind === 'rout' ? '消灭全部敌军' : '击败敌方主将') : quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
     rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION, createdAt: Date.now(), updatedAt: Date.now(),
   };

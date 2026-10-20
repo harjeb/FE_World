@@ -53,7 +53,7 @@ for (const day of [374, 375]) {
 for (const day of [366, 374, 375]) test(`dungeon departing day ${day} charges each stage before returning its departure-season map`, t => {
   const ctx = setup(t, day);
   const first = start(ctx, OP.START_DUNGEON);
-  assert.equal(ctx.player.day, day + 8);
+  assert.equal(ctx.player.day, day + 3);
   assert.equal(first.state.map.season, day < 375 ? 3 : 4);
   // Settle the first map through UNIT_ACT without relying on random combat outcomes.
   const leader = first.state.units.find(unit => unit.id === 'u_erin')!;
@@ -67,10 +67,10 @@ for (const day of [366, 374, 375]) test(`dungeon departing day ${day} charges ea
     action: first.state.goal.kind === 'seize' ? 'seize' : 'wait' });
   assert.equal(ctx.store.activeRun(ctx.player.id)!.state, 'between_maps');
   const next = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
-  assert.equal(ctx.player.day, day + 16);
-  assert.equal(ctx.store.getPlayer(ctx.player.id)!.day, day + 16);
+  assert.equal(ctx.player.day, day + 6);
+  assert.equal(ctx.store.getPlayer(ctx.player.id)!.day, day + 6);
   const second = ctx.store.battle(ctx.player.id, next.battleId)!;
-  const season = day + 8 < 375 ? 3 : 4;
+  const season = day + 3 < 375 ? 3 : 4;
   assert.equal(second.state.map.season, season);
   assert.ok(second.state.map.tiles.flat().includes(season === 4 ? 'snow' : 'plain'));
   assert.equal(ctx.store.battle(ctx.player.id, first.id)!.state.map.season, day < 375 ? 3 : 4);

@@ -2,12 +2,13 @@ import type { ItemKey } from './items.ts';
 import { manualItem, spellbookItem } from './items.ts';
 import type { CharacterId } from '../data/characters.ts';
 import { regionById } from './calendar.ts';
+import { DUNGEON_DAYS } from './expedition.ts';
 import { COMPANION_QUESTS, STORY_QUESTS } from './story-quests.ts';
 import { chapterAvailable } from './story.ts';
 
 const regionName = (id: number) => regionById(id).name;
 
-// 地区任务（docs/20「地区任务、战斗目标与声望」）。十二地均有九项一次性任务、500 声望与 32 日预算。
+// 地区任务（docs/20「地区任务、战斗目标与声望」）。十二地均有九项一次性任务、500 声望与 40 日预算。
 //
 // 目标类型：讨伐(rout)、占领(seize)、坚守(defend)、撤离(escape)、抢物资(gather)、护送(escort)。
 export type QuestKind = 'rout' | 'seize' | 'defend' | 'escape' | 'gather' | 'escort';
@@ -46,7 +47,7 @@ export interface Quest {
   // 经典地图任务：单图 scenarioId，或连续副本 scenarioIds（按顺序逐图创建战斗）。
   scenarioId?: string;
   scenarioIds?: string[];
-  // 覆盖默认耗日；连续副本按 stageDays × 图数计算。
+  // 覆盖默认耗日；stageDays 仅保留归档副本的固定单图耗日。
   costDays?: number;
   stageDays?: number;
   // 护送 NPC 的固定路线；不填则由战斗按撤离点寻路。
@@ -61,8 +62,8 @@ export interface Quest {
   classic?: { game: string; mapName: string; stageCount: number; adapted?: boolean };
 }
 
-// 耗日：短 1 / 标准 2 / 地区远征每图 2（普通 3 图共 6；经典副本按 3–4 图覆盖 costDays）。
-export const QUEST_DAY_COST: Record<QuestTier, number> = { short: 1, standard: 2, region: 6 };
+// 耗日：短 1 / 标准 2 / 三图地区远征 8（按 3、3、2 日逐图支付）。
+export const QUEST_DAY_COST: Record<QuestTier, number> = { short: 1, standard: 2, region: DUNGEON_DAYS };
 export const QUEST_LEVEL_CAP: Record<QuestTier, number> = { short: 30, standard: 50, region: 80 };
 export const QUEST_MAX_UNITS: Record<QuestTier, number> = { short: 6, standard: 8, region: 8 };
 

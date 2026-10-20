@@ -46,11 +46,14 @@ function win(ctx: Context, id: string) {
   const result = dispatch(ctx, OP.UNIT_ACT, command);
   assert.equal(ctx.store.battle(ctx.player.id, id)!.state.result?.winner, 'player');
   const inventory = ctx.store.inventory(ctx.player.id);
+  const paidDay = ctx.player.day;
   assert.deepEqual(dispatch(ctx, OP.UNIT_ACT, command), JSON.parse(JSON.stringify(result)));
+  assert.equal(ctx.player.day, paidDay);
   assert.deepEqual(ctx.store.inventory(ctx.player.id), inventory);
 }
-function finish(ctx: Context, first: Started, scenarios: (string | undefined)[], days: number) {
+function finish(ctx: Context, first: Started, scenarios: (string | undefined)[], days: number | number[]) {
   let battleId = first.battleId;
+  const costs = typeof days === 'number' ? scenarios.map(() => days) : days;
   const initialDay = ctx.player.day;
   const frozen = ctx.store.run(ctx.player.id, first.run.id)!;
   assert.deepEqual(frozen.unitIds, TEAM);
@@ -58,19 +61,22 @@ function finish(ctx: Context, first: Started, scenarios: (string | undefined)[],
     const b = ctx.store.battle(ctx.player.id, battleId)!;
     assert.equal(b.stageIndex, i);
     assert.equal(b.runId, first.run.id);
+    if (Array.isArray(days)) assert.equal(b.costDays, costs[i]);
     assert.equal(b.state.scenario?.id, scenarios[i]);
     assert.deepEqual(b.state.units.filter(u => u.side === 'player').map(u => u.id), TEAM);
     if (scenarios[i]) {
       const map = classicMap(scenarios[i]!);
       assert.equal(b.state.map.width, map.width);
       assert.equal(b.state.map.height, map.height);
-      assert.deepEqual(b.state.map.tiles, seasonalMap(map.terrain, dateOf(ctx.player.day - days).season).tiles);
+      assert.deepEqual(b.state.map.tiles, seasonalMap(map.terrain, dateOf(ctx.player.day - (b.costDays ?? costs[i])).season).tiles);
     }
     for (const id of TEAM) assert.equal(ctx.store.unit(ctx.player.id, id)!.lockedRunId, first.run.id);
     win(ctx, battleId);
     reload(ctx);
     const run = ctx.store.run(ctx.player.id, first.run.id)!;
     assert.deepEqual(run.stages, frozen.stages);
+    assert.deepEqual(run.stageDayCosts, frozen.stageDayCosts);
+    if (Array.isArray(days)) assert.deepEqual(run.stageDayCosts, days);
     assert.deepEqual(run.stageNames, frozen.stageNames);
     if (i < scenarios.length - 1) {
       assert.equal(run.state, 'between_maps');
@@ -87,7 +93,7 @@ function finish(ctx: Context, first: Started, scenarios: (string | undefined)[],
         assert.deepEqual(unit.weapons, run.carry[unit.id].weapons);
         assert.deepEqual(unit.weaponInstances, run.carry[unit.id].weaponInstances);
       }
-      assert.equal(ctx.player.day, initialDay + (i + 1) * days);
+      assert.equal(ctx.player.day, initialDay + costs.slice(1, i + 2).reduce((sum, cost) => sum + cost, 0));
     } else assert.equal(run.state, 'completed');
   }
   for (const id of TEAM) assert.equal(ctx.store.unit(ctx.player.id, id)!.lockedRunId ?? null, null);
@@ -99,7 +105,9 @@ function questRows(ctx: Context) {
 test('preview and GET_TODAY freeze the mixed plan across reload, payment and day changes', t => {
   const ctx = setup(t);
   const day = ctx.player.day;
-  const preview = () => dispatch(ctx, OP.PREVIEW_ACTION, { action: 'dungeon', region: 2, unitIds: TEAM }) as { dungeonStages: DungeonStage[] };
+  const preview = () => dispatch(ctx, OP.PREVIEW_ACTION, { action: 'dungeon', region: 2, unitIds: TEAM }) as { dungeonStages: DungeonStage[]; costDays: number; toDay: number };
+  assert.equal(preview().costDays, 3);
+  assert.equal(preview().toDay, day + 3);
   const plan = preview().dungeonStages;
   assert.equal(plan.length, 3);
   assert.deepEqual(plan.slice(0, 2).map(s => s.scenarioId), [undefined, undefined]);
@@ -110,15 +118,19 @@ test('preview and GET_TODAY freeze the mixed plan across reload, payment and day
   assert.deepEqual(preview().dungeonStages, plan);
   assert.equal(ctx.player.day, day);
   const first = dispatch(ctx, OP.START_DUNGEON, { region: 2, unitIds: TEAM }) as Started;
-  assert.equal(ctx.player.day, day + 8);
+  assert.equal(ctx.player.day, day + 3);
   const run = ctx.store.run(ctx.player.id, first.run.id)!;
   assert.deepEqual(run.stages, plan);
   assert.deepEqual(run.stageNames, plan.map(s => s.name));
-  finish(ctx, first, plan.map(s => s.scenarioId), 8);
-  assert.equal(ctx.player.day, day + 24);
+  finish(ctx, first, plan.map(s => s.scenarioId), [3, 3, 2]);
+  assert.equal(ctx.player.day, day + 8);
+  const hard = dispatch(ctx, OP.START_DUNGEON, { region: 2, unitIds: TEAM, aiDifficulty: 'hard' }) as Started;
+  const hardPlan = ctx.store.run(ctx.player.id, hard.run.id)!.stages!;
+  finish(ctx, hard, hardPlan.map(s => s.scenarioId), [3, 3, 2]);
+  assert.equal(ctx.player.day, day + 16);
 });
 
-test('regional multi-map quest gets a classic finale for two days per stage; ordinary quests retain rewards', t => {
+test('regional multi-map quest gets a classic finale in eight total days; ordinary quests retain rewards', t => {
   const ctx = setup(t);
   const day = ctx.player.day;
   assert.equal(questRows(ctx).find(q => q.id === 'gw1')!.firstClearRewards, null);
@@ -126,11 +138,15 @@ test('regional multi-map quest gets a classic finale for two days per stage; ord
   const plan = ctx.store.run(ctx.player.id, first.run.id)!.stages!;
   assert.deepEqual(plan.slice(0, 2).map(s => s.scenarioId), [undefined, undefined]);
   assert.ok(plan[2].scenarioId);
-  assert.equal(ctx.player.day, day + 2);
-  finish(ctx, first, plan.map(s => s.scenarioId), 2);
-  assert.equal(ctx.player.day, day + 6);
+  assert.equal(ctx.player.day, day + 3);
+  finish(ctx, first, plan.map(s => s.scenarioId), [3, 3, 2]);
+  assert.equal(ctx.player.day, day + 8);
   assert.ok(ctx.player.flags.questsDone!.includes('gw6'));
   assert.equal(questRows(ctx).find(q => q.id === 'gw6')!.hardUnlocked, true);
+  const hard = dispatch(ctx, OP.START_QUEST, { questId: 'gw6', unitIds: TEAM, aiDifficulty: 'hard' }) as Started;
+  const hardPlan = ctx.store.run(ctx.player.id, hard.run.id)!.stages!;
+  finish(ctx, hard, hardPlan.map(s => s.scenarioId), [3, 3, 2]);
+  assert.equal(ctx.player.day, day + 16);
 });
 
 const CHAINS = [
@@ -145,8 +161,8 @@ for (const [questId, region, scenarios] of CHAINS) test(`${questId}: three order
   const ctx = setup(t);
   const q = ALL_QUESTS.find(q => q.id === questId)!;
   assert.equal(q.region, region);
-  assert.equal(q.stageDays, 2);
-  assert.equal(q.costDays, 6);
+  assert.equal(q.stageDays, undefined);
+  assert.equal(q.costDays, 8);
   assert.equal(q.dungeonOnly, true);
   const row = questRows(ctx).find(q => q.id === questId)!;
   assert.equal(row.hardUnlocked, false);
@@ -154,16 +170,18 @@ for (const [questId, region, scenarios] of CHAINS) test(`${questId}: three order
   assert.throws(() => dispatch(ctx, OP.START_QUEST, { questId, unitIds: TEAM, aiDifficulty: 'hard' }), /普通难度/);
   const day = ctx.player.day;
   const first = dispatch(ctx, OP.START_QUEST, { questId, unitIds: TEAM }) as Started;
-  assert.equal(ctx.player.day, day + 2);
+  assert.equal(ctx.player.day, day + 3);
   assert.deepEqual(ctx.store.run(ctx.player.id, first.run.id)!.scenarioIds, scenarios);
-  finish(ctx, first, [...scenarios], 2);
-  assert.equal(ctx.player.day, day + 6);
+  finish(ctx, first, [...scenarios], [3, 3, 2]);
+  assert.equal(ctx.player.day, day + 8);
   const after = questRows(ctx).find(q => q.id === questId)!;
   assert.equal(after.hardUnlocked, true);
   assert.equal(after.firstClearRewards!.normal.available, false);
   assert.equal(after.firstClearRewards!.hard.available, true);
+  const hardDay = ctx.player.day;
   const hard = dispatch(ctx, OP.START_QUEST, { questId, unitIds: TEAM, aiDifficulty: 'hard' }) as Started;
-  finish(ctx, hard, [...scenarios], 2);
+  finish(ctx, hard, [...scenarios], [3, 3, 2]);
+  assert.equal(ctx.player.day, hardDay + 8);
   assert.equal(questRows(ctx).find(q => q.id === questId)!.firstClearRewards!.hard.available, false);
 });
 
@@ -203,6 +221,7 @@ test('classic dungeons reject locked regions before charging days or locking uni
 test('legacy random run without stages keeps all three generated maps', t => {
   const ctx = setup(t);
   const run = createRun('legacy-random', ctx.player.id, 2, TEAM, 10, 2);
+  delete run.stageDayCosts;
   const units = TEAM.map(id => ctx.store.unit(ctx.player.id, id)!);
   for (const u of units) { u.lockedRunId = run.id; ctx.store.saveUnit(u, ctx.player.id); }
   const b = createFieldBattle(units, { region: 2, cleared: 2, day: ctx.player.day, seed: 'legacy', level: 10, stageIndex: 0, runId: run.id });

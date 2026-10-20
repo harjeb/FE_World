@@ -24,7 +24,7 @@ export const OPS: readonly OpDef[] = [
   { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。' },
 
   { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，困难装备更高阶且不同；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。' },
-  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，普通野图推进2日（副本仍每图8日），敌军按等级分阶；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
+  { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，普通野图推进2日（副本三图共8日，逐图3／3／2日），敌军按等级分阶；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
   { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
   { op: 33, name: 'TRAIN', group: '日历', agentNote: '训练一个单位，补武器熟练度；消耗金币或教材并推进日期。' },
   { op: 34, name: 'REST', group: '日历', agentNote: '休整指定日数，推进日期、作物与年龄，不直接发金币经验。' },
@@ -68,7 +68,7 @@ export const OPS: readonly OpDef[] = [
   { op: 96, name: 'CLAIM_RATING_REWARD', group: '竞技场', agentNote: '领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。' },
 
   { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、stageNames/stageCount、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落；completed 时 pendingLoot 是已入库清单，包含本次实际获得的首通奖励。' },
-  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本（两张生成图＋一张经典终图，每图8日，共24日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。' },
+  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
 
@@ -85,7 +85,7 @@ export const OPS: readonly OpDef[] = [
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
   { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。伙伴任务带 companion（人物 ID），固定人物经地区远征加入名册后才出现，阵亡不撤销，完成后 epilogue 给出后记。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。' },
-  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。主线任务 story-1..8 不属于任何地区（无需 region），对应章节开放后可接，单图、2 日、每章一次，胜利即完成该章并自动记入 storyCompleted，报酬用 CLAIM_QUEST_REWARD 领取（不记声望）；伙伴任务 companion-ren/ig/mira 需先通过地区远征招募对应人物。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；每图2日，共6日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
+  { op: 124, name: 'START_QUEST', group: '任务', agentNote: '时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。主线任务 story-1..8 不属于任何地区（无需 region），对应章节开放后可接，单图、2 日、每章一次，胜利即完成该章并自动记入 storyCompleted，报酬用 CLAIM_QUEST_REWARD 领取（不记声望）；伙伴任务 companion-ren/ig/mira 需先通过地区远征招募对应人物。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；逐图3／3／2日，共8日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；需达到对应声望档位，购买不扣声望。' },
   { op: 127, name: 'COMPLETE_SETUP', group: '任务', agentNote: '完成开局：提交protagonist{name,sex,portrait,allocation}与两名companions。神主角固定平民／成长型，保留setup.protagonist.baseStats，allocation为额外10点加成（每项0–5，未填按0计），倾向由加点自动推导；不接受手选倾向。初始三人E级熟练度及基础武器；portrait为独立随机形象键random:male|female:seed，seed为1–64位字母、数字、下划线或连字符，须与sex一致；不传时按账号生成，不再接受同伴头像预设。同伴仅排除剧情奖励人物，只能提交一次。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 26;
+export const DOC_VERSION = 27;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

@@ -254,7 +254,7 @@ try {
     await press(page, 'section[aria-label=确认出发]', '流程', '预览第 1 图');
     await until(async () => (await page.text()).includes('确认出发'));
     const quote = await page.text();
-    check('the dungeon shows the server quote first', quote.includes('推进 8 日') && quote.includes('永久死亡'), quote.slice(quote.indexOf('总耗时'), quote.indexOf('总耗时') + 160));
+    check('the dungeon shows the server quote first', quote.includes('推进 3 日') && quote.includes('共 8 日') && quote.includes('3、3、2') && quote.includes('永久死亡'), quote.slice(quote.indexOf('总耗时'), quote.indexOf('总耗时') + 160));
     await press(page, 'section[aria-label=确认出发]', '流程', '确认出发');
     check('setting out opens the first map', await until(async () => (await page.evaluate(`!!document.querySelector('.board')`)) && (await page.text()).includes('1 / 3 图')), (await page.text()).slice(0, 120));
     const run = (await api(page, OP.GET_RUN)).run;

@@ -55,7 +55,7 @@ import { classMasteryOf, gainMastery, masteryNodesFor, setEquippedSkills, SKILL_
 import { createDispatch, dispatchSummary, DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS, DISPATCH_MIN_DAYS } from '../common/game/dispatch.ts';
 import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
 import type { WeaponType } from '../common/data/types.ts';
-import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, stageCount, stageScenario, survivingIds } from '../common/game/expedition.ts';
+import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runStageDays, runSummary, stageCount, stageScenario, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, recruitedCharacters, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
@@ -1273,7 +1273,7 @@ const handlers: Record<number, Handler> = {
     const aiDifficulty = asAiDifficulty(data.aiDifficulty);
     if (aiDifficulty === 'hard' && !hardUnlocks(ctx.store, ctx.player).dungeons.includes(asNumber(data.region, 'region'))) throw new OpError('FORBIDDEN', '先以普通难度完整通关本地区副本，才能挑战困难副本');
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
-    const lifeBlock = lifespanBlockers(ctx, ctx.player.day + DUNGEON_STAGE_DAYS);
+    const lifeBlock = lifespanBlockers(ctx, ctx.player.day + DUNGEON_STAGE_DAYS[0]);
     if (lifeBlock.length) throw new OpError('FORBIDDEN', lifeBlock.join('；'));
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '已有进行中的远征');
     const region = asNumber(data.region, 'region');
@@ -1285,10 +1285,11 @@ const handlers: Record<number, Handler> = {
     const level = enemyLevel(ctx.player.day, regionById(region).offset);
     const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length, { aiDifficulty, encounter, stages });
     for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
-    ctx.player.day += DUNGEON_STAGE_DAYS;
+    const costDays = runStageDays(run);
+    ctx.player.day += costDays;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
-    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, day: ctx.player.day - DUNGEON_STAGE_DAYS, seed, level, stageIndex: 0, runId: run.id, aiDifficulty, encounter });
+    const record = createFieldBattle(ready, { region, cleared: run.clearedAtStart, day: ctx.player.day - costDays, seed, level, stageIndex: 0, runId: run.id, aiDifficulty, encounter });
     record.playerId = ctx.player.id;
     run.battleId = record.id;
     ctx.store.saveRun(run);
@@ -1317,17 +1318,18 @@ const handlers: Record<number, Handler> = {
         if (carry) carry.hp = Math.min(unit.stats.hp, carry.hp + Math.floor(unit.stats.hp * runQuest.betweenMapHeal / 100));
       }
     }
-    ctx.player.day += run.stageDays ?? DUNGEON_STAGE_DAYS;
+    const costDays = runStageDays(run);
+    ctx.player.day += costDays;
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
     const record = scenarioId
       ? createClassicBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', mapId: scenarioId, seed, quest: runQuest,
           level: run.stages || runQuest?.dungeonOnly ? run.level : undefined, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day,
-          lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [], season: dateOf(ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS)).season })
-      : createFieldBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - (run.stageDays ?? DUNGEON_STAGE_DAYS), seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest, encounter: run.encounter, legacyDeployment: !run.encounter });
+          lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [], season: dateOf(ctx.player.day - costDays).season })
+      : createFieldBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - costDays, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest, encounter: run.encounter, legacyDeployment: !run.encounter });
     record.playerId = ctx.player.id;
     record.region = run.region;
-    record.costDays = run.stageDays ?? DUNGEON_STAGE_DAYS;
+    record.costDays = costDays;
     run.state = 'battle';
     run.battleId = record.id;
     ctx.store.saveRun(run);
@@ -2376,10 +2378,10 @@ const handlers: Record<number, Handler> = {
     const seed = randomUUID().slice(0, 8);
     // 经典地图副本：按 scenarioIds 顺序逐图连战，跨图携带由 run.carry 维护（docs/24）。
     if (quest.scenarioIds?.length) {
-      const costDays = quest.stageDays ?? 2;
       const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, quest.region, ready.map(u => u.id),
         enemyLevel(ctx.player.day, regionById(quest.region).offset), ctx.player.flags.clearedRegions.length,
-        { aiDifficulty, questId: quest.id, stageDays: costDays, scenarioIds: quest.scenarioIds, stageNames: quest.scenarioIds.map(id => classicMap(id).name) });
+        { aiDifficulty, questId: quest.id, stageDays: quest.stageDays, scenarioIds: quest.scenarioIds, stageNames: quest.scenarioIds.map(id => classicMap(id).name) });
+      const costDays = runStageDays(run);
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += costDays;
       syncPlayer(ctx.store, ctx.player);
@@ -2407,9 +2409,9 @@ const handlers: Record<number, Handler> = {
     // 地区远征（tier region）：三图连战，完成整本才标记任务（docs/20 §2）。
     if (quest.tier === 'region') {
       const level = enemyLevel(ctx.player.day, regionById(quest.region).offset);
-      const stageDays = QUEST_DAY_COST.region / DUNGEON_STAGES;
       const stages = mixedDungeonStages(`${ctx.player.id}:${ctx.player.day}:${quest.id}`, quest.region);
-      const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, quest.region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length, { aiDifficulty, questId: quest.id, stageDays, stages });
+      const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, quest.region, ready.map(u => u.id), level, ctx.player.flags.clearedRegions.length, { aiDifficulty, questId: quest.id, stages });
+      const stageDays = runStageDays(run);
       for (const unit of ready) { unit.lockedRunId = run.id; ctx.store.saveUnit(unit, ctx.player.id); }
       ctx.player.day += stageDays;
       syncPlayer(ctx.store, ctx.player);
@@ -2704,7 +2706,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
     }
     case 'dungeon': {
       op = OP.START_DUNGEON;
-      costDays = DUNGEON_STAGE_DAYS;
+      costDays = DUNGEON_STAGE_DAYS[0];
       risk = 'permadeath';
       const region = asNumber(data.region, 'region');
       payload = { region, unitIds: data.unitIds, aiDifficulty: asAiDifficulty(data.aiDifficulty) };

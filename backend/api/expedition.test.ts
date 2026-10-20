@@ -69,7 +69,7 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   const started = dispatch(ctx, OP.START_DUNGEON, { region: 1, unitIds: ids }) as { run: { id: string; stageIndex: number; state: string }; battleId: string };
   assert.equal(started.run.stageIndex, 0);
   assert.equal(started.run.state, 'battle');
-  assert.equal(player.day, day + 8, 'the first map is paid up front');
+  assert.equal(player.day, day + 3, 'the first map is paid up front');
   for (const id of ids) assert.equal(store.unit(player.id, id)!.lockedRunId, started.run.id);
   assert.equal(playOut(ctx, started.battleId), 'player');
   assert.equal(player.flags.regionExploration?.[1] ?? 0, 0, '副本首图不加探索');
@@ -79,7 +79,7 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   assert.ok(run.survivingIds.length > 0);
   // 第二张图
   const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
-  assert.equal(player.day, day + 16);
+  assert.equal(player.day, day + 6);
   assert.equal(playOut(ctx, second.battleId), 'player');
   assert.equal(player.flags.regionExploration?.[1] ?? 0, 0, '副本中间图不加探索');
   run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number } }).run;
@@ -87,7 +87,7 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   // 第三张经典压轴：准备一手可胜的棋盘，结算测试不依赖随机经典图的 AI 寻路。
   const seeds = store.countInventory(player.id, 'seed');
   const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
-  assert.equal(player.day, day + 24);
+  assert.equal(player.day, day + 8);
   const finale = store.battle(player.id, third.battleId)!;
   const leader = finale.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.npc)!;
   for (const enemy of finale.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }

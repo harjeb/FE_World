@@ -362,7 +362,7 @@ try {
     })()`), 'fixed equipment and supplies before departure');
     check('one dungeon entry offers the regional route and two three-map classics', await page.evaluate(`(() => {
       const routes = [...document.querySelectorAll('[aria-label="副本路线"] button')];
-      return routes.length === 3 && routes.slice(1).every(el => el.innerText.includes('三图远征') && el.innerText.includes('3 图 · 6 日')) && !document.querySelector('.prep').innerText.includes('六图');
+      return routes.length === 3 && routes.slice(1).every(el => el.innerText.includes('三图远征') && el.innerText.includes('3 图 · 8 日')) && !document.querySelector('.prep').innerText.includes('六图');
     })()`), 'six retained classics across three regions, each three maps');
     for (const difficulty of ['normal', 'hard']) {
       const bundle = firstClearBundles[difficulty];
@@ -414,7 +414,7 @@ try {
     await page.reload('#drg-h');
     check('retained classic preparation has exactly three maps and six total days', await page.evaluate(`(() => {
       const text = document.querySelector('.prep-go').innerText;
-      return text.includes('3 张图连打') && text.includes('共 6 日') && document.querySelector('[aria-label="副本路线"] [aria-checked="true"]').innerText.includes('三图远征');
+      return text.includes('3 张图连打') && text.includes('共 8 日') && document.querySelector('[aria-label="副本路线"] [aria-checked="true"]').innerText.includes('三图远征');
     })()`), 'three stages, two days per stage');
     await page.click('.prep-go .go-bar button');
     check('classic dungeon starts from the same preparation page', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first classic stage');
