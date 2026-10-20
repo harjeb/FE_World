@@ -118,7 +118,7 @@ export interface BattleObject {
   // 随机升级宝箱：创建战斗时按玩家能买到的最高级再高一级抽成 loot，之后与固定宝箱相同。
   lootRoll?: 'rank_up';
   // 隐藏要素（适配文件）：只在指定任务里出现，loot 为该任务里的替换掉落；其他场合保留原物件或整件移除。
-  secret?: { quest: string; loot?: { item: string; count: number } };
+  secret?: { quest: string; loot?: { item: string; count: number }; chapter?: number };
   // 隐藏要素每个账号只发一次：完整结算后记入 flags.secretsClaimed，之后的战斗不再生成。
   once?: true;
   // 适配文件字段：在这些任务里整件不生成（主线任务把村庄、宝箱挪到别处）；开战后不保留。

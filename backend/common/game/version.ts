@@ -2,6 +2,9 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v16';
+// v38: the two preliminary tasks per chapter now vary by chapter (dispatch, hand-in, dungeon-chest quest item,
+// duel, arena wins, tavern wins). New key items story_find_2/4/6/8 and chest overlays gated by chapter
+// (secret.chapter), START_STORY_DUEL, flags.storyProgress. Existing saves keep storyStepsDone as is.
 // v36: each main chapter chains a dispatch task, a material hand-in and then the finale battle
 // (COMPLETE_STORY_STEP, flags.storyStepsDone). Saves whose chapter was already marked complete are not gated.
 // v35: main story quests (story-1..8, region 0, chapter-gated), companion quests for the fixed region
@@ -63,7 +66,7 @@ export const RULESET_VERSION = 'rules-v16';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 36;
+export const CATALOG_VERSION = 38;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

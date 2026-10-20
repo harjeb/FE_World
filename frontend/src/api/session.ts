@@ -260,8 +260,10 @@ export interface StoryChapter {
   quest?: StoryQuest | null;
 }
 export interface StoryStep {
-  id: string; kind: 'dispatch' | 'submit'; name: string; briefing: string; optional: boolean; done: boolean; available: boolean;
+  id: string; kind: 'dispatch' | 'submit' | 'find' | 'duel' | 'arena' | 'tavern'; name: string; briefing: string; optional: boolean; done: boolean; available: boolean;
   days?: number; item?: string; itemName?: string; count?: number; held?: number | null;
+  // find：在哪条固定经典远征、哪张图里；duel：对手名与等级；arena／tavern：需要的胜场和已有的进度。
+  where?: string; mapName?: string; enemy?: string; level?: number; wins?: number; have?: number;
 }
 // 主线任务（docs/38）：每章一张改编过的经典地图；胜利即完成本章，线索藏在图里的隐藏箱中。
 export interface StoryQuest {

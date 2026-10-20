@@ -132,7 +132,8 @@ const count = (inventory, item) => inventory.filter(r => r.item === item).reduce
 
 const profile = mkdtempSync(join(tmpdir(), 'agent-tactics-sys-'));
 const dbDir = mkdtempSync(join(tmpdir(), 'agent-tactics-sysdb-'));
-seedBrowserAccount(join(dbDir, 'e2e.db'), 'systems-seeded');
+// 剑客资格 requires C in either sword or lance; the purchase fixture deliberately qualifies.
+seedBrowserAccount(join(dbDir, 'e2e.db'), 'systems-seeded', false, { u_victor: { lance: 'C' } });
 const server = spawn('node', [join(import.meta.dirname, '..', '..', 'backend', 'api', 'server.ts')], {
   env: { ...process.env, API_PORT: String(API_PORT), DB_PATH: join(dbDir, 'e2e.db') }, stdio: 'inherit',
 });
@@ -185,7 +186,7 @@ try {
     check('a chapter cannot be completed around its main quest', await api(page, OP.COMPLETE_STORY_EVENT, { chapter: 1 }).then(() => false, error => String(error.message).includes('先完成本章主线任务')), 'gate');
     // Winning the main quest completes the chapter: stage a winnable board server-side, settle through the real op.
     check('the chapter lists its preliminary tasks and the finale waits for them',
-      story0.includes('城外的传闻') && story0.includes('安置伤者') && story0.includes('提交材料') && story0.includes('收尾战要先完成前置任务'), story0.slice(story0.indexOf('前置'), story0.indexOf('前置') + 200));
+      story0.includes('庆典前的热身') && story0.includes('擂台上的熟面孔') && story0.includes('酒馆') && story0.includes('普通竞技场') && story0.includes('收尾战要先完成前置任务'), story0.slice(story0.indexOf('前置'), story0.indexOf('前置') + 200));
     check('the finale is refused before the preliminaries', await api(page, OP.START_QUEST, { questId: 'story-1', unitIds: ['u_erin', 'u_victor'] }).then(() => false, error => String(error.message).includes('先完成本章前置任务')), 'prerequisite');
     const playerId = (await api(page, OP.GET_STATE)).player.id;
     skipStoryStepsInDb(join(dbDir, 'e2e.db'), playerId, 1);

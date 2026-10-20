@@ -4,7 +4,7 @@ import { enemyLevel } from '../common/game/calendar.ts';
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { isActiveRun } from '../common/game/expedition.ts';
-import { recruitedCharacters } from '../common/game/quests.ts';
+import { questById, recruitedCharacters } from '../common/game/quests.ts';
 import { chapterAvailable, chapterOpenDay } from '../common/game/story.ts';
 import type { DispatchRecord } from '../common/game/dispatch.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
@@ -24,19 +24,53 @@ export function storyPrerequisite(player: Player, chapter: number): string | nul
   return STORY_CHAPTER_QUESTS.find(row => row.chapter === chapter)?.steps.find(step => !done.has(step.id))?.name ?? null;
 }
 
-// 派遣返程时结算：章节已开放，派遣在章节开放之后出发、满足天数，就完成该章的派遣任务。
-// 一次派遣只计入最早一个还没完成的章节。返回新完成的前置任务 ID。
-export function completeDispatchSteps(player: Player, dispatch: Pick<DispatchRecord, 'startedDay' | 'durationDays'>): string | null {
+const markDone = (player: Player, stepId: string): void => {
+  player.flags.storyStepsDone = [...new Set([...(player.flags.storyStepsDone ?? []), stepId])];
+};
+
+// 每种前置任务的统一入口：这些函数只改玩家状态，由调用方存盘。返回新完成的前置任务 ID。
+function openSteps(player: Player, kind: StoryStep['kind']): StoryStep[] {
   const done = stepsDone(player);
-  for (const row of STORY_CHAPTER_QUESTS) {
-    const step = row.steps.find(s => s.kind === 'dispatch');
-    if (!step || done.has(step.id) || step.kind !== 'dispatch') continue;
-    if (!chapterAvailable(row.chapter, player.day) || dispatch.startedDay < chapterOpenDay(row.chapter) || dispatch.durationDays < step.days) continue;
-    player.flags.storyStepsDone = [...done, step.id];
+  return STORY_CHAPTER_QUESTS.filter(row => chapterAvailable(row.chapter, player.day))
+    .flatMap(row => row.steps.filter(step => step.kind === kind && !done.has(step.id)));
+}
+
+// 派遣返程时结算：派遣在章节开放之后出发、满足天数，就完成该章的派遣任务。
+// 一次派遣只计入最早一个还没完成的章节。
+export function completeDispatchSteps(player: Player, dispatch: Pick<DispatchRecord, 'startedDay' | 'durationDays'>): string | null {
+  for (const step of openSteps(player, 'dispatch')) {
+    if (step.kind !== 'dispatch') continue;
+    const chapter = Number(step.id.split('-')[1]);
+    if (dispatch.startedDay < chapterOpenDay(chapter) || dispatch.durationDays < step.days) continue;
+    markDone(player, step.id);
     return step.id;
   }
   return null;
 }
+
+// 竞技场胜场／酒馆小游戏胜次：每次胜利给所有已开放、没完成的同类任务各加一次（章节开放之后才计）。
+export function recordStoryWin(player: Player, kind: 'arena' | 'tavern'): string[] {
+  const finished: string[] = [];
+  player.flags.storyProgress ??= {};
+  for (const step of openSteps(player, kind)) {
+    if (step.kind !== 'arena' && step.kind !== 'tavern') continue;
+    const have = (player.flags.storyProgress[step.id] ?? 0) + 1;
+    player.flags.storyProgress[step.id] = have;
+    if (have >= step.wins) { markDone(player, step.id); finished.push(step.id); }
+  }
+  return finished;
+}
+
+// 副本宝箱里的任务物品：已开放章节的“找物品”任务，仓库里持有对应物品就算完成（不扣除）。
+export function syncFindSteps(store: Store, player: Player): string[] {
+  const finished: string[] = [];
+  for (const step of openSteps(player, 'find')) {
+    if (step.kind === 'find' && store.countInventory(player.id, step.item) > 0) { markDone(player, step.id); finished.push(step.id); }
+  }
+  return finished;
+}
+
+export function completeDuelStep(player: Player, stepId: string): void { markDone(player, stepId); }
 
 export function findStoryStep(stepId: string): { chapter: number; step: StoryStep } | null {
   for (const row of STORY_CHAPTER_QUESTS) {
@@ -52,14 +86,15 @@ function stepViews(store: Store, player: Player, chapter: number) {
   const done = stepsDone(player);
   const open = chapterAvailable(chapter, player.day);
   const optional = legacyCompleted(player, chapter);
-  return row.steps.map((step, index) => {
-    const previous = index === 0 || done.has(row.steps[index - 1].id);
-    const held = step.kind === 'submit' ? store.countInventory(player.id, step.item) : null;
-    return {
-      id: step.id, kind: step.kind, name: step.name, briefing: step.briefing, optional,
-      done: done.has(step.id), available: open && previous && !done.has(step.id),
-      ...(step.kind === 'dispatch' ? { days: step.days } : { item: step.item, itemName: GAME_ITEMS[step.item].name, count: step.count, held }),
-    };
+  return row.steps.map(step => {
+    const base = { id: step.id, kind: step.kind, name: step.name, briefing: step.briefing, optional, done: done.has(step.id), available: open && !done.has(step.id) };
+    switch (step.kind) {
+      case 'dispatch': return { ...base, days: step.days };
+      case 'submit': return { ...base, item: step.item, itemName: GAME_ITEMS[step.item].name, count: step.count, held: store.countInventory(player.id, step.item) };
+      case 'find': return { ...base, item: step.item, itemName: GAME_ITEMS[step.item].name, held: store.countInventory(player.id, step.item), where: questById(step.route)?.name ?? step.route, mapName: classicMap(step.mapId).name };
+      case 'duel': return { ...base, enemy: step.enemy, level: Math.min(99, enemyLevel(player.day, 0) + step.levelBonus + 2) };
+      case 'arena': case 'tavern': return { ...base, wins: step.wins, have: Math.min(step.wins, player.flags.storyProgress?.[step.id] ?? 0) };
+    }
   });
 }
 

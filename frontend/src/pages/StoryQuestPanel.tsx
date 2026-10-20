@@ -9,36 +9,72 @@ import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 
 const rewardLine = (q: StoryQuest) => [`${q.reward.gold.toLocaleString()} 金币`, ...(q.reward.items ?? []).map(([item, count]) => `${itemName(item)} ×${count}`)].join(' · ');
 
-// 前置任务：派遣满天数（返程自动完成）或提交材料。
+// 前置任务（每章两个，类型各章不同）：派遣、提交材料、副本宝箱找物品、单挑、竞技场胜场、酒馆小游戏胜次。
 function StepRow({ step, index }: { step: StoryStep; index: number }) {
+  const { state, annual } = useSession();
   const { busy, act } = useAct();
+  const [pickDuel, setPickDuel] = useState(false);
+  const [duelist, setDuelist] = useState('');
   const submit = () => act(`step-${step.id}`, () => session.run(OP.COMPLETE_STORY_STEP, { step: step.id }),
     () => `提交了「${step.name}」所需的 ${step.count} 份${step.itemName}`);
+  const fight = () => act(`duel-${step.id}`, async () => { await session.run(OP.START_STORY_DUEL, { step: step.id, unitId: duelist }); go(links.field); return step.enemy; },
+    enemy => `单挑「${enemy}」开始，进入战斗。`);
   const enough = (step.held ?? 0) >= (step.count ?? 0);
+  const fighters = (state?.units ?? []).filter(u => u.status === 'active' && !busyReason(u, annual));
   return (
-    <li className={`ch-step${step.done ? ' done' : ''}`} data-step={step.id}>
+    <li className={`ch-step${step.done ? ' done' : ''}`} data-step={step.id} data-kind={step.kind}>
       <p className="ch-learned">
         <span className={`tag ${step.done ? 'tag-green' : step.available ? 'tag-blue' : 'tag-grey'}`}>前置 {index + 1}</span>
         <b className="serif">{step.name}</b>
+        <span className="tag tag-grey">{KIND_LABEL[step.kind]}</span>
         {step.done ? <span className="tag tag-brass">已完成</span> : step.optional && <span className="tag tag-grey">可选</span>}
       </p>
       <p className="ch-sub">{step.briefing}</p>
       {!step.done && step.kind === 'dispatch' && (
-        <p className="ch-sub">
-          在<a href={links.dispatch}>后台派遣</a>里派一支队伍探索（任何已开通地区），<b>本章开放之后出发</b>、一次满 {step.days} 日，返程时自动完成。
-        </p>
+        <p className="ch-sub">在<a href={links.dispatch}>后台派遣</a>里派一支队伍探索（任何已开通地区），<b>本章开放之后出发</b>、一次满 {step.days} 日，返程时自动完成。</p>
       )}
       {!step.done && step.kind === 'submit' && (
         <p className="ch-sub">
           需要 {step.count} 份{step.itemName}，仓库里有 <b>{step.held ?? 0}</b> 份；提交后从仓库扣除。
-          <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!step.available || !enough || busy !== null} title={!step.available ? '先完成上一项前置任务' : !enough ? '材料不足' : undefined} onClick={() => void submit()}>
+          <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!step.available || !enough || busy !== null} title={!enough ? '材料不足' : undefined} onClick={() => void submit()}>
             {busy === `step-${step.id}` ? '提交中…' : '提交材料'}
           </button>
         </p>
       )}
+      {!step.done && step.kind === 'find' && (
+        <p className="ch-sub">
+          在「{step.where}」里（{step.mapName}）找到被藏起来的箱子，取得{step.itemName}；<b>本章开放之后</b>进入副本才会出现，整趟完整通关后入库，每个账号一次。<a href={links.quests}>前往任务</a>
+        </p>
+      )}
+      {!step.done && step.kind === 'arena' && (
+        <p className="ch-sub">在<a href={links.arena}>普通竞技场</a>赢 {step.wins} 场（本章开放之后的胜场才计）：<b>{step.have ?? 0} / {step.wins}</b></p>
+      )}
+      {!step.done && step.kind === 'tavern' && (
+        <p className="ch-sub">在<a href={links.tavern}>酒馆</a>的小游戏里赢 {step.wins} 次（返还高于下注，本章开放之后才计）：<b>{step.have ?? 0} / {step.wins}</b></p>
+      )}
+      {!step.done && step.kind === 'duel' && (
+        <>
+          <p className="ch-sub">对手「{step.enemy}」约 Lv {step.level}，只有你选的一名角色应战，<b>真实死亡</b>；输了可以再来，推进 1 日。</p>
+          {!pickDuel
+            ? <button type="button" className="btn btn-sm btn-primary" disabled={!step.available || busy !== null} onClick={() => { setPickDuel(true); setDuelist(fighters[0]?.id ?? ''); }}>选人应战</button>
+            : (
+              <p className="ch-sub">
+                <select value={duelist} onChange={e => setDuelist(e.target.value)} aria-label="应战的角色">
+                  {fighters.map(u => <option key={u.id} value={u.id}>{u.name} · {u.className} Lv {u.level}</option>)}
+                </select>
+                <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!duelist || busy !== null} onClick={() => void fight()}>
+                  {busy === `duel-${step.id}` ? '出战中…' : '开始单挑'}
+                </button>
+                <button type="button" className="btn btn-sm btn-ghost" style={{ marginLeft: 6 }} onClick={() => setPickDuel(false)}>取消</button>
+              </p>
+            )}
+        </>
+      )}
     </li>
   );
 }
+
+const KIND_LABEL: Record<StoryStep['kind'], string> = { dispatch: '派遣', submit: '提交材料', find: '副本找物品', duel: '单挑', arena: '竞技场', tavern: '酒馆' };
 
 // 一章的主线任务 (docs/38)：简报、改编地图、线索与出征。任务走地区任务同一套出征和领奖入口，
 // 胜利即完成本章事件；章节公共经验仍在上方单独领取。

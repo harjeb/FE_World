@@ -347,6 +347,43 @@ def apply_story(entry: dict, map_data: dict, quest: str, chapter: int) -> None:
     entry['objects'].extend(new_objects)
 
 
+# 主线“副本宝箱找任务物品”（docs/38 §3.4）：在固定经典远征的指定图里放一只箱子，只在该远征里、
+# 对应章节开放之后出现，每个账号一次。位置取离出击点最远的四分之一可达格，哈希固定。
+FIND_CHESTS = [
+    # (远征任务, 地图, 章节, 物品)
+    ('clx-fe6', 'fe6-ch23-main', 2, 'story_find_2'),
+    ('clx-fe8', 'fe8-ch17-eirika', 4, 'story_find_4'),
+    ('clx-fe7', 'fe7-ch30-eliwood', 6, 'story_find_6'),
+    ('clx-fe3', 'fe3-book1-ch20', 8, 'story_find_8'),
+]
+
+
+def apply_find(entry: dict, map_data: dict, route: str, chapter: int, item: str) -> None:
+    width, height, terrain = map_data['width'], map_data['height'], map_data['terrain']
+    occupied = {key(o['pos']) for o in entry['objects']} | {key(p) for p in map_data['playerSpawns']} | {key(e['pos']) for e in map_data['enemies']}
+    if map_data['goal'].get('kind') == 'seize':
+        occupied.add(key(map_data['goal']['position']))
+    blocked = {key(o['pos']) for o in entry['objects'] if o['kind'] == 'wall'}
+    dist: dict[tuple[int, int], int] = {}
+    queue = []
+    for p in map_data['playerSpawns']:
+        dist[key(p)] = 0
+        queue.append(key(p))
+    for x, y in queue:
+        for dx, dy in ADJ:
+            n = (x + dx, y + dy)
+            if n in dist or n in blocked or not (0 <= n[0] < width and 0 <= n[1] < height) or terrain[n[1]][n[0]] not in WALKABLE | {'throne'}:
+                continue
+            dist[n] = dist[(x, y)] + 1
+            queue.append(n)
+    cells = [c for c in dist if terrain[c[1]][c[0]] in WALKABLE and c not in occupied]
+    far = sorted(dist[c] for c in cells)
+    cutoff = far[len(far) * 3 // 4]
+    x, y = min((c for c in cells if dist[c] >= cutoff), key=lambda c: hashed(map_data['id'], 'find', chapter, c[0], c[1]))
+    entry['objects'].append({'id': f'find-{chapter}', 'kind': 'chest', 'pos': [x, y], 'state': 'closed', 'label': '旧箱子',
+                             'loot': {'item': item, 'count': 1}, 'secret': {'quest': route, 'chapter': chapter}})
+
+
 def build() -> dict:
     catalog = load_json(CATALOG)
     by_game: dict[str, list[dict]] = {}
@@ -442,6 +479,9 @@ def build() -> dict:
         for quest, map_id in STORY_MAPS.items():
             if entry['mapId'] == map_id:
                 apply_story(entry, catalog_by_id[map_id], quest, int(quest.split('-')[1]))
+        for route, map_id, chapter, item in FIND_CHESTS:
+            if entry['mapId'] == map_id:
+                apply_find(entry, catalog_by_id[map_id], route, chapter, item)
     return {'format': 'agent-tactics.classic-adaptations', 'schemaVersion': 1, 'count': len(out), 'maps': out}
 
 

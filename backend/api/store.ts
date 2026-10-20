@@ -32,6 +32,8 @@ export interface PlayerFlags {
   secretsClaimed?: string[];
   // 已完成的主线前置任务（story-N-a 派遣、story-N-b 提交材料），完成后永久记录。
   storyStepsDone?: string[];
+  // 竞技场／酒馆胜场等前置任务的进度（stepId → 次数），章节开放之后才开始计。
+  storyProgress?: Record<string, number>;
   clearedRegions: number[];
   // 世界地图开荒：玩家显式选择的已解锁地区（canonical 列表，含旧档认领结果；clearedRegions 永不重置，
   // 实际可用地区 = unlockedRegions ∪ clearedRegions，见 common/game/region-map.ts）。

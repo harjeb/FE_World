@@ -3,13 +3,15 @@ import type { Rank, StatKey } from '../data/types.ts';
 import { SPELLBOOKS } from '../data/spellbooks.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { ItemId, WeaponId } from '../data/weapons.ts';
-import { STORY_CHAPTER_QUESTS, storyClueKey } from './story-quests.ts';
+import { STORY_CHAPTER_QUESTS, STORY_FIND_NOTES, storyClueKey } from './story-quests.ts';
 
 // 职业法术书（cast 用）在仓库里以 spellbook:<法术 id> 存放，避免与同名的魔道书武器（火焰等）混淆；
 // manual:<法术 id> 是限量法术的教材，用后为该角色解锁这门法术。
 export type SpellbookItemKey = `spellbook:${string}`;
 export type ManualItemKey = `manual:${string}`;
 // 主线线索（docs/38）：每章一件任务物品，由对应主线地图里的隐藏箱给出。
+// 主线任务物品（docs/38）：在固定经典副本的宝箱里找到，持有即完成对应前置任务。
+export type StoryFindKey = 'story_find_2' | 'story_find_4' | 'story_find_6' | 'story_find_8';
 export type StoryClueKey = 'story_clue_1' | 'story_clue_2' | 'story_clue_3' | 'story_clue_4' | 'story_clue_5' | 'story_clue_6' | 'story_clue_7' | 'story_clue_8';
 
 // Everything that can sit in the warehouse. Battle items the engine understands (伤药) reuse the
@@ -17,7 +19,7 @@ export type StoryClueKey = 'story_clue_1' | 'story_clue_2' | 'story_clue_3' | 's
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
   | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
   | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal'
-  | 'old_map' | 'cross_time_shard' | StoryClueKey | SpellbookItemKey | ManualItemKey;
+  | 'old_map' | 'cross_time_shard' | StoryClueKey | StoryFindKey | SpellbookItemKey | ManualItemKey;
 
 // 唯一武器：任务专属 + 挑战塔 A 级以上签名武器。它们可以装备、修理、回收，
 // 但不能出售；银系与勇者属于普通生产，不在此集合。
@@ -78,9 +80,14 @@ const STORY_CLUE_ITEMS = Object.fromEntries(STORY_CHAPTER_QUESTS.map(row => [sto
   name: `「${row.clue.name}」`, kind: 'key' as const, price: 0, bound: true, note: `主线线索（第 ${row.chapter} 章）：${row.clue.note}不能出售，也不能带进战斗`,
 }])) as Record<StoryClueKey, GameItem>;
 
+const STORY_FIND_ITEMS = Object.fromEntries(Object.entries(STORY_FIND_NOTES).map(([key, row]) => [key, {
+  name: `「${row.name}」`, kind: 'key' as const, price: 0, bound: true, note: `主线任务物品：${row.note}不能出售，也不能带进战斗`,
+}])) as Record<StoryFindKey, GameItem>;
+
 export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   ...WEAPON_ITEMS,
   ...STORY_CLUE_ITEMS,
+  ...STORY_FIND_ITEMS,
   ...SPELLBOOK_ITEMS,
   ...MANUAL_ITEMS,
   vulnerary: { name: '伤药', kind: 'consumable', price: 300, item: 'vulnerary', uses: 3 },

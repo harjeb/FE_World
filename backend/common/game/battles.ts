@@ -12,6 +12,7 @@ import { classicMap } from './classic-catalog.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { assertClassicScenario } from './classic-validation.ts';
 import { rollRankUpLoot } from './rank-loot.ts';
+import { chapterAvailable } from './story.ts';
 import { ARENA_MAPS, throneOf } from '../arena/maps.ts';
 import type { ArenaMapId } from '../arena/maps.ts';
 import type { SnapshotUnit } from '../arena/rules.ts';
@@ -256,7 +257,7 @@ function classicSpawns(map: ReturnType<typeof classicMap>, need: number, blocked
 // 揭开对象全部消失的密室事件连同触发物件、地图变化一起去掉。随机升级宝箱在开战时一次抽定，
 // 写成普通 loot：回放、重连与结算都只读这份结果。
 function classicScenarioLayer(mapId: string, adaptation: ReturnType<typeof classicAdaptation>,
-  opts: { questId?: string; claimed: readonly string[]; lootRank: Rank; seed: string }) {
+  opts: { questId?: string; claimed: readonly string[]; lootRank: Rank; seed: string; day?: number }) {
   const claimed = new Set(opts.claimed);
   const removed = new Set<string>();
   let objects: BattleObject[] = [];
@@ -271,6 +272,8 @@ function classicScenarioLayer(mapId: string, adaptation: ReturnType<typeof class
       // 其他场合：有替换掉落的保留原物件，纯隐藏物件整件不生成。
       if (!secret.loot) { removed.add(object.id); continue; }
     } else if (secret) {
+      // 主线找物品的宝箱：对应章节开放之后才出现。
+      if (secret.chapter !== undefined && !(opts.day !== undefined && chapterAvailable(secret.chapter, opts.day))) { removed.add(object.id); continue; }
       if (claimed.has(`${mapId}:${object.id}`)) { removed.add(object.id); continue; }
       if (secret.loot) object.loot = { ...secret.loot };
       object.once = true;
@@ -356,7 +359,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const name = options.quest?.name ?? map.name;
   const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
   const layer = classicScenarioLayer(map.id, adaptation, {
-    questId: options.quest?.id, claimed: options.claimed ?? [], lootRank: options.lootRank ?? 'E', seed: `${options.seed}:${stage}`,
+    questId: options.quest?.id, claimed: options.claimed ?? [], lootRank: options.lootRank ?? 'E', seed: `${options.seed}:${stage}`, day: options.day,
   });
   const state: BattleState = {
     engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `classic-${map.id}-${options.seed}`, kind: 'field', name,

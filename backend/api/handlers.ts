@@ -59,9 +59,10 @@ import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRu
 import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, recruitedCharacters, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
-import { COMPANION_EPILOGUES, STORY_CHAPTER_QUESTS, STORY_QUESTS } from '../common/game/story-quests.ts';
+import { COMPANION_EPILOGUES, STORY_QUESTS } from '../common/game/story-quests.ts';
 import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
-import { companionView, findStoryStep, storyPrerequisite, storyQuestView } from './story.ts';
+import { companionView, completeDuelStep, findStoryStep, recordStoryWin, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
+import { createStoryDuel, DUEL_DAYS } from '../common/game/story-duel.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
@@ -302,8 +303,15 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
   const rewards = applyBattleOutcome(ctx.store, ctx.player, record);
   const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
   const annualOutcome = handleAnnualOutcome(ctx.store, ctx.player, record);
+  // 主线单挑：获胜即完成该前置任务（败了可以再次挑战），不走地区任务的结算。
+  const duel = record.questId ? findStoryStep(record.questId) : null;
+  if (duel && record.state.result?.winner === 'player') {
+    completeDuelStep(ctx.player, duel.step.id);
+    ctx.store.savePlayer(ctx.player);
+    ctx.store.addEvent(ctx.player.id, 'story', `完成主线前置任务「${duel.step.name}」。`, { step: duel.step.id });
+  }
   // 地区任务胜利即标记完成；奖励用 CLAIM_QUEST_REWARD 另领（docs/20 §7）。
-  if (record.questId && record.questId !== CROSS_TIME_QUEST_ID && !record.runId && record.state.result?.winner === 'player') {
+  if (record.questId && !duel && record.questId !== CROSS_TIME_QUEST_ID && !record.runId && record.state.result?.winner === 'player') {
     ctx.player.flags.questsDone ??= [];
     if (!ctx.player.flags.questsDone.includes(record.questId)) {
       ctx.player.flags.questsDone.push(record.questId);
@@ -332,6 +340,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     const day = ctx.store.arenaDay(ctx.player.id, record.arenaDay);
     if (day) {
       settleAttack(day, record.opponentId, record.state);
+      if (record.state.result?.winner === 'player') recordStoryWin(ctx.player, 'arena');
       ctx.store.saveArenaDay(day);
       // 三场都结束后立刻结算，奖励与积分不必等下一次 API 请求；中途只推进日期不会触发。
       if (Object.values(day.attacks).every(attack => attack.status === 'won' || attack.status === 'lost')) {
@@ -339,6 +348,8 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
       }
     }
   }
+  // 副本宝箱里取到的任务物品在结算入库后检查（找物品类前置任务）。
+  if (syncFindSteps(ctx.store, ctx.player).length > 0) ctx.store.savePlayer(ctx.player);
   ctx.store.addEvent(ctx.player.id, 'battle-end', `${record.name} 结束：${record.state.result?.winner === 'player' ? '胜利' : '失败'}。`, {
     battleId: record.id, deaths: rewards.deaths, gold: rewards.gold, runState: runOutcome?.run.state ?? null, annualState: annualOutcome?.entry.state ?? null,
   });
@@ -2000,6 +2011,7 @@ const handlers: Record<number, Handler> = {
   // ---- eight-chapter story (docs/00 §9.4.2, docs/13 §6.3) --------------
 
   [OP.GET_STORY]: ctx => {
+    if (syncFindSteps(ctx.store, ctx.player).length > 0) ctx.store.savePlayer(ctx.player);
     const annualEvent = ctx.store.events(ctx.player.id, 0, 10000).filter(event => event.kind === 'festival').at(-1);
     return {
     bexp: CHAPTER_BEXP,
@@ -2043,12 +2055,10 @@ const handlers: Record<number, Handler> = {
     const found = findStoryStep(asString(data.step, 'step'));
     if (!found) throw new OpError('NOT_FOUND', '没有这个前置任务');
     const { chapter, step } = found;
-    if (step.kind !== 'submit') throw new OpError('BAD_REQUEST', '派遣类前置任务不用提交：章节开放后派遣满天数，返程时自动完成');
+    if (step.kind !== 'submit') throw new OpError('BAD_REQUEST', '这类前置任务不用提交材料：派遣满天数返程时自动完成，找物品／胜场／单挑按各自的方式完成');
     if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
     const done = new Set(ctx.player.flags.storyStepsDone ?? []);
     if (done.has(step.id)) throw new OpError('FORBIDDEN', '这个前置任务已经完成');
-    const before = STORY_CHAPTER_QUESTS.find(row => row.chapter === chapter)!.steps.find(s => s.id !== step.id && s.kind === 'dispatch');
-    if (before && !done.has(before.id)) throw new OpError('FORBIDDEN', `先完成前置任务「${before.name}」`);
     if (ctx.store.countInventory(ctx.player.id, step.item) < step.count) {
       throw new OpError('NO_SUCH_ITEM', `需要 ${step.count} 份${GAME_ITEMS[step.item].name}，仓库里只有 ${ctx.store.countInventory(ctx.player.id, step.item)} 份`);
     }
@@ -2058,6 +2068,29 @@ const handlers: Record<number, Handler> = {
     ctx.store.addEvent(ctx.player.id, 'story', `完成主线前置任务「${step.name}」。`, { step: step.id });
     ctx.push(OP.STATE_CHANGED, { reason: 'story-step' });
     return { step: step.id, chapter, item: step.item, count: step.count };
+  },
+
+  // 主线单挑类前置任务：借小型经典图，一名己方角色对一名强敌，真实死亡；败了可再次挑战。
+  [OP.START_STORY_DUEL]: (ctx, data) => {
+    const found = findStoryStep(asString(data.step, 'step'));
+    if (!found || found.step.kind !== 'duel') throw new OpError('NOT_FOUND', '没有这个单挑任务');
+    const { chapter, step } = found;
+    if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+    if ((ctx.player.flags.storyStepsDone ?? []).includes(step.id)) throw new OpError('FORBIDDEN', '这个单挑已经赢过了');
+    if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
+    if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
+    if (ctx.store.activeAnnualEntry(ctx.player.id)) throw new OpError('FORBIDDEN', '大竞技场进行中，暂时不能单挑');
+    const block = lifespanBlockers(ctx, ctx.player.day + DUEL_DAYS);
+    if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
+    const [unit] = deploymentUnits(ctx, [asString(data.unitId, 'unitId')], 1);
+    const record = createStoryDuel(unit, step, { seed: randomUUID().slice(0, 8), day: ctx.player.day });
+    record.playerId = ctx.player.id;
+    ctx.player.day += DUEL_DAYS;
+    syncPlayer(ctx.store, ctx.player);
+    ctx.store.saveBattle(record);
+    ctx.store.addEvent(ctx.player.id, 'quest', `应战「${step.enemy}」（主线第 ${chapter} 章单挑）。`, { battleId: record.id, step: step.id });
+    ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
+    return { battleId: record.id, stepId: step.id, goalText: record.goalText, battle: battleView(record, false), state: publicState(record.state) };
   },
 
   [OP.CLAIM_REWARD]: (ctx, data) => {
@@ -2184,6 +2217,8 @@ const handlers: Record<number, Handler> = {
     ctx.player.gold -= bet;
     ctx.player.gold += payout;
     ctx.player.flags.minigamePlays = (ctx.player.flags.minigamePlays ?? 0) + 1;
+    // 返还高于下注才算赢（主线酒馆小游戏前置任务）。
+    if (payout > bet) recordStoryWin(ctx.player, 'tavern');
     ctx.store.savePlayer(ctx.player);
     ctx.store.addEvent(ctx.player.id, 'minigame', `${game === 'dice' ? '猜大小' : '青蛙赛跑'}：下注 ${bet}，返还 ${payout}。`, result);
     return { ...result as Record<string, unknown>, bet, net: payout - bet, remaining: MINIGAME_PLAYS_PER_QUARTER - ctx.player.flags.minigamePlays, day: ctx.player.day };
@@ -2326,6 +2361,7 @@ const handlers: Record<number, Handler> = {
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
     if (quest.story) {
       if (!chapterAvailable(quest.story, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+      if (syncFindSteps(ctx.store, ctx.player).length > 0) ctx.store.savePlayer(ctx.player);
       const missing = storyPrerequisite(ctx.player, quest.story);
       if (missing) throw new OpError('FORBIDDEN', `先完成本章前置任务「${missing}」`);
     }

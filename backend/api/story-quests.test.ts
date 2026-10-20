@@ -14,7 +14,13 @@ import { FESTIVAL_DISCOUNT_MAX, FESTIVAL_DISCOUNT_MIN, festivalPrice } from '../
 import { GAME_ITEMS } from '../common/game/items.ts';
 import { COMPANION_QUESTS, STORY_CHAPTER_QUESTS, STORY_QUESTS, storyClueKey, storyStepId } from '../common/game/story-quests.ts';
 import { interactObject } from '../common/engine/scenario.ts';
+import { createClassicBattle } from '../common/game/battles.ts';
+import { createUnit } from '../common/game/model.ts';
+import { questById } from '../common/game/quests.ts';
+import { completeDuelStep, recordStoryWin } from './story.ts';
 import type { BattleState } from '../common/engine/types.ts';
+
+const party = () => (['erin', 'victor', 'gustav'] as const).map((character, index) => createUnit(character, 20, `u${index}`, 0));
 
 function setup(t: { after: (fn: () => void) => void }, day = 600): Context {
   const store = new Store(openDb(':memory:'));
@@ -183,60 +189,169 @@ test('the capital shop is discounted 50-65% per item during the festival window 
   assert.ok(shop().every(row => row.discount === 0), 'the discount ends with the window');
 });
 
-test('each chapter chains a dispatch, a material hand-in and then the battle', t => {
-  assert.ok(STORY_CHAPTER_QUESTS.every(row => row.steps.length === 2 && row.steps[0].kind === 'dispatch' && row.steps[1].kind === 'submit'));
-  const ctx = setup(t, 482);
+type View = { id: string; kind: string; done: boolean; available: boolean; have?: number; wins?: number; held?: number; count?: number };
+const storyView = (ctx: Context, chapter = 1) => (dispatch(ctx, OP.GET_STORY, {}) as { chapters: { chapter: number; quest: { steps: View[]; prerequisite: string | null; available: boolean } }[] })
+  .chapters.find(c => c.chapter === chapter)!.quest;
+
+test('each chapter has two preliminary tasks of different kinds before the finale', () => {
+  const kinds = STORY_CHAPTER_QUESTS.map(row => row.steps.map(step => step.kind));
+  assert.ok(kinds.every(pair => pair.length === 2 && pair[0] !== pair[1]), 'two different kinds in every chapter');
+  assert.deepEqual([...new Set(kinds.flat())].sort(), ['arena', 'dispatch', 'duel', 'find', 'submit', 'tavern']);
+  for (const row of STORY_CHAPTER_QUESTS) for (const step of row.steps) {
+    if (step.kind === 'find') {
+      assert.ok(Object.hasOwn(GAME_ITEMS, step.item));
+      const chest = classicAdaptation(step.mapId).objects.find(o => o.id === `find-${row.chapter}`)!;
+      assert.deepEqual(chest.loot, { item: step.item, count: 1 });
+      assert.deepEqual(chest.secret, { quest: step.route, chapter: row.chapter });
+      assert.deepEqual(validateClassicScenario(step.mapId), []);
+    }
+    if (step.kind === 'duel') assert.deepEqual(validateClassicScenario(step.mapId), []);
+  }
+});
+
+test('arena wins and tavern wins count only after the chapter opens and finish the step', t => {
+  const ctx = setup(t, 470);
+  assert.deepEqual(recordStoryWin(ctx.player, 'arena'), [], 'nothing counts before chapter 1 opens');
+  assert.deepEqual(ctx.player.flags.storyProgress ?? {}, {});
+  ctx.player.day = 600;
+  assert.deepEqual(recordStoryWin(ctx.player, 'arena'), []);
+  assert.equal(ctx.player.flags.storyProgress!['story-1-b'], 1);
+  assert.deepEqual(recordStoryWin(ctx.player, 'arena'), ['story-1-b'], 'two arena wins finish the chapter 1 step');
+  assert.deepEqual(recordStoryWin(ctx.player, 'tavern'), []);
+  assert.deepEqual(recordStoryWin(ctx.player, 'tavern'), ['story-1-a']);
+  assert.deepEqual(ctx.player.flags.storyStepsDone, ['story-1-b', 'story-1-a']);
+  assert.deepEqual(recordStoryWin(ctx.player, 'arena'), [], 'a finished step no longer counts');
+});
+
+test('a real arena victory and real minigame results feed the preliminary tasks', t => {
+  const ctx = setup(t, 600);
+  // Minigame: the story counter equals the number of plays that returned more than the bet.
+  let wins = 0;
+  for (let i = 0; i < 6; i++) {
+    try {
+      const result = dispatch(ctx, OP.PLAY_MINIGAME, { game: 'dice', bet: 20, choice: i % 2 ? 'big' : 'small' }) as { net: number };
+      if (result.net > 0) wins++;
+    } catch { break; }
+  }
+  assert.equal(ctx.player.flags.storyProgress?.['story-1-a'] ?? 0, Math.min(wins, 2));
+
+  // Arena: surrender counts for nothing, a won attack counts one.
+  const arena = dispatch(ctx, OP.GET_ARENA, {}) as { opponents: { id: string; deploy: number; bans: number }[]; isArenaDay: boolean };
+  if (!arena.isArenaDay) return;
+  const opponent = arena.opponents[0];
+  const list = dispatch(ctx, OP.GET_OPPONENT, { opponentId: opponent.id }) as { list: { character: string }[] };
+  const bans = list.list.slice(0, opponent.bans).map(u => u.character);
+  dispatch(ctx, OP.ARENA_BAN, { opponentId: opponent.id, bans });
+  const roster = (ctx.store.units(ctx.player.id)).map(u => u.character).filter(c => !bans.includes(c)).slice(0, opponent.deploy);
+  const picks = roster.map((character, i) => ({ character, pos: [i % 3, 2 + Math.floor(i / 3)] }));
+  const attack = dispatch(ctx, OP.ARENA_ATTACK, { opponentId: opponent.id, picks, commander: roster[0] }) as { battleId: string };
+  win(ctx, attack.battleId);
+  assert.equal(ctx.player.flags.storyProgress?.['story-1-b'] ?? 0, 1, 'one arena win counted');
+});
+
+test('a find task completes once the quest item from the dungeon chest is held, and the chest only exists after the chapter opens', t => {
+  const ctx = setup(t, 1000);
   ctx.player.flags.clearedRegions = [1];
   ctx.store.savePlayer(ctx.player);
-  type Step = { id: string; kind: string; done: boolean; available: boolean; held?: number; count?: number; optional: boolean };
-  const view = () => (dispatch(ctx, OP.GET_STORY, {}) as { chapters: { quest: { steps: Step[]; prerequisite: string | null; available: boolean } }[] }).chapters[0].quest;
+  assert.equal(storyView(ctx, 2).steps[0].done, false);
+  ctx.store.addInventory(ctx.player.id, 'story_find_2', 0, 1);
+  const view = storyView(ctx, 2);
+  assert.equal(view.steps[0].done, true, 'holding the item completes the find task');
+  assert.deepEqual(ctx.player.flags.storyStepsDone, ['story-2-a']);
+  assert.equal(ctx.store.countInventory(ctx.player.id, 'story_find_2'), 1, 'the item is not consumed');
+  assert.throws(() => dispatch(ctx, OP.SELL, { item: 'story_find_2', count: 1 }), /任务物品/);
 
-  assert.deepEqual(view().steps.map(step => [step.id, step.done, step.available]), [['story-1-a', false, true], ['story-1-b', false, false]]);
-  assert.equal(view().prerequisite, '城外的传闻');
-  assert.equal(view().available, false);
-  assert.throws(() => start(ctx, 'story-1'), /先完成本章前置任务「城外的传闻」/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-1-b' }), /先完成前置任务/);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-1-a' }), /自动完成/);
+  // Chapter 2 opens on day 982: before that the chest is not generated in the FE6 route.
+  const before = createClassicBattle(party(), { mapId: 'fe6-ch23-main', seed: 'x', day: 981, stageIndex: 1, quest: questById('clx-fe6') });
+  assert.ok(!before.state.objects!.some(o => o.id === 'find-2'));
+  const after = createClassicBattle(party(), { mapId: 'fe6-ch23-main', seed: 'x', day: 982, stageIndex: 1, quest: questById('clx-fe6') });
+  assert.equal(after.state.objects!.find(o => o.id === 'find-2')!.loot!.item, 'story_find_2');
+  const elsewhere = createClassicBattle(party(), { mapId: 'fe6-ch23-main', seed: 'x', day: 982, stageIndex: 2 });
+  assert.ok(!elsewhere.state.objects!.some(o => o.id === 'find-2'), 'only inside its own route');
+  const claimed = createClassicBattle(party(), { mapId: 'fe6-ch23-main', seed: 'x', day: 982, stageIndex: 1, quest: questById('clx-fe6'), claimed: ['fe6-ch23-main:find-2'] });
+  assert.ok(!claimed.state.objects!.some(o => o.id === 'find-2'), 'once per account');
+});
+
+test('a duel is one chosen unit against one named champion with real death, and winning completes the task', t => {
+  const ctx = setup(t, 1000);
+  assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_erin' }), /尚未开放/);
+  ctx.player.day = 1482;
+  ctx.store.savePlayer(ctx.player);
+  assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-1-a', unitId: 'u_erin' }), /没有这个单挑任务/);
+  const view = storyView(ctx, 3).steps[0] as View & { enemy?: string; level?: number };
+  assert.equal(view.kind, 'duel');
+  assert.equal(view.enemy, '刮名人');
+
+  const day = ctx.player.day;
+  const started = dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_erin' }) as { battleId: string };
+  assert.equal(ctx.player.day, day + 1, 'a duel costs one day');
+  const record = ctx.store.battle(ctx.player.id, started.battleId)!;
+  assert.equal(record.mode, 'field', 'real death rules');
+  assert.deepEqual(record.state.units.filter(u => u.side === 'player').map(u => u.id), ['u_erin']);
+  const enemies = record.state.units.filter(u => u.side === 'enemy');
+  assert.equal(enemies.length, 1);
+  assert.equal(enemies[0].name, '刮名人');
+  assert.equal(enemies[0].boss, true);
+  assert.ok(enemies[0].level >= 40, `a strong champion (Lv ${enemies[0].level})`);
+  assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_victor' }), /进行中的战斗/);
+
+  // Losing leaves the task open and lets the player try again; winning completes it and pays no region first-clear.
+  dispatch(ctx, OP.RETREAT, { battleId: started.battleId });
+  assert.ok(!(ctx.player.flags.storyStepsDone ?? []).includes('story-3-a'));
+  const again = dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_victor' }) as { battleId: string };
+  win(ctx, again.battleId);
+  assert.ok((ctx.player.flags.storyStepsDone ?? []).includes('story-3-a'));
+  assert.deepEqual(ctx.player.flags.clearedRegions, [], 'a duel is not a region first-clear');
+  assert.ok(!(ctx.player.flags.questsDone ?? []).includes('story-3-a'), 'it is a preliminary task, not a quest');
+  assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_erin' }), /已经赢过/);
+});
+
+test('the finale waits for both preliminaries, in any order; materials and dispatch still work', t => {
+  const ctx = setup(t, 1482);
+  ctx.player.flags.clearedRegions = [1];
+  ctx.store.savePlayer(ctx.player);
+  // Chapter 3 = duel + submit. Order does not matter: hand in the ore first.
+  assert.equal(storyView(ctx, 3).prerequisite, '刮名人');
+  assert.throws(() => start(ctx, 'story-3'), /先完成本章前置任务「刮名人」/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-a' }), /不用提交/);
   assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'nope' }), /没有这个前置任务/);
-
-  // A dispatch that is too short does not count; one that is long enough completes it on return.
-  dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 2, unitIds: ['u_victor'] });
-  ctx.player.day += 2;
-  syncPlayer(ctx.store, ctx.player);
-  assert.equal(view().steps[0].done, false, 'a 2-day dispatch is shorter than the required 3');
-  dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 3, unitIds: ['u_victor'] });
-  assert.equal(view().steps[0].done, false, 'not until the dispatch returns');
-  ctx.player.day += 3;
-  syncPlayer(ctx.store, ctx.player);
-  assert.equal(view().steps[0].done, true);
-  assert.equal(view().steps[1].available, true);
-  assert.equal(view().prerequisite, '安置伤者');
-
-  // The hand-in checks the count, then takes the materials.
-  ctx.store.addInventory(ctx.player.id, 'herb', 0, 5);
-  const herb = ctx.store.countInventory(ctx.player.id, 'herb');
-  ctx.store.takeInventory(ctx.player.id, 'herb', herb - 5);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-1-b' }), /需要 6 份药草，仓库里只有 5 份/);
-  ctx.store.addInventory(ctx.player.id, 'herb', 0, 4);
-  dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-1-b' });
-  assert.equal(ctx.store.countInventory(ctx.player.id, 'herb'), 3, 'six herbs were handed in');
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-1-b' }), /已经完成/);
-  assert.equal(view().prerequisite, null);
-  assert.equal(view().available, true);
-  assert.ok(start(ctx, 'story-1').battleId, 'the finale opens once both preliminaries are done');
+  ctx.store.addInventory(ctx.player.id, 'ore', 0, 5);
+  const ore = ctx.store.countInventory(ctx.player.id, 'ore');
+  ctx.store.takeInventory(ctx.player.id, 'ore', ore - 5);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' }), /需要 8 份矿石，仓库里只有 5 份/);
+  ctx.store.addInventory(ctx.player.id, 'ore', 0, 4);
+  dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' });
+  assert.equal(ctx.store.countInventory(ctx.player.id, 'ore'), 1, 'eight ore were handed in');
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' }), /已经完成/);
+  assert.equal(storyView(ctx, 3).prerequisite, '刮名人');
+  completeDuelStep(ctx.player, 'story-3-a');
+  ctx.store.savePlayer(ctx.player);
+  assert.equal(storyView(ctx, 3).prerequisite, null);
+  assert.ok(start(ctx, 'story-3').battleId, 'the finale opens once both preliminaries are done');
 });
 
 test('a dispatch started before the chapter opened does not count, and one dispatch serves one chapter', t => {
-  const ctx = setup(t, 470);
+  // Chapter 5 (dispatch + duel) opens on day 2482; chapter 2's dispatch task is already done here.
+  const ctx = setup(t, 2470);
   ctx.player.flags.clearedRegions = [1];
+  ctx.player.flags.storyStepsDone = ['story-2-b'];
   ctx.store.savePlayer(ctx.player);
   dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 20, unitIds: ['u_victor'] });
-  ctx.player.day = 495;
+  ctx.player.day = 2495;
   syncPlayer(ctx.store, ctx.player);
-  assert.deepEqual(ctx.player.flags.storyStepsDone ?? [], [], 'started on day 470, before chapter 1 opened on day 482');
+  assert.deepEqual(ctx.player.flags.storyStepsDone, ['story-2-b'], 'started on day 2470, before chapter 5 opened on day 2482');
 
-  dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 6, unitIds: ['u_lina'] });
-  ctx.player.day = 1000;
+  dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 5, unitIds: ['u_lina'] });
+  ctx.player.day = 2505;
   syncPlayer(ctx.store, ctx.player);
-  assert.deepEqual(ctx.player.flags.storyStepsDone, ['story-1-a'], 'chapters 1 and 2 are both open but one dispatch completes only the earliest');
+  assert.deepEqual(ctx.player.flags.storyStepsDone, ['story-2-b', 'story-5-a'], 'a dispatch started after the chapter opened completes it');
+
+  // With the earlier chapter's dispatch task still open, one dispatch only counts for that chapter.
+  const both = setup(t, 2500);
+  both.player.flags.clearedRegions = [1];
+  both.store.savePlayer(both.player);
+  dispatch(both, OP.START_DISPATCH, { region: 1, durationDays: 6, unitIds: ['u_victor'] });
+  both.player.day = 2510;
+  syncPlayer(both.store, both.player);
+  assert.deepEqual(both.player.flags.storyStepsDone, ['story-2-b'], 'chapters 2 and 5 are both open but one dispatch completes only the earliest');
 });

@@ -619,6 +619,15 @@ const ITEM_GRIDS: Record<string, readonly string[]> = {
   ],
 };
 
+// Story quest items found in classic dungeon chests: a crystal shard, a wax seal, a map scrap and a keystone.
+const FIND_ICONS: Record<string, readonly string[]> = {
+  story_find_2: ['................', '.......ee.......', '......egge......', '.....eggcge.....', '....eggccgge....', '...egcccccgge...', '...eggccccgge...', '....eggccgge....', '.....eggcge.....', '......egge......', '.......ee.......', '................'],
+  story_find_4: ['................', '......eeee......', '....eevvvvee....', '...evvvvvvvve...', '..evvVVVVVVvve..', '..evVvvyyvvVve..', '..evVvyyyyvVve..', '..evVvvyyvvVve..', '..evvVVVVVVvve..', '...evvvvvvvve...', '....eevvvvee....', '......eeee......'],
+  story_find_6: ['................', '..eeeeeeeeeeee..', '..ekkkkkkkkkke..', '..ekKKKKkkkKke..', '..ekkkkkkkkkke..', '..ekkkkttkkkke..', '..ekkkkttkkkke..', '..ekKKkkkkKKke..', '..ekkkkkkkkkke..', '..eeeeeeeeeeee..', '................', '................'],
+  story_find_8: ['................', '......eeee......', '.....euuuue.....', '....euuUUuue....', '....euUyyUue....', '....euUyyUue....', '....euuUUuue....', '....euuuuuue....', '....eUUUUUUe....', '.....eeeeee.....', '................', '................'],
+};
+Object.assign(ITEM_GRIDS, FIND_ICONS);
+
 // Story clue scrolls (one per chapter): the same parchment with a seal whose colour and shape change.
 const CLUE_SEALS: [string, string[]][] = [
   ['v', ['SS', 'SSSS', 'SS']], ['n', ['S.', 'SSSS', '.S']], ['t', ['.SS.', 'SSSS', '.SS.']], ['u', ['SS', 'S.SS', 'SS']],
