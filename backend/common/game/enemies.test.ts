@@ -3,7 +3,7 @@ import test from 'node:test';
 import { CATALOG_CLASS_IDS, CLASSES } from '../data/classes.ts';
 import { createEnemy, enemyStats, templateFor } from './enemies.ts';
 import { STAT_KEYS } from '../data/types.ts';
-import { WEAPONS } from '../data/weapons.ts';
+import { WEAPONS, WEAPON_SERIES } from '../data/weapons.ts';
 import { canUseWeapon, weaponRange } from '../engine/units.ts';
 import { movementBudget } from '../engine/movement.ts';
 import { createClassicBattle } from './battles.ts';
@@ -12,16 +12,41 @@ import { createUnit } from './model.ts';
 import { runScenarioEvents } from '../engine/scenario.ts';
 import type { BattleEvent } from '../engine/types.ts';
 
-test('normal creation preserves template stats, gear, ranks and metadata exactly', () => {
-  for (const classId of CATALOG_CLASS_IDS) {
-    const tpl = templateFor(classId), stats = enemyStats(classId, 1);
-    const spec = { classId, level: 1, pos: [1, 2] as [number, number], boss: true, behavior: 'hold' as const, name: 'probe', tags: ['demon'] as const };
+test('normal creation preserves template stats and metadata with level-tier gear and required ranks', () => {
+  for (const classId of CATALOG_CLASS_IDS) for (const [level, tier] of [[1, 0], [10, 1], [20, 2], [35, 3], [55, 4]]) {
+    const tpl = templateFor(classId), stats = enemyStats(classId, level);
+    const weapons = tpl.weapons.map(id => Object.values(WEAPON_SERIES).find(series => series.includes(id))?.[tier] ?? id);
+    const ranks = { ...tpl.ranks };
+    for (const id of weapons) {
+      const weapon = WEAPONS[id];
+      if ('EDCBAS'.indexOf(ranks[weapon.type] ?? '') < 'EDCBAS'.indexOf(weapon.rank)) ranks[weapon.type] = weapon.rank;
+    }
+    const spec = { classId, level, pos: [1, 2] as [number, number], boss: true, behavior: 'hold' as const, name: 'probe', tags: ['demon'] as const };
     const normal = createEnemy('enemy', { ...spec, tags: [...spec.tags] });
     assert.deepEqual(normal, {
-      id: 'enemy', name: 'probe', side: 'enemy', classId, level: 1, exp: 0, stats, con: 8, hp: stats.hp,
-      pos: [1, 2], weapons: tpl.weapons, items: [], ranks: tpl.ranks, boss: true, behavior: 'hold', acted: false, alive: true, tags: ['demon'],
+      id: 'enemy', name: 'probe', side: 'enemy', classId, level, exp: 0, stats, con: 8, hp: stats.hp,
+      pos: [1, 2], weapons, items: [], ranks, boss: true, behavior: 'hold', acted: false, alive: true, tags: ['demon'],
     });
     assert.deepEqual(createEnemy('enemy', { ...spec, tags: [...spec.tags], seed: 'ignored', aiDifficulty: 'normal' }), normal);
+  }
+});
+
+test('material gear changes at level boundaries and hard adds one tier capped at silver', () => {
+  for (const [level, normalId, hardId] of [
+    // fw_weapon_1/2 are the catalog's wooden/copper swords.
+    [1, 'fw_weapon_1', 'fw_weapon_2'], [9, 'fw_weapon_1', 'fw_weapon_2'],
+    [10, 'fw_weapon_2', 'iron_sword'], [19, 'fw_weapon_2', 'iron_sword'],
+    [20, 'iron_sword', 'steel_sword'], [34, 'iron_sword', 'steel_sword'],
+    [35, 'steel_sword', 'silver_sword'], [54, 'steel_sword', 'silver_sword'],
+    [55, 'silver_sword', 'silver_sword'], [99, 'silver_sword', 'silver_sword'],
+  ] as const) {
+    const spec = { classId: 'swordsman' as const, level, pos: [0, 0] as [number, number] };
+    const normal = createEnemy('normal', spec);
+    const hard = createEnemy('hard', { ...spec, aiDifficulty: 'hard' });
+    assert.deepEqual(normal.weapons, [normalId]);
+    assert.deepEqual(hard.weapons, [...new Set([hardId, normalId])]);
+    for (const unit of [normal, hard]) for (const id of unit.weapons) assert.ok(canUseWeapon(unit, id));
+    assert.deepEqual(createEnemy('special', { ...spec, classId: 'assassin' }).weapons, ['killing_edge']);
   }
 });
 
@@ -116,5 +141,5 @@ test('scripted reinforcements inherit hard bonuses once and persist them in spaw
     assert.ok(spawned[1].stats[key] >= base[key] + Math.max(1, Math.ceil(base[key] * percentMin / 100)));
     assert.ok(spawned[1].stats[key] <= base[key] + Math.max(1, Math.ceil(base[key] * percentMax / 100)));
   }
-  assert.ok(spawned[1].weapons.includes('steel_axe'));
+  assert.ok(spawned[1].weapons.includes('fw_weapon_53'), 'level-one hard reinforcement carries a copper axe');
 });

@@ -1,5 +1,5 @@
 {
-  "docVersion": 32,
+  "docVersion": 33,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -181,7 +181,7 @@
       "op": 23,
       "name": "GET_CATALOG",
       "group": "名册",
-      "agentNote": "职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。",
+      "agentNote": "职业、武器、技能、地形等静态数据；materials含72种素材的类别／阶级／稀有／产地，weaponSeries给出木铜铁钢银序列，recipes给出所有用途；带版本号，缓存后只在版本变化时重取。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -199,7 +199,7 @@
       "op": 30,
       "name": "GET_TODAY",
       "group": "日历",
-      "agentNote": "今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，困难装备更高阶且不同；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。",
+      "agentNote": "今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，装备按出发等级选档，困难提高一档（银档封顶）；materials 为当前地区可掉落素材ID；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1118,7 +1118,7 @@
       "op": 89,
       "name": "REFINE_WEAPON",
       "group": "整备",
-      "agentNote": "营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n矿石，不耗天数、不修耐久、不加属性；commandId重试只支付一次。",
+      "agentNote": "营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n铁矿，不耗天数、不修耐久、不加属性；commandId重试只支付一次。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1167,11 +1167,14 @@
       "op": 91,
       "name": "PLANT",
       "group": "生产",
-      "agentNote": "在农田播种：消耗种子并推进 1 日，成熟后收获不额外耗日。",
+      "agentNote": "在农田播种：可选recipeId（默认plant_herb），须为种植配方并满足声望、工位及全部材料；消耗种子和配方要求的母株并推进1日。普通高阶药草需要同种母株，稀有药草不能靠种子量产；成熟后收获不额外耗日。",
       "push": false,
       "dataSchema": {
         "type": "object",
         "properties": {
+          "recipeId": {
+            "type": "string"
+          },
           "commandId": {
             "type": "string",
             "minLength": 1,
@@ -1185,7 +1188,7 @@
       "op": 92,
       "name": "START_PRODUCTION",
       "group": "生产",
-      "agentNote": "开一个生产订单（炼药／锻造），扣料并占用一个工位，按行动日成熟。",
+      "agentNote": "开一个炼药／锻造订单，扣齐配方材料并占用工位，按行动日成熟；种植用PLANT。木铜铁钢银分别使用对应素材，钢需铁矿＋煤炭，银需银矿；perfect仅用于武器锻造。已开工订单保留原产出。",
       "push": false,
       "dataSchema": {
         "type": "object",
@@ -1327,7 +1330,7 @@
       "op": 101,
       "name": "START_DUNGEON",
       "group": "远征",
-      "agentNote": "开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。",
+      "agentNote": "开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；装备与道具按地区和难度分别首通自动入库，装备按出发等级冻结，困难提高一档（银档封顶）；中间图、失败、撤离及同难度重复通关不发首通奖励。",
       "push": false,
       "dataSchema": {
         "type": "object",

@@ -479,8 +479,11 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     const region = regionById(regionId);
     const material: ItemKey = region.id % 3 === 0 ? 'ore' : region.id % 3 === 1 ? 'herb' : 'wood';
     const count = 2 + Math.floor(record.state.turn / 4);
-    store.addInventory(player.id, material, 0, count);
-    rewards.items.push({ item: material, count });
+    const drops = record.materialLoot ?? [{ item: material, count }];
+    for (const drop of drops) {
+      store.addInventory(player.id, drop.item as ItemKey, 0, drop.count);
+      rewards.items.push({ item: drop.item as ItemKey, count: drop.count });
+    }
     if (!player.flags.clearedRegions.includes(region.id)) {
       player.flags.clearedRegions.push(region.id);
       player.flags.firstClearLevel ??= {};
@@ -521,7 +524,7 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
 export function dungeonFirstClearReward(store: Store, player: Player, region: number, questId?: string, aiDifficulty: 'normal' | 'hard' = 'normal') {
   const completed = (aiDifficulty === 'normal' && questId !== undefined && (player.flags.questsDone ?? []).includes(questId))
     || store.hasCompletedRun(player.id, region, questId, aiDifficulty);
-  return { items: dungeonFirstClearLoot(region, aiDifficulty), available: !completed };
+  return { items: dungeonFirstClearLoot(region, aiDifficulty, enemyLevel(player.day, regionById(region).offset)), available: !completed };
 }
 
 // 一次性隐藏要素入账：之后创建的战斗不再生成这些物件（docs/22「经典地图密室宝箱」）。
@@ -546,7 +549,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
   };
   let completed = false;
   if (won) {
-    run.pendingLoot.push(...stageLoot(run.region, run.stageIndex));
+    run.pendingLoot.push(...(run.materialLoot?.[run.stageIndex] ?? stageLoot(run.region, run.stageIndex)));
     for (const drop of scenarioLoot(record.state)) run.pendingLoot.push({ item: drop.item, count: drop.count });
     run.pendingClaims = [...(run.pendingClaims ?? []), ...secretClaims(record.state)];
     if (run.stageIndex >= stageCount(run) - 1) {
@@ -566,7 +569,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
       const explored = (run.questId !== undefined && (player.flags.questsDone ?? []).includes(run.questId))
         || store.hasCompletedRun(player.id, run.region, run.questId);
       if (!explored) addRegionExploration(store, player, run.region, 'dungeon');
-      if (firstClearReward.available) run.pendingLoot.push(...firstClearReward.items);
+      if (firstClearReward.available) run.pendingLoot.push(...(run.firstClearLoot ?? dungeonFirstClearLoot(run.region, run.aiDifficulty)));
       const region = regionById(run.region);
       const firstClear = !player.flags.clearedRegions.includes(run.region);
       if (firstClear) player.flags.clearedRegions.push(run.region);
@@ -662,9 +665,9 @@ export function settleDispatches(store: Store, player: Player): DispatchResult[]
     if (dispatch.returnDay > player.day) continue;
     // Running legacy dispatches keep their earned days, now under sword proficiency.
     if ((dispatch.weaponType as string) === 'dagger') dispatch.weaponType = 'sword';
-    const materials = dispatchMaterials(dispatch.region, dispatch.durationDays);
+    const materials = dispatch.materialLoot ?? dispatchMaterials(dispatch.region, dispatch.durationDays);
     const weaponRoll = seedRng(`dispatch-weapons:${dispatch.id}`)[0] % 4;
-    const weapons = dispatchWeapons(dispatch.region, dispatch.durationDays, weaponRoll);
+    const weapons = dispatch.weaponLoot ?? dispatchWeapons(dispatch.region, dispatch.durationDays, weaponRoll);
     const unitRewards: DispatchResult['unitRewards'] = [];
     for (const unitId of dispatch.unitIds) {
       const unit = store.unit(player.id, unitId);

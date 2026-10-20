@@ -23,6 +23,7 @@ import type { CharacterId } from '../common/data/characters.ts';
 import { generatedPortraitSex } from '../common/portraits/random.ts';
 import { GAME_ITEMS, isCentralShopItem, isItemKey, shopItemOpen, shopOpenDay, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
+import { materialDrops, materialSources } from '../common/game/materials.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
 import { fieldEncounter } from '../common/game/encounters.ts';
@@ -501,6 +502,7 @@ const handlers: Record<number, Handler> = {
         const hardDungeon = dungeonPlan(ctx.player, region.id, 'hard');
         return {
         id: region.id, name: region.name, resource: region.resource,
+        materials: materialSources(region.id, enemyLevel(ctx.player.day, region.offset)),
         hardUnlocked: hardUnlocks(ctx.store, ctx.player).regions.includes(region.id),
         encounters: { normal: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'normal'), hard: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'hard') },
         dungeonEncounters: { normal: normalDungeon.encounter, hard: hardDungeon.encounter },
@@ -569,16 +571,15 @@ const handlers: Record<number, Handler> = {
 
   [OP.SWEEP]: (ctx, data) => {
     const region = asNumber(data.region, 'region');
-    const times = Math.max(1, Math.min(10, typeof data.times === 'number' ? data.times : 1));
+    const times = Math.max(1, Math.min(10, Math.floor(typeof data.times === 'number' ? data.times : 1)));
     if (!ctx.player.flags.clearedRegions.includes(region)) throw new OpError('BAD_REQUEST', '只能扫荡已讨伐地区');
-    const material: ItemKey = region % 3 === 0 ? 'ore' : region % 3 === 1 ? 'herb' : 'wood';
-    const perRun = 2 + Math.floor(regionLevel(ctx.player.flags.clearedRegions.length, regionById(region).offset) / 20);
+    const items = materialDrops(region, enemyLevel(ctx.player.day, regionById(region).offset), `sweep:${ctx.player.id}:${ctx.player.day}`, 4 * times, 0.04);
     ctx.player.day += ACTION_DAYS.sweep * times;
-    ctx.store.addInventory(ctx.player.id, material, 0, perRun * times);
+    for (const drop of items) ctx.store.addInventory(ctx.player.id, drop.item, 0, drop.count);
     syncPlayer(ctx.store, ctx.player);
-    ctx.store.addEvent(ctx.player.id, 'sweep', `扫荡 ${regionById(region).name} ${times} 次，获得 ${GAME_ITEMS[material].name} ×${perRun * times}。`, { region, times });
+    ctx.store.addEvent(ctx.player.id, 'sweep', `扫荡 ${regionById(region).name} ${times} 次，获得 ${items.map(drop => `${GAME_ITEMS[drop.item].name} ×${drop.count}`).join('、')}。`, { region, times });
     ctx.push(OP.STATE_CHANGED, { reason: 'sweep' });
-    return { days: ACTION_DAYS.sweep * times, items: [{ item: material, count: perRun * times }], day: ctx.player.day };
+    return { days: ACTION_DAYS.sweep * times, items, day: ctx.player.day };
   },
 
   [OP.TRAIN]: (ctx, data) => {
@@ -794,7 +795,7 @@ const handlers: Record<number, Handler> = {
     const costGold = 300 * refinement;
     const costOre = refinement;
     if (ctx.player.gold < costGold) throw new OpError('NOT_ENOUGH_GOLD', `需要 ${costGold} 金币`);
-    if (ctx.store.countInventory(ctx.player.id, 'ore') < costOre) throw new OpError('NO_SUCH_ITEM', `需要 ${costOre} 矿石`);
+    if (ctx.store.countInventory(ctx.player.id, 'ore') < costOre) throw new OpError('NO_SUCH_ITEM', `需要 ${costOre} ${GAME_ITEMS.ore.name}`);
     ctx.store.takeInventory(ctx.player.id, 'ore', costOre);
     ctx.player.gold -= costGold;
     instance.refinement = refinement;
@@ -1332,7 +1333,7 @@ const handlers: Record<number, Handler> = {
     syncPlayer(ctx.store, ctx.player);
     const seed = randomUUID().slice(0, 8);
     const record = scenarioId
-      ? createClassicBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', mapId: scenarioId, seed, quest: runQuest,
+      ? createClassicBattle(units, { region: run.region, aiDifficulty: run.aiDifficulty ?? 'normal', mapId: scenarioId, seed, quest: runQuest,
           level: run.stages || runQuest?.dungeonOnly ? run.level : undefined, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, day: ctx.player.day,
           lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [], season: dateOf(ctx.player.day - costDays).season })
       : createFieldBattle(units, { aiDifficulty: run.aiDifficulty ?? 'normal', region: run.region, cleared: run.clearedAtStart, day: ctx.player.day - costDays, seed, level: run.level, stageIndex: run.stageIndex, runId: run.id, carry: run.carry, quest: runQuest, encounter: run.encounter, legacyDeployment: !run.encounter });
@@ -1436,12 +1437,16 @@ const handlers: Record<number, Handler> = {
     };
   },
 
-  [OP.PLANT]: ctx => {
-    const recipe = recipeById('plant_herb')!;
+  [OP.PLANT]: (ctx, data) => {
+    const recipe = recipeById(data.recipeId === undefined ? 'plant_herb' : asString(data.recipeId, 'recipeId'));
+    if (!recipe || recipe.kind !== 'grow') throw new OpError('BAD_REQUEST', '请选择种植配方');
+    if (!recipeUnlocked(recipe, ctx.player.flags.regionReputation ?? {})) throw new OpError('FORBIDDEN', '尚未达到该种植配方的地区声望');
     if (!workshopFacilities(ctx.store, ctx.player, playerRegions(ctx.player)).garden) throw new OpError('FORBIDDEN', '解锁希尔瓦林地（地区2）后才能开辟药草田');
     if (!canStart(ctx.store.productionOrders(ctx.player.id), recipe)) throw new OpError('FORBIDDEN', '药草田工位已满');
-    if (ctx.store.countInventory(ctx.player.id, 'seed') < 1) throw new OpError('NO_SUCH_ITEM', '没有种子');
-    ctx.store.takeInventory(ctx.player.id, 'seed', 1);
+    for (const input of recipe.input) {
+      if (ctx.store.countInventory(ctx.player.id, input.item) < input.count) throw new OpError('NO_SUCH_ITEM', `缺少${GAME_ITEMS[input.item].name}`);
+    }
+    for (const input of recipe.input) ctx.store.takeInventory(ctx.player.id, input.item, input.count);
     // 播种消耗种子并推进 1 日（docs/00 §9.2）。
     ctx.player.day += 1;
     const order = createOrder(`po-${randomUUID().slice(0, 8)}`, ctx.player.id, recipe, ctx.player.day);
@@ -1454,6 +1459,8 @@ const handlers: Record<number, Handler> = {
   [OP.START_PRODUCTION]: (ctx, data) => {
     const recipe = recipeById(asString(data.recipeId, 'recipeId'));
     if (!recipe) throw new OpError('NOT_FOUND', '没有这个配方');
+    if (recipe.kind === 'grow') throw new OpError('BAD_REQUEST', '种植请使用 PLANT，每次播种推进 1 日');
+    if (data.perfect === true && (recipe.kind !== 'forge' || GAME_ITEMS[recipe.output.item].kind !== 'weapon')) throw new OpError('BAD_REQUEST', '只有武器锻造可以精工');
     if (!workshopFacilities(ctx.store, ctx.player, playerRegions(ctx.player))[recipe.facility]) {
       throw new OpError('FORBIDDEN', `${facilityById(recipe.facility).name}尚未解锁：先在世界地图解锁对应地区`);
     }

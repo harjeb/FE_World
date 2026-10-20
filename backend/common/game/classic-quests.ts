@@ -2,6 +2,8 @@ import { CLASSIC_GAME_NAMES, CLASSIC_MAPS, classicMap } from './classic-catalog.
 import { CLASSIC_DUNGEON_IDS } from './dungeon-plans.ts';
 import { DUNGEON_DAYS } from './expedition.ts';
 import type { ClassicGame, ClassicMap } from './classic-catalog.ts';
+import type { ItemKey } from './items.ts';
+import { materialDrops } from './materials.ts';
 import type { Quest, QuestKind } from './quests.ts';
 
 // 旧单图与 3–4 图任务保留供存档查找；公开经典副本保留六部作品各一条三图路线。
@@ -120,7 +122,9 @@ function featuredDungeonQuests(): Quest[] {
       objective: `3 图连战：${mapName}`,
       kind: 'rout', tier: 'region',
       turnLimit: Math.max(...maps.map(map => map.turnLimit)),
-      reward: { gold: 3_500, reputation: 0 },
+      reward: { gold: 3_500, reputation: 0, items: materialDrops(GAME_REGION[game],
+        ['fe6', 'fe7', 'fe8'].includes(game) ? 35 : 20, `classic:${id}`, 8, 0)
+        .map(({ item, count }): [ItemKey, number] => [item, count]) },
       scenarioIds: maps.map(map => map.id),
       costDays: DUNGEON_DAYS,
       classic: { game, mapName, stageCount: 3, adapted: maps.some(map => map.adapted) },

@@ -77,8 +77,8 @@ test('brewing consumes herbs on start and yields a vulnerary once mature', () =>
 test('silver and brave weapons are ordinary smithy recipes', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
-  store.addInventory(player.id, 'ore', 0, 100);
-  store.addInventory(player.id, 'wood', 0, 100);
+  store.addInventory(player.id, 'silver_ore', 0, 100);
+  store.addInventory(player.id, 'hard_wood', 0, 100);
   player.flags.regionReputation = { 9: 250 };
   store.savePlayer(player);
   const recipes = (dispatch(ctx, OP.GET_PRODUCTION, {}) as { recipes: { id: string; unlocked: boolean }[] }).recipes;
@@ -95,7 +95,8 @@ test('reputation recipes stay locked until the region reputation is high enough'
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   store.addInventory(player.id, 'ore', 0, 20);
-  store.addInventory(player.id, 'wood', 0, 20);
+  store.addInventory(player.id, 'coal', 0, 20);
+  store.addInventory(player.id, 'hard_wood', 0, 20);
   const view = dispatch(ctx, OP.GET_PRODUCTION, {}) as { recipes: { id: string; unlocked: boolean; requires: { region: number; reputation: number } | null }[] };
   const locked = view.recipes.find(r => r.id === 'forge_killer_bow')!;
   // 声望配方保持列出但未解锁；设施本身随地区 2 解锁（夹具全解锁）。

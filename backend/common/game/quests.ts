@@ -5,6 +5,7 @@ import { regionById } from './calendar.ts';
 import { DUNGEON_DAYS } from './expedition.ts';
 import { COMPANION_QUESTS, STORY_QUESTS } from './story-quests.ts';
 import { BOUNTY_QUESTS } from './bounties.ts';
+import { materialDrops } from './materials.ts';
 import { chapterAvailable } from './story.ts';
 
 const regionName = (id: number) => regionById(id).name;
@@ -86,7 +87,7 @@ export const QUESTS: Quest[] = [
   standard('gw3', 2, '抢回被截木材', '带至少 1 箱木材撤离', 'gather', { quest: 'gw2' }, 1),
   short('gw4', 2, '接应落单猎手', '全队抵达撤离点', 'escape', { quest: 'gw3', reputation: 100 }, 1),
   standard('gw5', 2, '防守林间营地', '坚守营地', 'defend', { quest: 'gw4', reputation: 100 }),
-  region6('gw6', 2, '林间远征', '清剿林中据点', [['killer_bow', 1], ['wood', 8]], { quest: 'gw5', reputation: 100 }, 'ren'),
+  region6('gw6', 2, '林间远征', '清剿林中据点', [['killer_bow', 1]], { quest: 'gw5', reputation: 100 }, 'ren'),
   core('gw7', 2, '古林界标', '夺回被侵蚀的界标', [], { quest: 'gw6', reputation: 250 }),
   core('gw8', 2, '林心守夜', '守住林心祭坛', [], { quest: 'gw7', reputation: 250 }),
   core('gw9', 2, `${regionName(2)}·核心`, '击败侵蚀守林者', [['legacy_stone_growth', 1], ['immortal_shield', 1]], { quest: 'gw8', reputation: 250 }, true),
@@ -96,7 +97,7 @@ export const QUESTS: Quest[] = [
   standard('ih3', 3, '防守运输站', '坚守运输站', 'defend', { quest: 'ih2' }),
   short('ih4', 3, '撤离被困矿工', '护送矿工抵达撤离点', 'escort', { quest: 'ih3', reputation: 100 }),
   standard('ih5', 3, '抢运矿石', '带至少 1 箱矿石撤离', 'gather', { quest: 'ih4', reputation: 100 }, 1),
-  region6('ih6', 3, '矿区远征', '清剿矿场守军', [['killer_lance', 1], ['ore', 8]], { quest: 'ih5', reputation: 100 }, 'ig'),
+  region6('ih6', 3, '矿区远征', '清剿矿场守军', [['killer_lance', 1]], { quest: 'ih5', reputation: 100 }, 'ig'),
   core('ih7', 3, '深井回声', '压制深井入口', [], { quest: 'ih6', reputation: 250 }),
   core('ih8', 3, '熔炉守卫', '守住熔炉', [], { quest: 'ih7', reputation: 250 }),
   core('ih9', 3, `${regionName(3)}·核心`, '击败熔炉巨像', [['legacy_stone_numeric', 1], ['immortal_shield', 1]], { quest: 'ih8', reputation: 250 }, true),
@@ -106,7 +107,7 @@ export const QUESTS: Quest[] = [
   standard('wl3', 5, '保卫药草田', '坚守药草田', 'defend', { quest: 'wl2' }),
   short('wl4', 5, '抢救补给箱', '带至少 1 箱补给撤离', 'gather', { quest: 'wl3', reputation: 100 }, 1),
   standard('wl5', 5, '占领被封渡口', '压制渡口', 'seize', { quest: 'wl4', reputation: 100 }),
-  region6('wl6', 5, '渡口远征', '清剿渡口守军', [['recover', 1], ['herb', 8]], { quest: 'wl5', reputation: 100 }, 'mira'),
+  region6('wl6', 5, '渡口远征', '清剿渡口守军', [['recover', 1]], { quest: 'wl5', reputation: 100 }, 'mira'),
   core('wl7', 5, '潮汐碑文', '夺回潮汐碑', [], { quest: 'wl6', reputation: 250 }),
   core('wl8', 5, '药田长夜', '守住药田', [], { quest: 'wl7', reputation: 250 }),
   core('wl9', 5, `${regionName(5)}·核心`, '击败潮汐祭司', [['reincarnation_core', 1], ['immortal_shield', 1]], { quest: 'wl8', reputation: 250 }, true),
@@ -134,7 +135,7 @@ export function questsForRegion(region: number): Quest[] {
   return ALL_QUESTS.filter(q => q.region === region);
 }
 
-// 旧三任务链的 ID、门槛与实物奖励保留；新增支线允许在远征前达到 100，之后合流到核心链。
+// 旧三任务链的 ID、门槛与稀缺奖励保留；新增支线允许在远征前达到 100，之后合流到核心链。
 export const QUEST_REGIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 const LOCAL_CHAINS: { region: number; material: ItemKey; escort: string; escape: string; defend: string; cores: [string, string, string] }[] = [
@@ -155,20 +156,32 @@ for (const { region, material, escort, escape, defend, cores } of LOCAL_CHAINS) 
     short(`${prefix}-1`, region, `${name}·边境巡逻`, '击败当地威胁', 'rout'),
     standard(`${prefix}-2`, region, `${name}·据点压制`, '压制当地据点', 'seize', { quest: `${prefix}-1` }),
     // 保留旧远征前置，已完成旧三项的玩家可以直接补支线。
-    region6(`${prefix}-3`, region, `${name}·地区远征`, '清剿地区守军', [['ore', 6], ['herb', 6]], { quest: `${prefix}-2`, reputation: 60 }),
+    region6(`${prefix}-3`, region, `${name}·地区远征`, '清剿地区守军', [], { quest: `${prefix}-2`, reputation: 60 }),
     standard(`${prefix}-4`, region, escort, '护送当地盟友抵达撤离点', 'escort', { quest: `${prefix}-2` }),
     short(`${prefix}-5`, region, escape, '全队抵达撤离点', 'escape', { quest: `${prefix}-4`, reputation: 100 }, 1),
     standard(`${prefix}-6`, region, defend, '坚守当地设施', 'defend', { quest: `${prefix}-5`, reputation: 100 }),
-    core(`${prefix}-7`, region, cores[0], '夺回地区遗址', [[material, 6]], { quest: `${prefix}-3`, reputation: 250 }),
-    core(`${prefix}-8`, region, cores[1], '守住地区防线', [[material, 8]], { quest: `${prefix}-7`, reputation: 250 }),
-    core(`${prefix}-9`, region, cores[2], '击败侵蚀守将，缔结当地盟约', [[material, 10]], { quest: `${prefix}-8`, reputation: 250 }),
+    core(`${prefix}-7`, region, cores[0], '夺回地区遗址', material === 'seed' ? [[material, 6]] : [], { quest: `${prefix}-3`, reputation: 250 }),
+    core(`${prefix}-8`, region, cores[1], '守住地区防线', material === 'seed' ? [[material, 8]] : [], { quest: `${prefix}-7`, reputation: 250 }),
+    core(`${prefix}-9`, region, cores[2], '击败侵蚀守将，缔结当地盟约', material === 'seed' ? [[material, 10]] : [], { quest: `${prefix}-8`, reputation: 250 }),
   );
+}
+// 固定种子只在目录构建时选材：预览与领取共用同一份奖励，不按地区编号提升等级。
+for (const quest of QUESTS) {
+  const coreQuest = /(?:gw|ih|wl)[789]$|^r\d+-[789]$/.test(quest.id);
+  const level = quest.tier === 'short' ? 1 : quest.tier === 'standard' ? 10 : coreQuest ? 35 : 20;
+  const rolls = quest.tier === 'short' ? 3 : quest.tier === 'standard' ? 4 : coreQuest ? 8 : 6;
+  quest.reward.items = [...(quest.reward.items ?? []), ...materialDrops(quest.region, level, `quest:${quest.id}`, rolls, 0).map(({ item, count }): [ItemKey, number] => [item, count])];
 }
 ALL_QUESTS.push(...QUESTS.filter(q => !ALL_QUESTS.includes(q)));
 // 限量投放（docs/27）：短弓为前期任务首通奖励（另有当地商店资格）；三本最上级法术书连同教材只经
 // 一次性核心／远征任务发放，不进普通商店。
 const LIMITED_REWARDS: Record<string, [ItemKey, number][]> = {
   gw1: [['short_bow', 1]],
+  'r1-1': [['fw_weapon_1', 1]],
+  'r1-2': [['fw_weapon_2', 1]],
+  'r1-3': [['iron_sword', 1]],
+  'r1-7': [['steel_sword', 1]],
+  'r1-9': [['silver_sword', 1]],
   ih8: [[spellbookItem('fw_spell_61'), 1], [manualItem('fw_spell_61'), 1]],
   wl8: [[spellbookItem('fw_spell_60'), 1], [manualItem('fw_spell_60'), 1]],
   'r11-3': [[spellbookItem('fw_spell_11'), 1], [manualItem('fw_spell_11'), 1]],

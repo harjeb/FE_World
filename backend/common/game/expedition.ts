@@ -1,6 +1,8 @@
 import type { FieldEncounter } from './encounters.ts';
 import type { DungeonStage } from './dungeon-plans.ts';
 import type { AiDifficulty, ItemStack, UnitState } from '../engine/types.ts';
+import { WEAPON_SERIES } from '../data/weapons.ts';
+import { materialDrops, materialTier } from './materials.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import type { ItemKey } from './items.ts';
 
@@ -29,6 +31,8 @@ export interface RunRecord {
   battleId: string | null;
   carry: Record<string, RunCarry>;
   pendingLoot: { item: string; count: number }[];
+  materialLoot?: { item: string; count: number }[][];
+  firstClearLoot?: { item: ItemKey; count: number }[];
   // 本趟已拿到的一次性隐藏要素（mapId:objectId）；完整通关才记入账号，撤离／失败作废。
   pendingClaims?: string[];
   // 旧远征保留单图耗日；新远征冻结三图的逐图耗日。
@@ -50,7 +54,11 @@ export function createRun(id: string, playerId: string, region: number, unitIds:
   return {
     encounter: opts.encounter ? structuredClone(opts.encounter) : undefined,
     id, playerId, region, aiDifficulty: opts.aiDifficulty ?? 'normal', state: 'battle', unitIds: [...unitIds], stageIndex: 0,
-    level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [], questId: opts.questId, stageDays: opts.stageDays,
+    level, clearedAtStart, battleId: null, carry: {}, pendingLoot: [],
+    materialLoot: Array.from({ length: opts.stages?.length ?? opts.scenarioIds?.length ?? DUNGEON_STAGES }, (_, stage) =>
+      [...materialDrops(region, level, `${id}:materials:${stage}`, 3 + stage, opts.aiDifficulty === 'hard' ? 0.18 : 0.12), { item: 'seed', count: 1 }]),
+    firstClearLoot: dungeonFirstClearLoot(region, opts.aiDifficulty, level),
+    questId: opts.questId, stageDays: opts.stageDays,
     stageDayCosts: opts.stageDays === undefined ? [...DUNGEON_STAGE_DAYS] : undefined,
     stages: opts.stages?.map(stage => ({ ...stage })),
     scenarioIds: opts.scenarioIds ? [...opts.scenarioIds] : undefined,
@@ -108,9 +116,15 @@ const FIRST_CLEAR_WEAPONS: Record<AiDifficulty, WeaponId[]> = {
     'silver_axe', 'brave_lance', 'brave_axe', 'brave_sword', 'brave_bow', 'fortify',
   ],
 };
-export function dungeonFirstClearLoot(region: number, aiDifficulty: AiDifficulty = 'normal'): { item: ItemKey; count: number }[] {
-  const weapon = FIRST_CLEAR_WEAPONS[aiDifficulty][region - 1];
+export function dungeonFirstClearLoot(region: number, aiDifficulty: AiDifficulty = 'normal', level?: number): { item: ItemKey; count: number }[] {
+  let weapon = FIRST_CLEAR_WEAPONS[aiDifficulty][region - 1];
   if (!weapon) throw new Error(`Unknown dungeon region ${region}`);
+  // Old runs retain the former first-clear bundle; new offers follow the gathering grade.
+  if (level !== undefined) {
+    const type = (['sword', 'bow', 'lance', 'axe', 'fist'] as const)[(region - 1) % 5];
+    const tier = Math.min(5, materialTier(level) + (aiDifficulty === 'hard' ? 1 : 0));
+    weapon = WEAPON_SERIES[type][tier - 1];
+  }
   return [{ item: weapon, count: 1 }, { item: 'vulnerary', count: aiDifficulty === 'hard' ? 4 : 2 },
     { item: 'full_meal', count: aiDifficulty === 'hard' ? 2 : 1 }];
 }

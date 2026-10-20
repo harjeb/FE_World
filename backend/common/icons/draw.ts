@@ -11,6 +11,7 @@
 import { WEAPONS } from '../data/weapons.ts';
 import type { Weapon, WeaponId } from '../data/weapons.ts';
 import { GAME_ITEMS } from '../game/items.ts';
+import { MATERIAL_IDS, MATERIALS } from '../game/materials.ts';
 
 export type Rgba = readonly [number, number, number, number];
 export const ICON_SIZE = 16;
@@ -127,7 +128,7 @@ const DARKIRON = { hi: C('#8C949A'), lo: C('#4E565C') };
 function metalOf(w: Weapon): MetalId {
   const n = w.name;
   const rules: [RegExp, MetalId][] = [
-    [/木制/, 'wood'], [/青铜/, 'bronze'], [/达·米纳/, 'damina'], [/对魔|魔法/, 'magic'], [/邪|反噬|妖枪|魔枪/, 'cursed'],
+    [/木制|^木/, 'wood'], [/青铜|^铜/, 'bronze'], [/达·米纳/, 'damina'], [/对魔|魔法/, 'magic'], [/邪|反噬|妖枪|魔枪/, 'cursed'],
     [/勇者/, 'brave'], [/杀手|必杀/, 'killer'], [/银/, 'silver'], [/钢/, 'steel'], [/铁/, 'iron'],
     [/圣|神授|净化|辉/, 'holy'], [/毒/, 'poison'], [/雷/, 'thunder'], [/冰/, 'ice'], [/火|炎|沙拉曼达|龙息/, 'fire'],
     [/王/, 'royal'], [/常夜/, 'night'], [/疾风/, 'wind'], [/猎兽/, 'hunt'], [/屠马|斩马|屠龙|骑士杀手/, 'slayer'],
@@ -160,7 +161,7 @@ type Spec =
   | { kind: 'staff'; head: StaffHead; shaft: GripId; long?: boolean; gem: GemId }
   | { kind: 'fan'; metal: MetalId; gem: GemId }
   | { kind: 'book'; style: 'tome' | 'grimoire' | 'scroll'; cover: CoverId; emblem: Emblem; gem: GemId }
-  | { kind: 'grid'; rows: readonly string[] };
+  | { kind: 'grid'; rows: readonly string[]; palette?: Pal };
 
 const S = (len: number, width: Blade['width'], tip: Blade['tip'], more: Partial<Blade> = {}): Blade => ({ len, width, tip, ...more });
 
@@ -733,7 +734,17 @@ function itemSpec(key: string): Spec | null {
     return { kind: 'book', style: item.kind === 'manual' ? 'scroll' : 'grimoire', cover, emblem, gem: 'red' };
   }
   const rows = ITEM_GRIDS[key];
-  return rows ? { kind: 'grid', rows } : null;
+  if (rows) return { kind: 'grid', rows };
+  const index = MATERIAL_IDS.indexOf(key as typeof MATERIAL_IDS[number]);
+  if (index < 0) return null;
+  const material = MATERIALS[key as typeof MATERIAL_IDS[number]];
+  const tone = index % 24;
+  const color: Rgba = material.category === 'herb' ? [65 + tone * 4, 125 + tone * 3, 60 + tone * 2, 255]
+    : material.category === 'ore' ? [110 + tone * 5, 115 + tone * 2, 150 - tone * 3, 255]
+      : [130 + tone * 4, 75 + tone * 3, 40 + tone * 2, 255];
+  const dark: Rgba = [Math.round(color[0] * 0.65), Math.round(color[1] * 0.65), Math.round(color[2] * 0.65), 255];
+  const palette = Object.fromEntries(Object.keys(BASE).map(char => [char, char === char.toUpperCase() ? dark : color]));
+  return { kind: 'grid', rows: ITEM_GRIDS[material.category], palette };
 }
 
 // Two keys whose specs only differ in the gem would otherwise be drawn alike: give each a different gem.
@@ -1411,7 +1422,7 @@ export function drawItemIcon(key: string): Uint8ClampedArray | null {
     case 'stone': paintGrid(img, STONES[spec.shape], metalPal(spec.metal, spec.gem)); break;
     case 'staff': paintStaff(img, spec); break;
     case 'book': paintBook(img, spec); break;
-    case 'grid': paintGrid(img, spec.rows, {}); break;
+    case 'grid': paintGrid(img, spec.rows, spec.palette ?? {}); break;
   }
   img.outline();
   return img.data();

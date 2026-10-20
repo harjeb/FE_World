@@ -1,6 +1,7 @@
 import type { CharacterId } from '../data/characters.ts';
 import { classicMap } from './classic-catalog.ts';
 import type { ItemKey } from './items.ts';
+import { materialDrops } from './materials.ts';
 import type { Quest, QuestKind } from './quests.ts';
 
 // 主线任务与伙伴任务（docs/38）。两者都是单图经典地图任务，沿用任务系统的出征、结算和奖励键：
@@ -96,7 +97,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     clue: { name: '被刮去的名册', note: '一页被同一把刀刮过的冠军名册，空白处隐约有压痕。' },
     steps: [
       step(3, 'a', { kind: 'duel', name: '刮名人', briefing: '一个自称“刮名人”的剑客拦在档案馆门前，只肯和一个人单独较量。对手是个随机人物，实力按你队伍里最高等级来，职业与你选的应战者同阶级（具体职业随机）。选一名角色应战，获胜才能进门。', mapId: 'fe2-map-03', enemy: '刮名人', levelBonus: 1 }),
-      step(3, 'b', { kind: 'submit', name: '修复卷宗', briefing: '破损的卷宗需要矿物粉修补。提交 8 份矿石。', item: 'ore', count: 8 }),
+      step(3, 'b', { kind: 'submit', name: '修复卷宗', briefing: '破损的卷宗需要矿物粉修补。提交 8 份铁矿。', item: 'ore', count: 8 }),
     ] },
   { chapter: 4, mapId: 'fe8-ch14-ephraim', name: '旧约·地下祭室',
     briefing: '地下祭室保存着诸神与凡人的旧约，守卫已被替换。穿过层层厅室，找到旧约的原件。',
@@ -123,7 +124,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '各地伙伴带着旧约的碎片赶往沙漠中的集合点，沿途有人拦截。接应他们汇合。',
     clue: { name: '旧约碎片', note: '各地伙伴保存的碎片，拼合后能补全守护阵的一角。' },
     steps: [
-      step(7, 'a', { kind: 'submit', name: '沙漠补给', briefing: '穿越黄沙的同伴需要补给。提交 15 份药草。', item: 'herb', count: 15 }),
+      step(7, 'a', { kind: 'submit', name: '沙漠补给', briefing: '穿越黄沙的同伴需要补给。提交 15 份止血草。', item: 'herb', count: 15 }),
       step(7, 'b', { kind: 'arena', name: '集合前的比试', briefing: '旧约碎片的持有者想先确认你的实力。在普通竞技场赢 3 场。', wins: 3 }),
     ] },
   { chapter: 8, mapId: 'fe6-ch21-main', name: '守护·阵眼',
@@ -141,7 +142,10 @@ export const STORY_CLUE_KEYS: readonly ItemKey[] = STORY_CHAPTER_QUESTS.map(row 
 
 // 主线任务报酬（金币为主，数值待校准）：章节公共经验另由 CLAIM_REWARD 发放，二者互不替代。
 const storyReward = (chapter: number): Quest['reward'] => ({
-  gold: 2_000 + chapter * 500, reputation: 0, items: [['vulnerary', 2]],
+  gold: 2_000 + chapter * 500, reputation: 0, items: [['vulnerary', 2],
+    ...materialDrops([1, 2, 3, 4, 6, 9, 8, 11][chapter - 1],
+      [1, 10, 20, 35, 55, 55, 75, 75][chapter - 1], `story:${chapter}`, 5, 0)
+      .map(({ item, count }): [ItemKey, number] => [item, count])],
 });
 
 function kindOf(mapId: string): { kind: QuestKind; objective: string; turnLimit: number } {
@@ -190,7 +194,9 @@ export const companionQuestId = (character: CharacterId): string => `companion-$
 export const COMPANION_QUESTS: Quest[] = COMPANION_QUEST_DEFS.map(row => ({
   id: companionQuestId(row.character), region: row.region, name: row.name, tier: 'standard', ...kindOf(row.mapId),
   companion: row.character, requires: { character: row.character }, costDays: 2,
-  scenarioId: row.mapId, reward: row.reward, event: row.briefing,
+  scenarioId: row.mapId, reward: { ...row.reward, items: [...(row.reward.items ?? []),
+    ...materialDrops(row.region, 20, `companion:${row.character}`, 5, 0)
+      .map(({ item, count }): [ItemKey, number] => [item, count])] }, event: row.briefing,
   classic: { game: classicMap(row.mapId).game, mapName: classicMap(row.mapId).name, stageCount: 1, adapted: true },
 }));
 

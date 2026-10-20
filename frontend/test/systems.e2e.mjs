@@ -218,7 +218,7 @@ try {
       picked && await until(async () => (await market()).owned) && (await api(page, OP.GET_STATE)).gold === gold0 - (await market()).price,
       `gold ${gold0} → ${(await api(page, OP.GET_STATE)).gold}`);
     check('the bought class shows as owned', await until(async () => (await page.text()).includes('✓ 剑客')), 'cell');
-    await page.open(`${BASE}/#/roster/u_victor/promote`, '#who-h');
+    await page.open(`${BASE}/#/roster/u_victor/promote`, '.promo-confirm');
     check('the promotion page requires ownership and explains how to buy a qualification',
       (await page.text()).includes('需要先购买资格') && await page.evaluate(`document.querySelector('.promo-confirm button').disabled`), 'unowned qualification');
 
@@ -243,6 +243,16 @@ try {
 
     // 生产: start a brew, plant a seed (one day), rest until it ripens, collect on the page.
     await page.open(`${BASE}/#/workshop`, '[data-facility=apothecary]');
+    check('workshop lists all 72 materials with regional sources and recipe uses', await page.evaluate(`(() => {
+      const rows = [...document.querySelectorAll('.workshop-material')];
+      return rows.length === 72 && rows.every(row => row.textContent.includes('来源：') && row.textContent.includes('配方用途：') && !row.textContent.includes('暂无生产配方'));
+    })()`), '72 materials, each with a source and a use');
+    check('steel and silver forging require their matching materials', await page.evaluate(`(() => {
+      const rows = [...document.querySelectorAll('.recipe')];
+      const steel = rows.find(row => row.querySelector('.nm')?.innerText.startsWith('制作钢剑'));
+      const silver = rows.find(row => row.querySelector('.nm')?.innerText.startsWith('制作银剑'));
+      return steel?.innerText.includes('铁矿') && steel.innerText.includes('煤') && silver?.innerText.includes('银矿');
+    })()`), 'steel uses iron and coal; silver uses silver ore');
     const vul0 = count((await api(page, OP.GET_INVENTORY)).inventory, 'vulnerary');
     await press(page, '.recipe', '炼制伤药', '开工');
     check('starting a recipe opens a server order', await until(async () => (await api(page, OP.GET_PRODUCTION)).orders.some(o => o.recipeId === 'brew_vulnerary')), 'brew_vulnerary');
@@ -291,8 +301,12 @@ try {
 
     // 军营 picks the new systems up.
     await page.open(`${BASE}/#/camp`, '.task');
+    const campReady = await until(async () => {
+      const text = await page.text();
+      return text.includes('传承 · 1 份遗产待兑现') && text.includes('播种药草成熟');
+    });
     const camp = await page.text();
-    check('camp lists the waiting legacy and the next harvest', camp.includes('传承 · 1 份遗产待兑现') && camp.includes('播种药草成熟'), camp.slice(camp.indexOf('待办'), camp.indexOf('待办') + 240));
+    check('camp lists the waiting legacy and the next harvest', campReady, camp.slice(camp.indexOf('待办'), camp.indexOf('待办') + 240));
     check('no console errors', page.errors.length === 0, page.errors.join(' | ') || 'none');
   } finally {
     await page.close();

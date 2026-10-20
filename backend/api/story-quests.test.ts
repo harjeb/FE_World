@@ -324,7 +324,7 @@ test('the finale waits for both preliminaries, in any order; materials and dispa
   ctx.store.addInventory(ctx.player.id, 'ore', 0, 5);
   const ore = ctx.store.countInventory(ctx.player.id, 'ore');
   ctx.store.takeInventory(ctx.player.id, 'ore', ore - 5);
-  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' }), /需要 8 份矿石，仓库里只有 5 份/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' }), /需要 8 份铁矿，仓库里只有 5 份/);
   ctx.store.addInventory(ctx.player.id, 'ore', 0, 4);
   dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' });
   assert.equal(ctx.store.countInventory(ctx.player.id, 'ore'), 1, 'eight ore were handed in');

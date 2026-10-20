@@ -3,7 +3,8 @@ import type { ClassId } from '../data/classes.ts';
 import { STAT_KEYS, rankAtLeast, stats } from '../data/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
 import type { Rank, Stats, WeaponType } from '../data/types.ts';
-import { WEAPONS } from '../data/weapons.ts';
+import { WEAPONS, WEAPON_SERIES, weaponSeriesTier } from '../data/weapons.ts';
+import { materialTier } from './materials.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import type { AiDifficulty, Behavior, Point, UnitState } from '../engine/types.ts';
 import { DAYS_PER_YEAR, enemyLevel } from './calendar.ts';
@@ -103,16 +104,23 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
   }
   const tpl = templateFor(spec.classId);
   const ranks = { ...tpl.ranks };
-  let weapons = [...tpl.weapons];
+  const baseWeapons = tpl.weapons.map(id => {
+    const type = WEAPONS[id].type as keyof typeof WEAPON_SERIES;
+    return weaponSeriesTier(id) ? WEAPON_SERIES[type][Math.min(5, materialTier(spec.level)) - 1] : id;
+  });
+  let weapons = [...baseWeapons];
   if (hard) {
-    const upgrades = tpl.weapons.map(weapon => HARD_GEAR[weapon]).filter((weapon): weapon is WeaponId =>
+    const upgrades = baseWeapons.map(weapon => {
+      const tier = weaponSeriesTier(weapon);
+      return tier ? WEAPON_SERIES[WEAPONS[weapon].type as keyof typeof WEAPON_SERIES][Math.min(4, tier)] : HARD_GEAR[weapon];
+    }).filter((weapon): weapon is WeaponId =>
       weapon !== undefined && CLASSES[spec.classId].weapons[WEAPONS[weapon].type] !== undefined);
     // Keep original crit, effectiveness and range choices. Full healing stays first.
-    weapons = [...new Set([...upgrades.filter(id => id !== 'physic'), ...tpl.weapons, ...upgrades])];
-    for (const id of weapons) {
-      const weapon = WEAPONS[id];
-      if (!rankAtLeast(ranks[weapon.type], weapon.rank)) ranks[weapon.type] = weapon.rank;
-    }
+    weapons = [...new Set([...upgrades.filter(id => id !== 'physic'), ...baseWeapons, ...upgrades])];
+  }
+  for (const id of weapons) {
+    const weapon = WEAPONS[id];
+    if (!rankAtLeast(ranks[weapon.type], weapon.rank)) ranks[weapon.type] = weapon.rank;
   }
   const behavior = spec.behavior ?? defaultBehavior(spec.classId);
   return {

@@ -1,5 +1,8 @@
 // 共用的物品分类过滤（整备页与地区声望商店都用它）：纯函数，不读会话、不写状态。
 // 武器按武器类别细分（剑（含短刀）/枪/斧/弓/拳/兽/龙/魔道书/杖），其余按仓库已有的类别归组。
+import { MATERIALS } from '@common/game/materials.ts';
+import type { MaterialDef } from '@common/game/materials.ts';
+import { REGIONS } from '@common/game/calendar.ts';
 import { GAME_ITEMS } from '@common/game/items.ts';
 import type { GameItem, ItemKey } from '@common/game/items.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
@@ -69,6 +72,29 @@ export const KIND_ORDER = ['weapon', 'spellbook', 'manual', 'consumable', 'food'
 export function kindOrder(key: string): number {
   const item = byKey(key);
   return item ? KIND_ORDER.indexOf(item.kind as (typeof KIND_ORDER)[number]) : KIND_ORDER.length;
+}
+
+export const MATERIAL_CATEGORY_NAMES = { herb: '药草', ore: '矿物', wood: '木材' } as const;
+
+export function materialInfo(key: string): MaterialDef | undefined {
+  return Object.hasOwn(MATERIALS, key) ? MATERIALS[key as keyof typeof MATERIALS] : undefined;
+}
+
+export function matchMaterialFilter(key: string, category: string, tier: string): boolean {
+  const material = materialInfo(key);
+  return !!material && (category === 'all' || material.category === category)
+    && (tier === 'all' || String(material.tier) === tier);
+}
+
+export function materialSourceLabel(key: string): string {
+  const material = materialInfo(key);
+  return material ? material.regions.map(id => REGIONS.find(r => r.id === id)?.name ?? `地区${id}`).join('、') : '';
+}
+
+export function matchRecipeSearch(recipe: { name: string; output: { item: string }; input: readonly { item: string }[] }, query: string): boolean {
+  const text = [recipe.name, recipe.output.item, byKey(recipe.output.item)?.name,
+    ...recipe.input.flatMap(i => [i.item, byKey(i.item)?.name])].join(' ').toLocaleLowerCase();
+  return text.includes(query.trim().toLocaleLowerCase());
 }
 
 export type { ItemKey };

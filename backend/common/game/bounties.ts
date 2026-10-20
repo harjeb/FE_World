@@ -1,6 +1,7 @@
 import type { ClassRoute } from '../data/classes.ts';
 import { ROUTE_NAMES } from '../data/classes.ts';
 import type { ItemKey } from './items.ts';
+import { materialDrops } from './materials.ts';
 import type { Quest } from './quests.ts';
 
 // 目标类支线任务（悬赏，docs/38 §3.7）：不用接取，条件满足的那一刻起自动计数，打完就能交；
@@ -39,6 +40,10 @@ export function bountyObjective(spec: BountySpec): string {
 export const BOUNTY_QUESTS: Quest[] = DEFS.map(def => ({
   id: def.id, region: 0, name: def.name, objective: bountyObjective(def.spec), kind: 'rout', tier: 'short', turnLimit: 0,
   bounty: def.spec, ...(def.chapter ? { requires: { chapter: def.chapter } } : {}),
-  reward: { gold: def.gold, reputation: 0, items: def.items },
+  reward: { gold: def.gold, reputation: 0, items: [...def.items, ...materialDrops(
+    [1, 2, 3, 4, 6, 9, 8, 11, 12][def.chapter ?? 0],
+    [1, 1, 10, 20, 35, 55, 55, 75, 75][def.chapter ?? 0],
+    `bounty:${def.id}`, 3, 0,
+  ).map(({ item, count }): [ItemKey, number] => [item, count])] },
   event: `${def.name}：${bountyObjective(def.spec)}。不用接取，打完就能交任务。`,
 }));

@@ -58,6 +58,15 @@
 .mats { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 13px; color: var(--color-ink-2); }
 .mat { display: inline-flex; align-items: center; gap: 6px; }
 .mat b { font-size: 16px; color: var(--color-ink); }
+.workshop-materials { padding: 12px; margin-bottom: 14px; min-width: 0; }
+.workshop-materials summary { cursor: pointer; overflow-wrap: anywhere; }
+.workshop-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; font-size: 13px; }
+.workshop-filters label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.workshop-filters input, .workshop-filters select { max-width: 100%; min-width: 0; padding: 5px; border: 1px solid currentColor; border-radius: 4px; background: transparent; }
+.workshop-material-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.workshop-material { font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.workshop-material img { vertical-align: middle; }
+.workshop-material p { margin: 6px 0; }
 .work-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
 .orders .order.ready { background: var(--color-green-soft); }
 .ord-prog { display: flex; align-items: center; gap: 8px; }

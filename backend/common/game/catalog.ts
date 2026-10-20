@@ -5,7 +5,9 @@ import { CHARACTERS } from '../data/characters.ts';
 import { PROMOTIONS } from '../data/promotions.ts';
 import { SKILLS } from '../data/skills.ts';
 import { MOVE_TYPE_NAMES, RANKS, STAT_NAMES, WEAPON_TYPE_NAMES } from '../data/types.ts';
-import { WEAPONS } from '../data/weapons.ts';
+import { WEAPONS, WEAPON_SERIES } from '../data/weapons.ts';
+import { MATERIALS } from './materials.ts';
+import { RECIPES } from './production.ts';
 import { WEAPON_ARTS } from '../data/weapon-arts.ts';
 import equipment from '../../../docs/data/fw-equipment-expansion.json' with { type: 'json' };
 import { CLASS_ABILITIES } from '../data/class-abilities.ts';
@@ -58,6 +60,9 @@ export function catalog() {
         : id === 'ice' ? { effect: '以此格开始行动时移动力+1，飞行不受影响；重甲经过或落脚即碎为水域，无额外伤害' } : {}),
     }])),
     items: GAME_ITEMS,
+    materials: MATERIALS,
+    weaponSeries: WEAPON_SERIES,
+    recipes: RECIPES,
     characterStories: CHARACTER_STORIES,
     regions: REGIONS,
     arenaMaps: Object.fromEntries(Object.entries(ARENA_MAPS).map(([id, m]) => [id, {

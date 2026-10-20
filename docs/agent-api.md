@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 32
+docVersion: 33
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -12,7 +12,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 随机野外与随机副本先确定战场，再选择队伍：GET_TODAY.sortieRegions 的 encounters／dungeonEncounters 分别提供 normal、hard 的布局、尺寸、maxUnits 与 enemyCount；少带人不会减少敌军。同一账号、日期、地区与活动的战场固定，刷新、换队或切换难度不会重抽布局；推进日期后才更新。PREVIEW_ACTION 返回 encounter.map 的真实地形、双方出生点与 playerGroups，报价按玩家版本绑定。出征名单按unitIds数组顺序分配到map.spawns.player对应落点，首位为主将；必须互不重复、可用且不超过该图该难度的上限；副本开局保存RunRecord.stages，出战上限取整趟所有图的限制（含经典终图）。地图布局含交错遭遇、隔墙分队会合和分散据点；已保存战场不重排。
 
-连续副本按难度分别计固定首通奖励：地区主副本按地区、地区任务远征及经典副本按任务ID，normal/hard各一次。普通为一件固定地区装备、2份伤药、1份完整料理；困难为不同且更高阶的固定装备、4份伤药、2份完整料理，不抽概率。仅完整通关自动入库，中间图不发，失败／撤离作废。GET_TODAY.sortieRegions[].dungeonFirstClearRewards 与 GET_QUESTS.firstClearRewards 返回 {normal:{items,available},hard:{items,available}}，替代旧单数属性；单图任务为null。GET_RUN.run.pendingLoot记录整趟掉落，完整结算后为已入库清单。手动任务奖励与首通探索跨难度仍仅一次。旧完成记录抑制对应难度补发，questsDone仅回退普通档，困难完成独立判断。
+连续副本按难度分别计固定首通奖励：地区主副本按地区、地区任务远征及经典副本按任务ID，normal/hard各一次。普通为按出发等级选定的一件地区基础装备、2份伤药、1份完整料理；困难装备提高一档（银档封顶）、4份伤药、2份完整料理，不抽概率；开局冻结，旧远征保留旧礼包。仅完整通关自动入库，中间图不发，失败／撤离作废。GET_TODAY.sortieRegions[].dungeonFirstClearRewards 与 GET_QUESTS.firstClearRewards 返回 {normal:{items,available},hard:{items,available}}，替代旧单数属性；单图任务为null。GET_RUN.run.pendingLoot记录整趟掉落，完整结算后为已入库清单。手动任务奖励与首通探索跨难度仍仅一次。旧完成记录抑制对应难度补发，questsDone仅回退普通档，困难完成独立判断。
 
 副本统一UI内选择路线，不另设随机／经典导航分类。GET_TODAY.sortieRegions[].dungeonStages与PREVIEW_ACTION(dungeon).dungeonStages为{name,scenarioId?}数组：两张生成图＋一张经典终图，全部60张经典地图分为12地区各5张的池，选择种子独立于战斗RNG并在出发时冻结。标准副本、48项地区任务远征和六条固定经典三图路线统一逐图3／3／2日、共8日。固定经典保留六个三图副本clx-fe1/2/3/6/7/8，每作一个，fe1/fe6在地区2、fe2/fe7在地区3、fe3/fe8在地区5；START_QUEST继续兼容。GET_QUESTS返回dungeonOnly、archived、stageNames；公开114项定义（108本地＋6经典），78项旧定义（60单图＋18短经典）仅保留查找，拒绝新开，旧进行中／待领奖仍列出。GET_RUN摘要返回stageNames/stageCount；没有stages的旧远征由CONTINUE_DUNGEON沿旧路线继续。
 
@@ -57,12 +57,12 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 23 | GET_CATALOG | 职业、武器、技能、地形等静态数据；带版本号，缓存后只在版本变化时重取。 |
+| 23 | GET_CATALOG | 职业、武器、技能、地形等静态数据；materials含72种素材的类别／阶级／稀有／产地，weaponSeries给出木铜铁钢银序列，recipes给出所有用途；带版本号，缓存后只在版本变化时重取。 |
 ### 日历
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 30 | GET_TODAY | 今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，困难装备更高阶且不同；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。 |
+| 30 | GET_TODAY | 今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，装备按出发等级选档，困难提高一档（银档封顶）；materials 为当前地区可掉落素材ID；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。 |
 | 31 | SORTIE | 本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，普通野图推进2日（副本三图共8日，逐图3／3／2日），敌军按等级分阶；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。 |
 | 32 | SWEEP | 对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。 |
 | 33 | TRAIN | 训练一个单位，补武器熟练度；消耗金币或教材并推进日期。 |
@@ -113,14 +113,14 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 89 | REFINE_WEAPON | 营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n矿石，不耗天数、不修耐久、不加属性；commandId重试只支付一次。 |
+| 89 | REFINE_WEAPON | 营地精炼仅支持 fw_weapon_85，传 unitId、item；仅处理携带的第一件同模板武器，最高3级。升至n级消耗300*n金币与n铁矿，不耗天数、不修耐久、不加属性；commandId重试只支付一次。 |
 ### 生产
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 90 | GET_PRODUCTION | 读取农田、工位、进行中的订单与可领取的产出。 |
-| 91 | PLANT | 在农田播种：消耗种子并推进 1 日，成熟后收获不额外耗日。 |
-| 92 | START_PRODUCTION | 开一个生产订单（炼药／锻造），扣料并占用一个工位，按行动日成熟。 |
+| 91 | PLANT | 在农田播种：可选recipeId（默认plant_herb），须为种植配方并满足声望、工位及全部材料；消耗种子和配方要求的母株并推进1日。普通高阶药草需要同种母株，稀有药草不能靠种子量产；成熟后收获不额外耗日。 |
+| 92 | START_PRODUCTION | 开一个炼药／锻造订单，扣齐配方材料并占用工位，按行动日成熟；种植用PLANT。木铜铁钢银分别使用对应素材，钢需铁矿＋煤炭，银需银矿；perfect仅用于武器锻造。已开工订单保留原产出。 |
 | 93 | COLLECT_PRODUCTION | 领取已成熟订单的产出；每单只结算一次，不重抽产出。 |
 | 94 | REPAIR_ITEM | 花金币与材料维修一件损坏武器，恢复到它已有的最大耐久，不叠第二个完美奖励。 |
 ### 竞技场
@@ -134,7 +134,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | op | 名称 | 说明 |
 | --- | --- | --- |
 | 100 | GET_RUN | 读取当前或最近一次连续远征：状态、stageNames/stageCount、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落；completed 时 pendingLoot 是已入库清单，包含本次实际获得的首通奖励。 |
-| 101 | START_DUNGEON | 开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；固定装备与道具按地区和难度分别首通自动入库，困难礼包更高阶且不同；中间图、失败、撤离及同难度重复通关不发首通奖励。 |
+| 101 | START_DUNGEON | 开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；装备与道具按地区和难度分别首通自动入库，装备按出发等级冻结，困难提高一档（银档封顶）；中间图、失败、撤离及同难度重复通关不发首通奖励。 |
 | 102 | CONTINUE_DUNGEON | 打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。 |
 | 103 | WITHDRAW_RUN | 撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。 |
 ### 派遣

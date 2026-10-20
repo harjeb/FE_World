@@ -1,3 +1,5 @@
+import { MATERIALS, MATERIAL_IDS } from './materials.ts';
+import type { MaterialId, MaterialDef } from './materials.ts';
 import { RANKS } from '../data/types.ts';
 import type { Rank, StatKey } from '../data/types.ts';
 import { SPELLBOOKS } from '../data/spellbooks.ts';
@@ -18,7 +20,7 @@ export type StoryClueKey = 'story_clue_1' | 'story_clue_2' | 'story_clue_3' | 's
 // Everything that can sit in the warehouse. Battle items the engine understands (伤药) reuse the
 // engine's ItemId; the rest exist only for the economy (docs/09「物品」, prices are drafts).
 export type ItemKey = WeaponId | ItemId | 'seal_promote' | 'energy_drop' | 'secret_book' | 'speedwing'
-  | 'goddess_icon' | 'dracoshield' | 'talisman' | 'herb' | 'ore' | 'wood' | 'seed'
+  | 'goddess_icon' | 'dracoshield' | 'talisman' | MaterialId | 'seed'
   | 'reincarnation_core' | 'legacy_stone_growth' | 'legacy_stone_numeric' | 'ether_ration' | 'full_meal'
   | 'old_map' | 'cross_time_shard' | StoryClueKey | StoryFindKey | SpellbookItemKey | ManualItemKey;
 
@@ -48,6 +50,7 @@ export interface GameItem {
   stat?: StatKey;
   amount?: number;
   weight?: number;
+  material?: Pick<MaterialDef, 'category' | 'tier' | 'rare' | 'regions'>;
   note?: string;
 }
 
@@ -85,7 +88,13 @@ const STORY_FIND_ITEMS = Object.fromEntries(Object.entries(STORY_FIND_NOTES).map
   name: `「${row.name}」`, kind: 'key' as const, price: 0, bound: true, note: `主线任务物品：${row.note}不能出售，也不能带进战斗`,
 }])) as Record<StoryFindKey, GameItem>;
 
+export const MATERIAL_ITEMS = Object.fromEntries(MATERIAL_IDS.map(id => {
+  const { name, price, note, category, tier, rare, regions } = MATERIALS[id];
+  return [id, { name, kind: 'material', price, note, material: { category, tier, rare, regions: [...regions] } }];
+})) as Record<MaterialId, GameItem>;
+
 export const GAME_ITEMS: Record<ItemKey, GameItem> = {
+  ...MATERIAL_ITEMS,
   ...WEAPON_ITEMS,
   ...STORY_CLUE_ITEMS,
   ...STORY_FIND_ITEMS,
@@ -101,9 +110,6 @@ export const GAME_ITEMS: Record<ItemKey, GameItem> = {
   goddess_icon: { name: '女神像', kind: 'stat', price: 8000, stat: 'lck', amount: 2 },
   dracoshield: { name: '龙盾', kind: 'stat', price: 8000, stat: 'def', amount: 2 },
   talisman: { name: '护身符', kind: 'stat', price: 8000, stat: 'res', amount: 2 },
-  herb: { name: '药草', kind: 'material', price: 80 },
-  ore: { name: '矿石', kind: 'material', price: 120 },
-  wood: { name: '木材', kind: 'material', price: 100 },
   seed: { name: '种子', kind: 'material', price: 60 },
   reincarnation_core: { name: '轮回核心', kind: 'material', price: 30_000, note: '轮回消耗一枚；来自主线后期或挑战塔' },
   legacy_stone_growth: { name: '成长传承石', kind: 'material', price: 12_000, note: '兑现成长遗产时消耗' },
@@ -146,7 +152,7 @@ export const SHOP_STOCK: { item: ItemKey; stock: number }[] = [
   { item: 'seal_promote', stock: 2 },
   { item: 'energy_drop', stock: 1 }, { item: 'secret_book', stock: 1 }, { item: 'speedwing', stock: 1 },
   { item: 'goddess_icon', stock: 1 }, { item: 'dracoshield', stock: 1 }, { item: 'talisman', stock: 1 },
-  { item: 'herb', stock: 10 }, { item: 'ore', stock: 10 }, { item: 'wood', stock: 10 }, { item: 'seed', stock: 10 },
+  { item: 'herb', stock: 10 }, { item: 'copper_ore', stock: 6 }, { item: 'wood', stock: 10 }, { item: 'seed', stock: 10 },
   { item: 'ether_ration', stock: 6 }, { item: 'full_meal', stock: 2 },
 ];
 

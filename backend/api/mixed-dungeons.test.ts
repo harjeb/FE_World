@@ -13,7 +13,7 @@ import { createFieldBattle } from '../common/game/battles.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import type { DungeonStage } from '../common/game/dungeon-plans.ts';
 import { seasonalMap } from '../common/maps/map.ts';
-import { dateOf } from '../common/game/calendar.ts';
+import { dateOf, enemyLevel, regionById } from '../common/game/calendar.ts';
 
 const TEAM = ['u_victor', 'u_erin'];
 type Started = { battleId: string; run: { id: string } };
@@ -74,6 +74,7 @@ function finish(ctx: Context, first: Started, scenarios: (string | undefined)[],
     win(ctx, battleId);
     reload(ctx);
     const run = ctx.store.run(ctx.player.id, first.run.id)!;
+    assert.deepEqual(run.firstClearLoot, frozen.firstClearLoot);
     assert.deepEqual(run.stages, frozen.stages);
     assert.deepEqual(run.stageDayCosts, frozen.stageDayCosts);
     if (Array.isArray(days)) assert.deepEqual(run.stageDayCosts, days);
@@ -166,7 +167,8 @@ for (const [questId, region, scenarios] of CHAINS) test(`${questId}: three order
   assert.equal(q.dungeonOnly, true);
   const row = questRows(ctx).find(q => q.id === questId)!;
   assert.equal(row.hardUnlocked, false);
-  assert.deepEqual(row.firstClearRewards, { normal: { items: dungeonFirstClearLoot(region), available: true }, hard: { items: dungeonFirstClearLoot(region, 'hard'), available: true } });
+  const level = enemyLevel(ctx.player.day, regionById(region).offset);
+  assert.deepEqual(row.firstClearRewards, { normal: { items: dungeonFirstClearLoot(region, 'normal', level), available: true }, hard: { items: dungeonFirstClearLoot(region, 'hard', level), available: true } });
   assert.throws(() => dispatch(ctx, OP.START_QUEST, { questId, unitIds: TEAM, aiDifficulty: 'hard' }), /普通难度/);
   const day = ctx.player.day;
   const first = dispatch(ctx, OP.START_QUEST, { questId, unitIds: TEAM }) as Started;

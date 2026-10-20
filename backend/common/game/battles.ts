@@ -26,6 +26,7 @@ import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from '.
 import type { EnemySpec } from './enemies.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
+import { materialDrops, materialSources, MATERIALS } from './materials.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP } from './quests.ts';
 import type { Quest } from './quests.ts';
@@ -48,6 +49,7 @@ export interface BattleRecord {
   questId?: string;
   // 实际耗日（任务短/标准/远征不同），供战斗页显示（docs/20）。
   costDays?: number;
+  materialLoot?: { item: string; count: number }[];
   // 年度大竞技场的报名（docs/13 §6）。
   annualId?: string;
   // 挑战塔层（docs/00 §9.6）。
@@ -180,6 +182,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   if (!encounter) addEnemyReserves(state, enemySpecs, map.spawns.player);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
+    materialLoot: materialDrops(options.region, enemyLevel(options.day ?? 0, region.offset), `${options.seed}:materials`, options.aiDifficulty === 'hard' ? 5 : 4, options.aiDifficulty === 'hard' ? 0.12 : 0.08),
     dungeon: dungeon || undefined, runId: options.runId, stageIndex: dungeon ? stage : undefined, questId: quest?.id,
     costDays: dungeon ? (quest?.stageDays ?? DUNGEON_STAGE_DAYS[stage]) : quest ? (quest.costDays ?? QUEST_DAY_COST[quest.tier]) : ACTION_DAYS.sortie,
     goalText: dungeon ? (goal.kind === 'seize' ? '压制指定地点' : goal.kind === 'rout' ? '消灭全部敌军' : '击败敌方主将') : quest?.objective ?? FIELD_BATTLE.goalText, initial: structuredClone(state), state, events: [], actions: [], seed: options.seed,
@@ -191,6 +194,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 // ---- 经典地图战斗（docs/24） -------------------------------------------------
 // 地图与初始敌军来自 catalog；玩家名单仍来自名册，王座/首领与跨图携带沿用现有引擎。
 export interface ClassicBattleOptions {
+  region?: number;
   aiDifficulty?: AiDifficulty;
   mapId: string;
   seed: string;
@@ -393,6 +397,18 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const layer = classicScenarioLayer(map.id, adaptation, {
     questId: options.quest?.id, claimed: options.claimed ?? [], lootRank: options.lootRank ?? 'E', seed: `${options.seed}:${stage}`, day: options.day,
   });
+  const lootRegion = options.region ?? (options.quest?.region || 1);
+  const replaceMaterial = (loot: { item: string; count: number }) => {
+    if (!['herb', 'ore', 'wood'].includes(loot.item)) return;
+    const common = materialSources(lootRegion, baseLevel).filter(id => !MATERIALS[id].rare);
+    const matching = common.filter(id => MATERIALS[id].category === loot.item);
+    const pool = matching.length ? matching : common;
+    const topTier = Math.max(...pool.map(id => MATERIALS[id].tier));
+    const top = pool.filter(id => MATERIALS[id].tier === topTier);
+    loot.item = top[nextU32(seedRng(`${options.seed}:chest:${loot.item}:${loot.count}`)) % top.length];
+  };
+  for (const object of layer.objects) if (object.loot) replaceMaterial(object.loot);
+  for (const event of layer.events) for (const action of event.actions) if (action.kind === 'loot') replaceMaterial(action);
   const state: BattleState = {
     engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
     map: seasonalMap(map.terrain, season),
@@ -411,7 +427,8 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   };
   addEnemyReserves(state, enemySpecs, [...map.playerSpawns, ...spawns]);
   return {
-    id: state.id, playerId: '', kind: 'field', mode: 'field', name, region: options.quest?.region,
+    id: state.id, playerId: '', kind: 'field', mode: 'field', name, region: options.region ?? options.quest?.region,
+    materialLoot: materialDrops(lootRegion, baseLevel, `${options.seed}:materials`, 4, options.aiDifficulty === 'hard' ? 0.12 : 0.08),
     dungeon: options.stageIndex !== undefined || undefined, runId: options.runId,
     stageIndex: options.stageIndex, questId: options.quest?.id,
     costDays: options.quest?.costDays ?? (options.quest ? QUEST_DAY_COST[options.quest.tier] : ACTION_DAYS.sortie),

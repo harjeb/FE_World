@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { MATERIAL_IDS, MATERIALS } from '@common/game/materials.ts';
+import { MATERIAL_CATEGORY_NAMES, matchMaterialFilter, matchRecipeSearch, materialSourceLabel } from '../model/item-filter.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
 import { OP } from '@common/protocol/ops.ts';
@@ -13,7 +15,6 @@ import { itemName, stock, useAct } from './SystemParts.tsx';
 
 type Recipe = ServerProduction['recipes'][number];
 type Facility = ServerProduction['facilities'][number];
-const MATERIALS = ['seed', 'herb', 'ore', 'wood'] as const;
 // 完美锻造：额外 1,500 金币，产出的武器第一次交给角色时耐久 +10（handlers.ts START_PRODUCTION）。
 const PERFECT_GOLD = 1_500;
 
@@ -22,6 +23,10 @@ const PERFECT_GOLD = 1_500;
 export function WorkshopPage() {
   const { production, state, today } = useSession();
   const { busy, act } = useAct();
+  const [category, setCategory] = useState('all');
+  const [tier, setTier] = useState('all');
+  const [query, setQuery] = useState('');
+  const [recipeFilter, setRecipeFilter] = useState('all');
   const [perfect, setPerfect] = useState<Record<string, boolean>>({});
   if (!production || !state) {
     return <Shell current="workshop"><p style={{ color: '#4E473D' }}>暂时读不到生产信息，刷新页面再试。</p></Shell>;
@@ -29,6 +34,10 @@ export function WorkshopPage() {
   const day = state.day;
   const regions = state.regions;
   const have = (item: string) => stock(state, item);
+  const visibleMaterials = MATERIAL_IDS.filter(id => matchMaterialFilter(id, category, tier));
+  const visibleRecipes = production.recipes.filter(r => matchRecipeSearch(r, query)
+    && (recipeFilter !== 'unlocked' || r.unlocked)
+    && (recipeFilter !== 'stocked' || (r.unlocked && r.input.every(i => have(i.item) >= i.count))));
   const ripe = production.orders.filter(o => o.state === 'ready');
   const growing = production.orders.filter(o => o.state === 'growing').sort((a, b) => a.readyDay - b.readyDay);
 
@@ -69,7 +78,7 @@ export function WorkshopPage() {
     const why = lockWhy ?? (full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}`
       : fine && state!.gold < PERFECT_GOLD ? `完美锻造需要 ${PERFECT_GOLD.toLocaleString()} 金币` : null);
     const run = plant
-      ? () => session.run<{ day: number }>(OP.PLANT)
+      ? () => session.run<{ day: number }>(OP.PLANT, { recipeId: recipe.id })
       : () => session.run(OP.START_PRODUCTION, { recipeId: recipe.id, ...(fine ? { perfect: true } : {}) });
     return (
       <li key={recipe.id} className="recipe">
@@ -78,7 +87,7 @@ export function WorkshopPage() {
           <div className="nm">{recipe.name} <span className="muted">→ {itemName(recipe.output.item)} ×{recipe.output.count}</span></div>
           <div className="sp">
             {recipe.input.map(i => (
-              <span key={i.item} className={have(i.item) < i.count ? 'short' : undefined}>{itemName(i.item)} ×{i.count}（有 {have(i.item)}）</span>
+              <span key={i.item} className={have(i.item) < i.count ? 'short' : undefined}>{itemName(i.item)} ×{i.count}（有 {have(i.item)}）{have(i.item) < i.count && materialSourceLabel(i.item) && <span> · 来源：{materialSourceLabel(i.item)}</span>}</span>
             ))}
             <span>{recipe.days} 日成熟</span>
             {plant && <span className="cost"><img className="px" src={ICONS.hourglass} width={12} height={12} alt="" />播种 1 日 → {advance(day, 1).label}</span>}
@@ -92,7 +101,7 @@ export function WorkshopPage() {
           {why && <div className="why">{why}</div>}
         </div>
         <button type="button" className="btn btn-sm" disabled={busy !== null || !!why}
-          onClick={() => void act(recipe.id, run, () => (plant ? `播下种子，${recipe.days} 日后收获药草` : `${facility.name}开工：${recipe.name}${fine ? '（完美锻造）' : ''}`))}>
+          onClick={() => void act(recipe.id, run, () => (plant ? `播下种子，${recipe.days} 日后收获${itemName(recipe.output.item)}` : `${facility.name}开工：${recipe.name}${fine ? '（完美锻造）' : ''}`))}>
           {busy === recipe.id ? '开工中…' : !recipe.unlocked ? '未解锁' : plant ? '播种' : '开工'}
         </button>
       </li>
@@ -108,9 +117,7 @@ export function WorkshopPage() {
           <p style={{ fontSize: 14, color: '#4E473D' }}>订单按个人日历的行动日成熟，成熟后领取不推进日期。播种要花 1 日；炼药和锻造开工不耗日，只占用工位。</p>
         </div>
         <div className="mats" aria-label="仓库材料">
-          {MATERIALS.map(m => (
-            <span key={m} className="mat"><img className="px" src={ICONS[m]} width={24} height={24} alt="" />{itemName(m)} <b className="num">{have(m)}</b></span>
-          ))}
+          <span className="mat"><img className="px" src={ICONS.seed} width={24} height={24} alt="" />{itemName('seed')} <b className="num">{have('seed')}</b></span>
           <a className="btn btn-sm btn-ghost" href={links.prep()}>去整备买材料 ›</a>
         </div>
       </div>
@@ -122,6 +129,39 @@ export function WorkshopPage() {
         </p>
       )}
 
+      <details className="panel workshop-materials">
+        <summary>材料仓库 · {MATERIAL_IDS.length} 种材料（展开查看持有数量、来源与配方）</summary>
+        <div className="workshop-filters">
+          <label>材料类别 <select value={category} onChange={e => setCategory(e.target.value)}>
+            <option value="all">全部类别</option>
+            {Object.entries(MATERIAL_CATEGORY_NAMES).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+          </select></label>
+          <label>材料阶级 <select value={tier} onChange={e => setTier(e.target.value)}>
+            <option value="all">全部阶级</option>
+            {[1, 2, 3, 4, 5, 6].map(t => <option key={t} value={t}>{t} 阶</option>)}
+          </select></label>
+          <span role="status">{visibleMaterials.length} 种材料</span>
+        </div>
+        <div className="workshop-material-grid">
+          {visibleMaterials.map(id => {
+            const material = MATERIALS[id];
+            const uses = production.recipes.filter(r => r.input.some(i => i.item === id));
+            return <details key={id} className="workshop-material">
+              <summary><img className="px" src={itemIcon(id)} width={24} height={24} alt="" /> {material.name} · {material.tier} 阶{material.rare ? ' · 稀有' : ''} · 持有 <b className="num">{have(id)}</b></summary>
+              <p>{material.note} · 参考价 {material.price} 金</p>
+              <p>来源：{materialSourceLabel(id)}</p>
+              <p>配方用途：{uses.length ? uses.map(r => r.name).join('、') : '暂无生产配方'}{id === 'ore' ? '；毒弓精炼' : ''}</p>
+            </details>;
+          })}
+        </div>
+      </details>
+      <div className="workshop-filters" role="search" aria-label="配方筛选">
+        <label>搜索配方 <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="配方、产物或材料名称" /></label>
+        <label>配方状态 <select value={recipeFilter} onChange={e => setRecipeFilter(e.target.value)}>
+          <option value="all">全部配方</option><option value="unlocked">已解锁</option><option value="stocked">已解锁且材料足够</option>
+        </select></label>
+        <span role="status">{visibleRecipes.length} 个配方</span>
+      </div>
       <div className="work-cols">
         {production.facilities.map(f => {
           const orders = production.orders.filter(o => o.facilityId === f.id);
@@ -135,7 +175,8 @@ export function WorkshopPage() {
               </ul>
               <div className="grp">{f.id === 'garden' ? '播种' : '配方'}</div>
               <ul className="eq recipes">
-                {production.recipes.filter(r => r.facility === f.id).map(r => recipeRow(r, f))}
+                {visibleRecipes.filter(r => r.facility === f.id).map(r => recipeRow(r, f))}
+                {!visibleRecipes.some(r => r.facility === f.id) && <li className="empty-row">没有符合筛选的配方。</li>}
               </ul>
             </section>
           );
@@ -151,7 +192,7 @@ export function WorkshopPage() {
             const key = `refine:${unit.id}`;
             const locked = !!unit.lockedRunId || !!unit.lockedDispatchId || !!today?.battle;
             return <li key={unit.id}>
-              <div className="min-w-0"><div className="nm">{unit.name} · {WEAPONS.fw_weapon_85.name} +{level}</div><div className="sp">{locked ? '活动中，暂不可精炼' : level >= 3 ? '已达精炼上限' : `升至 +${next}：${300 * next} 金币 · 矿石 ×${next}`}</div></div>
+              <div className="min-w-0"><div className="nm">{unit.name} · {WEAPONS.fw_weapon_85.name} +{level}</div><div className="sp">{locked ? '活动中，暂不可精炼' : level >= 3 ? '已达精炼上限' : `升至 +${next}：${300 * next} 金币 · ${itemName('ore')} ×${next}`}</div></div>
               <button type="button" className="btn btn-sm" disabled={busy !== null || locked || level >= 3 || state.gold < 300 * next || have('ore') < next}
                 onClick={() => void act(key, () => session.run(OP.REFINE_WEAPON, { unitId: unit.id, item: 'fw_weapon_85' }), () => `${unit.name}的毒弓已精炼至 +${next}`)}>
                 {busy === key ? '精炼中…' : level >= 3 ? '已满级' : `精炼 +${next}`}

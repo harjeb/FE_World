@@ -77,7 +77,8 @@ test('spellbooks are bought full, carried with their charges, capped per unit an
   player.flags.regionReputation = { 6: 500, 12: 500 }; player.gold = 200_000_000; store.savePlayer(player);
   // 声望商店每季换一批、每件限购：往后翻季度，直到泽拉斯古都上架一本法术书。
   const onSale = () => (dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { region: number; shop: { item: string }[] }[] }).regions.find(r => r.region === 6)!.shop;
-  const isBook = (item: string) => GAME_ITEMS[item as ItemKey].kind === 'spellbook';
+  const sera = store.unit(player.id, 'u_sera')!;
+  const isBook = (item: string) => GAME_ITEMS[item as ItemKey].kind === 'spellbook' && !sera.spellbooks!.some(book => book.id === GAME_ITEMS[item as ItemKey].spell);
   for (let i = 0; i < 12 && !onSale().some(row => isBook(row.item)); i++) { player.day += 125; store.savePlayer(player); }
   const ice = onSale().find(row => isBook(row.item))!.item as ItemKey;
   const spell = GAME_ITEMS[ice].spell!;
@@ -86,7 +87,6 @@ test('spellbooks are bought full, carried with their charges, capped per unit an
   assert.deepEqual(store.inventory(player.id).filter(row => row.item === ice).map(row => row.uses), [charges]);
   assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: ice }), /限购/, 'one copy a season');
   assert.throws(() => dispatch(ctx, OP.BUY_QUEST_ITEM, { region: 6, item: 'iron_sword' }), /没有上架/);
-  const sera = store.unit(player.id, 'u_sera')!;
   assert.equal(sera.spellbooks!.length, 4);
   dispatch(ctx, OP.TRANSFER_ITEM, { unitId: 'u_sera', item: ice, action: 'toUnit' });
   assert.deepEqual(store.unit(player.id, 'u_sera')!.spellbooks!.find(row => row.id === spell), { id: spell, charges, maxCharges: charges });
@@ -126,7 +126,7 @@ test('limited manuals teach their spell once, need the school, and reincarnation
   player.flags.questsDone = ['wl7', 'wl8']; store.savePlayer(player);
   const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'wl8' }) as { items: [string, number][] };
   // 地区核心任务（-8）另给一枚按地区轮换的成长药（地区 5 是龙盾），书和教材仍是原来的限量投放。
-  assert.deepEqual(reward.items.map(([item]) => item), ['dracoshield', spellbookItem('fw_spell_60'), manualItem('fw_spell_60')]);
+  assert.deepEqual(reward.items.map(([item]) => item).filter(item => GAME_ITEMS[item as ItemKey].kind !== 'material'), ['dracoshield', spellbookItem('fw_spell_60'), manualItem('fw_spell_60')]);
   assert.ok(store.inventory(player.id).some(row => row.item === spellbookItem('fw_spell_60') && row.uses === 1));
   assert.throws(() => dispatch(ctx, OP.USE_ITEM, { unitId: 'u_erin', item: manualItem('fw_spell_60') }), /权限/);
   dispatch(ctx, OP.USE_ITEM, { unitId: 'u_sera', item: manualItem('fw_spell_60') });

@@ -1,7 +1,12 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v18';
+export const RULESET_VERSION = 'rules-v19';
+// v49 / rules-v19: 72 regional materials, six grades per herb/mineral/timber category, and five
+// canonical weapon material tiers. New field/run/dispatch rewards freeze at departure; legacy records
+// without loot fields use their former payouts. Existing inventory IDs and production outputs survive.
+// Generic enemy equipment (including scripted reinforcements) now follows level; finish active battles/runs
+// and back up before deployment. Old replays stay frozen. Completed reward claims are never reset.
 // v48: bounty quests (bounty-*, no acceptance, auto-counted kills by class route, wins and dungeon clears, handed in with
 // CLAIM_QUEST_REWARD) and a server-built quest board of four to seven main/side quests. New flag flags.questProgress.
 // v47: reputation shops sell a few advanced items only (rank C+ gear, growth potions, elixir), four per region per season with a
@@ -94,7 +99,7 @@ export const RULESET_VERSION = 'rules-v18';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 48;
+export const CATALOG_VERSION = 49;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

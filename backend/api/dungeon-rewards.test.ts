@@ -6,6 +6,7 @@ import { loginOrRegister } from './auth.ts';
 import { seedFullRoster } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 import { dungeonFirstClearReward, syncPlayer } from './services.ts';
+import { enemyLevel, regionById } from '../common/game/calendar.ts';
 import { createRun, dungeonFirstClearLoot } from '../common/game/expedition.ts';
 import { GAME_ITEMS, isBoundWeapon } from '../common/game/items.ts';
 import { ALL_QUESTS } from '../common/game/quests.ts';
@@ -25,13 +26,17 @@ function setup(t: { after: (fn: () => void) => void }): Context {
   store.savePlayer(player);
   return { store, player: syncPlayer(store, player), accountId, agentModel: null, push() {} };
 }
-function counts(ctx: Context, difficulty: 'normal' | 'hard' = 'normal') {
+function previewLoot(ctx: Context, region = 2, difficulty: 'normal' | 'hard' = 'normal') {
+  return dungeonFirstClearLoot(region, difficulty, enemyLevel(ctx.player.day, regionById(region).offset));
+}
+function counts(ctx: Context, loot: NonNullable<RunRecord['firstClearLoot']>) {
   const inventory = ctx.store.inventory(ctx.player.id);
-  return dungeonFirstClearLoot(2, difficulty).map(({ item }) => inventory.filter(row => row.item === item).reduce((n, row) => n + row.count, 0));
+  return loot.map(({ item }) => inventory.filter(row => row.item === item).reduce((n, row) => n + row.count, 0));
 }
 function start(ctx: Context, questId?: string, aiDifficulty = 'normal') {
-  return dispatch(ctx, questId ? OP.START_QUEST : OP.START_DUNGEON,
-    { ...(questId ? { questId } : { region: 2 }), unitIds: ['u_erin'], aiDifficulty }) as { battleId: string; run: RunRecord };
+  const result = dispatch(ctx, questId ? OP.START_QUEST : OP.START_DUNGEON,
+    { ...(questId ? { questId } : { region: 2 }), unitIds: ['u_erin'], aiDifficulty }) as { battleId: string; run: { id: string } };
+  return { ...result, run: ctx.store.run(ctx.player.id, result.run.id)! };
 }
 function win(ctx: Context, battleId: string) {
   const b = ctx.store.battle(ctx.player.id, battleId)!;
@@ -62,9 +67,9 @@ test('all regional bundles contain usable equipment and items; preview reads nev
   const before = ctx.store.inventory(ctx.player.id);
   const today = dispatch(ctx, OP.GET_TODAY, {}) as { sortieRegions: { id: number; dungeonFirstClearRewards: Record<'normal' | 'hard', ReturnType<typeof dungeonFirstClearReward>> }[] };
   for (const row of today.sortieRegions) {
-    const loot = dungeonFirstClearLoot(row.id);
+    const loot = previewLoot(ctx, row.id);
     assert.deepEqual(row.dungeonFirstClearRewards.normal, { items: loot, available: true });
-    assert.deepEqual(row.dungeonFirstClearRewards.hard, { items: dungeonFirstClearLoot(row.id, 'hard'), available: true });
+    assert.deepEqual(row.dungeonFirstClearRewards.hard, { items: previewLoot(ctx, row.id, 'hard'), available: true });
     assert.equal(GAME_ITEMS[loot[0].item].kind, 'weapon');
     assert.equal(isBoundWeapon(loot[0].item), false, 'existing unique quest/tower gear must stay exclusive');
     assert.equal(loot.filter(drop => GAME_ITEMS[drop.item].kind !== 'weapon').length, 2);
@@ -83,8 +88,8 @@ test('all regional bundles contain usable equipment and items; preview reads nev
   const rows = quests.regions.flatMap(r => r.quests);
   assert.equal(rows.find(q => q.id === 'gw1')!.firstClearRewards, null, 'single-map quests keep their existing reward flow');
   for (const id of questIds) {
-    assert.deepEqual(rows.find(q => q.id === id)!.firstClearRewards?.normal, { items: dungeonFirstClearLoot(2), available: true });
-    assert.deepEqual(rows.find(q => q.id === id)!.firstClearRewards?.hard, { items: dungeonFirstClearLoot(2, 'hard'), available: true });
+    assert.deepEqual(rows.find(q => q.id === id)!.firstClearRewards?.normal, { items: previewLoot(ctx), available: true });
+    assert.deepEqual(rows.find(q => q.id === id)!.firstClearRewards?.hard, { items: previewLoot(ctx, 2, 'hard'), available: true });
   }
   assert.deepEqual(ctx.store.inventory(ctx.player.id), before);
 });
@@ -92,27 +97,33 @@ test('all regional bundles contain usable equipment and items; preview reads nev
 for (const questId of [undefined, ...questIds]) {
   test(`${questId ?? 'random region dungeon'} grants each difficulty bundle once across reload and command replay`, t => {
     const ctx = setup(t);
-    const before = counts(ctx);
-    const run = complete(ctx, start(ctx, questId));
-    const loot = dungeonFirstClearLoot(2);
-    assert.deepEqual(counts(ctx), before.map((n, i) => n + loot[i].count));
+    const first = start(ctx, questId);
+    const loot = first.run.firstClearLoot!;
+    assert.deepEqual(loot, dungeonFirstClearLoot(2, 'normal', first.run.level));
+    const before = counts(ctx, loot);
+    const run = complete(ctx, first);
+    assert.deepEqual(run.firstClearLoot, loot);
+    assert.deepEqual(counts(ctx, loot), before.map((n, i) => n + loot[i].count));
     for (const drop of loot) assert.deepEqual(run.pendingLoot.filter(row => row.item === drop.item), [drop]);
     assert.equal(ctx.store.inventory(ctx.player.id).find(row => row.item === 'vulnerary' && row.uses === 3)!.count, before[1] + 2);
     assert.equal(dungeonFirstClearReward(ctx.store, ctx.player, 2, questId).available, false);
     const reloaded = { ...ctx, store: new Store(ctx.store.db), player: ctx.store.getPlayer(ctx.player.id)! };
     const exploration = { ...reloaded.player.flags.regionExploration };
     assert.equal(dungeonFirstClearReward(reloaded.store, reloaded.player, 2, questId, 'hard').available, true);
-    const hardBefore = counts(reloaded, 'hard');
-    const hardLoot = dungeonFirstClearLoot(2, 'hard');
-    const hardRun = complete(reloaded, start(reloaded, questId, 'hard'));
-    assert.deepEqual(counts(reloaded, 'hard'), hardBefore.map((n, i) => n + hardLoot[i].count));
+    const hardFirst = start(reloaded, questId, 'hard');
+    const hardLoot = hardFirst.run.firstClearLoot!;
+    assert.deepEqual(hardLoot, dungeonFirstClearLoot(2, 'hard', hardFirst.run.level));
+    const hardBefore = counts(reloaded, hardLoot);
+    const hardRun = complete(reloaded, hardFirst);
+    assert.deepEqual(hardRun.firstClearLoot, hardLoot);
+    assert.deepEqual(counts(reloaded, hardLoot), hardBefore.map((n, i) => n + hardLoot[i].count));
     for (const drop of hardLoot) assert.deepEqual(hardRun.pendingLoot.filter(row => row.item === drop.item), [drop]);
     assert.equal(dungeonFirstClearReward(reloaded.store, reloaded.player, 2, questId, 'hard').available, false);
-    const paidNormal = counts(reloaded);
-    const paidHard = counts(reloaded, 'hard');
+    const paidNormal = counts(reloaded, loot);
+    const paidHard = counts(reloaded, hardLoot);
     for (const difficulty of ['normal', 'hard']) complete(reloaded, start(reloaded, questId, difficulty));
-    assert.deepEqual(counts(reloaded), paidNormal);
-    assert.deepEqual(counts(reloaded, 'hard'), paidHard);
+    assert.deepEqual(counts(reloaded, loot), paidNormal);
+    assert.deepEqual(counts(reloaded, hardLoot), paidHard);
     assert.deepEqual(reloaded.player.flags.regionExploration, exploration, 'hard and repeat clears never duplicate exploration');
     if (questId) {
       const quest = ALL_QUESTS.find(q => q.id === questId)!;
@@ -129,19 +140,23 @@ for (const difficulty of ['normal', 'hard'] as const) test(`${difficulty}: parti
   const ctx = setup(t);
   ctx.player.flags.hardUnlocks = { regions: [], dungeons: [2], quests: [] };
   ctx.store.savePlayer(ctx.player);
-  const before = counts(ctx, difficulty);
+  const loot = previewLoot(ctx, 2, difficulty);
+  const before = counts(ctx, loot);
   const first = start(ctx, undefined, difficulty);
   win(ctx, first.battleId);
-  assert.deepEqual(counts(ctx, difficulty), before);
-  assert.ok(ctx.store.activeRun(ctx.player.id)!.pendingLoot.every(drop => !dungeonFirstClearLoot(2, difficulty).some(first => first.item === drop.item)));
+  assert.deepEqual(counts(ctx, loot), before);
+  assert.ok(ctx.store.activeRun(ctx.player.id)!.pendingLoot.every(drop => !first.run.firstClearLoot!.some(first => first.item === drop.item)));
   dispatch(ctx, OP.WITHDRAW_RUN, {});
-  assert.deepEqual(counts(ctx, difficulty), before);
+  assert.deepEqual(counts(ctx, loot), before);
   start(ctx, undefined, difficulty);
   dispatch(ctx, OP.RETREAT, {});
-  assert.deepEqual(counts(ctx, difficulty), before);
+  assert.deepEqual(counts(ctx, loot), before);
   assert.equal(dungeonFirstClearReward(ctx.store, ctx.player, 2, undefined, difficulty).available, true);
-  complete(ctx, start(ctx, undefined, difficulty));
-  assert.deepEqual(counts(ctx, difficulty), before.map((n, i) => n + dungeonFirstClearLoot(2, difficulty)[i].count));
+  const final = start(ctx, undefined, difficulty);
+  const finalLoot = final.run.firstClearLoot!;
+  const finalBefore = counts(ctx, finalLoot);
+  complete(ctx, final);
+  assert.deepEqual(counts(ctx, finalLoot), finalBefore.map((n, i) => n + finalLoot[i].count));
 });
 
 test('first-clear keys are separate per dungeon and legacy completion prevents replay payouts', t => {
@@ -162,15 +177,21 @@ test('first-clear keys are separate per dungeon and legacy completion prevents r
   for (const questId of [undefined, 'gw6']) {
     assert.equal(dungeonFirstClearReward(ctx.store, ctx.player, 2, questId, 'hard').available, true);
     const exploration = { ...ctx.player.flags.regionExploration };
-    const hardBefore = counts(ctx, 'hard');
-    complete(ctx, start(ctx, questId, 'hard'));
-    assert.deepEqual(counts(ctx, 'hard'), hardBefore.map((n, i) => n + dungeonFirstClearLoot(2, 'hard')[i].count));
+    const first = start(ctx, questId, 'hard');
+    const loot = first.run.firstClearLoot!;
+    const hardBefore = counts(ctx, loot);
+    complete(ctx, first);
+    assert.deepEqual(counts(ctx, loot), hardBefore.map((n, i) => n + loot[i].count));
     assert.deepEqual(ctx.player.flags.regionExploration, exploration);
   }
-  const before = counts(ctx);
+  const loot = previewLoot(ctx);
+  const before = counts(ctx, loot);
   complete(ctx, start(ctx));
   complete(ctx, start(ctx, 'gw6'));
-  assert.deepEqual(counts(ctx), before, 'historical first clears are not reset by an update');
-  complete(ctx, start(ctx, 'clx-fe1'));
-  assert.deepEqual(counts(ctx), before.map((n, i) => n + dungeonFirstClearLoot(2)[i].count));
+  assert.deepEqual(counts(ctx, loot), before, 'historical first clears are not reset by an update');
+  const first = start(ctx, 'clx-fe1');
+  const finalLoot = first.run.firstClearLoot!;
+  const finalBefore = counts(ctx, finalLoot);
+  complete(ctx, first);
+  assert.deepEqual(counts(ctx, finalLoot), finalBefore.map((n, i) => n + finalLoot[i].count));
 });

@@ -15,6 +15,9 @@ function fighter(id: string, side: UnitState['side'], pos: Point, classId: Class
   unit.side = side;
   unit.stats = stats(40, 4, 4, 50, 5, 100, 0, 0);
   unit.hp = 40; unit.con = 20;
+  // Keep combat fixtures independent of level-based enemy equipment progression.
+  if (classId === 'archer') unit.weapons = ['iron_bow'];
+  if (classId === 'swordsman') unit.weapons = ['iron_sword'];
   if (side === 'player') unit.weapons = [];
   return unit;
 }

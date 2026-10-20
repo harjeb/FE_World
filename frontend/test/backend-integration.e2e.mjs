@@ -6,7 +6,8 @@
 // Needs Node.js 22.18+ and Chromium (CHROME_BIN overrides the binary name).
 import { enemyStats, HARD_ENEMY_EFFECT, HARD_ENEMY_RULES, templateFor } from '../../backend/common/game/enemies.ts';
 import { STAT_KEYS } from '../../backend/common/data/types.ts';
-import { WEAPONS } from '../../backend/common/data/weapons.ts';
+import { WEAPONS, WEAPON_SERIES, weaponSeriesTier } from '../../backend/common/data/weapons.ts';
+import { materialTier } from '../../backend/common/game/materials.ts';
 import { canWield } from '../../backend/common/engine/units.ts';
 import { enemyLevel, regionById } from '../../backend/common/game/calendar.ts';
 import { QUEST_LEVEL_CAP } from '../../backend/common/game/quests.ts';
@@ -323,7 +324,8 @@ try {
       });
     }), `${hardEnemies.length} enemies checked at their actual increased levels`);
     check('hard enemies retain original gear and carry better usable equipment', hardEnemies.every(unit => {
-      const originals = templateFor(unit.classId).weapons;
+      const originals = templateFor(unit.classId).weapons.map(id => weaponSeriesTier(id)
+        ? WEAPON_SERIES[WEAPONS[id].type][Math.min(5, materialTier(normalEnemyLevel)) - 1] : id);
       return originals.every(id => unit.weapons.includes(id)) && unit.weapons.some(id =>
         !originals.includes(id) && canWield(unit, id) && originals.some(old =>
           WEAPONS[old].type === WEAPONS[id].type && (WEAPONS[id].might > WEAPONS[old].might
@@ -418,10 +420,10 @@ try {
     await api(page, 56);
     await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2&dungeon=clx-fe1`, '#drg-h');
     await page.reload('#drg-h');
-    check('retained classic preparation has exactly three maps and six total days', await page.evaluate(`(() => {
+    check('retained classic preparation has exactly three maps and eight total days', await page.evaluate(`(() => {
       const text = document.querySelector('.prep-go').innerText;
       return text.includes('3 张图连打') && text.includes('共 8 日') && document.querySelector('[aria-label="副本路线"] [aria-checked="true"]').innerText.includes('三图远征');
-    })()`), 'three stages, two days per stage');
+    })()`), 'three stages, 3/3/2 days');
     await page.click('.prep-go .go-bar button');
     check('classic dungeon starts from the same preparation page', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first classic stage');
     for (let index = 0; index < 3; index++) {
@@ -572,7 +574,7 @@ try {
     await page.evaluate(`[...document.querySelectorAll('.chips button')].find(button => button.innerText.startsWith('剑')).click()`);
     const centralWares = await page.evaluate(`document.querySelector('.gear-shop').innerText`);
     check('the central shop filters basic weapons and preserves the selected unit',
-      centralWares.includes('木制剑') && !centralWares.includes('木制枪') && !centralWares.includes('铁剑')
+      centralWares.includes('木剑') && !centralWares.includes('木枪') && !centralWares.includes('铁剑')
       && await page.evaluate(`location.hash === '#/prep/u_owen'`), centralWares.slice(0, 90));
     await page.evaluate(`[...document.querySelectorAll('.chips button')].find(button => button.innerText.startsWith('全部')).click()`);
     await press(page, '.gear-list li', '伤药', '交给欧文');
@@ -586,7 +588,7 @@ try {
     check('prep uses a stat drug through99 without losing its use count', await until(async () => (await owen()).snapshot.stats.skl === 101)
       && owen0.snapshot.stats.skl === 99 && (await api(page, 10)).gold === gold0 - drugPrice && (await owen()).drugCounts.skl === 1, `skl ${owen0.snapshot.stats.skl} → ${(await owen()).snapshot.stats.skl}`);
     const herb0 = (await api(page, 22)).inventory.find(r => r.item === 'herb').count;
-    await press(page, '.gear-list li', '药草', '卖');
+    await press(page, '.gear-list li', '止血草', '卖');
     await press(page, 'section[aria-labelledby=carry-h] li', '伤药', '放回仓库');
     check('prep sells materials and puts items back', await until(async () => (await api(page, 22)).inventory.find(r => r.item === 'herb').count === herb0 - 1
       && (await owen()).snapshot.items.length === owen0.snapshot.items.length), `herb ${herb0} → ${(await api(page, 22)).inventory.find(r => r.item === 'herb').count}`);
@@ -596,7 +598,7 @@ try {
       `Lv ${owen0.level} → ${(await owen()).level}, 公共经验 ${bexp0} → ${(await api(page, 10)).bexp}`);
     check('prep never moves the date', (await api(page, 30)).day === dayBefore, `day ${dayBefore} → ${(await api(page, 30)).day}`);
     const goldBeforeDisconnect = (await api(page, 10)).gold;
-    const purchasePrice = (await api(page, 40)).items.find(row => row.name === '木制剑').price;
+    const purchasePrice = (await api(page, 40)).items.find(row => row.name === '木剑').price;
     await page.evaluate(`(() => {
       window.originalFetch = window.fetch;
       window.writeCount = 0;
@@ -607,8 +609,8 @@ try {
         return window.originalFetch(url, options);
       };
     })()`);
-    await press(page, '.gear-shop li', '木制剑', '买');
-    check('a committed purchase with failed refresh still reports success', await until(() => page.evaluate(`document.body.innerText.includes('操作已提交，但状态尚未同步') && document.body.innerText.includes('买下木制剑')`)), 'success toast plus sync notice');
+    await press(page, '.gear-shop li', '木剑', '买');
+    check('a committed purchase with failed refresh still reports success', await until(() => page.evaluate(`document.body.innerText.includes('操作已提交，但状态尚未同步') && document.body.innerText.includes('买下木剑')`)), 'success toast plus sync notice');
     await page.evaluate(`window.fetch = window.originalFetch`);
     await page.evaluate(`[...document.querySelectorAll('button')].find(b => b.innerText === '重新同步').click()`);
     check('reconnecting only refreshes and never repeats the purchase', await until(() => page.evaluate(`!document.body.innerText.includes('操作已提交，但状态尚未同步')`)) && await page.evaluate(`window.writeCount === 1`) && (await api(page, 10)).gold === goldBeforeDisconnect - purchasePrice, 'one purchase, one deduction');

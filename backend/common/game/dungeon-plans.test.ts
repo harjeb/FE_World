@@ -5,6 +5,8 @@ import { CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { CLASSIC_QUESTS } from './classic-quests.ts';
 import { questById, QUESTS } from './quests.ts';
+import { GAME_ITEMS } from './items.ts';
+import { materialDrops } from './materials.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
 
 test('mixed plans are deterministic, independent of combat RNG, and reach all sixty regional finales', () => {
@@ -56,7 +58,16 @@ test('six public classic dungeons each retain three coherent stages and no solo 
   for (const quest of quests) {
     assert.equal(quest.dungeonOnly, true);
     assert.equal(quest.requires, undefined);
-    assert.deepEqual(quest.reward, { gold: 3500, reputation: 0 });
+    assert.equal(quest.reward.gold, 3500);
+    assert.equal(quest.reward.reputation, 0);
+    const level = ['fe6', 'fe7', 'fe8'].includes(quest.classic!.game) ? 35 : 20;
+    assert.deepEqual(quest.reward.items, materialDrops(quest.region, level, `classic:${quest.id}`, 8, 0)
+      .map(({ item, count }) => [item, count]));
+    assert.ok(quest.reward.items!.length > 0);
+    for (const [item, count] of quest.reward.items!) {
+      assert.equal(GAME_ITEMS[item].kind, 'material');
+      assert.ok(Number.isInteger(count) && count > 0);
+    }
     assert.equal(quest.stageDays, undefined);
     assert.equal(quest.costDays, 8);
     assert.equal(quest.classic?.stageCount, 3);

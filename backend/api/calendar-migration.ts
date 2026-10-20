@@ -112,7 +112,7 @@ export function planCalendarMigration(db: DatabaseSync, playerId: string, from: 
       for (const row of rows(table)) {
         const data = object(row.data, table);
         const production = table === 'production_orders';
-        knownKeys(data, production ? ['id', 'playerId', 'recipeId', 'facility', 'state', 'startedDay', 'readyDay', 'output', 'quality'] : ['id', 'playerId', 'state', 'region', 'startedDay', 'durationDays', 'returnDay', 'classId', 'weaponType', 'unitIds', 'result', 'createdAt'], table);
+        knownKeys(data, production ? ['id', 'playerId', 'recipeId', 'facility', 'state', 'startedDay', 'readyDay', 'output', 'quality'] : ['id', 'playerId', 'state', 'region', 'startedDay', 'durationDays', 'returnDay', 'classId', 'weaponType', 'unitIds', 'result', 'createdAt', 'materialLoot', 'weaponLoot'], table);
         const key = production ? 'readyDay' : 'returnDay';
         rejectUnknownDates(data, ['startedDay', key, 'durationDays', 'result.day']);
         if (row.state !== data.state || row[production ? 'ready_day' : 'return_day'] !== data[key] || data.id !== row.id || data.playerId !== playerId) throw new Error(`${table} SQL/JSON mismatch`);
