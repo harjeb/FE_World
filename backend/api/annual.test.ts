@@ -74,6 +74,10 @@ test('story chapters open on the personal calendar and pay once', () => {
   assert.equal(story.chapters[1].available, true, 'chapter 2 opens at day 982');
   assert.equal(story.chapters.some(c => c.chapter === 3), false, 'chapter 3 opens at day 1482 and stays hidden');
   assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 3 }), /尚未开放/);
+  // 章节事件由主线任务完成；没打主线任务前不能直接标记完成。
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 }), /先完成本章主线任务/);
+  player.flags.questsDone = [...(player.flags.questsDone ?? []), 'story-1'];
+  store.savePlayer(player);
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
   const bexp = player.bexp;
   const claimed = dispatch(ctx, OP.CLAIM_REWARD, { rewardKey: 'chapter:1' }) as { bexp: number };

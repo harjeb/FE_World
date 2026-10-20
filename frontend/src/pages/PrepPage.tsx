@@ -125,13 +125,14 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
           </section>
 
           <section className="panel" aria-labelledby="shop-h">
-            <div className="ph"><h2 id="shop-h">商店</h2><span style={{ fontSize: 12, color: '#6A6256' }}>本季库存，每季第 1 日补货</span></div>
+            <div className="ph"><h2 id="shop-h">商店</h2><span style={{ fontSize: 12, color: '#6A6256' }}>本季库存，每季第 1 日补货{wares.some(r => (r.discount ?? 0) > 0) ? ' · 庆典期间整店打折（每件 50%～65%）' : ''}</span></div>
             <ul className="eq gear-list gear-shop">
               {wares.map(r => (
                 <li key={r.item}>
                   <img className="px" src={itemIcon(r.item)} width={32} height={32} alt="" />
                   <div className="min-w-0">
-                    <div className="nm">{r.name} <span className="cnt">{r.price.toLocaleString()} 金</span></div>
+                    <div className="nm">{r.name} <span className="cnt">{r.price.toLocaleString()} 金</span>
+                      {(r.discount ?? 0) > 0 && <><s className="cnt" style={{ marginLeft: 6 }}>{(r.basePrice ?? r.price).toLocaleString()}</s><span className="tag tag-red" title="庆典期间王都商店打折">庆典 −{r.discount}%</span></>}</div>
                     <div className="sp">{itemSpec(r.item)}</div>
                   </div>
                   <span className="acts">

@@ -57,7 +57,10 @@ import type { WeaponType } from '../common/data/types.ts';
 import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRun, DUNGEON_STAGE_DAYS, DUNGEON_STAGES, isActiveRun, runSummary, stageCount, stageScenario, survivingIds } from '../common/game/expedition.ts';
 import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
-import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
+import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, recruitedCharacters, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
+import { COMPANION_EPILOGUES, STORY_QUESTS } from '../common/game/story-quests.ts';
+import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
+import { companionView, storyQuestView } from './story.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
@@ -194,6 +197,15 @@ function lootRankOf(player: Player) {
   return purchasableRank(playerRegions(player), player.flags.regionReputation ?? {});
 }
 
+// 任务可接条件需要的玩家状态：声望、持有物品、日期和已招募的固定人物。
+function questState(ctx: Context, quest: { region: number }, done: ReadonlySet<string>) {
+  return {
+    done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0,
+    holds: (item: ItemKey) => ctx.store.countInventory(ctx.player.id, item) > 0,
+    day: ctx.player.day, recruited: recruitedCharacters(ctx.player.flags.questRewardsClaimed ?? []),
+  };
+}
+
 export function battleView(record: BattleRecord, detail: boolean, sinceEvent = 0) {
   const state = record.state;
   return {
@@ -275,6 +287,16 @@ function applyAction(ctx: Context, record: BattleRecord, action: Action): { stat
   return result;
 }
 
+// 完成一章主线事件（幂等）：主线任务胜利和旧的确认入口共用。
+function completeChapter(ctx: Context, chapter: number): void {
+  ctx.player.flags.storyCompleted ??= [];
+  if (ctx.player.flags.storyCompleted.includes(chapter)) return;
+  ctx.player.flags.storyCompleted.push(chapter);
+  ctx.store.savePlayer(ctx.player);
+  ctx.store.addEvent(ctx.player.id, 'story', `完成主线第 ${chapter} 章。`, { chapter });
+  ctx.push(OP.STATE_CHANGED, { reason: 'story' });
+}
+
 function finishBattle(ctx: Context, record: BattleRecord): void {
   const rewards = applyBattleOutcome(ctx.store, ctx.player, record);
   const runOutcome = handleRunOutcome(ctx.store, ctx.player, record);
@@ -285,13 +307,15 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     if (!ctx.player.flags.questsDone.includes(record.questId)) {
       ctx.player.flags.questsDone.push(record.questId);
       const quest = questById(record.questId);
-      if (quest) addRegionExploration(ctx.store, ctx.player, quest.region, 'quest');
+      // 主线任务不属于任何地区（region 0）：不加探索度，胜利即完成对应章节。
+      if (quest && quest.region > 0) addRegionExploration(ctx.store, ctx.player, quest.region, 'quest');
       if (record.state.goal.kind === 'gather') {
         ctx.player.flags.questBoxes ??= {};
         ctx.player.flags.questBoxes[record.questId] = record.state.units.filter(unit => unit.side === 'player' && unit.escaped).reduce((sum, unit) => sum + (unit.carried ?? 0), 0);
       }
       ctx.store.savePlayer(ctx.player);
       ctx.store.addEvent(ctx.player.id, 'quest', `完成任务「${questById(record.questId)?.name ?? record.questId}」，奖励待领取。`, { questId: record.questId });
+      if (quest?.story) completeChapter(ctx, quest.story);
     }
   }
   // 挑战塔：胜利即记为通关，首通／重复奖励另用 CLAIM_CHALLENGE_REWARD 领取（docs/00 §9.6）。
@@ -711,7 +735,10 @@ const handlers: Record<number, Handler> = {
   [OP.GET_SHOP]: ctx => ({
     season: dateOf(ctx.player.day).season,
     // 旧档 shop 表可能还存着已迁往地区商店的旧行：只展示当前王都商店在售商品。
-    items: ctx.store.shop(ctx.player.id).filter(row => isCentralShopItem(row.item)).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, price: GAME_ITEMS[row.item].price, stock: row.stock, kind: GAME_ITEMS[row.item].kind })),
+    // 庆典窗口内整店打折（docs/38）：price 为实付单价，basePrice 为原价，discount 为折扣百分比（非庆典为 0）。
+    items: ctx.store.shop(ctx.player.id).filter(row => isCentralShopItem(row.item)).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name,
+      discount: festivalDiscount(ctx.player.id, ctx.player.day, row.item), basePrice: GAME_ITEMS[row.item].price,
+      price: festivalPrice(GAME_ITEMS[row.item].price, festivalDiscount(ctx.player.id, ctx.player.day, row.item)), stock: row.stock, kind: GAME_ITEMS[row.item].kind })),
   }),
 
   [OP.BUY]: (ctx, data) => {
@@ -722,7 +749,7 @@ const handlers: Record<number, Handler> = {
     if (!isCentralShopItem(item)) throw new OpError('NOT_FOUND', '王都不再出售这件物品；进阶武器请到对应地区的声望商店购买');
     const stockRow = ctx.store.shop(ctx.player.id).find(s => s.item === item);
     if (!stockRow || stockRow.stock < count) throw new OpError('BAD_REQUEST', '库存不足');
-    const price = GAME_ITEMS[item].price * count;
+    const price = festivalPrice(GAME_ITEMS[item].price, festivalDiscount(ctx.player.id, ctx.player.day, item)) * count;
     if (ctx.player.gold < price) throw new OpError('NOT_ENOUGH_GOLD', `需要 ${price} 金币`);
     ctx.player.gold -= price;
     ctx.store.setShopStock(ctx.player.id, item, stockRow.stock - count);
@@ -1990,19 +2017,22 @@ const handlers: Record<number, Handler> = {
         event: completed ? CHAPTERS[i].event : null,
         finalBoss: chapter === 8 ? { floorId: 'tower-3', available: completed, defeated: (ctx.player.flags.towerCleared ?? []).includes('tower-3') } : null,
         discoveries: completed ? CHAPTERS[i].discoveries : [],
+        quest: available ? storyQuestView(ctx.store, ctx.player, chapter) : null,
       };
     }).filter((row): row is NonNullable<typeof row> => row !== null),
+    companions: companionView(ctx.player),
   };
   },
 
   [OP.COMPLETE_STORY_EVENT]: (ctx, data) => {
     const chapter = asNumber(data.chapter, 'chapter');
     if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
-    ctx.player.flags.storyCompleted ??= [];
-    if (!ctx.player.flags.storyCompleted.includes(chapter)) ctx.player.flags.storyCompleted.push(chapter);
-    ctx.store.savePlayer(ctx.player);
-    ctx.store.addEvent(ctx.player.id, 'story', `完成主线第 ${chapter} 章。`, { chapter });
-    ctx.push(OP.STATE_CHANGED, { reason: 'story' });
+    // 主线任务胜利会自动完成本章；这里只补记旧流程或确认已完成，不能绕过任务。
+    const storyQuest = STORY_QUESTS.find(q => q.story === chapter);
+    if (storyQuest && !(ctx.player.flags.questsDone ?? []).includes(storyQuest.id) && !(ctx.player.flags.storyCompleted ?? []).includes(chapter)) {
+      throw new OpError('FORBIDDEN', `先完成本章主线任务「${storyQuest.name}」`);
+    }
+    completeChapter(ctx, chapter);
     return { chapter, completed: true };
   },
 
@@ -2029,6 +2059,7 @@ const handlers: Record<number, Handler> = {
     const claimed = new Set(ctx.player.flags.questRewardsClaimed ?? []);
     const reputation = ctx.player.flags.regionReputation ?? {};
     const holds = (item: ItemKey) => ctx.store.countInventory(ctx.player.id, item) > 0;
+    const recruited = recruitedCharacters(ctx.player.flags.questRewardsClaimed ?? []);
     // 进行中的任务（活动远征或战斗）即使暂不满足可接条件也保留显示。
     const ongoing = new Set([ctx.store.activeRun(ctx.player.id)?.questId, ctx.store.activeBattle(ctx.player.id)?.questId]
       .filter((id): id is string => typeof id === 'string'));
@@ -2051,6 +2082,7 @@ const handlers: Record<number, Handler> = {
             classic: q.classic ?? null,
             optionalReward: q.kind === 'gather' ? { item: region === 3 ? 'ore' : region === 5 ? 'herb' : 'wood', perExtraBox: 1 } : null,
             requires: q.requires ?? null,
+            companion: q.companion ?? null, epilogue: done.has(q.id) ? COMPANION_EPILOGUES[q.id] ?? null : null,
             // 固定专属实物：领取前预览（docs/27「确认领取前预览绑定」）。
             exclusive: q.exclusive ? { item: q.exclusive, name: GAME_ITEMS[q.exclusive].name } : null,
             done: done.has(q.id), claimed: claimed.has(q.id), inProgress: ongoing.has(q.id),
@@ -2060,7 +2092,7 @@ const handlers: Record<number, Handler> = {
               hard: dungeonFirstClearReward(ctx.store, ctx.player, region, q.id, 'hard'),
             } : null,
             hardUnlocked: !q.archived && supportsHardQuest(q) && hardUnlocks(ctx.store, ctx.player).quests.includes(q.id),
-            available: !q.archived && ((supportsHardQuest(q) && done.has(q.id)) || questAvailable(q, { done, reputation: rep, holds })),
+            available: !q.archived && ((supportsHardQuest(q) && done.has(q.id)) || questAvailable(q, { done, reputation: rep, holds, day: ctx.player.day, recruited })),
           })).filter(row => row.available || row.done || ongoing.has(row.id)),
         };
       }),
@@ -2268,10 +2300,11 @@ const handlers: Record<number, Handler> = {
     if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
     if (quest.archived) throw new OpError('FORBIDDEN', '此经典关卡已编入副本；旧奖励仍可领取，已开始的远征可以继续');
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
-    if (!playerRegions(ctx.player).includes(quest.region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(quest.region).name}；先在世界地图选择行军路线`);
+    // 主线任务不属于任何地区（region 0），由章节开放控制；其余任务需要地区已开通。
+    if (!quest.story && !playerRegions(ctx.player).includes(quest.region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(quest.region).name}；先在世界地图选择行军路线`);
     const done = new Set(ctx.player.flags.questsDone ?? []);
-    if (!(supportsHardQuest(quest) && done.has(quest.id)) && !questAvailable(quest, { done, reputation: ctx.player.flags.regionReputation?.[quest.region] ?? 0, holds: item => ctx.store.countInventory(ctx.player.id, item) > 0 })) {
-      throw new OpError('FORBIDDEN', '任务尚未解锁或已完成');
+    if (!(supportsHardQuest(quest) && done.has(quest.id)) && !questAvailable(quest, questState(ctx, quest, done))) {
+      throw new OpError('FORBIDDEN', quest.story ? (done.has(quest.id) ? '本章主线任务已经完成' : '该章尚未开放') : '任务尚未解锁或已完成');
     }
     const maxUnits = questMaxUnits(quest);
     const ready = deploymentUnits(ctx, data.unitIds, maxUnits);
@@ -2302,7 +2335,7 @@ const handlers: Record<number, Handler> = {
       ctx.player.day += quest.costDays ?? QUEST_DAY_COST[quest.tier];
       syncPlayer(ctx.store, ctx.player);
       ctx.store.saveBattle(record);
-      ctx.store.addEvent(ctx.player.id, 'quest', `接取经典地图「${quest.name}」（${regionById(quest.region).name}）。`, { battleId: record.id, questId: quest.id });
+      ctx.store.addEvent(ctx.player.id, 'quest', `接取经典地图「${quest.name}」（${quest.story ? `主线第 ${quest.story} 章` : regionById(quest.region).name}）。`, { battleId: record.id, questId: quest.id });
       ctx.push(OP.PHASE_STARTED, { battleId: record.id, turn: 1 });
       return { battleId: record.id, questId: quest.id, goalText: record.goalText, battle: battleView(record, false), state: publicState(record.state) };
     }
@@ -2361,8 +2394,9 @@ const handlers: Record<number, Handler> = {
     for (const [item, count] of items) ctx.store.addInventory(ctx.player.id, item, stockUses(item), count);
     ctx.player.flags.regionReputation ??= {};
     const before = ctx.player.flags.regionReputation[quest.region] ?? 0;
-    const after = before + quest.reward.reputation;
-    ctx.player.flags.regionReputation[quest.region] = after;
+    // 主线任务（region 0）不属于任何地区，不记声望。
+    const after = quest.region > 0 ? before + quest.reward.reputation : before;
+    if (quest.region > 0) ctx.player.flags.regionReputation[quest.region] = after;
     // 固定人物加入（docs/20 §5）：唯一性；校验已在落账前完成。
     const recruited: { character: string; name: string; unitId: string }[] = [];
     if (quest.recruit) {

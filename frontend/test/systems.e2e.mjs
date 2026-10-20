@@ -11,7 +11,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { seedBrowserAccount } from './fixtures.mjs';
+import { prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
 
 const API_PORT = 8613;
 const BASE = `http://127.0.0.1:${API_PORT}`;
@@ -126,7 +126,7 @@ function check(name, ok, detail) {
 
 const OP = {
   GET_STATE: 10, GET_INVENTORY: 22, GET_TODAY: 30, REST: 34, ASSIGN_BEXP: 46, RETREAT: 56, SURRENDER: 67,
-  GET_MEMORIAL: 76, GET_CLASS_MARKET: 78, GET_PRODUCTION: 90, GET_RUN: 100, GET_ANNUAL: 110, GET_STORY: 120, GET_LEGACIES: 48,
+  GET_MEMORIAL: 76, GET_CLASS_MARKET: 78, GET_PRODUCTION: 90, GET_RUN: 100, GET_ANNUAL: 110, GET_STORY: 120, COMPLETE_STORY_EVENT: 121, START_QUEST: 124, GET_LEGACIES: 48,
 };
 const count = (inventory, item) => inventory.filter(r => r.item === item).reduce((n, r) => n + r.count, 0);
 
@@ -180,9 +180,16 @@ try {
       openChapters.length === shownChapters && openChapters.length > 0 && openChapters.every(chapter => chapter.available || chapter.completed)
         && story0.includes('盛会') && story0.includes('裂痕') && story0.includes('可完成') && !story0.includes('尚未开放') && !story0.includes('第 3 章'), story0.slice(0, 160));
     const bexp0 = (await api(page, OP.GET_STATE)).bexp;
-    await press(page, '.chap', '盛会', '完成本章事件');
-    check('completing the chapter is stored', await until(async () => (await api(page, OP.GET_STORY)).chapters[0].completed), 'chapter 1');
-    await press(page, '.chap', '盛会', '领取');
+    check('the open chapter shows its main quest with the edited classic map and no manual complete button',
+      story0.includes('主线任务') && story0.includes('盛会·开幕夜') && story0.includes('线索') && story0.includes('准备出征') && await page.evaluate(`[...document.querySelectorAll('button')].every(b => b.innerText.trim() !== '完成本章事件')`), story0.slice(story0.indexOf('盛会'), story0.indexOf('盛会') + 500));
+    check('a chapter cannot be completed around its main quest', await api(page, OP.COMPLETE_STORY_EVENT, { chapter: 1 }).then(() => false, error => String(error.message).includes('先完成本章主线任务')), 'gate');
+    // Winning the main quest completes the chapter: stage a winnable board server-side, settle through the real op.
+    const started = await api(page, OP.START_QUEST, { questId: 'story-1', unitIds: ['u_erin', 'u_victor'] });
+    await api(page, 54, prepareBrowserBattleWin(join(dbDir, 'e2e.db'), (await api(page, OP.GET_STATE)).player.id, started.battleId));
+    check('winning the main quest completes the chapter', await until(async () => (await api(page, OP.GET_STORY)).chapters[0].completed), 'chapter 1');
+    await page.reload('#ch-h');
+    check('the finished quest offers its own reward claim next to the chapter experience', (await page.text()).includes('领取任务报酬'), 'quest claim');
+    await press(page, '.chap', '盛会', '公共经验');
     check('claiming pays the shared experience once', await until(async () => (await api(page, OP.GET_STATE)).bexp === bexp0 + 1350), `bexp ${bexp0} → ${(await api(page, OP.GET_STATE)).bexp}`);
     const story1 = await page.text();
     check('the completed chapter reveals what was learned', story1.includes('本章所得') && story1.includes('神纹') && story1.includes('已完成'), story1.slice(story1.indexOf('盛会'), story1.indexOf('盛会') + 120));

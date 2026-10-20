@@ -121,6 +121,8 @@ export interface BattleObject {
   secret?: { quest: string; loot?: { item: string; count: number } };
   // 隐藏要素每个账号只发一次：完整结算后记入 flags.secretsClaimed，之后的战斗不再生成。
   once?: true;
+  // 适配文件字段：在这些任务里整件不生成（主线任务把村庄、宝箱挪到别处）；开战后不保留。
+  hideIn?: string[];
   // Switch-bound map change id.
   change?: string;
   // 临时墙等法术物件在指定回合后消失。

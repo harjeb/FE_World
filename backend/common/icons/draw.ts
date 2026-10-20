@@ -619,6 +619,20 @@ const ITEM_GRIDS: Record<string, readonly string[]> = {
   ],
 };
 
+// Story clue scrolls (one per chapter): the same parchment with a seal whose colour and shape change.
+const CLUE_SEALS: [string, string[]][] = [
+  ['v', ['SS', 'SSSS', 'SS']], ['n', ['S.', 'SSSS', '.S']], ['t', ['.SS.', 'SSSS', '.SS.']], ['u', ['SS', 'S.SS', 'SS']],
+  ['o', ['.S', 'SSSS', 'S.']], ['a', ['SSSS', '.SS.', 'SSSS']], ['y', ['S.S.', 'SSSS', '.S.S']], ['j', ['SSSS', 'S..S', 'SSSS']],
+];
+CLUE_SEALS.forEach(([colour, seal], index) => {
+  const mid = seal.map(row => row.padStart(Math.ceil((4 + row.length) / 2), '.').padEnd(4, '.').slice(0, 4).replace(/S/g, colour));
+  const paper = (body: string) => `.ewwek${body}kewwe.`;
+  ITEM_GRIDS[`story_clue_${index + 1}`] = [
+    '................', '..eeeeeeeeeeee..', paper('kkkk'), paper(mid[0]), paper(mid[1]), paper(mid[2]), paper('kkkk'), paper('KKKK'),
+    '..eeeeeeeeeeee..', '................', '................', '................',
+  ];
+});
+
 const EMBLEMS = {
   flame: ['..+..', '.++..', '.+*+.', '+***+', '.+++.'],
   bolt: ['..++.', '.++..', '++++.', '..++.', '.++..'],

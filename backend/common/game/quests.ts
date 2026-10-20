@@ -2,6 +2,8 @@ import type { ItemKey } from './items.ts';
 import { manualItem, spellbookItem } from './items.ts';
 import type { CharacterId } from '../data/characters.ts';
 import { regionById } from './calendar.ts';
+import { COMPANION_QUESTS, STORY_QUESTS } from './story-quests.ts';
+import { chapterAvailable } from './story.ts';
 
 const regionName = (id: number) => regionById(id).name;
 
@@ -31,7 +33,11 @@ export interface Quest {
   // escape/gather 需要撤离的人数／箱子数（默认 1）。
   need?: number;
   // item：仓库里持有该任务物品时才出现（隐藏副本）；不消耗。
-  requires?: { quest?: string; reputation?: number; item?: ItemKey };
+  // chapter：主线章节已开放（docs/38）；character：该固定人物已通过地区远征加入过名册（阵亡后仍算）。
+  requires?: { quest?: string; reputation?: number; item?: ItemKey; chapter?: number; character?: CharacterId };
+  // 主线任务所属章节（region 0，不属于任何地区）与伙伴任务所属人物。
+  story?: number;
+  companion?: CharacterId;
   reward: QuestReward;
   // 固定人物加入（docs/20 §5）：领取奖励时加入名册；已拥有则跳过（唯一性）。
   recruit?: CharacterId;
@@ -106,7 +112,7 @@ import { CLASSIC_QUESTS } from './classic-quests.ts';
 
 // 经典地图任务与地区任务共用同一任务/副本流程（docs/24）。
 export const BASE_QUESTS: readonly Quest[] = QUESTS;
-export const ALL_QUESTS: Quest[] = [...QUESTS, ...CLASSIC_QUESTS];
+export const ALL_QUESTS: Quest[] = [...QUESTS, ...CLASSIC_QUESTS, ...COMPANION_QUESTS];
 
 export const CROSS_TIME_QUEST: Quest = {
   id: 'cross-time-throne', region: 0, name: '时空试炼·终焉诸将',
@@ -117,7 +123,7 @@ export const CROSS_TIME_QUEST: Quest = {
 
 export function questById(id: string): Quest | undefined {
   if (id === CROSS_TIME_QUEST.id) return CROSS_TIME_QUEST;
-  return ALL_QUESTS.find(q => q.id === id);
+  return ALL_QUESTS.find(q => q.id === id) ?? STORY_QUESTS.find(q => q.id === id);
 }
 
 export function questsForRegion(region: number): Quest[] {
@@ -190,12 +196,30 @@ export function supportsHardQuest(quest: Pick<Quest, 'tier' | 'scenarioIds'>): b
   return !!quest.scenarioIds?.length || quest.tier === 'region';
 }
 
-export function questAvailable(quest: Quest, state: { done: ReadonlySet<string>; reputation: number; holds?: (item: ItemKey) => boolean }): boolean {
+export interface QuestAvailability {
+  done: ReadonlySet<string>;
+  reputation: number;
+  holds?: (item: ItemKey) => boolean;
+  // 当前日期，用于主线章节是否已开放；缺省视为未开放。
+  day?: number;
+  // 已加入过名册的固定人物（含阵亡）；缺省视为没有。
+  recruited?: ReadonlySet<CharacterId>;
+}
+
+// 固定人物经地区远征领取后永久记为“已招募”：来自已领取的招募奖励，不依赖名册里是否还活着。
+export function recruitedCharacters(claimed: Iterable<string>): Set<CharacterId> {
+  const set = new Set(claimed);
+  return new Set(QUESTS.filter(q => q.recruit && set.has(q.id)).map(q => q.recruit!));
+}
+
+export function questAvailable(quest: Quest, state: QuestAvailability): boolean {
   if (state.done.has(quest.id)) return false;
   const req = quest.requires;
   if (!req) return true;
   if (req.quest && !state.done.has(req.quest)) return false;
   if (req.reputation !== undefined && state.reputation < req.reputation) return false;
   if (req.item && !state.holds?.(req.item)) return false;
+  if (req.chapter !== undefined && (state.day === undefined || !chapterAvailable(req.chapter, state.day))) return false;
+  if (req.character && !state.recruited?.has(req.character)) return false;
   return true;
 }

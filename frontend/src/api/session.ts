@@ -206,7 +206,8 @@ export interface ServerToday {
 }
 
 // GET_SHOP: this season's stock; it refills on the first day of each season.
-export interface ShopRow { item: string; name: string; price: number; stock: number; kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food' }
+// price 为实付单价；庆典期间 discount 为折扣百分比，basePrice 为原价。
+export interface ShopRow { item: string; name: string; price: number; basePrice?: number; discount?: number; stock: number; kind: 'weapon' | 'consumable' | 'seal' | 'stat' | 'material' | 'food' | 'key' }
 
 // GET_SNAPSHOTS: the roster as saved on each arena day the player registered (docs/00 §10).
 export interface ServerSnapshot { day: number; date: ServerState['date']; roster: SnapshotUnit[] }
@@ -256,8 +257,21 @@ export interface StoryChapter {
   chapter: number; openDay: number; available: boolean; completed: boolean; claimed: boolean; title: string | null; learned: string | null;
   event?: string | null; discoveries?: string[];
   finalBoss?: { floorId: string; available: boolean; defeated: boolean } | null;
+  quest?: StoryQuest | null;
 }
-export interface ServerStory { bexp: number; annualSummary?: { text: string; data: unknown }; chapters: StoryChapter[] }
+// 主线任务（docs/38）：每章一张改编过的经典地图；胜利即完成本章，线索藏在图里的隐藏箱中。
+export interface StoryQuest {
+  id: string; name: string; briefing: string; objective: string; kind: QuestView['kind']; mapName: string;
+  turnLimit: number; maxUnits: number; costDays: number; toDay: number; enemyLevel: number;
+  reward: { gold: number; reputation: number; items?: [string, number][] };
+  done: boolean; claimed: boolean; inProgress: boolean; available: boolean; legacyCompleted: boolean;
+  clue: { item: string; name: string; held: boolean; note: string | null };
+}
+// 地区固定人物的伙伴任务：人物加入过名册后解锁，任务本身在地区任务页接取。
+export interface StoryCompanion {
+  character: string; name: string; region: number; recruited: boolean; questId: string; questName: string; done: boolean; epilogue: string | null;
+}
+export interface ServerStory { bexp: number; annualSummary?: { text: string; data: unknown }; chapters: StoryChapter[]; companions?: StoryCompanion[] }
 
 // GET_QUESTS: regional quests and reputation (docs/20).
 export interface QuestView {
@@ -270,7 +284,9 @@ export interface QuestView {
   enemyLevel: number; enemyLevelCap?: number; toDay: number; risk: 'permadeath';
   optionalReward: { item: string; perExtraBox: number } | null;
   reward: { gold: number; reputation: number; items?: [string, number][] };
-  requires: { quest?: string; reputation?: number } | null;
+  requires: { quest?: string; reputation?: number; character?: string; chapter?: number } | null;
+  // 伙伴任务所属的固定人物与完成后的后记。
+  companion?: string | null; epilogue?: string | null;
   // 固定专属实物（首次领奖时入库）。
   exclusive: { item: string; name: string } | null;
   done: boolean; claimed: boolean; available: boolean; inProgress?: boolean;

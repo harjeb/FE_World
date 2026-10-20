@@ -468,7 +468,9 @@ export function applyBattleOutcome(store: Store, player: Player, record: BattleR
     claimSecrets(player, secretClaims(record.state));
   }
   if (crossTime) grantCrossTimeRewards(store, player, record, rewards);
-  if (record.mode === 'field' && won && !record.dungeon && !crossTime) {
+  // 主线任务（region 0）不属于任何地区：不发野战讨伐奖励，也不标记地区首讨。
+  const story = !!record.questId && !!questById(record.questId)?.story;
+  if (record.mode === 'field' && won && !record.dungeon && !crossTime && !story) {
     const regionId = record.region ?? 1;
     rewards.gold = 180 + record.state.turn * 6;
     const region = regionById(regionId);

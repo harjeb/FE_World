@@ -264,6 +264,9 @@ function classicScenarioLayer(mapId: string, adaptation: ReturnType<typeof class
     const object = structuredClone(raw);
     const secret = object.secret;
     delete object.secret;
+    const hidden = object.hideIn?.includes(opts.questId ?? '');
+    delete object.hideIn;
+    if (hidden) { removed.add(object.id); continue; }
     if (secret && secret.quest !== opts.questId) {
       // 其他场合：有替换掉落的保留原物件，纯隐藏物件整件不生成。
       if (!secret.loot) { removed.add(object.id); continue; }
@@ -327,7 +330,8 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   });
   const originalLevels = map.enemies.map(enemy => enemy.level).sort((a, b) => a - b);
   const median = originalLevels[Math.floor(originalLevels.length / 2)] ?? 1;
-  const regionOffset = options.quest ? regionById(options.quest.region).offset : 0;
+  // 主线任务 region 为 0（不属于任何地区），按偏移 0 计。
+  const regionOffset = options.quest && options.quest.region > 0 ? regionById(options.quest.region).offset : 0;
   const policy = adaptation.levelPolicy;
   const stageBonus = options.stageIndex === undefined ? adaptation.difficulty : (options.stageIndex * policy.stageBonus);
   const baseLevel = Math.max(1, Math.min(95, (options.level ?? enemyLevel(options.day ?? 0, regionOffset)) + stageBonus));

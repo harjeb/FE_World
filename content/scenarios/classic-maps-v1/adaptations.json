@@ -273,7 +273,10 @@
      "loot": {
       "item": "heal",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-1"
+     ]
     },
     {
      "id": "village-29-4",
@@ -287,7 +290,10 @@
      "loot": {
       "item": "heal",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-1"
+     ]
     },
     {
      "id": "village-25-6",
@@ -301,7 +307,10 @@
      "loot": {
       "item": "iron_axe",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-1"
+     ]
     },
     {
      "id": "wall-42-19-1",
@@ -326,6 +335,74 @@
      "hp": 24,
      "maxHp": 24,
      "label": "可破坏的墙"
+    },
+    {
+     "id": "story-village-0",
+     "kind": "village",
+     "pos": [
+      12,
+      21
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-1"
+     }
+    },
+    {
+     "id": "story-village-1",
+     "kind": "village",
+     "pos": [
+      4,
+      10
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-1"
+     }
+    },
+    {
+     "id": "story-village-2",
+     "kind": "village",
+     "pos": [
+      17,
+      3
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-1"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      30,
+      8
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_1",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-1"
+     }
     }
    ],
    "events": [
@@ -1499,7 +1576,10 @@
       "item": "steel_axe",
       "count": 1
      },
-     "sourceId": "0x08669114"
+     "sourceId": "0x08669114",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "chest-object-3",
@@ -1514,7 +1594,10 @@
       "item": "silver_bow",
       "count": 1
      },
-     "sourceId": "0x08669120"
+     "sourceId": "0x08669120",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "chest-object-4",
@@ -1529,7 +1612,10 @@
       "item": "vulnerary",
       "count": 3
      },
-     "sourceId": "0x0866912C"
+     "sourceId": "0x0866912C",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "chest-object-5",
@@ -1544,7 +1630,10 @@
       "item": "silver_sword",
       "count": 1
      },
-     "sourceId": "0x08669138"
+     "sourceId": "0x08669138",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "chest-object-6",
@@ -1559,7 +1648,10 @@
       "item": "fire",
       "count": 1
      },
-     "sourceId": "0x08669144"
+     "sourceId": "0x08669144",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "chest-object-7",
@@ -1574,7 +1666,10 @@
       "item": "silver_bow",
       "count": 1
      },
-     "sourceId": "0x08669150"
+     "sourceId": "0x08669150",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "chest-object-9",
@@ -1589,7 +1684,10 @@
       "item": "hand_axe",
       "count": 1
      },
-     "sourceId": "0x08669168"
+     "sourceId": "0x08669168",
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "door-object-10",
@@ -1658,7 +1756,10 @@
      "loot": {
       "item": "iron_bow",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "village-5-1",
@@ -1672,7 +1773,10 @@
      "loot": {
       "item": "heal",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "village-28-3",
@@ -1686,7 +1790,10 @@
      "loot": {
       "item": "iron_lance",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-5"
+     ]
     },
     {
      "id": "wall-55-5-6",
@@ -1742,6 +1849,193 @@
      ],
      "state": "idle",
      "label": "炮台"
+    },
+    {
+     "id": "story-chest-0",
+     "kind": "chest",
+     "pos": [
+      13,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "steel_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-chest-1",
+     "kind": "chest",
+     "pos": [
+      8,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-chest-2",
+     "kind": "chest",
+     "pos": [
+      4,
+      23
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 3
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-chest-3",
+     "kind": "chest",
+     "pos": [
+      6,
+      2
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_sword",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-chest-4",
+     "kind": "chest",
+     "pos": [
+      12,
+      11
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "fire",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-chest-5",
+     "kind": "chest",
+     "pos": [
+      11,
+      14
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-chest-6",
+     "kind": "chest",
+     "pos": [
+      20,
+      13
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "hand_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-village-7",
+     "kind": "village",
+     "pos": [
+      24,
+      23
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-village-8",
+     "kind": "village",
+     "pos": [
+      22,
+      15
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-village-9",
+     "kind": "village",
+     "pos": [
+      27,
+      21
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      5,
+      20
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_5",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-5"
+     }
     }
    ],
    "events": [
@@ -1969,7 +2263,10 @@
      "loot": {
       "item": "herb",
       "count": 4
-     }
+     },
+     "hideIn": [
+      "story-8"
+     ]
     },
     {
      "id": "village-9-1",
@@ -1983,7 +2280,10 @@
      "loot": {
       "item": "vulnerary",
       "count": 2
-     }
+     },
+     "hideIn": [
+      "story-8"
+     ]
     },
     {
      "id": "village-11-11",
@@ -1997,7 +2297,10 @@
      "loot": {
       "item": "iron_axe",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-8"
+     ]
     },
     {
      "id": "wall-46-10-11",
@@ -2033,6 +2336,74 @@
      "state": "idle",
      "label": "机关",
      "change": "lever-change-0"
+    },
+    {
+     "id": "story-village-0",
+     "kind": "village",
+     "pos": [
+      10,
+      18
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "herb",
+      "count": 4
+     },
+     "secret": {
+      "quest": "story-8"
+     }
+    },
+    {
+     "id": "story-village-1",
+     "kind": "village",
+     "pos": [
+      12,
+      2
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "vulnerary",
+      "count": 2
+     },
+     "secret": {
+      "quest": "story-8"
+     }
+    },
+    {
+     "id": "story-village-2",
+     "kind": "village",
+     "pos": [
+      9,
+      3
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-8"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      23,
+      33
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_8",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-8"
+     }
     }
    ],
    "events": [
@@ -2891,7 +3262,10 @@
       "item": "heal",
       "count": 1
      },
-     "sourceId": "0x08D6B450"
+     "sourceId": "0x08D6B450",
+     "hideIn": [
+      "story-2"
+     ]
     },
     {
      "id": "chest-object-3",
@@ -2906,7 +3280,10 @@
       "item": "hand_axe",
       "count": 1
      },
-     "sourceId": "0x08D6B45C"
+     "sourceId": "0x08D6B45C",
+     "hideIn": [
+      "story-2"
+     ]
     },
     {
      "id": "chest-object-4",
@@ -2921,7 +3298,10 @@
       "item": "iron_lance",
       "count": 1
      },
-     "sourceId": "0x08D6B468"
+     "sourceId": "0x08D6B468",
+     "hideIn": [
+      "story-2"
+     ]
     },
     {
      "id": "chest-object-5",
@@ -2936,7 +3316,10 @@
       "item": "steel_lance",
       "count": 1
      },
-     "sourceId": "0x08D6B474"
+     "sourceId": "0x08D6B474",
+     "hideIn": [
+      "story-2"
+     ]
     },
     {
      "id": "chest-object-6",
@@ -2951,7 +3334,10 @@
       "item": "heal",
       "count": 1
      },
-     "sourceId": "0x08D6B480"
+     "sourceId": "0x08D6B480",
+     "hideIn": [
+      "story-2"
+     ]
     },
     {
      "id": "door-object-7",
@@ -3031,6 +3417,108 @@
      "state": "idle",
      "label": "机关",
      "change": "lever-change-0"
+    },
+    {
+     "id": "story-chest-0",
+     "kind": "chest",
+     "pos": [
+      12,
+      4
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-2"
+     }
+    },
+    {
+     "id": "story-chest-1",
+     "kind": "chest",
+     "pos": [
+      21,
+      16
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "hand_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-2"
+     }
+    },
+    {
+     "id": "story-chest-2",
+     "kind": "chest",
+     "pos": [
+      20,
+      7
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-2"
+     }
+    },
+    {
+     "id": "story-chest-3",
+     "kind": "chest",
+     "pos": [
+      6,
+      2
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "steel_lance",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-2"
+     }
+    },
+    {
+     "id": "story-chest-4",
+     "kind": "chest",
+     "pos": [
+      17,
+      6
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "heal",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-2"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      17,
+      1
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_2",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-2"
+     }
     }
    ],
    "events": [
@@ -3979,7 +4467,10 @@
       "item": "ore",
       "count": 4
      },
-     "sourceId": "0x08D6CCD8"
+     "sourceId": "0x08D6CCD8",
+     "hideIn": [
+      "story-6"
+     ]
     },
     {
      "id": "chest-object-1",
@@ -3994,7 +4485,10 @@
       "item": "silver_axe",
       "count": 1
      },
-     "sourceId": "0x08D6CCE4"
+     "sourceId": "0x08D6CCE4",
+     "hideIn": [
+      "story-6"
+     ]
     },
     {
      "id": "chest-object-2",
@@ -4009,7 +4503,10 @@
       "item": "vulnerary",
       "count": 3
      },
-     "sourceId": "0x08D6CCF0"
+     "sourceId": "0x08D6CCF0",
+     "hideIn": [
+      "story-6"
+     ]
     },
     {
      "id": "door-object-3",
@@ -4078,6 +4575,74 @@
      "hp": 24,
      "maxHp": 24,
      "label": "可破坏的墙"
+    },
+    {
+     "id": "story-chest-0",
+     "kind": "chest",
+     "pos": [
+      17,
+      19
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "ore",
+      "count": 4
+     },
+     "secret": {
+      "quest": "story-6"
+     }
+    },
+    {
+     "id": "story-chest-1",
+     "kind": "chest",
+     "pos": [
+      23,
+      12
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-6"
+     }
+    },
+    {
+     "id": "story-chest-2",
+     "kind": "chest",
+     "pos": [
+      18,
+      3
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 3
+     },
+     "secret": {
+      "quest": "story-6"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      11,
+      13
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_6",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-6"
+     }
     }
    ],
    "events": [
@@ -6286,7 +6851,10 @@
       "item": "restore",
       "count": 1
      },
-     "sourceId": "0x08A5CA64"
+     "sourceId": "0x08A5CA64",
+     "hideIn": [
+      "story-4"
+     ]
     },
     {
      "id": "door-object-4",
@@ -6433,7 +7001,10 @@
       "item": "silver_lance",
       "count": 1
      },
-     "sourceId": "0x08A5CB00"
+     "sourceId": "0x08A5CB00",
+     "hideIn": [
+      "story-4"
+     ]
     },
     {
      "id": "chest-object-18",
@@ -6448,7 +7019,10 @@
       "item": "fire",
       "count": 1
      },
-     "sourceId": "0x08A5CB18"
+     "sourceId": "0x08A5CB18",
+     "hideIn": [
+      "story-4"
+     ]
     },
     {
      "id": "chest-object-19",
@@ -6463,7 +7037,10 @@
       "item": "silver_bow",
       "count": 1
      },
-     "sourceId": "0x08A5CB24"
+     "sourceId": "0x08A5CB24",
+     "hideIn": [
+      "story-4"
+     ]
     },
     {
      "id": "chest-object-20",
@@ -6478,7 +7055,10 @@
       "item": "vulnerary",
       "count": 3
      },
-     "sourceId": "0x08A5CB30"
+     "sourceId": "0x08A5CB30",
+     "hideIn": [
+      "story-4"
+     ]
     },
     {
      "id": "door-object-21",
@@ -6613,6 +7193,108 @@
      "hp": 24,
      "maxHp": 24,
      "label": "可破坏的墙"
+    },
+    {
+     "id": "story-chest-0",
+     "kind": "chest",
+     "pos": [
+      27,
+      10
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "restore",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-4"
+     }
+    },
+    {
+     "id": "story-chest-1",
+     "kind": "chest",
+     "pos": [
+      14,
+      3
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_lance",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-4"
+     }
+    },
+    {
+     "id": "story-chest-2",
+     "kind": "chest",
+     "pos": [
+      14,
+      24
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "fire",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-4"
+     }
+    },
+    {
+     "id": "story-chest-3",
+     "kind": "chest",
+     "pos": [
+      20,
+      18
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-4"
+     }
+    },
+    {
+     "id": "story-chest-4",
+     "kind": "chest",
+     "pos": [
+      8,
+      21
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "vulnerary",
+      "count": 3
+     },
+     "secret": {
+      "quest": "story-4"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      2,
+      3
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_4",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-4"
+     }
     }
    ],
    "events": [
@@ -6755,7 +7437,10 @@
      "loot": {
       "item": "iron_bow",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-7"
+     ]
     },
     {
      "id": "village-17-6",
@@ -6769,7 +7454,10 @@
      "loot": {
       "item": "iron_sword",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-7"
+     ]
     },
     {
      "id": "village-5-13",
@@ -6783,7 +7471,10 @@
      "loot": {
       "item": "iron_lance",
       "count": 1
-     }
+     },
+     "hideIn": [
+      "story-7"
+     ]
     },
     {
      "id": "wall-51-13-4",
@@ -6819,6 +7510,74 @@
      "state": "idle",
      "label": "机关",
      "change": "lever-change-0"
+    },
+    {
+     "id": "story-village-0",
+     "kind": "village",
+     "pos": [
+      22,
+      18
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_bow",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-7"
+     }
+    },
+    {
+     "id": "story-village-1",
+     "kind": "village",
+     "pos": [
+      4,
+      20
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_sword",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-7"
+     }
+    },
+    {
+     "id": "story-village-2",
+     "kind": "village",
+     "pos": [
+      1,
+      10
+     ],
+     "state": "idle",
+     "label": "村庄",
+     "loot": {
+      "item": "iron_lance",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-7"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      3,
+      15
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_7",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-7"
+     }
     }
    ],
    "events": [
@@ -7022,7 +7781,10 @@
       "item": "silver_bow",
       "count": 1
      },
-     "sourceId": "0x08A5BBAC"
+     "sourceId": "0x08A5BBAC",
+     "hideIn": [
+      "story-3"
+     ]
     },
     {
      "id": "chest-object-2",
@@ -7037,7 +7799,10 @@
       "item": "goddess_icon",
       "count": 1
      },
-     "sourceId": "0x08A5BBB8"
+     "sourceId": "0x08A5BBB8",
+     "hideIn": [
+      "story-3"
+     ]
     },
     {
      "id": "chest-object-3",
@@ -7052,7 +7817,10 @@
       "item": "killer_axe",
       "count": 1
      },
-     "sourceId": "0x08A5BBC4"
+     "sourceId": "0x08A5BBC4",
+     "hideIn": [
+      "story-3"
+     ]
     },
     {
      "id": "door-object-4",
@@ -7100,7 +7868,10 @@
       "item": "talisman",
       "count": 1
      },
-     "sourceId": "0x08A5BBF4"
+     "sourceId": "0x08A5BBF4",
+     "hideIn": [
+      "story-3"
+     ]
     },
     {
      "id": "wall-44-3-3",
@@ -7136,6 +7907,91 @@
      "state": "idle",
      "label": "机关",
      "change": "lever-change-0"
+    },
+    {
+     "id": "story-chest-0",
+     "kind": "chest",
+     "pos": [
+      14,
+      7
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "silver_bow",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-3"
+     }
+    },
+    {
+     "id": "story-chest-1",
+     "kind": "chest",
+     "pos": [
+      20,
+      7
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "goddess_icon",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-3"
+     }
+    },
+    {
+     "id": "story-chest-2",
+     "kind": "chest",
+     "pos": [
+      1,
+      27
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "killer_axe",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-3"
+     }
+    },
+    {
+     "id": "story-chest-3",
+     "kind": "chest",
+     "pos": [
+      0,
+      10
+     ],
+     "state": "closed",
+     "label": "宝箱",
+     "loot": {
+      "item": "talisman",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-3"
+     }
+    },
+    {
+     "id": "story-clue",
+     "kind": "chest",
+     "pos": [
+      21,
+      11
+     ],
+     "state": "closed",
+     "label": "被遗落的箱子",
+     "loot": {
+      "item": "story_clue_3",
+      "count": 1
+     },
+     "secret": {
+      "quest": "story-3"
+     }
     }
    ],
    "events": [

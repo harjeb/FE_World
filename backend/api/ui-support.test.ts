@@ -40,6 +40,8 @@ test('story chapters show a title once open and what was learned once completed'
   assert.equal(one.available, true, 'the seeded day is past day 120');
   assert.equal(one.title, '盛会');
   assert.equal(one.learned, null, 'nothing is spoiled before the chapter is completed');
+  player.flags.questsDone = [...(player.flags.questsDone ?? []), 'story-1'];
+  store.savePlayer(player);
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
   const done = story().chapters[0];
   assert.equal(done.completed, true);

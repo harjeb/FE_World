@@ -2,6 +2,9 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v16';
+// v35: main story quests (story-1..8, region 0, chapter-gated), companion quests for the fixed region
+// recruits, eight story clue key items, and a festival discount on the capital monthly shop.
+// Story maps reuse classic adaptations with quest-scoped object overlays; existing battles are unchanged.
 // v34 / rules-v16: fixed cross-time dungeon, persisted group alerts and 17 personal traits.
 // Each probabilistic trait rolls once per exchange; forecasts expose weighted branches.
 // Recruitment and first-clear flags are account-wide; prior saves default to no unlocks.
@@ -58,7 +61,7 @@ export const RULESET_VERSION = 'rules-v16';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 34;
+export const CATALOG_VERSION = 35;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

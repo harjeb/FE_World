@@ -20,7 +20,7 @@ export interface ClassicAdaptation {
 
 interface RawObject {
   id: string; kind: BattleObject['kind']; pos: [number, number]; state: BattleObjectState;
-  hp?: number; maxHp?: number; label?: string; loot?: { item: string; count: number }; lootRoll?: 'rank_up'; secret?: { quest: string; loot?: { item: string; count: number } }; change?: string; sourceId?: string;
+  hp?: number; maxHp?: number; label?: string; loot?: { item: string; count: number }; lootRoll?: 'rank_up'; secret?: { quest: string; loot?: { item: string; count: number } }; hideIn?: string[]; change?: string; sourceId?: string;
 }
 interface RawAdaptation extends Omit<ClassicAdaptation, 'objects' | 'events' | 'mapChanges'> {
   objects: RawObject[];

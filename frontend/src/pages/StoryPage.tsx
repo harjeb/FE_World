@@ -7,6 +7,7 @@ import { LockIcon } from '../ui/icons.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
 import { ANNUAL_STATE } from '../arena/AnnualParts.tsx';
 import { useAct } from './SystemParts.tsx';
+import { StoryQuestPanel } from './StoryQuestPanel.tsx';
 
 type Phase = 'locked' | 'open' | 'done' | 'claimed';
 const phaseOf = (c: StoryChapter): Phase => (!c.available ? 'locked' : !c.completed ? 'open' : !c.claimed ? 'done' : 'claimed');
@@ -15,7 +16,7 @@ const PHASE_TAG: Record<Phase, [string, string]> = {
 };
 
 // 主线 · 八届大竞技场 (docs/00 §9.4.2): one chapter a year on the personal calendar. Rank, qualifiers and
-// regions never gate a chapter; completing its event and claiming its shared experience are separate,
+// regions never gate a chapter; each chapter's main quest (docs/38) completes it, and claiming its shared experience is separate,
 // and each reward key pays once (GET_STORY / COMPLETE_STORY_EVENT / CLAIM_REWARD).
 export function StoryPage() {
   const { story, state, annual } = useSession();
@@ -38,7 +39,7 @@ export function StoryPage() {
         <div>
           <div className="eyebrow">主线 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>八届大竞技场</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>每年开放一章。比赛名次、海选和地区进度都不会挡住章节；完成本章事件后，可以领一次团队公共经验 {story.bexp}。</p>
+          <p style={{ fontSize: 14, color: '#4E473D' }}>每年开放一章，时间到就开放，不看比赛名次、是否参赛或地区进度。打赢本章的主线任务就完成了本章，之后可以领一次团队公共经验 {story.bexp}。</p>
         </div>
         <div style={{ textAlign: 'right', fontSize: 13, color: '#4E473D' }}>
           已完成 <b className="num">{done}</b> / {chapters.length} 章 · 已领奖 <b className="num">{claimed}</b> 章
@@ -69,6 +70,7 @@ export function StoryPage() {
                     {c.event && <p className="ch-learned"><span className="tag tag-grey">事件</span>{c.event}</p>}
                     {c.learned && <p className="ch-learned"><span className="tag tag-grey">本章所得</span>{c.learned}</p>}
                     {(c.discoveries ?? []).length > 0 && <ul className="ch-disc">{c.discoveries!.map(d => <li key={d}>{d}</li>)}</ul>}
+                    {c.quest && <StoryQuestPanel quest={c.quest} />}
                     {c.finalBoss && (
                       <p className="ch-learned">
                         <span className={`tag ${c.finalBoss.defeated ? 'tag-green' : c.finalBoss.available ? 'tag-red' : 'tag-grey'}`}>最终首领</span>
@@ -77,10 +79,10 @@ export function StoryPage() {
                     )}
                   </div>
                   <div className="ch-acts">
-                    {phase === 'open' && (
+                    {phase === 'open' && c.quest?.done && (
                       <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null}
                         onClick={() => void act(`c${c.chapter}`, () => session.run(OP.COMPLETE_STORY_EVENT, { chapter: c.chapter }), () => `完成主线第 ${c.chapter} 章「${c.title}」`)}>
-                        {busy === `c${c.chapter}` ? '记录中…' : '完成本章事件'}
+                        {busy === `c${c.chapter}` ? '记录中…' : '记录本章完成'}
                       </button>
                     )}
                     {phase === 'done' && (
@@ -111,11 +113,28 @@ export function StoryPage() {
             </div>
           </section>
 
+          {(story.companions ?? []).length > 0 && (
+            <section className="panel" aria-labelledby="co-h">
+              <div className="ph"><h2 id="co-h">伙伴任务</h2><a className="btn btn-sm btn-ghost" href={links.quests}>地区任务 ›</a></div>
+              <ul className="sys-rules">
+                {story.companions!.map(co => (
+                  <li key={co.character}>
+                    <b>{co.name}</b>
+                    <span className={`tag ${co.done ? 'tag-brass' : co.recruited ? 'tag-blue' : 'tag-grey'}`} style={{ marginLeft: 6 }}>{co.done ? '已完成' : co.recruited ? '可接取' : '尚未加入'}</span>
+                    {co.recruited ? <> · {co.questName}{co.epilogue ? <><br /><span className="muted">{co.epilogue}</span></> : '（在地区任务里接取）'}</>
+                      : ' · 通过地区远征招募后解锁（阵亡不影响）'}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <section className="panel" aria-labelledby="sr-h">
             <div className="ph"><h2 id="sr-h">规则</h2></div>
             <ul className="sys-rules">
               <li>每章在新一年的第 1 日开放{next ? `；下一章（第 ${next.chapter} 章）在${plainDate(next.openDay)}开放` : '；八章都已开放'}。</li>
-              <li>完成章节与领取奖励分开：先完成本章事件，再领取团队公共经验。</li>
+              <li>打赢本章主线任务即完成本章事件；任务报酬与团队公共经验分开领取。</li>
+              <li>每张主线地图里藏着一只线索箱，取得的线索会补充背景，每个账号只能取得一次。</li>
               <li>每章的奖励只发一次，重复领取会被拒绝。</li>
               <li>公共经验在<a href={links.prep()}>整备</a>里分给角色，分配不推进日期。</li>
             </ul>

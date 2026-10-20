@@ -285,6 +285,68 @@ def apply_secrets(entry: dict) -> None:
                                             {'kind': 'scenario', 'message': '箱底的机关松动了，王座后方的石墙缓缓移开，露出一间密室。'}]})
 
 
+# 主线任务（docs/38）：八章各用一张经典图，把村庄和宝箱挪到别处，并加一个线索箱。
+# 改编只在对应任务里生效：原物件用 hideIn 在该任务里隐去，新物件用 secret.quest 限定在该任务里出现，
+# 其他场合（普通任务、副本、塔层）保持原样。位置由地图和固定哈希确定，重新生成结果不变。
+STORY_MAPS = {
+    'story-1': 'fe6-ch14-main', 'story-2': 'fe7-ch19-eliwood', 'story-3': 'fe8-ch16-eirika', 'story-4': 'fe8-ch14-ephraim',
+    'story-5': 'fe6-ch20-ilia', 'story-6': 'fe7-ch25-eliwood-kenneth', 'story-7': 'fe8-ch15-eirika', 'story-8': 'fe6-ch21-main',
+}
+WALKABLE = {'plain', 'floor', 'forest', 'road', 'village', 'fort'}
+ADJ = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+
+def hashed(*parts: object) -> int:
+    return int.from_bytes(hashlib.sha256(':'.join(str(p) for p in parts).encode()).digest()[:6], 'big')
+
+
+def apply_story(entry: dict, map_data: dict, quest: str, chapter: int) -> None:
+    width, height, terrain = map_data['width'], map_data['height'], map_data['terrain']
+    keep = [o for o in entry['objects'] if o['kind'] not in ('village', 'chest')]
+    moved = [o for o in entry['objects'] if o['kind'] in ('village', 'chest') and 'secret' not in o]
+    occupied = {key(o['pos']) for o in entry['objects']} | {key(p) for p in map_data['playerSpawns']} | {key(e['pos']) for e in map_data['enemies']}
+    if map_data['goal'].get('kind') == 'seize':
+        occupied.add(key(map_data['goal']['position']))
+    blocked = {key(o['pos']) for o in keep if o['kind'] == 'wall'}
+    dist: dict[tuple[int, int], int] = {}
+    queue = []
+    for p in map_data['playerSpawns']:
+        dist[key(p)] = 0
+        queue.append(key(p))
+    for x, y in queue:
+        for dx, dy in ADJ:
+            n = (x + dx, y + dy)
+            if n in dist or n in blocked or not (0 <= n[0] < width and 0 <= n[1] < height) or terrain[n[1]][n[0]] not in WALKABLE | {'throne'}:
+                continue
+            dist[n] = dist[(x, y)] + 1
+            queue.append(n)
+    cells = [c for c in dist if terrain[c[1]][c[0]] in WALKABLE and c not in occupied]
+    far = sorted(dist[c] for c in cells)
+    taken: list[tuple[int, int]] = []
+
+    def pick(kind: str, index: int, low: int, high: int) -> tuple[int, int]:
+        for spacing in (4, 3, 2, 1):
+            options = [c for c in cells if low <= dist[c] <= high and c not in taken
+                       and all(abs(c[0] - t[0]) + abs(c[1] - t[1]) >= spacing for t in taken)]
+            if options:
+                choice = min(options, key=lambda c: hashed(map_data['id'], kind, index, c[0], c[1]))
+                taken.append(choice)
+                return choice
+        raise SystemExit(f'{map_data["id"]}: no cell for {kind} {index}')
+
+    new_objects = []
+    for index, original in enumerate(moved):
+        original['hideIn'] = [*original.get('hideIn', []), quest]
+        deep = original['kind'] == 'chest'
+        x, y = pick(original['kind'], index, 8 if deep else 5, 999 if deep else 22)
+        new_objects.append({'id': f'story-{original["kind"]}-{index}', 'kind': original['kind'], 'pos': [x, y], 'state': original['state'],
+                            'label': original.get('label', '宝箱' if deep else '村庄'), 'loot': original['loot'], 'secret': {'quest': quest}})
+    x, y = pick('clue', 0, far[len(far) * 3 // 4] if far else 0, 999)
+    new_objects.append({'id': 'story-clue', 'kind': 'chest', 'pos': [x, y], 'state': 'closed', 'label': '被遗落的箱子',
+                        'loot': {'item': f'story_clue_{chapter}', 'count': 1}, 'secret': {'quest': quest}})
+    entry['objects'].extend(new_objects)
+
+
 def build() -> dict:
     catalog = load_json(CATALOG)
     by_game: dict[str, list[dict]] = {}
@@ -374,8 +436,12 @@ def build() -> dict:
             'release': {'status': 'accepted',
                         'checks': ['terrain', 'spawns', 'enemies', 'goal', 'objects', 'reachability', 'loot', 'events', 'special-mechanisms', 'loot-settlement']},
         })
+    catalog_by_id = {m['id']: m for m in catalog['maps']}
     for entry in out:
         apply_secrets(entry)
+        for quest, map_id in STORY_MAPS.items():
+            if entry['mapId'] == map_id:
+                apply_story(entry, catalog_by_id[map_id], quest, int(quest.split('-')[1]))
     return {'format': 'agent-tactics.classic-adaptations', 'schemaVersion': 1, 'count': len(out), 'maps': out}
 
 

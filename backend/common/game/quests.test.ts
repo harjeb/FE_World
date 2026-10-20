@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ALL_QUESTS, BASE_QUESTS, QUEST_DAY_COST, QUEST_REGIONS, QUESTS, questAvailable, questById, questsForRegion } from './quests.ts';
+import { ALL_QUESTS, BASE_QUESTS, QUEST_DAY_COST, QUEST_REGIONS, QUESTS, questAvailable, questById, questsForRegion, recruitedCharacters } from './quests.ts';
 import { REPUTATION_TIERS, reputationTier } from './reputation.ts';
 import { regionShop } from './quest-shop.ts';
 
@@ -82,7 +82,7 @@ test('every regional quest chain can be finished without a reputation deadlock',
     let reputation = 0, progressed = true;
     while (progressed) {
       progressed = false;
-      for (const quest of quests) if (questAvailable(quest, { done, reputation })) { done.add(quest.id); reputation += quest.reward.reputation; progressed = true; }
+      for (const quest of quests) if (questAvailable(quest, { done, reputation, recruited: recruitedCharacters(done) })) { done.add(quest.id); reputation += quest.reward.reputation; progressed = true; }
     }
     assert.deepEqual(quests.filter(quest => !done.has(quest.id)).map(quest => quest.id), [], `region ${region}`);
   }

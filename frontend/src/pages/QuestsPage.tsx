@@ -231,6 +231,7 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
                   <span className="serif">{q.name}</span>
                   <span className={`tag ${tag}`}>{label}</span>
                   <span className="tag tag-grey">{TIER_TEXT[q.tier]}</span>
+                  {q.companion && <span className="tag tag-brass">伙伴任务</span>}
                 </div>
                 <div className="ch-sub">
                   {q.classic ? `经典 · ${q.classic.mapName}${q.classic.stageCount > 1 ? ` · ${q.classic.stageCount} 图连战` : ''}${q.classic.adapted ? ' · 经适配' : ''} · ` : ''}
@@ -239,6 +240,7 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
                 <p className="ch-learned"><span className="tag tag-grey">奖励</span>{rewardText(q)}</p>
                 {!isCrossTime(q) && q.firstClearRewards && <p className="ch-learned" aria-label="首通奖励"><span className="tag tag-grey">普通首通奖励</span><FirstClearLoot reward={q.firstClearRewards.normal} /></p>}
                 {isCrossTime(q) && <p className="ch-sub">全账号通用 · 胜利自动发奖 · 不增加探索度或声望{q.done && <> · <a href={`${links.tavern}?panel=cross-time`}>前往跨时空兑换</a></>}</p>}
+                {q.companion && q.epilogue && <p className="ch-learned"><span className="tag tag-grey">后记</span>{q.epilogue}</p>}
                 {q.archived && <p className="ch-sub">已归档，仅保留进行中任务与待领取奖励，不能再次出征。</p>}
                 {phase === 'locked' && q.requires && (
                   <p className="ch-sub ch-req"><LockIcon /> 需要{q.requires.quest ? `先完成「${questName(q.requires.quest)}」` : ''}{q.requires.quest && q.requires.reputation ? '、' : ''}{q.requires.reputation ? `声望 ${q.requires.reputation}` : ''}</p>

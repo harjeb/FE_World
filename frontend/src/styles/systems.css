@@ -47,6 +47,8 @@
 .ch-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 17px; font-weight: 700; }
 .ch-sub { font-size: 13px; color: var(--color-ink-2); margin-top: 2px; }
 .ch-learned { display: flex; gap: 8px; align-items: baseline; margin-top: 6px; font-size: 13px; line-height: 1.6; }
+.ch-quest { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--color-line); }
+.ch-quest .ch-acts { margin-top: 8px; display: flex; gap: 8px; }
 .ch-acts { display: flex; gap: 6px; }
 
 /* 生产 */
