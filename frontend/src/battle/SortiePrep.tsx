@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { EncounterPreview, EncounterSummary } from './EncounterPreview.tsx';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
-import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { UnitFace } from '../pages/SystemParts.tsx';
 import { session, useSession } from '../api/session.ts';
 import type { ActionQuote } from '../api/session.ts';
@@ -113,7 +112,6 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
           <FieldTabs current="field" />
           <section className="panel" style={{ padding: 16 }}>
             <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
-            <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>先在世界地图上选择一条讨伐路线，开通后即可出击。</p>
             <a className="btn btn-primary" href={links.world}>打开世界地图</a>
           </section>
         </div>
@@ -137,7 +135,6 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
           <div>
             <div className="eyebrow">出击 · 野外遭遇战</div>
             <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>出征准备</h1>
-            <p style={{ fontSize: 14, color: '#4E473D' }}>选好地区和队伍再确认。确认后立即推进 {sortie.costDays} 日并开战，撤退或战败也不退回日期。</p>
           </div>
           <div style={{ fontSize: 13, color: '#4E473D' }}>今天 <b>{dateLabel(today.day)}</b></div>
         </div>
@@ -158,7 +155,6 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
               ))}
             </div>
             {exploration && <div style={{ padding: '0 16px 12px' }}><RegionExploration region={exploration} /></div>}
-            <p className="pfoot">每次野外获胜 +{REGION_EXPLORATION_GAIN.field} 探索度，失败或撤退不增加；探索满后可在<a href={links.world}>世界地图</a>开通相邻新路线。敌军按出发日期成长，同一场战斗内等级不变。</p>
           </section>
 
           <section className="panel" aria-labelledby="tm-h">

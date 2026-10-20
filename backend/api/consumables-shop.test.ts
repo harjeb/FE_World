@@ -23,12 +23,12 @@ const shop = (ctx: Context) => (dispatch(ctx, OP.GET_SHOP, {}) as { items: Row[]
 
 test('the capital shop sells the elixir and the antidote at their catalogue prices with limited stock', t => {
   const ctx = setup(t);
-  assert.deepEqual(SHOP_STOCK.filter(row => row.item === 'elixir' || row.item === 'antidote'), [{ item: 'antidote', stock: 6 }, { item: 'elixir', stock: 2 }]);
+  assert.deepEqual(SHOP_STOCK.filter(row => row.item === 'elixir' || row.item === 'antidote'), [{ item: 'antidote', stock: 3 }, { item: 'elixir', stock: 2 }]);
   assert.ok(isCentralShopItem('elixir') && isCentralShopItem('antidote'));
   const rows = shop(ctx);
   const elixir = rows.find(r => r.item === 'elixir')!, antidote = rows.find(r => r.item === 'antidote')!;
   assert.deepEqual([elixir.basePrice, elixir.stock, elixir.kind], [GAME_ITEMS.elixir.price, 2, 'consumable']);
-  assert.deepEqual([antidote.basePrice, antidote.stock, antidote.kind], [GAME_ITEMS.antidote.price, 6, 'consumable']);
+  assert.deepEqual([antidote.basePrice, antidote.stock, antidote.kind], [GAME_ITEMS.antidote.price, 3, 'consumable']);
 
   ctx.player.gold = 100_000;
   ctx.store.savePlayer(ctx.player);
@@ -42,15 +42,15 @@ test('the capital shop sells the elixir and the antidote at their catalogue pric
 
 test('an existing save gains the new consumables without losing what it already spent', t => {
   const ctx = setup(t);
-  // Simulate an old save: the two new rows are missing and a potion has been bought down to 4.
+  // Simulate an old save: the two new rows are missing and a potion has been bought down to 1.
   ctx.store.db.prepare("DELETE FROM shop WHERE player_id = ? AND item IN ('elixir', 'antidote')").run(ctx.player.id);
-  ctx.store.setShopStock(ctx.player.id, 'vulnerary', 4);
+  ctx.store.setShopStock(ctx.player.id, 'vulnerary', 1);
   assert.ok(!ctx.store.shop(ctx.player.id).some(r => r.item === 'elixir'));
   ctx.store.ensureShopRows(ctx.player.id);
   const rows = ctx.store.shop(ctx.player.id);
   assert.equal(rows.find(r => r.item === 'elixir')!.stock, 2);
-  assert.equal(rows.find(r => r.item === 'antidote')!.stock, 6);
-  assert.equal(rows.find(r => r.item === 'vulnerary')!.stock, 4, 'spent stock is not refilled');
+  assert.equal(rows.find(r => r.item === 'antidote')!.stock, 3);
+  assert.equal(rows.find(r => r.item === 'vulnerary')!.stock, 1, 'spent stock is not refilled');
 });
 
 test('advanced capital shop items open by year; basics are there from the start', t => {

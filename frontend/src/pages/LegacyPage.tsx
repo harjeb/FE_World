@@ -55,7 +55,6 @@ export function LegacyPage() {
         <div>
           <div className="eyebrow">传承 · {dateLabel(state.day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>遗产与纪念</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>达到 {legacies?.minLevel ?? 15} 级的普通角色战死、寿终或退役时，会留下一份遗产，可以交给一名 1 级新角色。传承只有一代：接受过遗产的人不能再传下去。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>
           可兑现 <b className="num">{available.length}</b> 份 · 已兑现 <b className="num">{list.length - available.length}</b> 份
@@ -66,7 +65,7 @@ export function LegacyPage() {
       <div className="sys-cols">
         <div className="colstack">
           <section className="panel" aria-labelledby="lg-h">
-            <div className="ph"><h2 id="lg-h">遗产</h2><span style={{ fontSize: 12, color: '#6A6256' }}>来源在死亡或退役时冻结，装备回到仓库</span></div>
+            <div className="ph"><h2 id="lg-h">遗产</h2></div>
             <ul className="legacies">
               {list.map(l => {
                 const source = unitOf(l.sourceUnitId);
@@ -96,12 +95,12 @@ export function LegacyPage() {
           {selected ? <ClaimPanel key={selected.id} legacy={selected} /> : (
             <section className="panel" aria-labelledby="cl-h">
               <div className="ph"><h2 id="cl-h">兑现遗产</h2></div>
-              <p className="sys-note">没有可兑现的遗产。角色可以在<a href={links.roster()}>名册</a>的「退役与轮回」里正常退役。</p>
+              <p className="sys-note">没有可兑现的遗产。</p>
             </section>
           )}
           <section className="panel" aria-labelledby="emg-h">
             <div className="ph"><h2 id="emg-h">严重损失</h2></div>
-            <p className="sys-note">真实伤亡让现役存活降到 {memorial?.emergency.threshold ?? 2} 人及以下时，可以在{state.features?.tavern ? <a href={links.tavern}>酒馆</a> : '酒馆'}免费补员 {memorial?.emergency.units ?? 2} 人{memorial ? `（现在：${memorial.emergency.available ? '可以领取' : memorial.emergency.blocker ?? '未开放'}）` : ''}。</p>
+            <p className="sys-note">现役存活 {memorial?.emergency.survivors ?? '—'} 人{memorial ? ` · ${memorial.emergency.available ? '可以领取' : memorial.emergency.blocker ?? '未开放'}` : ''}。</p>
           </section>
         </div>
       </div>
@@ -131,7 +130,7 @@ function ClaimPanel({ legacy }: { legacy: ServerLegacy }) {
 
   return (
     <section className="panel" aria-labelledby="cl-h">
-      <div className="ph"><h2 id="cl-h">兑现 {legacy.sourceName} 的遗产</h2><span style={{ fontSize: 12, color: '#6A6256' }}>每人一生只能接受一次</span></div>
+      <div className="ph"><h2 id="cl-h">兑现 {legacy.sourceName} 的遗产</h2></div>
       <div className="claim">
         {heirs.length > 0 && (
           <label className="field">继承者
@@ -202,7 +201,6 @@ function ClaimPanel({ legacy }: { legacy: ServerLegacy }) {
               </table>
             </div>
             <div className="weights" aria-label="补点权重">
-              <span className="muted">补点权重：数字越大分得越多，0 表示这一项不补（全部补满后才会动用权重 0 的属性）</span>
               {STAT_KEYS.map(k => (
                 <label key={k}>{STAT_NAMES[k]}
                   <input type="number" min={0} max={9} value={weights[k]} onChange={e => setWeights(w => ({ ...w, [k]: Math.max(0, Math.min(9, Math.floor(Number(e.target.value)) || 0)) }))} />
@@ -253,7 +251,7 @@ function MemorialPanel({ memorials }: { memorials: ServerMemorial[] | null }) {
                   <dt>身份</dt><dd>{m.origin ? ORIGIN_TEXT[m.origin] : '—'}{m.joinedDay !== null ? ` · ${plainDate(m.joinedDay)}加入` : ''}{m.cycle ? ' · 已轮回' : ''}</dd>
                   <dt>经过</dt><dd>{m.cause === 'death' ? (m.battle ? <>在「{m.battle.name}」第 {m.battle.turn} 回合倒下（{m.battle.reason ?? '战斗结束'}）{m.battle.id && <> · <a href={links.replay(m.battle.id)}>战报</a></>}</> : '战死') : m.cause === 'age' ? '自然寿终' : '正常退役'}</dd>
                   <dt>最终状态</dt><dd>{m.className} Lv {m.level} · 属性总和 {total(m.stats)}<div className="muted" style={{ fontSize: 12 }}>{statLine(m.stats)}</div></dd>
-                  <dt>参战记录</dt><dd>{m.record.battles > 0 ? `出场 ${m.record.battles} 场、胜 ${m.record.wins} 场、击败 ${m.record.kills} 名敌人` : '没有保存的战报'}<span className="muted">（按已保存的战报统计）</span></dd>
+                  <dt>参战记录</dt><dd>{m.record.battles > 0 ? `出场 ${m.record.battles} 场、胜 ${m.record.wins} 场、击败 ${m.record.kills} 名敌人` : '没有保存的战报'}</dd>
                   <dt>传承关系</dt><dd>{m.legacy ? (m.legacy.state === 'claimed' ? `留下的遗产由${m.legacy.recipientName ?? '继承者'}以${m.legacy.mode ? MODE_NAME[m.legacy.mode] : ''}兑现` : '留下的遗产尚未兑现') : m.lineageDepth > 0 ? '接受过遗产，不能再传' : '没有留下遗产'}{m.inherited ? `；本人曾以${m.inherited.mode ? MODE_NAME[m.inherited.mode] : ''}接受${m.inherited.sourceName}的遗产` : ''}</dd>
                 </dl>
               )}

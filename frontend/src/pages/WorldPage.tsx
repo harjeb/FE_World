@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { REGION_EXPLORATION_GAIN, REGION_EXPLORATION_MAX } from '@common/game/region-map.ts';
+import { REGION_EXPLORATION_MAX } from '@common/game/region-map.ts';
 import type { WorldMapNode } from '@common/game/region-map.ts';
 import { session, useSession } from '../api/session.ts';
 import { featuresOf } from '../model/access.ts';
@@ -7,7 +7,6 @@ import { go, links } from '../router.ts';
 import { PixelWorldMap } from '../world/PixelWorldMap.tsx';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel } from '../ui/calendar.ts';
-import { CompassIcon } from '../ui/icons.tsx';
 import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { toast } from '../ui/toast.tsx';
 
@@ -53,7 +52,6 @@ export function WorldPage() {
         <div>
           <div className="eyebrow">世界地图 · {state ? dateLabel(state.day) : ''}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>十二地区讨伐路线</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>从王都出发，四条干线通向第一环；地区探索度满 {REGION_EXPLORATION_MAX} 后，与它相连的新路线才开放选择。开通路线不消耗行动日。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>
           探索完成 <b className="num">{counts.explored}</b> · 已开通 <b className="num">{counts.unlocked}</b> · 可选路线 <b className="num">{counts.available}</b>
@@ -69,7 +67,7 @@ export function WorldPage() {
       {world && (
         <div className="world-cols">
           <section className="panel" aria-labelledby="wm-h">
-            <div className="ph"><h2 id="wm-h">地图</h2><span style={{ fontSize: 12, color: '#6A6256' }}>拖动平移、滚轮缩放；点地标选择，双击已开通地区进入</span></div>
+            <div className="ph"><h2 id="wm-h">地图</h2></div>
             <div className="world-map pixel" role="group" aria-label="世界地图">
               <PixelWorldMap world={world} picked={picked} onPick={setPicked}
                 onEnter={id => go(features.quests ? `${links.quests}?region=${id}` : links.world)} />
@@ -107,21 +105,8 @@ export function WorldPage() {
             {node ? <NodeDetails node={node} busy={busy} onChoose={() => void choose(node.id)} features={features} /> : (
               <section className="panel">
                 <div className="ph"><h2>选择一个地区</h2></div>
-                <p style={{ padding: '12px 16px', fontSize: 14, color: '#4E473D' }}>
-                  点地图上的地区查看详情。<CompassIcon />可选路线（铜色）现在就能开通；已开通地区可以直达任务与出击。
-                </p>
               </section>
             )}
-            <section className="panel" aria-labelledby="wr-h">
-              <div className="ph"><h2 id="wr-h">路线规则</h2></div>
-              <ul className="sys-rules">
-                <li>王都向四方各通向一个第一环地区；内环与中环道路把相邻地区连起来。</li>
-                <li>野外获胜增加 {REGION_EXPLORATION_GAIN.field} 探索度；单图任务完成增加 {REGION_EXPLORATION_GAIN.quest}；各副本（含多图任务）首次完整通关增加 {REGION_EXPLORATION_GAIN.dungeon}。</li>
-                <li>探索度满 {REGION_EXPLORATION_MAX} 才能选择相邻新路线；副本重复通关、中间关卡、失败、撤退、扫荡和后台派遣不增加探索度。</li>
-                <li>选择路线立即开通该地区的出击与任务，派遣在首次讨伐后开放。</li>
-                <li>远处的地区在相连路线开通前不可选择、不可提交。</li>
-              </ul>
-            </section>
           </div>
         </div>
       )}
@@ -139,21 +124,9 @@ function NodeDetails({ node, busy, onChoose, features }: {
       <div className="ph"><h2 id="wd-h">{node.name}</h2><span className={`tag ${STATE_TEXT[node.state][1]}`}>{label}</span></div>
       <dl className="facts" style={{ padding: '4px 16px 8px' }}>
         <dt>特产</dt><dd>{node.resource}</dd>
-        {open ? (
-          <>
-            <dt>状态</dt><dd>{node.state === 'cleared' ? '已讨伐：扫荡与游历照常；继续完成任务或野外战斗，探索满后开放相邻新路线。' : '已开通：可以在此出击、做地区任务；首次讨伐后开放派遣。'}</dd>
-          </>
-        ) : (
-          <>
-            <dt>路线</dt><dd>{node.state === 'available' ? '选择后立即开通，不消耗行动日。' : '尚未开通：先将相连已开通地区的探索度提升至 100。'}</dd>
-          </>
-        )}
       </dl>
       {open && <div style={{ padding: '0 16px 14px' }}>
         <RegionExploration region={node} />
-        <p style={{ fontSize: 12, color: '#6A6256', marginTop: 6 }}>{node.exploration >= REGION_EXPLORATION_MAX
-          ? '探索完成，可以在地图上选择相邻新路线。'
-          : `野外获胜 +${REGION_EXPLORATION_GAIN.field}，单图任务完成 +${REGION_EXPLORATION_GAIN.quest}，各副本首通 +${REGION_EXPLORATION_GAIN.dungeon}；满 ${REGION_EXPLORATION_MAX} 开放相邻新路线。`}</p>
       </div>}
       <div className="go-bar" style={{ padding: '0 16px 14px' }}>
         {node.state === 'available' && (
@@ -169,7 +142,6 @@ function NodeDetails({ node, busy, onChoose, features }: {
             {features.dispatch && <a className="btn btn-sm" href={`${links.dispatch}?region=${node.id}`}>派遣</a>}
           </>
         )}
-        {node.state === 'locked' && <span style={{ fontSize: 13, color: '#6A6256' }}>先将相连地区探索度提升至 100，路线开放后才能选择。</span>}
       </div>
     </section>
   );

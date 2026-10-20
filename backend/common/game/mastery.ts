@@ -12,9 +12,9 @@ import type { UnitRecord } from './model.ts';
 
 export const SKILL_SLOTS = 5;
 // 有效参战与职业训练的进度；投降、空图或零日不产生（由调用方只对有效来源入账）。
-export const MASTERY_PER_BATTLE = 8;
-export const MASTERY_PER_WIN = 4;
-export const MASTERY_PER_TRAIN_DAY = 3;
+export const MASTERY_PER_BATTLE = 4;
+export const MASTERY_PER_WIN = 2;
+export const MASTERY_PER_TRAIN_DAY = 1.5;
 export const MASTERY_TRAIN_MAX_DAYS = 30;
 
 export interface MasteryNode { id: string; threshold: number; skill?: SkillId; art?: string; name: string; referenceIds?: string[] }
@@ -45,6 +45,7 @@ const NODE_NAMES = Object.fromEntries(Object.entries(SKILLS).map(([id, skill]) =
 export const MASTERY_NODES: Record<CatalogClassId, MasteryNode[]> = Object.fromEntries(
   CATALOG_CLASS_IDS.map(classId => {
     const cls = CLASSES[classId];
+    if (cls.stage <= 1) return [classId, []];
     const pool = ROUTE_SKILLS[cls.route];
     const [first, second] = STAGE_THRESHOLDS[cls.stage] ?? STAGE_THRESHOLDS[1];
     const references = CLASS_ABILITY_BY_ID.get(classId as never)?.masteryIds ?? [];
@@ -77,6 +78,7 @@ export function unlockedNodes(unit: UnitRecord, classId: ClassId = unit.classId)
 export function gainMastery(unit: UnitRecord, amount: number, classId: ClassId = unit.classId): MasteryNode[] {
   if (!Number.isFinite(amount) || amount < 0) return [];
   classId = canonicalClassId(classId);
+  if (CLASSES[classId].stage <= 1) return [];
   unit.classMastery ??= {};
   unit.learningProgress ??= {};
   unit.learnedSkills ??= [];

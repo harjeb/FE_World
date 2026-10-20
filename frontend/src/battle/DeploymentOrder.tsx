@@ -11,8 +11,6 @@ export function DeploymentOrder({ units, busy, onChange }: {
   };
   return <section className="panel" aria-label="部署顺序" style={{ padding: 16, minWidth: 0 }}>
     <h2>部署顺序</h2>
-    <p>按此顺序部署，分队图按预览分组；第一名为主将</p>
-    <p className="muted">排序保存在当前浏览器</p>
     <ol style={{ listStyle: 'none', padding: 0, margin: '12px 0 0' }}>
       {units.map((unit, index) => <li key={unit.id} data-unit-id={unit.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
         <UnitFace unit={unit} order={index + 1} />

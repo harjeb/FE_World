@@ -31,3 +31,23 @@ test('purchase rejects atomically; old qualifications cannot bypass switch or di
   dispatch(ctx, OP.START_DISPATCH, { unitIds: [unit.id], region: 1, durationDays: 2, classId: unit.classId, weaponType: 'sword' });
   assert.ok(store.unit(player.id, unit.id)!.lockedDispatchId);
 });
+
+test('PROMOTE accepts a different human route only after the target weapon rank is met', t => {
+  const store = new Store(openDb(':memory:'));
+  t.after(() => store.db.close());
+  const { accountId, player } = loginOrRegister(store, 'cross-route-promotion');
+  seedFullRoster(store, player);
+  const ctx: Context = { store, accountId, player, agentModel: null, push() {} };
+  const unit = store.unit(player.id, 'u_erin')!;
+  unit.classQualifications = ['archer'];
+  unit.ranks = { sword: 'C', bow: 'D' };
+  store.saveUnit(unit, player.id);
+  assert.throws(() => dispatch(ctx, OP.PROMOTE, { unitId: unit.id, promotion: 'archer' }), /熟练度/);
+  unit.ranks.bow = 'C';
+  store.saveUnit(unit, player.id);
+  dispatch(ctx, OP.PROMOTE, { unitId: unit.id, promotion: 'archer' });
+  const changed = store.unit(player.id, unit.id)!;
+  assert.equal(changed.classId, 'archer');
+  assert.deepEqual(changed.stats, unit.stats);
+  assert.equal(changed.level, unit.level);
+});

@@ -1,5 +1,5 @@
 {
-  "docVersion": 33,
+  "docVersion": 34,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -288,16 +288,33 @@
       "op": 33,
       "name": "TRAIN",
       "group": "日历",
-      "agentNote": "训练一个单位，补武器熟练度；消耗金币或教材并推进日期。",
+      "agentNote": "按unitIds和groupId分组训练；第1/2/3/4年起最多1/3/5/8人，此后不变。agility=剑/弓/拳，power=斧/枪/兽，mystic=拳/杖/理/龙；每人200金币，共推进3日，组内每种武器各获3点经验，不要求携带或职业武器权限，不发角色经验/精通。返回units逐人的各武器前后经验/等级；保留旧unitId/weaponType单项兼容。",
       "push": false,
       "dataSchema": {
         "type": "object",
-        "required": [
-          "unitId"
-        ],
         "properties": {
+          "unitIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "uniqueItems": true,
+            "description": "训练名单：第1/2/3/4年起上限为1/3/5/8人，此后不变。与groupId一起传入。"
+          },
+          "groupId": {
+            "type": "string",
+            "enum": [
+              "agility",
+              "power",
+              "mystic"
+            ],
+            "description": "agility=剑/弓/拳；power=斧/枪/兽；mystic=拳/杖/理/龙。组内所有武器各获经验，不要求当前携带或职业权限。"
+          },
           "unitId": {
-            "type": "string"
+            "type": "string",
+            "description": "旧客户端单人训练兼容参数；与unitIds互斥。"
           },
           "weaponType": {
             "type": "string"
@@ -427,6 +444,14 @@
             "items": {
               "type": "string"
             }
+          },
+          "groupId": {
+            "type": "string",
+            "enum": [
+              "agility",
+              "power",
+              "mystic"
+            ]
           },
           "aiDifficulty": {
             "type": "string",

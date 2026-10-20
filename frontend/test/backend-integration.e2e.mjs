@@ -650,11 +650,11 @@ try {
       return page.evaluate(`[...document.querySelectorAll('.ability .ab-cell')].find(c => c.querySelector('.ab-k')?.innerText === '力')?.querySelector('.ab-v')?.innerText.trim()`);
     };
     const originalValue = await rowValue();
-    check('duplicate templates keep the first instance growth', originalValue === `${original.totalGrowth.str}%`, `first ${originalValue} vs ${original.totalGrowth.str}%`);
+    check('duplicate templates keep the first instance growth', originalValue === `${original.totalGrowth.str}`, `first ${originalValue} vs ${original.totalGrowth.str}`);
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen_twin`, '#ab-h');
     const twin = await api(page, 21, { unitId: 'u_owen_twin' });
     const twinValue = await rowValue();
-    check('duplicate templates keep the second instance growth', twinValue === `${twin.totalGrowth.str}%` && twinValue !== originalValue, `second ${twinValue} vs ${twin.totalGrowth.str}%`);
+    check('duplicate templates keep the second instance growth', twinValue === `${twin.totalGrowth.str}` && twinValue !== originalValue, `second ${twinValue} vs ${twin.totalGrowth.str}`);
     const keyboardPlan = (await api(page, 30)).sortieRegions.find(r => r.id === 1).encounters.normal;
     const keyboardParty = (await api(page, 10)).units.filter(u => u.status === 'active').slice(0, Math.min(6, keyboardPlan.maxUnits)).map(u => u.id);
     const keyboardBattle = await api(page, 31, { region: 1, unitIds: keyboardParty });

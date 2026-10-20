@@ -41,7 +41,7 @@ function Idle({ message, showReports = false }: { message: string; showReports?:
       <header className="hud" aria-label="观战状态栏">
         <a className="btn btn-sm btn-dark" href={links.camp}><BackIcon />返回军营</a>
         <span className="live-badge off"><i aria-hidden="true" />实时观战</span>
-        <span className="ml-auto" style={{ fontSize: 13, color: '#DCE5EB' }}>只读：观战不会改变战局</span>
+        <span className="ml-auto" style={{ fontSize: 13, color: '#DCE5EB' }}>只读</span>
       </header>
       <main className="stage">
         <section className="panel" style={{ margin: 24, maxWidth: 720, alignSelf: 'start' }}>
@@ -49,7 +49,7 @@ function Idle({ message, showReports = false }: { message: string; showReports?:
           <p className="sys-note">{message}</p>
           {data && data.replays.length > 0 && (
             <>
-              <div className="grp">最近的战报（历史回放，不是实时）</div>
+              <div className="grp">最近的战报</div>
               <ul className="lr">
                 {data.replays.map(r => <li key={r.id}><span>{r.name} · {r.winner === 'player' ? '胜利' : '失败'} · {r.turns} 回合</span><a className="btn btn-sm" href={links.replay(r.id)}><HistoryIcon />回放</a></li>)}
               </ul>
@@ -158,7 +158,7 @@ function LiveView({ first }: { first: ServerBattleView }) {
           {ended && (
             <section className="panel watch-end" aria-label="战斗结果">
               <b style={{ fontSize: 16 }}>{view.result!.winner === 'player' ? '我方胜利' : '我方失败'} · {view.result!.reason}</b>
-              <span>战斗已结束，结算已写入名册；可以在战报里逐步回看。</span>
+              <span>战斗已结束，结算已写入名册。</span>
             </section>
           )}
           <section className="panel" aria-labelledby="ai-h">

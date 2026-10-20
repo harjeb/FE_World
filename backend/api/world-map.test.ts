@@ -288,7 +288,7 @@ test('the central shop only sells current stock; retired rows are hidden and rej
   const shop = dispatch(ctx, OP.GET_SHOP, {}) as { items: { item: string; stock: number }[] };
   const byItem = new Map(shop.items.map(row => [row.item, row.stock]));
   assert.equal(byItem.has('killer_bow'), false, '已迁往地区声望商店的武器不再出现在王都商店');
-  assert.equal(byItem.get('fw_weapon_1'), 8, '新增的 E 级基础装备行被补插');
+  assert.equal(byItem.get('fw_weapon_1'), 3, '新增的 E 级基础装备行被补插');
   assert.equal(byItem.get('vulnerary'), 0, '已消耗的库存不被重置');
   assert.throws(() => dispatch(ctx, OP.BUY, { item: 'killer_bow' }), /王都|地区/, '旧 SQLite 行残留也不能绕过商店迁移');
   const goldBefore = ctx.player.gold;

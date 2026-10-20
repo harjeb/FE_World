@@ -28,11 +28,11 @@ export const OP_SCHEMAS: Record<string, OpSchema> = {
   GET_TAVERN: { properties: { region: number } },
   BUY: { required: ['item'], properties: { item: string, count: number } },
   SWEEP: { required: ['region'], properties: { region: number, times: number } },
-  TRAIN: { required: ['unitId'], properties: { unitId: string, weaponType: string } },
+  TRAIN: { properties: { unitIds: { ...strings, minItems: 1, maxItems: 8, uniqueItems: true, description: '训练名单：第1/2/3/4年起上限为1/3/5/8人，此后不变。与groupId一起传入。' }, groupId: { type: 'string', enum: ['agility', 'power', 'mystic'], description: 'agility=剑/弓/拳；power=斧/枪/兽；mystic=拳/杖/理/龙。组内所有武器各获经验，不要求当前携带或职业权限。' }, unitId: { ...string, description: '旧客户端单人训练兼容参数；与unitIds互斥。' }, weaponType: string } },
   REST: { properties: { days: number } },
   PREVIEW_ACTION: { required: ['action'], properties: {
     action: { type: 'string', enum: ['sortie', 'sweep', 'train', 'art_training', 'rest', 'recruit', 'dungeon', 'annual'] },
-    region: number, unitIds: strings, aiDifficulty, times: number, unitId: string, weaponType: string, art: string, days: number,
+    region: number, unitIds: strings, groupId: { type: 'string', enum: ['agility', 'power', 'mystic'] }, aiDifficulty, times: number, unitId: string, weaponType: string, art: string, days: number,
   } },
   EXECUTE_ACTION: { required: ['quoteId'], properties: { quoteId: string } },
   PROMOTE: { required: ['unitId', 'promotion'], properties: { unitId: string, promotion: string } },

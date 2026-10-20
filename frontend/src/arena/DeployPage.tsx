@@ -168,7 +168,7 @@ export function DeployPage({ id }: { id: string }) {
           <div className="deploy-help">
             {hovered
               ? <UnitLine unit={hovered} side={hoverEnemy ? 'enemy' : 'player'} />
-              : <span>在名单中选择出战人员；点名字选中后，点蓝色格子或按方向键调整站位，遇到己方单位会交换位置。鼠标停在单位上可查看属性。</span>}
+              : null}
             <span>
               <b style={{ color: '#34556B' }}>★</b> 我方主将 · <b style={{ color: '#A84940' }}>旗帜</b> 敌方主将 {commanderName}
               {throne && <> · <b style={{ color: '#6E5322' }}>金框</b> 王座</>}
@@ -193,7 +193,6 @@ export function DeployPage({ id }: { id: string }) {
           <section className="panel" aria-labelledby="pick-h">
             <div className="ph">
               <h2 id="pick-h">出战编成 <span className="num" style={{ fontWeight: 500, color: '#6A6256' }}>{current.length} / {need}</span></h2>
-              <span style={{ fontSize: 12, color: '#6A6256' }}>全员满 HP 参赛</span>
             </div>
             <ul>
               {roster.map(u => {
@@ -223,12 +222,10 @@ export function DeployPage({ id }: { id: string }) {
             <div style={{ fontSize: 13, color: '#4E473D' }}>
               已放置 {current.length} / {need} · 主将：<b>{roster.find(u => u.id === lead)?.name ?? '未指定'}</b> · 我方先手 · 入场推进 1 日
             </div>
-            {throne && <div style={{ fontSize: 13, color: '#4E473D' }}>王城：只有我方主将能压制王座，全歼守军不算胜利；主将被击败即落败。</div>}
             {errors.length > 0 && <div role="status" style={{ fontSize: 13, color: '#93392F' }}>{errors[0]}</div>}
             <button type="button" className="btn btn-primary btn-lg" disabled={errors.length > 0 || busy} onClick={() => void start()}>
               {busy ? '入场中…' : '开始战斗 · 推进 1 日'}
             </button>
-            <div style={{ fontSize: 12, color: '#6A6256' }}>开始后不能再更换出战人员；竞技场是模拟战，没有真实伤亡；进攻中可随时投降，按落败计。</div>
           </section>
         </div>
       </div>

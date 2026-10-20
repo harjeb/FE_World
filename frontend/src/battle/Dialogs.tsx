@@ -59,7 +59,6 @@ export function LevelUpDialog({ show }: { show: LevelShow }) {
           <p style={{ fontSize: 13, color: '#4E473D' }}>
             {gained > 0 ? `${gained} 项属性提升。` : '这一级没有属性提升。'}
             {event.rerolls > 0 && ` 空级保护已重掷 ${event.rerolls} 次。`}
-            <span className="muted"> 每项按成长率独立判定。</span>
           </p>
         </div>
         <footer><button ref={ok} type="button" className="btn btn-primary" onClick={show.done}>继续 <span className="kbd">ENTER</span></button></footer>

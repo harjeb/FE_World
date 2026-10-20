@@ -30,7 +30,6 @@ export function StoryPage() {
   const chapters = story.chapters.filter(c => c.available || c.completed);
   const done = chapters.filter(c => c.completed).length;
   const claimed = chapters.filter(c => c.claimed).length;
-  const next = chapters.find(c => !c.available);
   const entry = annual?.entry && annual.entry.annualIndex === annual.annualIndex ? annual.entry : null;
 
   return (
@@ -39,7 +38,6 @@ export function StoryPage() {
         <div>
           <div className="eyebrow">主线 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>八届大竞技场</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>每年开放一章，时间到就开放，不看比赛名次、是否参赛或地区进度。打赢本章的主线任务就完成了本章，之后可以领一次团队公共经验 {story.bexp}。</p>
         </div>
         <div style={{ textAlign: 'right', fontSize: 13, color: '#4E473D' }}>
           已完成 <b className="num">{done}</b> / {chapters.length} 章 · 已领奖 <b className="num">{claimed}</b> 章
@@ -51,7 +49,7 @@ export function StoryPage() {
 
       <div className="sys-cols">
         <section className="panel" aria-labelledby="ch-h">
-          <div className="ph"><h2 id="ch-h">章节</h2><span style={{ fontSize: 12, color: '#6A6256' }}>完成后可回看本章事件、认识与发现</span></div>
+          <div className="ph"><h2 id="ch-h">章节</h2></div>
           <ol className="chapters">
             {chapters.map(c => {
               const phase = phaseOf(c);
@@ -74,7 +72,7 @@ export function StoryPage() {
                     {c.finalBoss && (
                       <p className="ch-learned">
                         <span className={`tag ${c.finalBoss.defeated ? 'tag-green' : c.finalBoss.available ? 'tag-red' : 'tag-grey'}`}>最终首领</span>
-                        {c.finalBoss.defeated ? '已在挑战塔终层击败。' : c.finalBoss.available ? <>挑战塔终层已开放：<a href={links.tower}>前往挑战塔 ›</a></> : '完成第八章后，挑战塔终层开放。不要求夺冠，也不要求牺牲伙伴。'}
+                        {c.finalBoss.defeated ? '已在挑战塔终层击败。' : c.finalBoss.available ? <>挑战塔终层已开放：<a href={links.tower}>前往挑战塔 ›</a></> : ''}
                       </p>
                     )}
                   </div>
@@ -107,7 +105,6 @@ export function StoryPage() {
                 ? <>
                   <div><b>第 {annual.annualIndex} 届</b>{entry ? <span className={`tag ${ANNUAL_STATE[entry.state][1]}`} style={{ marginLeft: 8 }}>{ANNUAL_STATE[entry.state][0]}</span> : <span className="tag tag-grey" style={{ marginLeft: 8 }}>未报名</span>}</div>
                   {story.annualSummary && <p style={{ marginTop: 6, fontSize: 13 }}>最近：{story.annualSummary.text}</p>}
-                  <p style={{ marginTop: 6, fontSize: 13, color: '#4E473D' }}>主线章节不看名次：出局、退赛或夺冠，都能完成当年的章节事件。</p>
                 </>
                 : <p style={{ fontSize: 13, color: '#6A6256' }}>暂时读不到大竞技场信息。</p>}
             </div>
@@ -121,24 +118,13 @@ export function StoryPage() {
                   <li key={co.character}>
                     <b>{co.name}</b>
                     <span className={`tag ${co.done ? 'tag-brass' : co.recruited ? 'tag-blue' : 'tag-grey'}`} style={{ marginLeft: 6 }}>{co.done ? '已完成' : co.recruited ? '可接取' : '尚未加入'}</span>
-                    {co.recruited ? <> · {co.questName}{co.epilogue ? <><br /><span className="muted">{co.epilogue}</span></> : '（在地区任务里接取）'}</>
-                      : ' · 通过地区远征招募后解锁（阵亡不影响）'}
+                    {co.recruited ? <> · {co.questName}{co.epilogue ? <><br /><span className="muted">{co.epilogue}</span></> : ''}</>
+                      : ' · 通过地区远征招募后解锁'}
                   </li>
                 ))}
               </ul>
             </section>
           )}
-
-          <section className="panel" aria-labelledby="sr-h">
-            <div className="ph"><h2 id="sr-h">规则</h2></div>
-            <ul className="sys-rules">
-              <li>每章在新一年的第 1 日开放{next ? `；下一章（第 ${next.chapter} 章）在${plainDate(next.openDay)}开放` : '；八章都已开放'}。</li>
-              <li>打赢本章主线任务即完成本章事件；任务报酬与团队公共经验分开领取。</li>
-              <li>每张主线地图里藏着一只线索箱，取得的线索会补充背景，每个账号只能取得一次。</li>
-              <li>每章的奖励只发一次，重复领取会被拒绝。</li>
-              <li>公共经验在<a href={links.prep()}>整备</a>里分给角色，分配不推进日期。</li>
-            </ul>
-          </section>
         </div>
       </div>
     </Shell>

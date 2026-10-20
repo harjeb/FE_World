@@ -18,7 +18,7 @@ export type Behavior = 'aggressive' | 'opportunist' | 'hold' | 'guard' | 'healer
 export interface ItemStack { id: ItemId; uses: number }
 
 // ward: 屏障，按百分比减少本单位下一次交战受到的伤害。
-export type ArtStat = 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'attack' | 'hit' | 'crit' | 'avoid' | 'dodge' | 'as' | 'protection' | 'move' | 'ward';
+export type ArtStat = 'str' | 'mag' | 'skl' | 'spd' | 'lck' | 'def' | 'res' | 'attack' | 'damage' | 'desperation' | 'hit' | 'crit' | 'avoid' | 'dodge' | 'as' | 'protection' | 'move' | 'ward';
 export type ArtAilment = 'poison' | 'root' | 'silence' | 'confusion';
 export interface ArtBuff { source: string; stat: ArtStat; amount: number; duration: 'map' | 'next_phase' | 'phase' | 'exchange'; turn: number }
 

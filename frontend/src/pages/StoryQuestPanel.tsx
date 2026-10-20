@@ -138,7 +138,6 @@ export function StoryQuestPanel({ quest }: { quest: StoryQuest }) {
           ? <><b>「{quest.clue.name}」</b>　{quest.clue.note}</>
           : '这张图里的某个角落藏着一只被遗落的箱子，里面也许有线索。线索不影响通关，每个账号只能取得一次。'}
       </p>
-      {quest.legacyCompleted && <p className="ch-sub">这一章在旧版里已被记为完成；仍可补打主线任务，领取线索和报酬。</p>}
       {open && quest.available && (
         <div className="panel" style={{ margin: '8px 0' }}>
           <TeamPicker units={active} team={team} max={quest.maxUnits} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} />

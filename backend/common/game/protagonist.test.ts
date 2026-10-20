@@ -83,7 +83,7 @@ test("the 'recruit' kit: bounded deterministic ranks from level AND class cap, m
   // 高级招募：16 级战士主斧 D + 铁/钢成套（主武器类型在前，总携带≤5），熟练度经验与等级一致。
   const veteran = createUnit('karl', 16, 'u_v', 0, true, { classId: 'fighter', startingGear: 'recruit' });
   assert.equal(veteran.ranks.axe, 'D');
-  assert.deepEqual(veteran.weaponExp, { axe: 30, sword: 30, fist: 30 });
+  assert.deepEqual(veteran.weaponExp, { axe: 50, sword: 50, fist: 50 });
   assert.deepEqual(veteran.weapons, ['iron_axe', 'steel_axe', 'iron_sword', 'steel_sword', 'gauntlet']);
   assert.ok(veteran.weaponInstances!.every(row => row.durability === row.maxDurability));
 

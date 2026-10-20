@@ -4,6 +4,18 @@ import type { ActionQuote, ArtTrainingResult, ServerUnit } from '../api/session.
 import { useServerData } from '../api/useServerData.ts';
 import { advance, dateLabel } from '../ui/calendar.ts';
 import { QuoteBox, useAct } from './SystemParts.tsx';
+import { links } from '../router.ts';
+import { ICONS } from '../assets.ts';
+
+export function ArtTrainingLink({ unit, version }: { unit: ServerUnit; version: number }) {
+  const { data, error } = useServerData(() => session.artTraining(unit.id), [unit.id, version]);
+  if (error || data?.unit !== unit.id || !data?.choices.some(c => c.available && !c.learned)) return null;
+  return <li className="act" data-action="art-training">
+    <img className="px" src={ICONS.train} width={32} height={32} alt="" />
+    <div><span className="a-name">战技研修</span></div>
+    <a className="btn btn-sm" href={links.roster(unit.id, 'mastery')}>查看研修</a>
+  </li>;
+}
 
 export function ArtTrainingPanel({ unit }: { unit: ServerUnit }) {
   const version = useSession().state?.version ?? 0;
@@ -15,10 +27,8 @@ function Training({ unit, version }: { unit: ServerUnit; version: number }) {
   const { busy, act } = useAct();
   const [picked, setPicked] = useState<string | null>(null);
   const [quote, setQuote] = useState<ActionQuote | null>(null);
-  const choice = data?.choices.find(c => c.art === picked)
-    ?? data?.choices.find(c => c.available && !c.learned)
-    ?? data?.choices.find(c => !c.learned && unit.learnedArts.includes(c.requires))
-    ?? data?.choices[0];
+  const choices = data?.choices.filter(c => c.available && !c.learned) ?? [];
+  const choice = choices.find(c => c.art === picked) ?? choices[0];
   const canTrain = !!choice && choice.available && !choice.learned && unit.learnedArts.includes(choice.requires);
   const current = () => session.get().state?.version === version;
 
@@ -44,16 +54,16 @@ function Training({ unit, version }: { unit: ServerUnit; version: number }) {
     }, result => `${unit.name}学会了${result.name}：${result.days} 日，${result.costGold} 金币`);
   }
 
+  if (!data || choices.length === 0) return null;
   return (
     <section className="panel" style={{ gridColumn: '1 / -1' }} aria-labelledby="art-training-h">
       <div className="ph"><h2 id="art-training-h">战技研修</h2>{data && <span className="num">{dateLabel(data.day)} · {data.gold} 金币</span>}</div>
-      <p className="sys-note">先通过职业精通学会基础战技，再花费日期和金币研修进阶战技；学习不受当前职业或武器等级限制。</p>
       {error && <p className="sys-note" role="alert">读不到战技研修：{error}</p>}
       {!data && !error && <p className="sys-note" role="status">读取战技研修…</p>}
       {data && <>
         <div className="sys-note">
           <label>研修战技　<select value={choice?.art ?? ''} disabled={busy !== null} onChange={e => { setPicked(e.target.value); setQuote(null); }}>
-            {data.choices.map(c => <option key={c.art} value={c.art} disabled={c.learned || !unit.learnedArts.includes(c.requires)}>
+            {choices.map(c => <option key={c.art} value={c.art}>
               {c.name} · 前置：{c.requiresName} · {c.days} 日 / {c.gold} 金币{c.learned ? ' · 已学会' : c.blocker ? ` · ${c.blocker}` : ''}
             </option>)}
           </select></label>

@@ -79,7 +79,7 @@ export function ArenaHub() {
         <section className="panel register" aria-label="报名竞技场">
           <div>
             <b>还没有报名普通竞技场</b>
-            <p style={{ fontSize: 13, color: '#4E473D' }}>报名后当天生成 3 个对手（同日到达的其他军团快照，不足时由官方队伍补足），之后每个竞技场日自动生成。只打进攻，不需要编防守队；模拟战没有真实伤亡，也不发等级经验。</p>
+            <p style={{ fontSize: 13, color: '#4E473D' }}>报名后当天生成 3 个对手，之后每个竞技场日自动生成。</p>
           </div>
           <button type="button" className="btn btn-primary" disabled={busy !== null || live}
             onClick={() => void act('register', () => session.run(OP.ARENA_REGISTER), () => '已报名普通竞技场')}>{busy === 'register' ? '报名中…' : '报名'}</button>
@@ -96,7 +96,7 @@ export function ArenaHub() {
       <div className="arena-cols">
         <div className="flex flex-col gap-3" style={{ flex: '999 1 560px', minWidth: 0 }}>
           <section className="panel" aria-labelledby="atk-h">
-            <div className="ph"><h2 id="atk-h">我方进攻</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{open ? '每场入场推进 1 日；打完或到下一个竞技场日时，没打的才按落败计' : recordDay !== null ? '已结算' : ''}</span></div>
+            <div className="ph"><h2 id="atk-h">我方进攻</h2><span style={{ fontSize: 12, color: '#6A6256' }}>{!open && recordDay !== null ? '已结算' : ''}</span></div>
             {opponents.length === 0 && <p className="def-next">{state.arena.registered ? '还没有对手：到达竞技场日时会生成。' : '报名后当天生成对手。'}</p>}
             <ol>
               {opponents.map(o => {
@@ -131,7 +131,7 @@ export function ArenaHub() {
           </section>
 
           <section className="panel" aria-labelledby="rt-h">
-            <div className="ph"><h2 id="rt-h">现实月榜{ratings ? ` · ${month(ratings.period.id)}` : ''}</h2><span style={{ fontSize: 12, color: '#6A6256' }}>按现实月份归档，与个人日历无关</span></div>
+            <div className="ph"><h2 id="rt-h">现实月榜{ratings ? ` · ${month(ratings.period.id)}` : ''}</h2></div>
             {!ratings && <p className="def-next">读取月榜…</p>}
             {ratings && <>
               <div className="rw rw-3">
@@ -150,7 +150,7 @@ export function ArenaHub() {
                         onClick={() => void act(p.id, () => session.run<{ gold: number }>(OP.CLAIM_RATING_REWARD, { periodId: p.id }), r => `领取${month(p.id)}月榜奖励：金币 +${r.gold.toLocaleString()}`)}>领取</button>)}
                   </li>
                 ))}
-                {ratings.archived.length === 0 && <li><span className="muted">还没有归档的月份；每个现实月结束时归档并冻结奖励。</span></li>}
+                {ratings.archived.length === 0 && <li><span className="muted">还没有归档的月份。</span></li>}
               </ul>
             </>}
           </section>
@@ -175,7 +175,7 @@ export function ArenaHub() {
 
           <section className="panel" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <b style={{ fontSize: 14 }}>计分规则</b>
-            <div style={{ fontSize: 13, color: '#4E473D' }}>进攻胜利 +20，无人阵亡 +5，在回合上限一半内获胜再 +5；落败、投降或没打 0。首版只有进攻，不需要设置防守；对手的历史快照只作为 AI 对手出现。</div>
+            <div style={{ fontSize: 13, color: '#4E473D' }}>进攻胜利 +20，无人阵亡 +5，在回合上限一半内获胜再 +5；落败、投降或没打 0。</div>
           </section>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { CLASSES, classEntryReason, hasClassQualification, weaponRankCap } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { promotionsFor } from '@common/data/promotions.ts';
+import { allPromotionsFor } from '@common/data/promotions.ts';
 import { RANKS, WEAPON_TYPE_NAMES, rankAtLeast } from '@common/data/types.ts';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponId } from '@common/data/weapons.ts';
@@ -39,9 +39,9 @@ export function busyReason(unit: ServerUnit, annual: ServerAnnual | null): strin
 
 export const activeUnits = (units: ServerUnit[]) => units.filter(u => u.status === 'active');
 
-// 可转职：当前职业的推荐进阶里，至少有一个已经买到资格（PROMOTE 与 SWITCH_CLASS 共用这条校验）。
+// 可转职：所有符合现有资格／目标武器等级的职业里，至少有一个已经买到资格（PROMOTE 与 SWITCH_CLASS 共用这条校验）。
 export function canPromote(unit: ServerUnit): boolean {
-  return promotionsFor(unit.classId as ClassId).some(p => hasClassQualification(unit.classQualifications as ClassId[], p.to)
+  return allPromotionsFor(unit.classId as ClassId).some(p => hasClassQualification(unit.classQualifications as ClassId[], p.to)
     && !classEntryReason({ ...unit, classId: unit.classId as ClassId, homeClassId: unit.homeClassId as ClassId }, p.to, (unit.homeClassId ?? CHARACTERS[unit.character].classId) as ClassId));
 }
 

@@ -91,7 +91,7 @@ test('a dispatch runs in parallel on the personal calendar and settles once', ()
   assert.equal(store.unit(player.id, 'u_karl')!.lockedDispatchId ?? null, null);
   assert.ok(classMasteryOf(store.unit(player.id, 'u_karl')!, 'fighter') > masteryBefore, 'training grants class mastery');
   const karl = store.unit(player.id, 'u_karl')!;
-  assert.equal(classMasteryOf(karl, 'fighter') - masteryBefore, 15);
+  assert.equal(classMasteryOf(karl, 'fighter') - masteryBefore, 7.5);
   const expectedArts = masteryNodesFor('fighter').filter(node => node.art && node.threshold <= classMasteryOf(karl, 'fighter')).map(node => node.art!);
   for (const art of expectedArts) assert.ok(karl.learnedArts?.includes(art));
   const mastery = dispatch(ctx, OP.GET_MASTERY, { unitId: karl.id }) as {

@@ -122,7 +122,6 @@ export function RosterPage({ unit: wanted, tab }: { unit: string | null; tab: Ro
             })}
             {list.length === 0 && <li className="empty-row">没有符合条件的角色</li>}
           </ul>
-          <p className="pfoot">名册上限 {state.rosterLimit} 人：每张地图规定出战人数，其余的人留作替补。</p>
         </section>
 
         <div className="roster-detail">

@@ -1,22 +1,20 @@
 import { useState } from 'react';
-import { CLASSES } from '@common/data/classes.ts';
-import type { ClassId } from '@common/data/classes.ts';
-import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
-import type { WeaponType } from '@common/data/types.ts';
-import { WEAPONS } from '@common/data/weapons.ts';
 import { DAYS_PER_YEAR } from '@common/game/calendar.ts';
+import { WEAPON_TRAINING_PER_DAY, trainingLimit } from '@common/game/training.ts';
 import { GAME_ITEMS } from '@common/game/items.ts';
 import type { ItemKey } from '@common/game/items.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { ICONS } from '../assets.ts';
 import { session, useSession } from '../api/session.ts';
-import type { PendingRecruit, ServerToday, ServerUnit, TodayAction } from '../api/session.ts';
-import { annualLive, busyReason } from '../model/roster.ts';
+import type { PendingRecruit, ServerToday, TodayAction } from '../api/session.ts';
+import { annualLive } from '../model/roster.ts';
 import { featuresOf } from '../model/access.ts';
 import { links } from '../router.ts';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
 import { toast } from '../ui/toast.tsx';
 import { Face } from './SystemParts.tsx';
+import { TrainingDialog } from './TrainingDialog.tsx';
+import { ArtTrainingLink } from './ArtTrainingPanel.tsx';
 
 const ICON: Record<TodayAction['key'], string> = { sortie: ICONS.sortie, sweep: ICONS.sweep, train: ICONS.train, rest: ICONS.rest, recruit: ICONS.travel };
 const REST_MAX = 500;
@@ -24,12 +22,9 @@ const SPECIES = { human: '人类', beast: '兽人', dragon: '龙人' } as const;
 
 type Region = ServerToday['sortieRegions'][number];
 interface SweepResult { items: { item: ItemKey; count: number }[] }
-interface TrainResult { weaponType: WeaponType; rankBefore: string; rankAfter: string }
+interface TrainResult { units: { name: string }[]; weaponExpGained: number }
 interface RestResult { days: number }
 interface RecruitResult { success: boolean; fails?: number; pending?: { candidate: { name: string; classId: string }; level: number } }
-
-const weaponTypes = (unit: ServerUnit | undefined): WeaponType[] =>
-  unit ? [...new Set(unit.snapshot.weapons.map(w => WEAPONS[w].type))].filter(t => CLASSES[unit.classId as ClassId]?.weapons[t]) : [];
 
 // 游历候选（ACCEPT_RECRUIT／DECLINE_RECRUIT）：成功后先保存在服务端，接受前不会重掷，名册满时保留。
 export function RecruitCard({ pending }: { pending: PendingRecruit }) {
@@ -65,11 +60,11 @@ export function CampActions() {
   const [sweepRegion, setSweepRegion] = useState<number | null>(null);
   const [times, setTimes] = useState(1);
   const [unitId, setUnitId] = useState('');
-  const [weapon, setWeapon] = useState<WeaponType | null>(null);
   const [restDays, setRestDays] = useState(1);
   const [travelRegion, setTravelRegion] = useState<number | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [training, setTraining] = useState<{ days: number; costGold: number; weaponExp: number; maxUnits: number; version: number } | null>(null);
 
   if (!today || !state) {
     return (
@@ -91,10 +86,8 @@ export function CampActions() {
   // 游历地区只在已开通的地区里选；默认第一个已开通地区。
   const travel = regions.some(r => r.id === travelRegion) ? travelRegion : regions[0]?.id ?? null;
   // 派遣中的角色不能参加武器专项训练（TRAIN）。
-  const trainees = state.units.filter(u => u.status === 'active' && !u.lockedDispatchId);
+  const trainees = state.units.filter(u => u.status === 'active' && !u.lockedRunId && !u.lockedDispatchId);
   const trainee = trainees.find(u => u.id === unitId) ?? trainees[0];
-  const types = weaponTypes(trainee);
-  const trainType = weapon && types.includes(weapon) ? weapon : types[0];
   const warning = arenaTodayWarning();
   const locked = annualLive(annual);
 
@@ -129,16 +122,7 @@ export function CampActions() {
           </select>
         </>;
       case 'train':
-        return <>
-          <select aria-label="训练单位" value={trainee?.id ?? ''} onChange={e => { setUnitId(e.target.value); setWeapon(null); }}>
-            {trainees.map(u => <option key={u.id} value={u.id}>{u.name} · {u.className}{busyReason(u, annual) ? `（${busyReason(u, annual)}）` : ''}</option>)}
-          </select>
-          {types.length > 1 && (
-            <select aria-label="训练武器" value={trainType} onChange={e => setWeapon(e.target.value as WeaponType)}>
-              {types.map(t => <option key={t} value={t}>{WEAPON_TYPE_NAMES[t]}（{trainee?.ranks[t] ?? 'E'}）</option>)}
-            </select>
-          )}
-        </>;
+        return <span className="cost">最多 {a.maxUnits ?? trainingLimit(today!.day)} 人</span>;
       case 'rest':
         return (
           <label className="inline-flex items-center gap-1.5" style={{ fontSize: 13 }}>
@@ -163,9 +147,11 @@ export function CampActions() {
           onClick={() => act<SweepResult>('sweep', OP.SWEEP, { region: sweepId, times },
             r => `扫荡完成：${r.items.map(i => `${GAME_ITEMS[i.item]?.name ?? i.item} ×${i.count}`).join('、')}`)}>扫荡</button>;
       case 'train':
-        return <button type="button" className="btn btn-sm" disabled={off || !trainee || !trainType || state!.gold < (a.costGold ?? 0)}
-          onClick={() => act<TrainResult>('train', OP.TRAIN, { unitId: trainee!.id, weaponType: trainType },
-            r => `${trainee!.name}完成${WEAPON_TYPE_NAMES[r.weaponType]}训练（${r.rankBefore} → ${r.rankAfter}）`)}>训练</button>;
+        return <button type="button" className="btn btn-sm" disabled={off || !trainee}
+          onClick={() => {
+            setTraining({ days: a.costDays, costGold: a.costGold ?? 0, maxUnits: a.maxUnits ?? trainingLimit(today!.day),
+              weaponExp: a.weaponExp ?? a.costDays * WEAPON_TRAINING_PER_DAY, version: state!.version });
+          }}>训练</button>;
       case 'rest':
         return <button type="button" className="btn btn-sm" disabled={off}
           onClick={() => act<RestResult>('rest', OP.REST, { days: restDays }, r => `休整了 ${r.days} 日`)}>休整</button>;
@@ -179,7 +165,7 @@ export function CampActions() {
   return (
     <section className="panel" aria-labelledby="acts-h">
       <div className="ph">
-        <h2 id="acts-h">行动 <span style={{ fontSize: 13, fontWeight: 400, color: '#6A6256' }}>· 每项都会推进个人日期</span></h2>
+        <h2 id="acts-h">行动</h2>
         <span style={{ fontSize: 13, color: '#4E473D' }}>今天 <b>{dateLabel(today.day)}</b></span>
       </div>
       {locked && <p className="a-warn" role="note">大竞技场进行中，日历行动暂停；打完或退出本届后恢复。</p>}
@@ -195,7 +181,7 @@ export function CampActions() {
               <div className="min-w-0">
                 <div>
                   <span className="a-name">{a.name}</span>
-                  <span className={a.available && !poor ? 'a-desc' : 'a-why'}>{poor ? `金币不足，需要 ${a.costGold}` : a.note}{a.costGold && !poor ? ` · 每次 ${a.costGold} 金币` : ''}</span>
+                  {poor && <span className="a-why">金币不足，需要 {a.costGold}</span>}
                 </div>
                 {pending
                   ? <RecruitCard pending={pending} />
@@ -211,23 +197,27 @@ export function CampActions() {
             </li>
           );
         })}
-        <li className="act" data-action="art-training">
-          <img className="px" src={ICONS.train} width={32} height={32} alt="" />
-          <div className="min-w-0">
-            <div><span className="a-name">战技研修</span><span className="a-desc">学会基础战技后，花费日期与金币研修进阶战技；在精通页查看前置、效果和报价</span></div>
-            <div className="a-opts">{trainee ? `研修单位：${trainee.name}（使用上方训练单位选择）` : '暂无可研修单位'}</div>
-          </div>
-          {trainee && <a className="btn btn-sm" href={links.roster(trainee.id, 'mastery')}>查看研修</a>}
-        </li>
+        {!locked && trainee && <ArtTrainingLink key={`${trainee.id}:${state.version}`} unit={trainee} version={state.version} />}
         {features.dispatch && <li className="act" data-action="dispatch">
           <img className="px" src={ICONS.travel} width={32} height={32} alt="" />
           <div className="min-w-0">
-            <div><span className="a-name">后台派遣</span><span className="a-desc">自动探索／职业训练：不推进日期，按返程日一次结算；派出期间这些人不能参加其他战斗</span></div>
+            <div><span className="a-name">后台派遣</span></div>
           </div>
           <a className="btn btn-sm" href={links.dispatch}>安排派遣</a>
         </li>}
       </ul>
       {error && <p role="alert" style={{ padding: '0 14px 10px', fontSize: 13, color: '#93392F' }}>{error}</p>}
+      {training && <TrainingDialog
+        units={trainees} initialUnitId={trainee?.id} maxUnits={training.maxUnits}
+        days={training.days} costPerUnit={training.costGold} weaponExp={training.weaponExp} day={today.day} gold={state.gold}
+        disabled={busy !== null || state.version !== training.version || locked}
+        onCancel={() => setTraining(null)} onConfirm={(unitIds, groupId) => {
+          if (busy !== null || state.version !== training.version || locked) return;
+          setUnitId(unitIds[0]);
+          setTraining(null);
+          void act<TrainResult>('train', OP.TRAIN, { unitIds, groupId },
+            r => `${r.units.map(unit => unit.name).join('、')}训练完成 · 组内每种武器经验 ＋${r.weaponExpGained}`);
+        }} />}
     </section>
   );
 }

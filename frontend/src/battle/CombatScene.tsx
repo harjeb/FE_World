@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { WEAPONS } from '@common/data/weapons.ts';
 import type { WeaponType } from '@common/data/types.ts';
-import { classOf, equipped, forecast, forecastOnHit } from '@common/engine/index.ts';
+import { equipped, forecast, forecastOnHit } from '@common/engine/index.ts';
 import type { UnitState } from '@common/engine/index.ts';
 import { battleSheetUrl, battleSpriteFor, SPARK, spriteFor, STAGE, weaponIcon } from '../assets.ts';
 import { SkipIcon } from '../ui/icons.tsx';
@@ -252,10 +252,6 @@ export function CombatScene({ show }: { show: CombatShow }) {
             );
           })}
         </ol>
-        <div className="c-foot">
-          <span style={{ fontSize: 13, color: '#6A6256' }}>演出结束后回到战术地图，结果写入战况记录。{classOf(ally).moveType === 'flying' ? '飞行单位不受地形加成。' : ''}</span>
-          <span style={{ fontSize: 13, color: '#4E473D' }}>可在地图下方关闭交战演出</span>
-        </div>
       </section>
     </div>
   );

@@ -11,6 +11,7 @@ import { canEscape, canFinishGather, canSeize } from './ranges.ts';
 import { runAreaHeal, runCombat, runHeal, terrainHeal, useItem } from './resolve.ts';
 import { artCombatOptions } from './combat.ts';
 import { combatStats } from './skills.ts';
+import { applyTurnSkills } from './turn-skills.ts';
 import { addArtBuff, afterClassicArt, expireArtPhase, inflictArtStatus } from './art-effects.ts';
 import { artObjects, artPostMoves, artSupportOptions, objectArtDamage, sameArtSupport } from './art-options.ts';
 import { roll100 } from './rng.ts';
@@ -419,6 +420,7 @@ function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void
   runScenarioEvents(state, events);
   for (const unit of state.units) if (!unit.alive || unit.petrified) clearArtEffects(state, unit, events);
   if (state.result) return;
+  applyTurnSkills(state, side, events);
   terrainHeal(state, side, events);
   if (!state.result) checkResult(state, events);
 }

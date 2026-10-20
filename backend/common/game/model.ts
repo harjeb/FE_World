@@ -1,4 +1,4 @@
-import { CHARACTERS } from '../data/characters.ts';
+import { CHARACTERS, LEGACY_FIXED_GROWTH } from '../data/characters.ts';
 import type { CharacterId } from '../data/characters.ts';
 import { CLASSES, CHARACTER_CAPS, classEntryReason, classSpecies, weaponRankCap } from '../data/classes.ts';
 import { CLASS_ABILITY_BY_ID } from '../data/class-abilities.ts';
@@ -138,6 +138,7 @@ const KITS: Record<CharacterId, { weapons: WeaponId[]; ranks: Partial<Record<Wea
 };
 
 export function normalizeUnit(unit: UnitRecord): UnitRecord {
+  if (unit.isProtagonist) unit.personalSkill = 'divine_inspiration';
   // Merge the retired weapon category without adding progress or touching item/art IDs.
   const ranks = unit.ranks as UnitRecord['ranks'] & { dagger?: Rank };
   const exp = unit.weaponExp as UnitRecord['weaponExp'] & { dagger?: number };
@@ -152,6 +153,12 @@ export function normalizeUnit(unit: UnitRecord): UnitRecord {
   if (!unit.personalGrowth) {
     const fallback = CHARACTERS[unit.character].growth;
     unit.personalGrowth = Object.fromEntries(STAT_KEYS.map(key => [key, unit.inheritedGrowth?.[key] ?? fallback[key]])) as Stats;
+  }
+  // 固定同伴旧档只替换完整匹配的旧模板；随机招募、主角、时空角色及自定成长不参与。
+  // 已获得属性、传承向量和轮回分配保留，调整仅影响后续升级。
+  if (unit.id === `u_${unit.character}` && !unit.isProtagonist && !unit.crossTimeIdentity &&
+      STAT_KEYS.every(key => unit.personalGrowth![key] === LEGACY_FIXED_GROWTH[unit.character][key])) {
+    unit.personalGrowth = { ...CHARACTERS[unit.character].growth };
   }
   if (unit.inheritance) {
     unit.inheritance.caps = { ...CHARACTER_CAPS };
@@ -496,7 +503,7 @@ export function toSnapshot(unit: UnitRecord): SnapshotUnit {
   return {
     id: unit.id, character: unit.character, classId: unit.classId, level: unit.level, stats: withCharm(unit.stats),
     con: unit.con, weapons: [...unit.weapons], ranks: { ...unit.ranks }, items: unit.items.map(i => ({ ...i })),
-    name: unitName(unit), sex: unit.sex, portrait: unit.portrait, personalSkill: unit.personalSkill,
+    name: unitName(unit), sex: unit.sex, portrait: unit.portrait, personalSkill: unit.isProtagonist ? 'divine_inspiration' : unit.personalSkill,
     weaponInstances: unit.weaponInstances?.map(row => ({ ...row })),
     bookInstances: unit.bookInstances?.map(row => ({ ...row })),
     spellbooks: unit.spellbooks?.map(row => ({ ...row })),
@@ -526,7 +533,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
     id, name: unitName(unit), side, character: unit.character, portrait: unit.portrait, classId: unit.classId,
     level: unit.level, exp: unit.exp, stats: withCharm(unit.stats), con: unit.con, hp: unit.stats.hp,
     pos: [pos[0], pos[1]], weapons: [...unit.weapons], items: unit.items.map(i => ({ ...i })),
-    ranks: { ...unit.ranks }, skill: unit.personalSkill ?? CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
+    ranks: { ...unit.ranks }, skill: unit.isProtagonist ? 'divine_inspiration' : unit.personalSkill ?? CHARACTERS[unit.character].skill, growthType: unit.growthType, age: unit.age,
     growthAllocation: unit.growthAllocation ? { ...unit.growthAllocation } : undefined,
     personalGrowth: unit.personalGrowth ? { ...unit.personalGrowth } : undefined,
     inheritedGrowth: unit.inheritedGrowth ? { ...unit.inheritedGrowth } : undefined,
@@ -541,7 +548,7 @@ export function toBattleUnit(unit: UnitRecord, side: Side, id: string, pos: Poin
   };
 }
 
-export const RANK_EXP: Record<Rank, number> = { E: 0, D: 30, C: 70, B: 120, A: 180, S: 250, SS: 340, SSS: 450 };
+export const RANK_EXP: Record<Rank, number> = { E: 0, D: 50, C: 70, B: 120, A: 180, S: 250, SS: 340, SSS: 450 };
 
 export function rankFromExp(exp: number): Rank {
   let rank: Rank = 'E';

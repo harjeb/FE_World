@@ -81,7 +81,6 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
         <Fighter unit={defender} label={displayName(state, defender.id)} weapon={d.weapon} side={d} enemy />
       </div>
       {f.branches && f.branches.length > 1 && <div className="fc-sum">
-        <p>概率特性在交战开始时判定；下方基础数值为未触发分支。</p>
         {f.branches.map((branch, index) => {
           const bf = branch.forecast;
           const hits = forecastOnHit(bf);
@@ -110,7 +109,6 @@ export function ForecastPanel({ state, unitId, to, weapon, targetId, given, titl
             <th scope="row" className="c">必杀</th>
             <td className="r fc-val">{d.canAttack ? <>{d.crit}<small>%</small></> : dash}</td>
           </tr>
-          <tr><td className="l fc-val">{a.attackSpeed}<small>{a.doubles ? '可追击' : '无追击'}</small></td><th scope="row" className="c">攻速</th><td className="r fc-val">{d.attackSpeed}<small>{d.doubles ? '可追击' : '无追击'}</small></td></tr>
         </tbody>
       </table>
       <div className="fc-adv">
@@ -175,7 +173,7 @@ export function HealPreview({ state, unitId, targetId, weapon, to }: { state: Ba
 function AreaHealPreview({ state, title, heals }: { state: BattleState; title: string; heals: { unit: UnitState; amount: number }[] }) {
   return (
     <section className="panel" aria-labelledby="area-h">
-      <div className="ph"><h2 id="area-h">{title}</h2><span style={{ fontSize: 12, color: '#6A6256' }}>射程内每名受伤友军各回复一次</span></div>
+      <div className="ph"><h2 id="area-h">{title}</h2></div>
       <ul className="eq">
         {heals.map(({ unit, amount }) => (
           <li key={unit.id}><Portrait unit={unit} /><div className="min-w-0"><div className="nm">{displayName(state, unit.id)}</div>
@@ -193,14 +191,13 @@ function StatusPreview({ state, targetId, chance, effect }: { state: BattleState
   const label = { sleep: '睡眠', silence: '沉默', root: '定身' }[chance.status];
   return (
     <section className="panel" aria-labelledby="status-h">
-      <div className="ph"><h2 id="status-h">状态命中预览</h2><span style={{ fontSize: 12, color: '#6A6256' }}>不进入交战，目标不能反击</span></div>
+      <div className="ph"><h2 id="status-h">状态命中预览</h2></div>
       <div className="ucard">
         <Portrait unit={target} flip={target.side === 'enemy'} />
         <div className="flex-1">
           <div className="uname">{target.name}</div>
           <div className="num" style={{ fontSize: 15 }}>{label}命中 <b>{chance.chance}%</b>{chance.boss ? '（首领减半）' : ''}{chance.immune ? '（免疫）' : ''}</div>
           <div style={{ fontSize: 13, color: '#4E473D' }}>{effect}</div>
-          <div style={{ fontSize: 12, color: '#6A6256' }}>命中 = 基础命中 + 技×2 + 运÷2 − 目标回避；与普通攻击一样取两个随机数的平均值判定。</div>
         </div>
       </div>
     </section>
@@ -244,7 +241,7 @@ export function CommandPreview({ state, mode }: { state: BattleState; mode: Comm
   const f = commandForecast(state, mode);
   if (f && mode.kind === 'art' && mode.art && mode.weapon) {
     const art = artInfo(mode.art);
-    return <><p className="pfoot">{art?.effect} · 随机触发效果按概率结算，非必定发生。</p>{(f.targets ?? [{ target: mode.target, forecast: f }]).map((entry, index) => <ForecastPanel key={entry.target} state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon!} targetId={entry.target} given={entry.forecast} title={`战技预测 · ${art?.name ?? mode.art} · ${displayName(state, entry.target)}${index > 0 ? '（前段未中止时）' : ''}`} weaponName={`${WEAPONS[mode.weapon!].name} · ${art?.name ?? ''}`} />)}</>;
+    return <><p className="pfoot">{art?.effect}</p>{(f.targets ?? [{ target: mode.target, forecast: f }]).map((entry, index) => <ForecastPanel key={entry.target} state={state} unitId={mode.unit} to={mode.to} weapon={mode.weapon!} targetId={entry.target} given={entry.forecast} title={`战技预测 · ${art?.name ?? mode.art} · ${displayName(state, entry.target)}${index > 0 ? '（前段未中止时）' : ''}`} weaponName={`${WEAPONS[mode.weapon!].name} · ${art?.name ?? ''}`} />)}</>;
   }
   if (f && mode.kind === 'cast' && mode.spell) {
     return <ForecastPanel state={state} unitId={mode.unit} to={mode.to} weapon={mode.spell as WeaponId} targetId={mode.target} given={f} title={`法术预测 · ${spellInfo(mode.spell)?.name ?? mode.spell}`} weaponName={spellInfo(mode.spell)?.name} />;
@@ -276,5 +273,5 @@ export function CommandPreview({ state, mode }: { state: BattleState; mode: Comm
 
 export function CommandConfirm({ state, mode, onConfirm, onCancel }: { state: BattleState; mode: Mode; onConfirm: () => void; onCancel: () => void }) {
   if (!isCommand(mode) || !mode.target) return null;
-  return <>{mode.kind === 'art' && (mode.postTo || mode.support) && <p className="pfoot">已选：{mode.postTo ? `战后移动至 (${mode.postTo[0]},${mode.postTo[1]})。` : ''}{mode.support ? `战后支援 ${displayName(state, mode.support.target)}${mode.support.dest ? `，落点 (${mode.support.dest[0]},${mode.support.dest[1]})` : ''}。` : ''}仅在结算时条件仍满足时执行；无法执行则跳过且不消耗支援费用。</p>}<ConfirmPanel state={state} to={mode.to} kind={mode.kind} ready={commandAction(state, mode) !== null} onConfirm={onConfirm} onCancel={onCancel} /></>;
+  return <>{mode.kind === 'art' && (mode.postTo || mode.support) && <p className="pfoot">已选：{mode.postTo ? `战后移动至 (${mode.postTo[0]},${mode.postTo[1]})。` : ''}{mode.support ? `战后支援 ${displayName(state, mode.support.target)}${mode.support.dest ? `，落点 (${mode.support.dest[0]},${mode.support.dest[1]})` : ''}。` : ''}</p>}<ConfirmPanel state={state} to={mode.to} kind={mode.kind} ready={commandAction(state, mode) !== null} onConfirm={onConfirm} onCancel={onCancel} /></>;
 }

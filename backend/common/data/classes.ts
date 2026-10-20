@@ -28,6 +28,13 @@ export const ROUTE_NAMES: Record<ClassRoute, string> = {
   magic: '魔法', healing: '治疗', stealth: '潜行', fist: '格斗', beast: '兽人', dragon: '龙人',
 };
 export const CHARACTER_CAPS: StatCaps = { hp: 150, str: null, mag: null, skl: null, spd: null, lck: null, def: null, res: null, cha: null };
+// 转职移动规则（2026 修订）：第 3 阶（stage>=3）起步行 6、骑乘 7，重甲保留原值；飞行所有阶级一律 7。
+function classMove(moveType: MoveType, stage: ClassStage, armored: boolean, reference: number): number {
+  if (moveType === 'flying') return 7;
+  if (stage >= 3 && !armored) return moveType === 'mounted' ? 7 : 6;
+  return reference;
+}
+
 // 职业 1 级基础值设计（docs/00「神主角」）：每条路线一个底，再按职业成长率每 5 点加 1（成长可为负，负值不加）。
 // 顺序同 STAT_KEYS：HP/力/魔/技/速/运/防/魔防/魅力。首版数值，可校准。
 const ROUTE_BASE: Record<ClassRoute, Stats> = {
@@ -171,7 +178,7 @@ for (const ref of FW_CLASS_REFERENCE) {
   const types = ref.skills.flatMap(skill => STUDY_WEAPON[skill] ? [STUDY_WEAPON[skill]!] : []);
   CLASSES[ref.id] = {
     name: ref.name, tier: ref.stage <= 2 ? 'base' : 'promoted', stage: ref.stage,
-    route: REFERENCE_ROUTES[ref.id], moveType: ref.moveType, move: ref.move, armored: ref.armored,
+    route: REFERENCE_ROUTES[ref.id], moveType: ref.moveType, move: classMove(ref.moveType, ref.stage, ref.armored, ref.move), armored: ref.armored,
     weapons: access(types), studies: ref.skills, trainingBonus: {}, growth: classGrowth(ref.id),
     base: classBase(REFERENCE_ROUTES[ref.id], classGrowth(ref.id)), con: classCon(REFERENCE_ROUTES[ref.id]),
     caps: { ...CHARACTER_CAPS }, maxLevel: 99, source: 'fortunes-weave',
@@ -181,7 +188,8 @@ for (const ref of FW_CLASS_REFERENCE) {
 }
 for (const [id, extra] of Object.entries(EXTRA_CLASSES) as [keyof typeof EXTRA_CLASSES, ExtraClass][]) {
   CLASSES[id] = {
-    ...extra, tier: extra.stage <= 2 ? 'base' : 'promoted', armored: extra.armored ?? false,
+    ...extra, move: classMove(extra.moveType, extra.stage, extra.armored ?? false, extra.move),
+    tier: extra.stage <= 2 ? 'base' : 'promoted', armored: extra.armored ?? false,
     weapons: access(extra.weapons), studies: [], trainingBonus: {}, pendingMechanics: [],
     growth: classGrowth(id), base: classBase(extra.route, classGrowth(id)), con: classCon(extra.route), caps: { ...CHARACTER_CAPS }, maxLevel: 99,
   };

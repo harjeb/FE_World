@@ -61,13 +61,11 @@ export function BanPage({ id }: { id: string }) {
       <Versus opponent={opponent} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Flow current={1} />
-        <span style={{ fontSize: 13, color: '#4E473D' }}>每场进攻推进 1 日；三场打完或到下一个竞技场日时，未打的才按落败计</span>
       </div>
       <div className="arena-cols">
         <section className="panel" aria-labelledby="list-h" style={{ flex: '999 1 640px', minWidth: 0 }}>
           <div className="ph">
             <h2 id="list-h">防守名单 <span style={{ fontWeight: 500, color: '#6A6256' }}>{list.length} 人 · 本图出战 {map.deploy} + 禁用 {map.bans}</span></h2>
-            <span style={{ fontSize: 12, color: '#6A6256' }}>按等级排序 · 优先级与 AI 不公开</span>
           </div>
           {error && <p className="sys-note">读不到对手名单：{error}</p>}
           {!data && !error && <p className="sys-note">读取对手名单…</p>}
@@ -103,7 +101,7 @@ export function BanPage({ id }: { id: string }) {
           </div>
         </section>
         <section className="panel" aria-labelledby="map-h" style={{ flex: '1 1 496px', minWidth: 0 }}>
-          <div className="ph"><h2 id="map-h">防守地图 · {map.name}</h2><span className="tag tag-grey">规则由地图决定</span></div>
+          <div className="ph"><h2 id="map-h">防守地图 · {map.name}</h2></div>
           <RulesGrid map={map} />
           <div className="mapscroll" ref={fitRef}>
             <MapPreview map={map} cell={cell} mine={map.attackerZone} foe={map.defenderZone}

@@ -386,6 +386,8 @@ export class Store {
   ensureShopRows(playerId: string): void {
     const insert = this.db.prepare('INSERT OR IGNORE INTO shop (player_id, item, stock) VALUES (?, ?, ?)');
     for (const row of SHOP_STOCK) insert.run(playerId, row.item, row.stock);
+    // Cap unsold legacy stock without refilling sold-out goods or changing owned items.
+    this.db.prepare('UPDATE shop SET stock = 3 WHERE player_id = ? AND stock > 3').run(playerId);
   }
 
   // ---- events, notes -----------------------------------------------------

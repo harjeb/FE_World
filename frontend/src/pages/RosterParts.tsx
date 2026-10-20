@@ -5,7 +5,7 @@ import { CHARACTERS } from '@common/data/characters.ts';
 import { CLASS_ABILITIES, CLASS_ABILITY_BY_ID } from '@common/data/class-abilities.ts';
 import { CLASSES } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
-import { SKILLS } from '@common/data/skills.ts';
+import { SKILLS, skillText } from '@common/data/skills.ts';
 import type { SkillId } from '@common/data/skills.ts';
 import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
 import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
@@ -76,13 +76,13 @@ export function StatusTag({ unit }: { unit: ServerUnit }) {
 }
 
 function ageLine(unit: ServerUnit): string {
-  if (unit.isProtagonist) return `${unit.age} 岁 · 神主角不衰老`;
+  if (unit.isProtagonist) return `${unit.age} 岁`;
   return `${unit.age} 岁 · ${unit.daysUntilBirthday > 0 ? `距生日 ${unit.daysUntilBirthday} 日` : '今天生日'}`;
 }
 
 export function ProfileHeader({ unit, current }: { unit: ServerUnit; current: ProfileTab }) {
   const personalSkill = unit.snapshot.personalSkill ?? CHARACTERS[unit.character]?.skill;
-  const skill = personalSkill ? SKILLS[personalSkill] : null;
+  const skill = personalSkill ? { ...SKILLS[personalSkill], text: skillText(personalSkill, unit.level) } : null;
   const exp = expLine(unit);
   const warning = LIFESPAN_TEXT[unit.lifespanWarning];
   return (
@@ -107,7 +107,7 @@ export function ProfileHeader({ unit, current }: { unit: ServerUnit; current: Pr
             <div className="bar grow"><i style={{ width: `${exp.exp}%`, background: '#A88445' }} /></div>
             <b className="num" style={{ whiteSpace: 'nowrap' }}>{exp.max ? '已满级' : `${exp.exp} / 100`}</b>
           </div>
-          {skill && <div style={{ marginTop: 8, fontSize: 14 }}><span className="tag tag-brass" style={{ marginRight: 6 }}>个人技能</span><b>{skill.name}</b>：{skill.text}<span className="muted">（不占技能格）</span></div>}
+          {skill && <div style={{ marginTop: 8, fontSize: 14 }}><span className="tag tag-brass" style={{ marginRight: 6 }}>个人技能</span><b>{skill.name}</b>：{skill.text}</div>}
         </div>
         <div className="flex flex-col items-end gap-1.5" style={{ fontSize: 13, color: '#4E473D' }}>
           <span>{ageLine(unit)}</span>
@@ -120,8 +120,8 @@ export function ProfileHeader({ unit, current }: { unit: ServerUnit; current: Pr
   );
 }
 
-const pct = (n: number) => `${Math.max(0, n)}%`;
-const signed = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`;
+const pct = (n: number) => `${Math.max(0, n)}`;
+const signed = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n)}`;
 
 // 个人基础成长：成长传承或单位自身掷定的向量优先；旧存档才回退到角色表。
 export function personalGrowth(unit: ServerUnit, key: (typeof STAT_KEYS)[number]): number {
@@ -170,7 +170,7 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
   const basicCell = (key: (typeof BASIC_RING)[number]) => (
     <div key={key} className="ab-cell" title={view === 'value' ? (cls.caps[key] == null ? '无上限' : `上限 ${cls.caps[key]}`) : `个人 ${pct(personalGrowth(unit, key))} · 职业 ${signed(cls.growth[key])}`}>
       <span className="ab-k">{STAT_NAMES[key]}</span>
-      <span className="ab-v">{view === 'value' ? stats[key] ?? 0 : `${growth(key)}%`}</span>
+      <span className="ab-v">{view === 'value' ? stats[key] ?? 0 : growth(key)}</span>
       {view === 'value' && cls.caps[key] != null && <span className="ab-cap">/{cls.caps[key]}</span>}
     </div>
   );
@@ -179,7 +179,7 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
   return (
     <section className="panel ability" aria-labelledby="ab-h">
       <div className="ab-strip">
-        <span><small>HP</small><b className="num">{view === 'value' ? stats.hp : `${growth('hp')}%`}</b>{view === 'value' && <span className="ab-cap">/{cls.caps.hp}</span>}</span>
+        <span><small>HP</small><b className="num">{view === 'value' ? stats.hp : growth('hp')}</b>{view === 'value' && <span className="ab-cap">/{cls.caps.hp}</span>}</span>
         <span><small>移动</small><b className="num">{cls.move}</b></span>
         <span><small>体格</small><b className="num">{unit.snapshot.con}</b></span>
       </div>
@@ -189,12 +189,12 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
           {COMBAT_KEYS.map(combatCell)}
           <div className="ab-cell wide"><span className="ab-k">射程</span><span className="ab-v">{p.range ? (p.range[0] === p.range[1] ? p.range[0] : `${p.range[0]}–${p.range[1]}`) : '—'}</span></div>
         </div>
-        <Radar label="战斗能力（展示刻度非属性上限）" axes={COMBAT_RING.map(k => ({ label: COMBAT_LABEL[k], value: armed || !OFFENSE.has(k) ? p.now[k] : 0, max: p.scale[k] }))} />
+        <Radar label="战斗能力" axes={COMBAT_RING.map(k => ({ label: COMBAT_LABEL[k], value: armed || !OFFENSE.has(k) ? p.now[k] : 0, max: p.scale[k] }))} />
       </div>
       <div className="ph">
         <h2>基本能力</h2>
         <span className="flex items-center gap-2">
-          <span style={{ fontSize: 12, color: '#6A6256' }}>{view === 'value' ? <>综合能力 <b className="num" style={{ color: '#302D28', fontSize: 15 }}>{total}</b></> : <>成长合计 <b className="num" style={{ color: '#302D28', fontSize: 15 }}>{growthTotal}%</b></>}</span>
+          <span style={{ fontSize: 12, color: '#6A6256' }}>{view === 'value' ? <>综合能力 <b className="num" style={{ color: '#302D28', fontSize: 15 }}>{total}</b></> : <>成长合计 <b className="num" style={{ color: '#302D28', fontSize: 15 }}>{growthTotal}</b></>}</span>
           <span className="seg seg-sm" role="group" aria-label="基本能力显示">
             <button type="button" aria-pressed={view === 'value'} onClick={() => setView('value')}>数值</button>
             <button type="button" aria-pressed={view === 'growth'} onClick={() => setView('growth')}>成长率</button>
@@ -203,14 +203,10 @@ export function AbilityPanel({ unit }: { unit: ServerUnit }) {
       </div>
       <div className="ab-body">
         <div className="ab-grid">{BASIC_PAIRS.flat().map(basicCell)}</div>
-        <Radar label={view === 'value' ? '基本能力（展示刻度非属性上限）' : '合计成长率'}
+        <Radar label={view === 'value' ? '基本能力' : '合计成长率'}
           axes={BASIC_RING.map(k => ({ label: STAT_NAMES[k], value: view === 'value' ? stats[k] ?? 0 : growth(k), max: view === 'value' ? basicScale : 100 }))} />
       </div>
-      <div className="pfoot">
-        {view === 'value'
-          ? <>数值与交战公式相同（平地、未移动）；▲ 表示含技能或装备加成。雷达图展示刻度非属性上限；基本能力外圈为 {basicScale}，战斗能力各轴刻度随数值扩展。{!armed && unit.snapshot.weapons.length > 0 && <> 治疗量 = 魔 + 10（当前 <b>{stats.mag + 10}</b>）。</>}</>
-          : <>合计成长 = 个人 + 职业（含装备授予），是每次升级该项 +1 的概率；整级无提升时自动重掷（最多 2 次）。体格不随升级成长。</>}
-      </div>
+      {!armed && unit.snapshot.weapons.length > 0 && <div className="pfoot">治疗量 = 魔 + 10（当前 <b>{stats.mag + 10}</b>）。</div>}
     </section>
   );
 }
@@ -298,7 +294,7 @@ export function EquipmentPanel({ unit, onEquip }: { unit: ServerUnit; onEquip: (
         )}
       </ul>
       {unit.spellbooks.length > 0 && <>
-        <div className="grp">职业法术书（施法消耗每本独立次数；旅馆与食物恢复）</div>
+        <div className="grp">职业法术书</div>
         <ul className="eq">
           {unit.spellbooks.map(book => {
             const def = SPELLBOOK_BY_ID.get(book.id);
@@ -353,7 +349,7 @@ export function WeaponRanksPanel({ unit }: { unit: ServerUnit }) {
 export function SkillsPanel({ unit }: { unit: ServerUnit }) {
   const cls = CLASSES[unit.classId as ClassId];
   const personalSkill = unit.snapshot.personalSkill ?? CHARACTERS[unit.character]?.skill;
-  const personal = personalSkill ? SKILLS[personalSkill] : null;
+  const personal = personalSkill ? { ...SKILLS[personalSkill], text: skillText(personalSkill, unit.level) } : null;
   const classSkills = classAbilities(unit.classId);
   const weapons = unit.snapshot.weapons as WeaponId[];
   const granted = [...new Set(weapons.flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
@@ -446,7 +442,6 @@ export function GrowthPanels({ unit }: { unit: ServerUnit }) {
             </tbody>
           </table>
         </div>
-        <div className="pfoot">共记录 {history.length} 次升级；加入前与轮回前的成长不在此列。* 表示含数值传承的保底补点。</div>
       </section>
       <section className="panel" aria-labelledby="snap-h">
         <div className="ph"><h2 id="snap-h">竞技场快照对比</h2><span style={{ fontSize: 12, color: '#6A6256' }}>竞技场日报名时保存</span></div>
@@ -491,6 +486,7 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
   const current = data.progress.find(p => p.classId === data.classId) ?? data.progress.find(p => p.name === unit.className);
   const others = data.progress.filter(p => p !== current && p.mastery > 0);
   const anchorSkill = unit.snapshot.personalSkill ?? CHARACTERS[unit.character]?.skill;
+  const anchorText = anchorSkill ? skillText(anchorSkill as SkillId, unit.level) : null;
   const granted = [...new Set((unit.snapshot.weapons as WeaponId[]).flatMap(id => WEAPONS[id].grants?.skill ? [WEAPONS[id].grants!.skill!] : []))];
   const toggle = (id: string, art = false) => {
     const list = art ? arts : equipped;
@@ -520,9 +516,8 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
   return (
     <div className="cols2">
       <section className="panel" aria-labelledby="ms-h">
-        <div className="ph"><h2 id="ms-h">职业精通 · {current?.name ?? unit.className}</h2><span className="num" style={{ fontSize: 13 }}>精通 {current?.mastery ?? 0}</span></div>
-        <p className="sys-note">有效参战（每场 8 点，获胜另加 4 点）与派遣职业训练（每日 3 点）积累精通；达到门槛学会技能或战技，换职业后保留。普通竞技场与练习不计。</p>
-        {current && nodeList(current)}
+        <div className="ph"><h2 id="ms-h">职业精通 · {current?.name ?? unit.className}</h2>{!!current?.nodes.length && <span className="num" style={{ fontSize: 13 }}>精通 {current.mastery}</span>}</div>
+        {current?.nodes.length ? nodeList(current) : <p className="sys-note">起始身份与初级职业不提供职业精通。</p>}
         {others.length > 0 && <>
           <div className="grp">其他职业的精通</div>
           <ul className="roster-mini">
@@ -552,7 +547,7 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
               {skillName(skill)} · {SKILLS[skill as SkillId]?.text}
             </button>
           ))}
-          {data.learnedSkills.length === 0 && <span className="muted" style={{ fontSize: 13 }}>还没有学会技能：职业精通达到门槛后学会。</span>}
+          {data.learnedSkills.length === 0 && <span className="muted" style={{ fontSize: 13 }}>还没有学会技能。</span>}
         </div>
         <div className="grp">已学战技 · {data.learnedArts.length} 项</div>
         <ul className="roster-mini">
@@ -561,10 +556,9 @@ export function MasteryPanel({ unit }: { unit: ServerUnit }) {
             return <li key={id}><button type="button" className="chip" aria-pressed={arts.includes(id)} disabled={busy || !art || art.unlock.kind === 'equipment_grant' || (!arts.includes(id) && count >= data.slots)} onClick={() => toggle(id, true)}>{arts.includes(id) ? '卸下' : '装上'}</button><span className="min-w-0"><b>{art?.name ?? id}</b><span className="rm-sub">{art ? `${art.unlock.kind === 'art_training' ? '战技研习' : '职业精通'} · ${art.effect} · ${art.weaponCompatibility.map(type => WEAPON_TYPE_NAMES[type]).join('／')}${art.rank ? ` ${art.rank}` : ''} · 耐久 ${art.cost}` : ''}</span></span></li>;
           })}
         </ul>
-        {data.learnedArts.length === 0 && <p className="sys-note">职业精通达到战技节点后学会；切换职业不会直接领取战技。</p>}
-        <p className="sys-note">学会战技只加入永久库，不会自动装上。选中后仍须满足当前职业、兼容武器、熟练度与耐久／次数要求；基础战技与升级战技各占一格。装备授予战技、个人与职业固有能力不占格。</p>
+        {data.learnedArts.length === 0 && <p className="sys-note">还没有学会战技。</p>}
         <dl className="facts">
-          <dt>个人技能</dt><dd>{anchorSkill ? `${SKILLS[anchorSkill].name}：${SKILLS[anchorSkill].text}` : '无'}（不占格）</dd>
+          <dt>个人技能</dt><dd>{anchorSkill ? `${SKILLS[anchorSkill as SkillId].name}：${anchorText}` : '无'}（不占格）</dd>
           <dt>装备授予</dt><dd>{granted.length > 0 ? granted.map(id => SKILLS[id].name).join('、') : '无'}（卸下即失效，不占格）</dd>
         </dl>
         {message && <p className="sys-note" role="status">{message}</p>}

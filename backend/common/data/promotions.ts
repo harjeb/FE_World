@@ -1,5 +1,6 @@
-import { CLASSES, CLASS_PATHS, canonicalClassId } from './classes.ts';
+import { CLASSES, CATALOG_CLASS_IDS, canonicalClassId } from './classes.ts';
 import type { ClassId, ClassRoute, ClassDef } from './classes.ts';
+import { CLASS_PATHS } from './classes.ts';
 import { stats } from './types.ts';
 
 export interface Promotion extends Pick<ClassDef, 'name' | 'moveType' | 'move' | 'weapons' | 'growth'> {
@@ -28,4 +29,22 @@ for (const route of Object.keys(CLASS_PATHS) as ClassRoute[]) {
 }
 export function promotionsFor(classId: ClassId): Promotion[] {
   return PROMOTIONS.filter(p => p.from === canonicalClassId(classId)).map(p => ({ ...p, from: classId }));
+}
+
+// 普通人类不局限对应路线：所有符合现有资格／目标武器等级的职业都能在转职界面选。
+// 资格资格由服务端 SWITCH_CLASS 校验，这里只提供全职业方向；兽／龙种族约束仍在 classEntryReason。
+export function allPromotionsFor(classId: ClassId): Promotion[] {
+  const current = canonicalClassId(classId);
+  return CATALOG_CLASS_IDS
+    .filter(id => id !== current)
+    .map(to => {
+      const existing = PROMOTIONS.find(p => p.from === current && p.to === to);
+      if (existing) return { ...existing, from: classId };
+      const cls = CLASSES[to];
+      return { name: cls.name, from: classId, to, moveType: cls.moveType, move: cls.move, weapons: cls.weapons, growth: cls.growth,
+        bonus: stats(0,0,0,0,0,0,0,0), con: 0,
+        skill: { name: '职业专长', text: '不额外赠送永久属性或未实现的技能。' },
+        tagline: `第 ${cls.stage} 阶 · 总等级保留`, fit: '仅应用当前职业成长，不累加前置职业修正。',
+      };
+    });
 }

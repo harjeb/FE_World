@@ -30,30 +30,21 @@ export function TavernPage() {
         <div>
           <div className="eyebrow">酒馆 · {dateLabel(state.day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>酒馆</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>雇佣候选、两种小游戏都不推进日期。候选每季度刷新一次，刷新前不会重掷；小游戏可以完全不玩，不影响主线与招募。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>金币 <b className="num">{state.gold.toLocaleString()}</b> · 名册 {state.rosterCount} / {state.rosterLimit}</div>
       </div>
       {!open && <p className="sys-strip" role="status">酒馆在第二年（{plainDate(RECRUIT_UNLOCK_DAY)}）开放，还有 {RECRUIT_UNLOCK_DAY - state.day} 日；游历招募同时开放。紧急补员不受这个限制。</p>}
       <CrossTimeExchange />
-      <div className="sys-cols">
+      {/* 酒馆未开放时左栏（候选＋小游戏）不渲染，紧急补员单独占满整行，避免空出一大列。 */}
+      {open ? <div className="sys-cols">
         <div className="colstack">
-          {open && <HirePanel />}
-          {open && <MinigamePanel />}
+          <HirePanel />
+          <MinigamePanel />
         </div>
         <div className="colstack">
           <EmergencyPanel />
-          <section className="panel" aria-labelledby="tr-h">
-            <div className="ph"><h2 id="tr-h">规则</h2></div>
-            <ul className="sys-rules">
-              <li>每个地区每季度 3 名候选，价格按当前招募等级计算；雇到就加入名册，名册满时不能雇。</li>
-              <li>游历招募在<a href={links.camp}>军营</a>：只花行动日，遇到候选后再决定接受或拒绝。</li>
-              <li>小游戏每个游戏季度共 6 局正式局，两种游戏共用；属性、等级与装备都不影响结果。</li>
-              <li>战斗、连续副本和年度赛事进行中不能下注。</li>
-            </ul>
-          </section>
         </div>
-      </div>
+      </div> : <div className="colstack"><EmergencyPanel /></div>}
     </Shell>
   );
 }
@@ -154,28 +145,23 @@ function MinigamePanel() {
         <button type="button" role="tab" aria-selected={game === 'dice'} className="chip" onClick={() => setGame('dice')}>摇盅猜大小</button>
         <button type="button" role="tab" aria-selected={game === 'frogs'} className="chip" onClick={() => setGame('frogs')}>青蛙赛跑</button>
       </div>
-      {game === 'dice'
-        ? <div className="mg-body">
-          <p className="sys-note">三颗骰子：总和 11–17 为大，10 及以下为小；三颗点数相同（三同点）押哪边都输。押对返还下注的 {DICE_RETURN} 倍（含本金）。</p>
-          <div className="chips" role="radiogroup" aria-label="押大或小">
-            <button type="button" role="radio" aria-checked={choice === 'big'} className="chip" onClick={() => setChoice('big')}>押大</button>
-            <button type="button" role="radio" aria-checked={choice === 'small'} className="chip" onClick={() => setChoice('small')}>押小</button>
-          </div>
+      {game === 'frogs' && <div className="mg-body">
+        <div className="frog-odds" role="radiogroup" aria-label="押哪只青蛙">
+          {data.frogs.map((frog, i) => (
+            <button key={frog.name} type="button" role="radio" aria-checked={pick === i} className="frog-pick" disabled={racing} onClick={() => setPick(i)}>
+              <FrogFace frog={i} size={32} />
+              <span className="fo-name">{frog.name}</span>
+              <span className="fo-num">夺冠 {frog.chance}%</span>
+              <b className="fo-pay">{times(frog.returnTenths)} 倍</b>
+            </button>
+          ))}
         </div>
-        : <div className="mg-body">
-          <p className="sys-note">酒馆后院的老把戏：四只青蛙强弱固定，热门的赢面大、赔得少，冷门的反过来；押中冠军按它的倍率返还（含本金）。每只的期望返还相同。</p>
-          <div className="frog-odds" role="radiogroup" aria-label="押哪只青蛙">
-            {data.frogs.map((frog, i) => (
-              <button key={frog.name} type="button" role="radio" aria-checked={pick === i} className="frog-pick" disabled={racing} onClick={() => setPick(i)}>
-                <FrogFace frog={i} size={32} />
-                <span className="fo-name">{frog.name}</span>
-                <span className="fo-num">夺冠 {frog.chance}%</span>
-                <b className="fo-pay">{times(frog.returnTenths)} 倍</b>
-              </button>
-            ))}
-          </div>
-        </div>}
+      </div>}
       <div className="mg-body">
+        {game === 'dice' && <div className="chips" role="radiogroup" aria-label="押大或小">
+          <button type="button" role="radio" aria-checked={choice === 'big'} className="chip" onClick={() => setChoice('big')}>押大</button>
+          <button type="button" role="radio" aria-checked={choice === 'small'} className="chip" onClick={() => setChoice('small')}>押小</button>
+        </div>}
         <div className="chips" role="radiogroup" aria-label="下注额">
           {data.bets.map(b => <button key={b} type="button" role="radio" aria-checked={bet === b} className="chip" disabled={state.gold < b} onClick={() => setBet(b)}>{b} 金</button>)}
         </div>
@@ -216,7 +202,6 @@ function EmergencyPanel() {
   return (
     <section className="panel" aria-labelledby="em-h">
       <div className="ph"><h2 id="em-h">紧急补员</h2>{status && <span className={`tag ${status.available ? 'tag-green' : 'tag-grey'}`}>{status.available ? '可以领取' : '未开放'}</span>}</div>
-      <p className="sys-note">真实伤亡使现役存活人数降到 {status?.threshold ?? 2} 人及以下（含主角）时，可以在酒馆免费招募随机 {status?.units ?? 2} 人：不花金币、不推进日期。解雇、退役与派遣都不算新伤亡；每次新的真实损失只能领一次。</p>
       {status && (
         <>
           <Checks items={[

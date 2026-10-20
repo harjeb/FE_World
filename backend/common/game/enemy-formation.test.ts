@@ -14,7 +14,7 @@ const party = Array.from({ length: 6 }, (_, i) => createUnit('erin', 1, `player-
 
 test('hard reserves enlarge random and classic formations without changing deployment or creating extra bosses', () => {
   for (const create of [
-    (aiDifficulty: 'normal' | 'hard') => createFieldBattle(party.slice(0, 4), { region: 5, cleared: 0, day: 375, seed: 'formation', aiDifficulty }),
+    (aiDifficulty: 'normal' | 'hard') => createFieldBattle(party.slice(0, 4), { region: 5, cleared: 0, day: 2000, seed: 'formation', aiDifficulty }),
     (aiDifficulty: 'normal' | 'hard') => createClassicBattle(party, { mapId: 'fe1-ch16', seed: 'formation', aiDifficulty }),
   ]) {
     const normal = create('normal').state, hard = create('hard').state;

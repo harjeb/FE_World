@@ -35,7 +35,6 @@ test('all fifteen originals are playable with compatible weapon ranks and use ex
   for (const art of originals) {
     const weapon = art.weapon === 'beast' ? 'beast_claw' : art.weapon === 'dragon' ? 'dragonstone' : 'brave_sword';
     const { state, me, foe, action } = setup(art.id, weapon);
-    if (art.id === 'fe_art_focused_breath') foe.pos = [4, 2];
     if (art.id === 'fe_art_king_fang') foe.artEffects = { scent: ['player'] };
     const predicted = artForecast(state, me, me.pos, weapon, art, foe);
     assert.equal(predicted.attacker.strikes, 1, art.id);
@@ -49,9 +48,10 @@ test('all fifteen originals are playable with compatible weapon ranks and use ex
 
 test('original target queries and validation agree on weapon intersection, ranks, walls and stationary conditions', () => {
   const { state, me, foe, action, art } = setup('fe_art_focused_breath', 'dragonstone');
+  foe.pos = [4, 2];
   assert.equal(actionOptions(state, me, me.pos).arts[0].targets.length, 0);
   assert.throws(() => step(state, action), /射程/);
-  foe.pos = [4, 2];
+  foe.pos = [3, 2];
   assert.ok(actionOptions(state, me, me.pos).arts[0].targets.includes(foe));
   state.map.tiles[2][3] = 'wall';
   assert.equal(actionOptions(state, me, me.pos).arts[0].targets.length, 0);
@@ -185,25 +185,35 @@ test('barriers subtract after critical and consume once; embers are nonlethal an
   assert.ok(!events.some(e => e.t === 'exp'));
 });
 
-test('split and line breaths validate all targets, suppress extra counters/crit and stop on petrification', () => {
-  for (const id of ['fe_art_split_breath', 'fe_art_ancient_breath']) {
-    const { state, me, foe, ally, action, art } = setup(id, 'dragonstone');
-    ally.side = 'enemy'; ally.pos = [4, 2]; ally.weapons = ['levin_sword'];
-    const selected = id === 'fe_art_split_breath' ? { ...action, secondary: ally.id } : action;
-    const preview = artForecast(state, me, me.pos, 'dragonstone', art, foe, selected.secondary);
-    assert.equal(preview.targets.length, 2);
-    const result = step(state, selected), exchanges = combats(result.events);
-    assert.equal(exchanges.length, 2); assert.equal(exchanges[1].strikes.length, 1);
-    assert.ok(exchanges.flatMap(e => e.strikes).filter(s => s.by === me.id).every(s => !s.crit));
-    assert.equal(exchanges[1].strikes[0].damage, Math.floor(preview.targets[1].forecast.attacker.damage * (id === 'fe_art_split_breath' ? 0.5 : 1)));
-    foe.hp = 1; foe.shields = 1; foe.artEffects = { scent: ['player'], barrier: { amount: 1, by: 'ally' } };
-    const stopped = step(state, selected);
-    assert.equal(combats(stopped.events).length, 1);
-    assert.equal(unitById(stopped.state, foe.id).petrified, true);
-    assert.equal(unitById(stopped.state, foe.id).artEffects, undefined);
-    assert.equal(unitById(stopped.state, ally.id).hp, ally.hp);
-    assert.equal(JSON.stringify(step(JSON.parse(JSON.stringify(state)), selected)), JSON.stringify(stopped));
-    ally.side = 'player';
-    if (id === 'fe_art_ancient_breath') assert.throws(() => step(state, action), /条件/);
-  }
+test('split breath hits two adjacent enemies, rejects range two and stops on petrification', () => {
+  const { state, me, foe, ally, action, art } = setup('fe_art_split_breath', 'dragonstone');
+  ally.side = 'enemy'; ally.pos = [2, 3]; ally.weapons = ['levin_sword'];
+  const selected = { ...action, secondary: ally.id };
+  const preview = artForecast(state, me, me.pos, 'dragonstone', art, foe, selected.secondary);
+  assert.equal(preview.targets.length, 2);
+  const result = step(state, selected), exchanges = combats(result.events);
+  assert.equal(exchanges.length, 2); assert.equal(exchanges[1].strikes.length, 1);
+  assert.ok(exchanges.flatMap(e => e.strikes).filter(s => s.by === me.id).every(s => !s.crit));
+  assert.equal(exchanges[1].strikes[0].damage, Math.floor(preview.targets[1].forecast.attacker.damage * 0.5));
+  ally.pos = [4, 2];
+  assert.throws(() => step(state, selected), /次目标/);
+  ally.pos = [2, 3];
+  foe.hp = 1; foe.shields = 1; foe.artEffects = { scent: ['player'], barrier: { amount: 1, by: 'ally' } };
+  const stopped = step(state, selected);
+  assert.equal(combats(stopped.events).length, 1);
+  assert.equal(unitById(stopped.state, foe.id).petrified, true);
+  assert.equal(unitById(stopped.state, foe.id).artEffects, undefined);
+  assert.equal(unitById(stopped.state, ally.id).hp, ally.hp);
+  assert.equal(JSON.stringify(step(JSON.parse(JSON.stringify(state)), selected)), JSON.stringify(stopped));
+});
+
+test('ancient breath only affects the adjacent target and never extends to distance two', () => {
+  const { state, me, foe, ally, action, art } = setup('fe_art_ancient_breath', 'dragonstone');
+  ally.side = 'enemy'; ally.pos = [4, 2];
+  assert.equal(artForecast(state, me, me.pos, 'dragonstone', art, foe).targets.length, 1);
+  const result = step(state, action);
+  assert.equal(combats(result.events).length, 1);
+  assert.equal(unitById(result.state, ally.id).hp, ally.hp);
+  foe.pos = [4, 3];
+  assert.throws(() => step(state, action), /射程/);
 });

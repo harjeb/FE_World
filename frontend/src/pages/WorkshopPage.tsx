@@ -10,6 +10,7 @@ import type { ProductionOrder, ServerProduction } from '../api/session.ts';
 import { links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, dateLabel, plainDate } from '../ui/calendar.ts';
+import { ConfirmButton } from '../ui/Modal.tsx';
 import { itemIcon } from './PrepParts.tsx';
 import { itemName, stock, useAct } from './SystemParts.tsx';
 
@@ -32,12 +33,11 @@ export function WorkshopPage() {
     return <Shell current="workshop"><p style={{ color: '#4E473D' }}>暂时读不到生产信息，刷新页面再试。</p></Shell>;
   }
   const day = state.day;
-  const regions = state.regions;
   const have = (item: string) => stock(state, item);
   const visibleMaterials = MATERIAL_IDS.filter(id => matchMaterialFilter(id, category, tier));
-  const visibleRecipes = production.recipes.filter(r => matchRecipeSearch(r, query)
-    && (recipeFilter !== 'unlocked' || r.unlocked)
-    && (recipeFilter !== 'stocked' || (r.unlocked && r.input.every(i => have(i.item) >= i.count))));
+  // 生产页只列已解锁配方（含无门槛配方）；未解锁的隐藏，避免一整页灰色未解锁项。
+  const visibleRecipes = production.recipes.filter(r => r.unlocked && matchRecipeSearch(r, query)
+    && (recipeFilter !== 'stocked' || r.input.every(i => have(i.item) >= i.count)));
   const ripe = production.orders.filter(o => o.state === 'ready');
   const growing = production.orders.filter(o => o.state === 'growing').sort((a, b) => a.readyDay - b.readyDay);
 
@@ -52,7 +52,7 @@ export function WorkshopPage() {
         <div className="min-w-0">
           <div className="nm">{order.recipe} <span className="muted">→ {order.output}</span>{order.quality === 'perfect' && <span className="tag tag-brass">完美锻造</span>}</div>
           {order.state === 'ready'
-            ? <div className="sp">已成熟，领取不推进日期</div>
+            ? <div className="sp">已成熟</div>
             : <div className="sp ord-prog"><span className="bar grow"><i style={{ width: `${((span - left) / span) * 100}%` }} /></span>还要 {left} 日 · {plainDate(order.readyDay)}</div>}
         </div>
         {order.state === 'ready'
@@ -69,14 +69,12 @@ export function WorkshopPage() {
     const full = facility.used >= facility.slots;
     const missing = recipe.input.filter(i => have(i.item) < i.count);
     const plant = recipe.kind === 'grow';
-    const req = recipe.requires;
-    const lockWhy = !recipe.unlocked && req
-      ? `需要 ${regions.find(r => r.id === req.region)?.name ?? `地区${req.region}`} 声望 ${req.reputation}`
-      : null;
+    // 未解锁配方在生产页不渲染；这一支只作类型上的兜底。
+    if (!recipe.unlocked) return null;
     const forge = recipe.kind === 'forge' && WEAPONS[recipe.output.item as WeaponId] !== undefined;
     const fine = forge && !!perfect[recipe.id];
-    const why = lockWhy ?? (full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}`
-      : fine && state!.gold < PERFECT_GOLD ? `完美锻造需要 ${PERFECT_GOLD.toLocaleString()} 金币` : null);
+    const why = full ? `${facility.name}工位已满` : missing.length > 0 ? `缺少${missing.map(i => itemName(i.item)).join('、')}`
+      : fine && state!.gold < PERFECT_GOLD ? `完美锻造需要 ${PERFECT_GOLD.toLocaleString()} 金币` : null;
     const run = plant
       ? () => session.run<{ day: number }>(OP.PLANT, { recipeId: recipe.id })
       : () => session.run(OP.START_PRODUCTION, { recipeId: recipe.id, ...(fine ? { perfect: true } : {}) });
@@ -95,14 +93,14 @@ export function WorkshopPage() {
           {forge && (
             <label className="perfect">
               <input type="checkbox" checked={fine} onChange={e => setPerfect(p => ({ ...p, [recipe.id]: e.target.checked }))} />
-              完美锻造 +{PERFECT_GOLD.toLocaleString()} 金：第一次交给角色时耐久 +10（如 40 → 50），维修回到新的上限
+              完美锻造 +{PERFECT_GOLD.toLocaleString()} 金
             </label>
           )}
           {why && <div className="why">{why}</div>}
         </div>
         <button type="button" className="btn btn-sm" disabled={busy !== null || !!why}
           onClick={() => void act(recipe.id, run, () => (plant ? `播下种子，${recipe.days} 日后收获${itemName(recipe.output.item)}` : `${facility.name}开工：${recipe.name}${fine ? '（完美锻造）' : ''}`))}>
-          {busy === recipe.id ? '开工中…' : !recipe.unlocked ? '未解锁' : plant ? '播种' : '开工'}
+          {busy === recipe.id ? '开工中…' : plant ? '播种' : '开工'}
         </button>
       </li>
     );
@@ -114,7 +112,6 @@ export function WorkshopPage() {
         <div>
           <div className="eyebrow">生产 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>药草田与工坊</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>订单按个人日历的行动日成熟，成熟后领取不推进日期。播种要花 1 日；炼药和锻造开工不耗日，只占用工位。</p>
         </div>
         <div className="mats" aria-label="仓库材料">
           <span className="mat"><img className="px" src={ICONS.seed} width={24} height={24} alt="" />{itemName('seed')} <b className="num">{have('seed')}</b></span>
@@ -125,12 +122,12 @@ export function WorkshopPage() {
       {(ripe.length > 0 || growing.length > 0) && (
         <p className="sys-strip" role="status">
           {ripe.length > 0 ? `${ripe.length} 件已成熟待领取。` : ''}
-          {growing.length > 0 ? `下一件在${plainDate(growing[0].readyDay)}成熟（${growing[0].readyDay - day} 日后）；成熟靠推进日期，例如在军营休整。` : ''}
+          {growing.length > 0 ? `下一件在${plainDate(growing[0].readyDay)}成熟（${growing[0].readyDay - day} 日后）。` : ''}
         </p>
       )}
 
       <details className="panel workshop-materials">
-        <summary>材料仓库 · {MATERIAL_IDS.length} 种材料（展开查看持有数量、来源与配方）</summary>
+        <summary>材料仓库 · {MATERIAL_IDS.length} 种材料</summary>
         <div className="workshop-filters">
           <label>材料类别 <select value={category} onChange={e => setCategory(e.target.value)}>
             <option value="all">全部类别</option>
@@ -158,7 +155,7 @@ export function WorkshopPage() {
       <div className="workshop-filters" role="search" aria-label="配方筛选">
         <label>搜索配方 <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="配方、产物或材料名称" /></label>
         <label>配方状态 <select value={recipeFilter} onChange={e => setRecipeFilter(e.target.value)}>
-          <option value="all">全部配方</option><option value="unlocked">已解锁</option><option value="stocked">已解锁且材料足够</option>
+          <option value="all">全部配方</option><option value="stocked">材料足够</option>
         </select></label>
         <span role="status">{visibleRecipes.length} 个配方</span>
       </div>
@@ -183,8 +180,7 @@ export function WorkshopPage() {
         })}
       </div>
       <section className="panel" aria-labelledby="refine-h">
-        <div className="ph"><h2 id="refine-h">毒弓精炼</h2><span>不推进日期 · 最高 +3</span></div>
-        <p className="sys-note">仅精炼携带的第一把毒弓；不恢复耐久，不增加属性。+3 解锁装备战技。</p>
+        <div className="ph"><h2 id="refine-h">毒弓精炼</h2><span>最高 +3</span></div>
         <ul className="eq">
           {state.units.filter(u => u.status === 'active' && u.snapshot.weapons.includes('fw_weapon_85')).map(unit => {
             const level = unit.weaponInstances.find(w => w.id === 'fw_weapon_85')?.refinement ?? 0;
@@ -192,18 +188,19 @@ export function WorkshopPage() {
             const key = `refine:${unit.id}`;
             const locked = !!unit.lockedRunId || !!unit.lockedDispatchId || !!today?.battle;
             return <li key={unit.id}>
-              <div className="min-w-0"><div className="nm">{unit.name} · {WEAPONS.fw_weapon_85.name} +{level}</div><div className="sp">{locked ? '活动中，暂不可精炼' : level >= 3 ? '已达精炼上限' : `升至 +${next}：${300 * next} 金币 · ${itemName('ore')} ×${next}`}</div></div>
-              <button type="button" className="btn btn-sm" disabled={busy !== null || locked || level >= 3 || state.gold < 300 * next || have('ore') < next}
-                onClick={() => void act(key, () => session.run(OP.REFINE_WEAPON, { unitId: unit.id, item: 'fw_weapon_85' }), () => `${unit.name}的毒弓已精炼至 +${next}`)}>
+              <div className="min-w-0"><div className="nm">{unit.name} · {WEAPONS.fw_weapon_85.name} +{level}</div><div className="sp">{locked ? '活动中，暂不可精炼' : level >= 3 ? '已达精炼上限' : `升至 +${next}`}</div></div>
+              <ConfirmButton className="btn btn-sm" disabled={busy !== null || locked || level >= 3 || state.gold < 300 * next || have('ore') < next}
+                title={`精炼 · ${unit.name}`} confirmLabel="确认精炼"
+                message={<><p>{WEAPONS.fw_weapon_85.name} <b>+{level} → +{next}</b></p><p>消耗 {300 * next} 金币、{itemName('ore')} ×{next}</p></>}
+                onConfirm={() => void act(key, () => session.run(OP.REFINE_WEAPON, { unitId: unit.id, item: 'fw_weapon_85' }), () => `${unit.name}的毒弓已精炼至 +${next}`)}>
                 {busy === key ? '精炼中…' : level >= 3 ? '已满级' : `精炼 +${next}`}
-              </button>
+              </ConfirmButton>
             </li>;
           })}
           {!state.units.some(u => u.status === 'active' && u.snapshot.weapons.includes('fw_weapon_85')) && <li className="empty-row">没有现役角色携带毒弓。</li>}
         </ul>
       </section>
       <RepairList />
-      <p className="sys-note">产量、周期与工位数量是首版数值；配方按地区声望解锁。物理武器的战技消耗耐久，维修只恢复到它已有的上限；完美锻造的 +10 不会叠第二次。</p>
     </Shell>
   );
 }
@@ -233,7 +230,7 @@ function RepairList() {
   });
   return (
     <section className="panel" aria-labelledby="rep-h">
-      <div className="ph"><h2 id="rep-h">铁匠铺 · 维修</h2><span style={{ fontSize: 12, color: '#6A6256' }}>不推进日期</span></div>
+      <div className="ph"><h2 id="rep-h">铁匠铺 · 维修</h2></div>
       <ul className="eq">
         {rows.map(r => (
           <li key={`${r.unit.id}:${r.id}`}>

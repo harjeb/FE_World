@@ -45,5 +45,5 @@ export const BOUNTY_QUESTS: Quest[] = DEFS.map(def => ({
     [1, 1, 10, 20, 35, 55, 55, 75, 75][def.chapter ?? 0],
     `bounty:${def.id}`, 3, 0,
   ).map(({ item, count }): [ItemKey, number] => [item, count])] },
-  event: `${def.name}：${bountyObjective(def.spec)}。不用接取，打完就能交任务。`,
+  event: `${def.name}：${bountyObjective(def.spec)}。`,
 }));

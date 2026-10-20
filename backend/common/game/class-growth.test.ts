@@ -51,7 +51,7 @@ test('early physical classes gain useful strength without losing their speed or 
   assert.ok(CLASSES.swordsman.growth.spd > CLASSES.fighter.growth.spd);
   assert.ok(CLASSES.swordsman.growth.skl > CLASSES.fighter.growth.skl);
   const unit = createUnit('erin', 1, 'early-strength', 0, true, { classId: 'swordsman', growthType: 'normal' });
-  assert.equal(growthRates(unit).str, 45, '40 personal growth plus 5 class growth gives 45 effective strength growth');
+  assert.equal(growthRates(unit).str, 35, '30 personal growth plus 5 class growth gives 35 effective strength growth');
   assert.deepEqual(battleGrowthRates(toBattleUnit(unit, 'player', unit.id, [0, 0])), growthRates(unit));
 });
 

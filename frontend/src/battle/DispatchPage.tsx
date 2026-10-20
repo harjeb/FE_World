@@ -83,7 +83,6 @@ export function DispatchPage() {
           <div>
             <div className="eyebrow">出击 · 后台派遣 · {dateLabel(state.day)}</div>
             <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>自动探索与职业训练</h1>
-            <p style={{ fontSize: 14, color: '#4E473D' }}>派出的人按自选天数在后台探索、训练，不推进日期。你的日历走到返程日时一次结算经验、精通、武器熟练度和带回的素材；途中这些人不能参加战斗、换职或整备。</p>
           </div>
         </div>
         {error && <p className="sys-strip">{error}</p>}
@@ -134,7 +133,6 @@ export function DispatchPage() {
             {picked.length > 0 && classes.length === 0 && <p className="pfoot why">所选角色没有共同可训练的职业：每人都要拥有该职业资格（或是当前／本命职业）。</p>}
             <dl className="facts">
               <dt>返程</dt><dd>{plainDate(state.day + days)}（{days} 日后，按你的日历推进）</dd>
-              <dt>结算</dt><dd>素材与低概率武器带回仓库；每人获得经验、所选职业的精通与武器熟练度。派遣期间不会阵亡。</dd>
             </dl>
             <div className="go-bar">
               <div className="flex flex-wrap gap-1.5" style={{ marginRight: 'auto' }}>{picked.map(u => <UnitFace key={u.id} unit={u} size={28} />)}</div>

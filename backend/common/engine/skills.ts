@@ -2,7 +2,7 @@ import { traitOpeningHP } from './personal-traits.ts';
 import type { TraitOpening } from './personal-traits.ts';
 import type { Weapon } from '../data/weapons.ts';
 import type { SkillId } from '../data/skills.ts';
-import { artStats } from './art-effects.ts';
+import { artBonus, artStats } from './art-effects.ts';
 import { distance, living } from './units.ts';
 import type { BattleState, Point, UnitState } from './types.ts';
 
@@ -101,6 +101,7 @@ export function skillMods(state: BattleState, f: Fighter): Mods {
   if (unit.skill) active.add(unit.skill);
   for (const skill of unit.skills ?? []) active.add(skill);
   for (const skill of active) applySkill(mods, state, f, skill);
+  mods.damage += artBonus(unit, 'damage');
   applyClassSkills(mods, f);
   if (unit.shelteredTurn === state.turn) mods.def += 2;
   const veteranNearby = living(state, unit.side)

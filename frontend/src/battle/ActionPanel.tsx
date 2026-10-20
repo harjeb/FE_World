@@ -1,8 +1,7 @@
 import { WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
-import { actionOptions, forecast, terrainAt, unitById } from '@common/engine/index.ts';
+import { actionOptions, forecast, unitById } from '@common/engine/index.ts';
 import type { BattleState } from '@common/engine/index.ts';
-import { TERRAINS } from '@common/maps/map.ts';
 import { itemIconFor } from '../assets.ts';
 import { spellbookItem } from '@common/game/items.ts';
 import { ArtIcon, AttackIcon, BackIcon, BagIcon, DanceIcon, HealIcon, RetreatIcon, SeizeIcon, SpellIcon, StaffIcon, WaitIcon } from '../ui/icons.tsx';
@@ -38,7 +37,6 @@ function actIcon(id: MenuEntry['action']['id']) {
 export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: ActMode; ctl: BattleController }) {
   const unit = unitById(state, mode.unit);
   const options = actionOptions(state, unit, mode.to);
-  const terrain = TERRAINS[terrainAt(state, mode.to)].name;
   const kind = mode.kind === 'attack' || mode.kind === 'heal' ? mode.kind : null;
   const weaponOptions = kind ? options[kind] : [];
   const targets = kind
@@ -60,7 +58,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
   return (
     <section className="panel" aria-label="行动与武器">
       <div className="sect">
-        <div className="sect-k"><span>行动</span><small>落点 {terrain} · 仅显示可用项</small></div>
+        <div className="sect-k"><span>行动</span></div>
         <div className="acts">
           {entries.map(entry => {
             const id = entry.action.id;
@@ -85,7 +83,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
 
       {kind && (
         <div className="sect">
-          <div className="sect-k"><span>{kind === 'attack' ? '武器' : '杖'}</span><small>切换后预测立即更新</small></div>
+          <div className="sect-k"><span>{kind === 'attack' ? '武器' : '杖'}</span></div>
           <div className="wopts" role="group" aria-label="选择武器">
             {weaponOptions.map(o => {
               const w = WEAPONS[o.weapon];
@@ -110,7 +108,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
 
       {kind && targets.length > 0 && !(targets.length === 1 && target) && (
         <div className="sect">
-          <div className="sect-k"><span>目标</span><small>也可以在地图上点选</small></div>
+          <div className="sect-k"><span>目标</span></div>
           <div className="acts">
             {targets.map(t => (
               <button key={t.id} type="button" className="btn btn-sm" aria-pressed={target === t.id} onClick={() => ctl.chooseTarget(t.id)}>
@@ -125,7 +123,7 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
 
       {mode.kind === 'item' && (
         <div className="sect">
-          <div className="sect-k"><span>持有物</span><small>使用后立即提交，结束该单位的行动</small></div>
+          <div className="sect-k"><span>持有物</span></div>
           <div className="acts">
             {options.items.map(i => {
               const stack = unit.items[i];
@@ -152,9 +150,9 @@ export function ActionPanel({ state, mode, ctl }: { state: BattleState; mode: Ac
 function CommandSection({ state, mode, ctl }: { state: BattleState; mode: CommandMode; ctl: BattleController }) {
   const o = commandOptions(state, mode);
   const targetsOf = (list: { id: string }[]) => list.map(t => state.units.find(u => u.id === t.id)!).filter(Boolean);
-  let title = '', hint = '', picker: React.ReactNode = null, targets: { id: string; hp: number; stats: { hp: number } }[] = [];
+  let title = '', picker: React.ReactNode = null, targets: { id: string; hp: number; stats: { hp: number } }[] = [];
   if (mode.kind === 'art') {
-    title = '战技'; hint = '物理战技消耗武器耐久；普通攻击与反击不耗';
+    title = '战技';
     picker = (
       <div className="wopts" role="group" aria-label="选择战技">
         {o.arts.map(a => {
@@ -174,7 +172,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
     );
     targets = o.arts.find(a => a.art === mode.art && a.weapon === mode.weapon)?.targets ?? [];
   } else if (mode.kind === 'cast') {
-    title = '法术'; hint = '每本法术书有独立次数；沉默时不能施法';
+    title = '法术';
     picker = (
       <div className="wopts" role="group" aria-label="选择法术">
         {o.casts.map(c => {
@@ -191,7 +189,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
     );
     targets = o.casts.find(c => c.spell === mode.spell)?.targets ?? [];
   } else if (mode.kind === 'staff') {
-    title = '杖'; hint = '功能杖每次使用消耗 1 次';
+    title = '杖';
     picker = (
       <div className="wopts" role="group" aria-label="选择杖">
         {o.staves.map(st => {
@@ -209,7 +207,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
     );
     targets = o.staves.find(st => st.weapon === mode.weapon)?.targets ?? [];
   } else {
-    title = '舞蹈'; hint = '让一名已行动的友军本回合再行动一次';
+    title = '舞蹈';
     targets = targetsOf(o.dance);
   }
   const artOption = mode.kind === 'art' ? o.arts.find(a => a.art === mode.art && a.weapon === mode.weapon) : undefined;
@@ -218,12 +216,12 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
   return (
     <>
       <div className="sect">
-        <div className="sect-k"><span>{title}</span><small>{hint}</small></div>
+        <div className="sect-k"><span>{title}</span></div>
         {picker}
       </div>
       {targets.length > 0 && (
         <div className="sect">
-          <div className="sect-k"><span>目标</span><small>也可以在地图上点选</small></div>
+          <div className="sect-k"><span>目标</span></div>
           <div className="acts">
             {targets.map(t => (
               <button key={t.id} type="button" className="btn btn-sm" aria-pressed={mode.target === t.id} onClick={() => ctl.chooseTarget(t.id)}>
@@ -253,7 +251,7 @@ function CommandSection({ state, mode, ctl }: { state: BattleState; mode: Comman
       })}
       {dest && (
         <div className="sect">
-          <div className="sect-k"><span>落点</span><small>{dest.rule.from === 'stand' ? `落点周围 ${dest.rule.max} 格内的空格` : `施法者原位周围 ${dest.rule.max} 格内的空格`}</small></div>
+          <div className="sect-k"><span>落点</span></div>
           <p style={{ fontSize: 13 }}>
             {destPoint ? <>已选落点 ({destPoint[0]},{destPoint[1]})。<button type="button" className="btn btn-sm btn-ghost" onClick={() => ctl.chooseDest(null)}>重选</button></>
               : dest.cells.length === 0 ? '附近没有可用的空格。'

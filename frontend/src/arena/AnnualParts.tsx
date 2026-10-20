@@ -41,7 +41,7 @@ export function Bracket({ entry, matches, wins }: { entry: Entry; matches: numbe
             第 {i + 1} 场{i < entry.qualifierCount ? ' · 已赛' : entry.state === 'qualifier' && i === entry.qualifierCount ? ' · 下一场' : ''}
           </span>
         ))}
-        <span className="br-rec">{entry.qualifierWins} 胜 {entry.qualifierCount - entry.qualifierWins} 负<small>（至少 {wins} 胜晋级）</small></span>
+        <span className="br-rec">{entry.qualifierWins} 胜 {entry.qualifierCount - entry.qualifierWins} 负</span>
       </div>
       <div className="br-row">
         <span className="br-k">正赛</span>

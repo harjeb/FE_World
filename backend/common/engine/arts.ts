@@ -80,7 +80,7 @@ export function legalArtTarget(state: BattleState, unit: UnitState, to: Point, w
   if (art.id === 'fe_art_ancient_breath') {
     if (to[0] !== target.pos[0] && to[1] !== target.pos[1]) return false;
     const dx = Math.sign(target.pos[0] - to[0]), dy = Math.sign(target.pos[1] - to[1]);
-    for (let i = 1; i <= 2; i++) {
+    for (let i = 1; i <= art.range[1]; i++) {
       const p: Point = [to[0] + dx * i, to[1] + dy * i];
       if (!inBounds(state, p) || !artSight(state, to, p)) break;
       if (living(state, unit.side).some(ally => ally.id !== unit.id && samePoint(ally.pos, p))) return false;
@@ -127,7 +127,7 @@ export function validateArt(state: BattleState, unit: UnitState, action: ArtActi
   if (action.secondary) {
     const other = unitById(state, action.secondary);
     if (!['fe_art_split_breath', 'axe_sweep'].includes(art.id) || other.id === target.id
-      || (art.id === 'fe_art_split_breath' && distance(other.pos, target.pos) !== 1)
+      || (art.id === 'fe_art_split_breath' && distance(other.pos, action.to) !== 1)
       || !legalArtTarget(state, unit, action.to, action.weapon, art, other)) throw new EngineError('TARGET_OUT_OF_RANGE', '战技次目标不合法');
   }
   return artVictims(state, unit, action.to, action.weapon, art, target, action.secondary);

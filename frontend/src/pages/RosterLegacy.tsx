@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { CLASSES, CLASS_PATHS, initialClass, initialClassOf, ROUTE_NAMES, STAGE_NAMES, canonicalClassId, classEntryReason, CLASS_REQUIRED_RANK } from '@common/data/classes.ts';
+import { CLASSES, CLASS_PATHS, initialClass, initialClassOf, ROUTE_NAMES, STAGE_NAMES, canonicalClassId, classEntryReason } from '@common/data/classes.ts';
 import type { ClassId, ClassRoute } from '@common/data/classes.ts';
-import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
-import type { StatKey, WeaponType } from '@common/data/types.ts';
+import { STAT_KEYS, STAT_NAMES } from '@common/data/types.ts';
+import type { StatKey } from '@common/data/types.ts';
 import { LEGACY_MIN_LEVEL, REINCARNATION_GOLD, REINCARNATION_LEVEL, REINCARNATION_POINTS, REINCARNATION_STAT_MAX, reincarnationBase, totalStats } from '@common/game/legacy.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { regionById } from '@common/game/calendar.ts';
@@ -39,7 +39,6 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
   const head = STAGES.map(s => data.classes.find(c => c.stage === s));
   const chosen = data.classes.find(c => c.id === pick) ?? null;
   const current = data.classes.find(c => c.id === canonicalClassId(unit.classId as ClassId)) ?? null;
-  const excluded = ROUTES.filter(r => !allowed(unit, r));
   const away = busyReason(unit, annual);
   const free = (c: ClassMarketRow) => c.owned || c.id === homeClass(unit);
   const quotaLeft = data.monthLimit - data.monthUsed;
@@ -78,11 +77,6 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
           </tbody>
         </table>
       </div>
-      {excluded.length > 0 && (
-        <p className="pfoot">
-          {unit.species === 'human' ? `${excluded.map(r => ROUTE_NAMES[r]).join('、')}路线需要对应种族${unit.isProtagonist ? '；主角不能使用兽、龙职业' : ''}。` : `${unit.name}只能沿${ROUTE_NAMES[unit.species]}路线逐阶进阶，不能跳阶、降阶或跨种族转职。`}
-        </p>
-      )}
       {chosen && (
         <div className="mk-buy">
           <div className="promo-confirm" style={{ border: 0 }}>
@@ -102,7 +96,6 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
                 {busy === 'buy' ? '购买中…' : '确认购买资格'}
               </button>}
           </div>
-          <p className="pfoot">准入熟练度：{(Object.keys(chosen.weapons) as WeaponType[]).map(type => WEAPON_TYPE_NAMES[type]).join('／')}中任意一种达到 {CLASS_REQUIRED_RANK[chosen.stage as keyof typeof CLASS_REQUIRED_RANK]}（购买起始职业资格也需要；返回当前／起始职业除外）。</p>
           {(entryReason || chosen.unavailableReason || !chosen.open || away) && (
             <p className="pfoot why">{chosen.unavailableReason ?? entryReason ?? (away ? `${unit.name}${away}，不能换职或购买资格` : `${eraYear(chosen.openYear)}开放`)}</p>
           )}
@@ -111,10 +104,10 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
               <table className="st cmp">
                 <thead><tr><th scope="col">合计成长</th>{STAT_KEYS.map(k => <th key={k} scope="col">{STAT_NAMES[k]}</th>)}</tr></thead>
                 <tbody>
-                  <tr><th scope="row">{current.name}（现在）</th>{STAT_KEYS.map(k => <td key={k}>{current.growth![k]}%</td>)}</tr>
+                  <tr><th scope="row">{current.name}（现在）</th>{STAT_KEYS.map(k => <td key={k}>{current.growth![k]}</td>)}</tr>
                   <tr><th scope="row">{chosen.name}</th>{STAT_KEYS.map(k => {
                     const d = chosen.growth![k] - current.growth![k];
-                    return <td key={k}>{chosen.growth![k]}%{d !== 0 && <i className={d > 0 ? 'd-up' : 'd-dn'}>{d > 0 ? `+${d}` : `−${-d}`}</i>}</td>;
+                    return <td key={k}>{chosen.growth![k]}{d !== 0 && <i className={d > 0 ? 'd-up' : 'd-dn'}>{d > 0 ? `+${d}` : `−${-d}`}</i>}</td>;
                   })}</tr>
                 </tbody>
               </table>
@@ -122,7 +115,6 @@ export function ClassMarketPanel({ unit }: { unit: ServerUnit }) {
           )}
         </div>
       )}
-      <p className="pfoot">资格按年份开放，购买新资格受现实月额度限制；已购资格和本命职业随时免费切回，学会的技能与精通保留。人类可以跨路线；兽人与龙人只能沿本族路线逐阶进阶。轮回清空资格，不退款。</p>
     </section>
   );
 }
@@ -148,7 +140,6 @@ function RetirePanel({ unit }: { unit: ServerUnit }) {
   return (
     <section className="panel" aria-labelledby="rt-h">
       <div className="ph"><h2 id="rt-h">退役</h2><span className={`tag ${leaves ? 'tag-green' : 'tag-grey'}`}>{leaves ? '会留下遗产' : '不会留下遗产'}</span></div>
-      <p className="sys-note">退役后{unit.name}不再出战，携带的武器和道具连同剩余耐久／次数回到仓库，名字写进纪念名册。退役不能撤销；普通解雇不会留下遗产。</p>
       <div className="grp">留下遗产的条件</div>
       <Checks items={[
         [unit.level >= minLevel, `等级 ${unit.level} / ${minLevel}`],
@@ -240,7 +231,7 @@ function ReincarnatePanel({ unit }: { unit: ServerUnit }) {
             <button type="button" className="btn btn-sm" aria-label={`${STAT_NAMES[k]} −1`} disabled={alloc[k] === 0} onClick={() => bump(k, -1)}>−</button>
             <b className="num">{alloc[k]}</b>
             <button type="button" className="btn btn-sm" aria-label={`${STAT_NAMES[k]} +1`} disabled={alloc[k] >= REINCARNATION_STAT_MAX || used >= REINCARNATION_POINTS} onClick={() => bump(k, 1)}>+</button>
-            <span className="al-v">个人成长 {personal(k)}%{alloc[k] > 0 && <> → <b>{personal(k) + alloc[k]}%</b></>}</span>
+            <span className="al-v">个人成长 {personal(k)}{alloc[k] > 0 && <> → <b>{personal(k) + alloc[k]}</b></>}</span>
           </div>
         ))}
       </div>

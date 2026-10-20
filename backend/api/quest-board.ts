@@ -82,7 +82,7 @@ export function questBoard(store: Store, player: Player, regions: readonly Board
   for (const row of bountyRows(player).sort((x, y) => (y.chapter ?? 0) - (x.chapter ?? 0))) {
     if (!row.available || row.claimed) continue;
     const entry: BoardEntry = {
-      id: row.id, label: 'side', state: row.done ? 'turnin' : row.have > 0 ? 'doing' : 'ready', title: row.name, summary: `${row.objective}，不用接取，打完就能交`,
+      id: row.id, label: 'side', state: row.done ? 'turnin' : row.have > 0 ? 'doing' : 'ready', title: row.name, summary: row.objective,
       progress: { have: row.have, need: row.need }, link: { page: row.type === 'dungeon' ? 'dungeon' : 'field' }, ...(row.done ? { claim: row.id } : {}),
     };
     (row.done ? turnin : row.have > 0 ? doing : ready).push(entry);

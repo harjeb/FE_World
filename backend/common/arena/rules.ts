@@ -9,6 +9,7 @@ import type { Rank, Stats, WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { seedRng } from '../engine/rng.ts';
+import { initializeTurnSkills } from '../engine/turn-skills.ts';
 import { EngineError } from '../engine/types.ts';
 import type { BattleState, Behavior, ItemStack, Point, Side, UnitState } from '../engine/types.ts';
 import { seasonalMap, tilesFromGlyphs } from '../maps/map.ts';
@@ -210,7 +211,7 @@ export function createArenaBattle(defense: Defense, bans: string[], roster: Snap
   });
   const defenders = reveal.fielded.map(s => fromSnapshot(s.unit, 'enemy', defenderId(unitKey(s.unit)), s.pos,
     { boss: unitKey(s.unit) === reveal.commander, behavior: s.behavior }));
-  return {
+  return initializeTurnSkills({
     engineVersion: 1,
     id: `arena-${defense.id}-${seed}`,
     kind: 'arena',
@@ -224,7 +225,7 @@ export function createArenaBattle(defense: Defense, bans: string[], roster: Snap
       : map.goal === 'seize' ? { kind: 'seize', throne: throneOf(map) } : { kind: 'rout' },
     rng: seedRng(`${seed}:combat`),
     growthRng: seedRng(`${seed}:growth`),
-  };
+  });
 }
 
 // The defense alone on its map (every listed unit, no attackers), for previewing AI behavior areas.

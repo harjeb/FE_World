@@ -240,7 +240,6 @@ export function CampPage() {
                   <span className="t-ico">{t.icon}</span>
                   <div>
                     <div className="t-title"><span className="t-prio">{String(i + 1).padStart(2, '0')}</span>{t.title}{t.tag && <span className={`tag ${t.tag[1]}`}>{t.tag[0]}</span>}</div>
-                    <div className="t-desc">{t.desc}</div>
                   </div>
                   {t.action?.href && <a className={`btn btn-sm${t.action.primary ? ' btn-primary' : ''}`} href={t.action.href}
                     onClick={t.key === 'recruit' ? e => { e.preventDefault(); document.getElementById('recruit-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } : undefined}>{t.action.label}</a>}
@@ -248,7 +247,7 @@ export function CampPage() {
                   {!t.action && <span />}
                 </li>
               ))}
-              {tasks.length === 0 && <li className="empty-row">现在没有待办。可以从下面的行动推进日期。</li>}
+              {tasks.length === 0 && <li className="empty-row">现在没有待办。</li>}
             </ol>
           </section>
 
@@ -263,7 +262,7 @@ export function CampPage() {
               <div><span>外出</span><b style={{ color: away.length > 0 ? '#6E5322' : undefined }}>{away.length} <small>{away.slice(0, 2).map(u => u.name).join('、')}</small></b></div>
               <div><span>可转职</span><b style={{ color: '#45603B' }}>{promotable.length} <small>{promotable.length > 2 ? `${promotable[0].name} 等` : promotable.map(u => u.name).join('、')}</small></b></div>
             </div>
-            <div style={{ padding: '10px 14px 0', fontSize: 13, color: '#4E473D' }}>可出战 · {ready.length} 人 <span className="muted">（出战人数按地图规定，名册多出的人留作替补）</span></div>
+            <div style={{ padding: '10px 14px 0', fontSize: 13, color: '#4E473D' }}>可出战 · {ready.length} 人</div>
             <div className="squad">{ready.slice(0, 12).map(face)}</div>
             {away.length > 0 && <>
               <div style={{ padding: '0 14px', fontSize: 13, color: '#4E473D' }}>活动占用</div>

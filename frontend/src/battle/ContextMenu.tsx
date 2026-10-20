@@ -102,7 +102,7 @@ export function ContextMenu({ state, unitId, to, ctl, place, page }: {
       onContextMenu={e => { e.stopPropagation(); e.preventDefault(); ctl.cancel(); }}>
       <div className="ctx-head"><span>{page === 'root' ? '行动' : '持有物'}</span>
         {page === 'root'
-          ? <span className="ctx-hint">点落点格＝待机</span>
+          ? null
           : <button type="button" className="ctx-mini" onClick={() => ctl.cancel()}>返回</button>}
       </div>
       {body}

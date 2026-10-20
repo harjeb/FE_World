@@ -44,7 +44,6 @@ export function ReportsPage() {
         <div>
           <div className="eyebrow">战报</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>战报与回放</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>每场结束的战斗都会留下战报：伤亡、消耗、收获，以及可以逐步回看的回放。竞技场与年度大竞技场结束即公开；野外、任务、副本、挑战塔与练习只有你自己能看。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>{data ? `符合条件 ${data.total} 场` : '读取中…'}<div><a href={links.spectate}>实时观战 ›</a></div></div>
       </div>

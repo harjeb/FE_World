@@ -10,7 +10,7 @@ import type { ItemFilter } from '../model/item-filter.ts';
 import { go, links } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { dateLabel, plainDate } from '../ui/calendar.ts';
-import { BexpPanel, CARRY, CarriedPanel, cannotCast, cannotLearn, drugBlock, DrugPanel, itemIcon, itemOf, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
+import { BexpPanel, CARRY, CarriedPanel, cannotCast, cannotLearn, drugBlock, DrugPanel, itemIcon, itemOf, itemResource, itemSpec, runOp, UnitPicker } from './PrepParts.tsx';
 
 const half = (key: string) => Math.floor((itemOf(key)?.price ?? 0) / 2);
 
@@ -21,9 +21,8 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const { state } = useSession();
   const [filter, setFilter] = useState<ItemFilter>('all');
   const [shop, setShop] = useState<ShopRow[] | null>(null);
-  const [locked, setLocked] = useState<{ item: string; name: string; openDay: number }[]>([]);
-  const loadShop = () => session.shopView().then(view => { setShop(view.items); setLocked(view.locked); }).catch(() => setShop([]));
-  useEffect(() => { void loadShop(); }, []);
+  const loadShop = () => session.shopView().then(view => { setShop(view.items); }).catch(() => setShop([]));
+  useEffect(() => { void loadShop(); }, [state?.version]);
 
   // 派遣中的角色不能搬运物品或使用道具（服务端拒绝），所以不列在这里。
   const active = state?.units.filter(u => u.status === 'active' && !u.lockedDispatchId) ?? [];
@@ -32,10 +31,10 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const day = state?.day ?? 0;
   const nextSeason = state?.nextMonthStart ?? day;
   // 分类过滤共用 helper（model/item-filter.ts）：武器按十类细分，计数覆盖仓库与商店。
-  const allKeys = [...(state?.inventory ?? []).map(r => r.item), ...(shop ?? []).map(r => r.item)];
+  const allKeys = [...(state?.inventory ?? []).map(r => r.item), ...(shop ?? []).filter(r => r.stock > 0).map(r => r.item)];
   const counts = filterCounts(allKeys);
   const stock = (state?.inventory ?? []).filter(r => matchItemFilter(r.item, filter)).sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || b.uses - a.uses);
-  const wares = (shop ?? []).filter(r => matchItemFilter(r.item, filter)).sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || a.price - b.price);
+  const wares = (shop ?? []).filter(r => r.stock > 0 && matchItemFilter(r.item, filter)).sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || a.price - b.price);
 
   function warehouseActions(key: string, uses: number, count: number) {
     const item = itemOf(key);
@@ -67,10 +66,8 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
       acts.push(<button key="use" type="button" className="btn btn-sm" disabled={!!blocked} title={blocked ?? undefined}
         onClick={() => void runOp<{ stat: keyof typeof STAT_NAMES; amount: number }>(OP.USE_ITEM, { unitId: unit.id, item: key }, r => `${unit.name}的${STAT_NAMES[r.stat]} +${r.amount}`)}>{unit.name}使用</button>);
     }
-    // 任务物品不卖、不用，只在仓库里留着；唯一武器保留灰掉的出售按钮说明原因。
-    if (item?.kind === 'key') return acts;
-    const bound = item?.bound === true;
-    acts.push(<button key="sell" type="button" className="btn btn-sm btn-ghost" disabled={bound} title={bound ? '唯一武器已绑定，不能出售' : undefined} onClick={() => void sell(1)}>卖 +{half(key)}</button>);
+    if (!item || item.kind === 'key' || item.bound) return acts;
+    acts.push(<button key="sell" type="button" className="btn btn-sm btn-ghost" onClick={() => void sell(1)}>卖 +{half(key)}</button>);
     if (item?.kind === 'material' && count > 1) {
       acts.push(<button key="sellAll" type="button" className="btn btn-sm btn-ghost" onClick={() => void sell(count)}>全卖 +{half(key) * count}</button>);
     }
@@ -83,7 +80,6 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
         <div>
           <div className="eyebrow">整备 · {dateLabel(day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>仓库与商店</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>整理、买卖、装备、维修和分配公共经验都不推进日期；旅馆休息推进 1 日。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>
           金币 <b className="num">{gold.toLocaleString()}</b> · 商店在{plainDate(nextSeason)}补货（{nextSeason - day} 日后）
@@ -103,7 +99,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
       <div className="gear-cols">
         <div className="colstack">
           <section className="panel" aria-labelledby="wh-h">
-            <div className="ph"><h2 id="wh-h">仓库</h2><span style={{ fontSize: 12, color: '#6A6256' }}>出售价为商店价的一半</span></div>
+            <div className="ph"><h2 id="wh-h">仓库</h2></div>
             <ul className="eq gear-list">
               {stock.map(r => {
                 const item = itemOf(r.item);
@@ -127,7 +123,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
           </section>
 
           <section className="panel" aria-labelledby="shop-h">
-            <div className="ph"><h2 id="shop-h">商店</h2><span style={{ fontSize: 12, color: '#6A6256' }}>本季库存，每季第 1 日补货{wares.some(r => (r.discount ?? 0) > 0) ? ' · 庆典期间整店打折（每件 50%～65%）' : ''}</span></div>
+            <div className="ph"><h2 id="shop-h">商店</h2></div>
             <ul className="eq gear-list gear-shop">
               {wares.map(r => (
                 <li key={r.item}>
@@ -136,6 +132,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
                     <div className="nm">{r.name} <span className="cnt">{r.price.toLocaleString()} 金</span>
                       {(r.discount ?? 0) > 0 && <><s className="cnt" style={{ marginLeft: 6 }}>{(r.basePrice ?? r.price).toLocaleString()}</s><span className="tag tag-red" title="庆典期间王都商店打折">庆典 −{r.discount}%</span></>}</div>
                     <div className="sp">{itemSpec(r.item)}</div>
+                    {itemResource(r.item) && <span className="tag tag-grey">{itemResource(r.item)}</span>}
                   </div>
                   <span className="acts">
                     <span className="stock">{r.stock > 0 ? `剩 ${r.stock}` : '售罄'}</span>
@@ -145,7 +142,6 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
                 </li>
               ))}
               {shop !== null && wares.length === 0 && <li className="empty-row">商店里没有这类物品</li>}
-              {filter === 'all' && locked.length > 0 && <li className="empty-row" data-locked-wares>未上架：{locked.map(l => `${l.name}（${plainDate(l.openDay)}起）`).join('、')}</li>}
               {shop === null && <li className="empty-row">读取商店…</li>}
             </ul>
           </section>

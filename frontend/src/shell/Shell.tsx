@@ -113,7 +113,7 @@ export function Shell({ current, children }: { current: ShellPage; children: Rea
         <main className="main">
           {live && current !== 'arena' && (
             <p className="sys-strip lock-strip" role="status">
-              第 {annual!.entry!.annualIndex} 届大竞技场进行中：名单与物资已锁定，其他行动暂停，直到打完或退出本届。<a href={links.annual}>去赛程 ›</a>
+              第 {annual!.entry!.annualIndex} 届大竞技场进行中：其他行动暂停。<a href={links.annual}>去赛程 ›</a>
             </p>
           )}
           {children}

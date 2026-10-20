@@ -2,6 +2,7 @@ import type { BattleRecord } from './battles.ts';
 import { createCrossTimeGroups } from '../engine/cross-time-groups.ts';
 import type { AiDifficulty, BattleState, Point } from '../engine/types.ts';
 import { seedRng } from '../engine/rng.ts';
+import { initializeTurnSkills } from '../engine/turn-skills.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
@@ -58,7 +59,7 @@ export function crossTimeInitialState(roster: UnitRecord[], options: CrossTimeBa
       baseLevel: hard ? 52 : 48, events: [], mapChanges: [], fired: [], flags: [] },
     rng: seedRng(`${options.seed}:cross-time:combat`), growthRng: seedRng(`${options.seed}:cross-time:growth`),
   };
-  return state;
+  return initializeTurnSkills(state);
 }
 
 export function createCrossTimeBattle(roster: UnitRecord[], options: CrossTimeBattleOptions): BattleRecord {

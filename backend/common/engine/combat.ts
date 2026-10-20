@@ -242,7 +242,7 @@ const TRUE_HIT = Array.from({ length: 101 }, (_, h) => {
   return pairs / 10000;
 });
 export function trueHit(displayed: number): number { return TRUE_HIT[clamp(Math.floor(displayed))]; }
-export function strikeOrder(a: SideForecast, d: SideForecast, braveA: boolean, braveD: boolean, art?: CombatArt, hitsA?: number): StrikeSpec[] {
+export function strikeOrder(a: SideForecast, d: SideForecast, braveA: boolean, braveD: boolean, art?: CombatArt, hitsA?: number, desperation = false): StrikeSpec[] {
   const opening: StrikeSpec[] = [], counter: StrikeSpec[] = [], follow: StrikeSpec[] = [], dFollow: StrikeSpec[] = [];
   const push = (into: StrikeSpec[], side: StrikeSpec['side'], n: number, followUp: boolean, chance?: number) => {
     for (let i = 0; i < n; i++) into.push({ side, followUp, ...(chance === undefined ? {} : { chance }) });
@@ -254,7 +254,7 @@ export function strikeOrder(a: SideForecast, d: SideForecast, braveA: boolean, b
   else if (art?.forceProbability && fixed === undefined) push(follow, 'attacker', braveA ? 2 : 1, true, art.forceProbability);
   if (d.canAttack && d.doubles) push(dFollow, 'defender', braveD ? 2 : 1, true);
   if (art?.sequence === 'counter_first') return [...counter, ...opening, ...follow, ...dFollow];
-  if (art?.sequence === 'follow_up_before_counter') return [...opening, ...follow, ...counter, ...dFollow];
+  if (desperation || art?.sequence === 'follow_up_before_counter') return [...opening, ...follow, ...counter, ...dFollow];
   return [...opening, ...counter, ...follow, ...dFollow];
 }
 // `cast` marks an attack spell from the unit's spellbooks (its charges live there, not in bookInstances).
@@ -297,7 +297,8 @@ export function forecast(state: BattleState, attackerId: string, from: Point, we
   if (art?.sequence === 'steal_foe_follow_up' && defender.doubles && !blocked(au)) { attacker.doubles = true; defender.doubles = false; }
   if (blocked(au) && art?.forceProbability) art = { ...art, forceProbability: 0 };
   if (art?.foeHitZeroThreshold !== undefined && defender.hit <= art.foeHitZeroThreshold) defender.hit = 0;
-  const order = strikeOrder(attacker, defender, !single && !!a.weapon?.brave, !!d.weapon?.brave, art, hitsA);
+  const desperation = attacker.doubles && (artBonus(au, 'desperation') > 0 || au.skill === 'desperation' || !!au.skills?.includes('desperation'));
+  const order = strikeOrder(attacker, defender, !single && !!a.weapon?.brave, !!d.weapon?.brave, art, hitsA, desperation);
   attacker.strikes = order.filter(s => s.side === 'attacker').length; defender.strikes = order.filter(s => s.side === 'defender').length;
   const f: Forecast = { attacker, defender, order, ...(art ? { art } : {}), defenderDies: 0, attackerDies: 0, expectedDealt: 0, expectedTaken: 0 };
   if (hasTrait(au, 'underworld') && au.side !== du.side && !au.petrified && !au.immunities?.includes('healing')

@@ -51,16 +51,10 @@ export function SidePanel({ snap, ctl }: { snap: Snapshot; ctl: BattleController
     <>
       {state.crossTimeGroups && <section className="panel" style={{ padding: '10px 14px' }} aria-label="敌军分组警戒">
         {groupViews(state).map(group => <p key={group.id}><b>{group.id} {group.name}</b> · {groupStatus(group)}{group.boundaryY !== undefined && ` · 警戒线 Y≤${group.boundaryY}`}</p>)}
-        <p className="muted">待命敌军正常反击。悬停或选择敌军可查看激活后的移动＋攻击范围。</p>
       </section>}
       {planningGroupWarnings(state, mode, hover).map(warning => <p key={warning} role="alert" className="panel" style={{ padding: '10px 14px', color: '#93392F' }}>{warning}</p>)}
       {focus && focus.alive && <UnitCard state={state} unit={focus} weapon={weapon} compact={ownFlow && mode.kind !== 'move'} />}
       {ownFlow && <Steps index={stepIndex(mode)} />}
-      {mode.kind === 'move' && (
-        <p className="panel" style={{ padding: '10px 14px', fontSize: 13 }}>
-          点蓝色格选落点，弹出行动菜单；再点一次落点格＝移动后待机。或直接点红色范围内的敌人。<span className="muted">Esc 取消选择。</span>
-        </p>
-      )}
       {(mode.kind === 'action' || mode.kind === 'attack' || mode.kind === 'heal' || mode.kind === 'item' || isCommand(mode)) && (
         <ActionPanel state={state} mode={mode} ctl={ctl} />
       )}

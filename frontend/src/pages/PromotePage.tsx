@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CLASSES, CLASS_REQUIRED_RANK, classEntryReason, classUnavailableReason, hasClassQualification } from '@common/data/classes.ts';
+import { CLASSES, CLASS_REQUIRED_RANK, classChangeReason, classEntryReason, classUnavailableReason, hasClassQualification } from '@common/data/classes.ts';
 import type { ClassId } from '@common/data/classes.ts';
 import { CHARACTERS } from '@common/data/characters.ts';
-import { promotionsFor } from '@common/data/promotions.ts';
+import { allPromotionsFor } from '@common/data/promotions.ts';
 import type { Promotion } from '@common/data/promotions.ts';
 import { MOVE_TYPE_NAMES, STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
 import type { WeaponType } from '@common/data/types.ts';
@@ -23,7 +23,7 @@ import { UnitFace } from './SystemParts.tsx';
 
 const trend = (d: number) => (d > 0 ? <i className="d-up">▲{d}</i> : d < 0 ? <i className="d-dn">▼{-d}</i> : <i className="d-eq">=</i>);
 
-function OptionCard({ unit, option, market, chosen, onPick }: { unit: ServerUnit; option: Promotion; market: ClassMarketRow[] | null; chosen: boolean; onPick: () => void }) {
+function OptionCard({ unit, option, market }: { unit: ServerUnit; option: Promotion; market: ClassMarketRow[] | null }) {
   const cls = CLASSES[unit.classId as ClassId];
   const after = { ...unit.snapshot, classId: option.to, stats: { ...unit.snapshot.stats } };
   const line = combatLine(asUnit(after), option.mods);
@@ -31,14 +31,13 @@ function OptionCard({ unit, option, market, chosen, onPick }: { unit: ServerUnit
   const next = market?.find(c => c.id === option.to)?.growth ?? null;
   const owned = hasClassQualification(unit.classQualifications as ClassId[], option.to);
   return (
-    <section className={`opt${chosen ? ' on' : ''}`} aria-label={option.name}>
+    <section className="opt on" aria-label={option.name}>
       <div className="o-head">
         <img className="px" src={weaponIcon(Object.keys(option.weapons)[0] as WeaponType)} width={48} height={48} alt="" />
         <div className="min-w-0 flex-1">
           <h2 className="serif o-name">{option.name}</h2>
           <div className="o-tag">{option.tagline} · {owned ? <b style={{ color: '#45603B' }}>已拥有资格</b> : '尚未购买资格'}</div>
         </div>
-        <button type="button" className="btn pick" aria-pressed={chosen} onClick={onPick}>{chosen ? '✓ 已选择' : `选择${option.name}`}</button>
       </div>
       <div className="o-sec">
         <dl className="perm">
@@ -48,7 +47,7 @@ function OptionCard({ unit, option, market, chosen, onPick }: { unit: ServerUnit
               <span key={type}>{i > 0 && '；'}{WEAPON_TYPE_NAMES[type]} · 上限 <b>{cap}</b>{unit.ranks[type] ? `（当前 ${unit.ranks[type]}，${cls.name}上限 ${cls.weapons[type] ?? '—'}）` : '（新武器，从 E 开始）'}</span>
             ))}
           </dd>
-          <dt>准入</dt><dd>上述武器任意一种熟练度达到 <b>{CLASS_REQUIRED_RANK[CLASSES[option.to].stage]}</b>；已购资格也需达标（返回当前／起始职业除外）。</dd>
+          <dt>准入</dt><dd>上述武器任意一种熟练度达到 <b>{CLASS_REQUIRED_RANK[CLASSES[option.to].stage]}</b>。</dd>
           <dt>移动</dt><dd><b>{option.move}</b>（{MOVE_TYPE_NAMES[option.moveType]}{option.moveType !== cls.moveType ? `，原为${MOVE_TYPE_NAMES[cls.moveType]}` : ''}{option.move !== cls.move ? `，${option.move > cls.move ? '+' : ''}${option.move - cls.move}` : ''}）</dd>
         </dl>
       </div>
@@ -69,8 +68,7 @@ function OptionCard({ unit, option, market, chosen, onPick }: { unit: ServerUnit
   );
 }
 
-// Five class stages share one character level, from 1 through 99. Promotion is SWITCH_CLASS to the next
-// stage: it needs the qualification, keeps level, experience and attributes, and only changes later growth.
+// Switching keeps earned level, experience and attributes; target proficiency and ownership apply.
 export function PromotePage({ unit: wanted }: { unit: string }) {
   const { state, annual } = useSession();
   const active = state?.units.filter(u => u.status === 'active') ?? [];
@@ -79,7 +77,7 @@ export function PromotePage({ unit: wanted }: { unit: string }) {
   const [pick, setPick] = useState(0);
   const [busy, setBusy] = useState(false);
   if (!unit) return <Shell current="roster"><p style={{ color: '#4E473D' }}>找不到这名角色。</p></Shell>;
-  const options = promotionsFor(unit.classId as ClassId);
+  const options = allPromotionsFor(unit.classId as ClassId).filter(option => !classChangeReason({ ...unit, classId: unit.classId as ClassId }, option.to));
   const chosen = options[Math.min(pick, options.length - 1)];
   const cls = CLASSES[unit.classId as ClassId];
   const qualified = !!chosen && hasClassQualification(unit.classQualifications as ClassId[], chosen.to);
@@ -97,27 +95,31 @@ export function PromotePage({ unit: wanted }: { unit: string }) {
               <span className="tag tag-grey">{cls.name} · {cls.stage} 阶 · Lv {unit.level}</span>
               <span className="tag tag-grey">{unit.growthTypeName}</span>
             </div>
-            <div style={{ fontSize: 13, color: '#4E473D', marginTop: 2 }}>推荐的下一阶职业；转职保留总等级与经验。人物最高 Lv99，HP 上限 150，其他属性无上限。</div>
           </div>
         </div>
         <ProfileTabs unit={unit} current="promote" />
         <div className="cond">
-          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? (qualified ? entryReason ?? '已拥有资格，可以转职' : '需要先购买资格') : '这条路线没有后续职业，可在职业资格里选择其他职业。'}</span>
-          <span>任何职业都能升到 Lv99。转职保留等级、经验和已有属性，只改变之后的成长与武器上限。</span>
+          <span className={ready ? 'ok' : 'no'}>{ready && <CheckIcon />}{chosen ? (qualified ? entryReason ?? '已拥有资格，可以转职' : '需要先购买资格') : ''}</span>
           {away && <span>{unit.name}{away}，现在不能换职。</span>}
           {chosen && !qualified && <a href={links.roster(unit.id, 'classes')}>前往职业资格购买「{chosen.name}」。</a>}
         </div>
       </section>
 
-      <div className="opts">
-        {options.map((o, i) => <OptionCard key={o.to} unit={unit} option={o} market={market?.classes ?? null} chosen={o === chosen} onPick={() => setPick(i)} />)}
-      </div>
+      <section className="panel" style={{ padding: 16 }} aria-label="选择目标职业">
+        <label className="flex flex-wrap items-center gap-3"><b>目标职业</b>
+          <select aria-label="目标职业" value={chosen?.to ?? ''} onChange={event => setPick(options.findIndex(option => option.to === event.target.value))}>
+            {[0, 1, 2, 3, 4, 5].map(stage => <optgroup key={stage} label={['基础', '初级', '中级', '上级', '最上级', '神将'][stage]}>
+              {options.filter(option => CLASSES[option.to].stage === stage).map(option => <option key={option.to} value={option.to}>{option.name}{hasClassQualification(unit.classQualifications as ClassId[], option.to) ? ' · 已拥有' : ''}</option>)}
+            </optgroup>)}
+          </select>
+        </label>
+      </section>
+      {chosen && <OptionCard unit={unit} option={chosen} market={market?.classes ?? null} />}
 
       {chosen && <section className="panel promo-confirm" aria-label="确认转职">
         <img className="px" src={weaponIcon(Object.keys(chosen.weapons)[0] as WeaponType)} width={32} height={32} alt="" />
         <div style={{ flex: 1, minWidth: 260 }}>
           <div style={{ fontSize: 15, fontWeight: 700 }}>已选择：{cls.name} → {chosen.name}</div>
-          <div style={{ fontSize: 13, color: '#4E473D' }}>转职不会补发属性或经验，也可以保持当前职业一直升到 Lv99。</div>
         </div>
         <a className="btn btn-ghost" href={links.roster(unit.id)}>暂不转职</a>
         <button type="button" className="btn btn-primary btn-lg" disabled={!ready || busy} onClick={async () => {

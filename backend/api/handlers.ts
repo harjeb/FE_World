@@ -16,7 +16,7 @@ import { WEAPONS } from '../common/data/weapons.ts';
 import { ART_TRAINING, WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
 import type { ArtTraining } from '../common/data/weapon-arts.ts';
 import type { WeaponId } from '../common/data/weapons.ts';
-import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classEntryReason, classProficiencyReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES, studyForWeapon, trainingBonusFor } from '../common/data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, CLASS_PATHS, CLASS_PURCHASE_LIMIT, canonicalClassId, classChangeReason, classEntryReason, classProficiencyReason, classOpenYear, classPrice, classUnavailableReason, hasClassQualification, initialClass, initialClassOf, ROUTE_NAMES } from '../common/data/classes.ts';
 import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
@@ -37,7 +37,7 @@ import { generateRecruit, RECRUIT_UNLOCK_DAY, recruitClass, recruitLevel, recrui
 import type { RandomRecruit } from '../common/game/random-recruit.ts';
 import { addWeaponExp, ageDaysOf, bookMax, createUnit, SPELLBOOK_CARRY, weaponMax, gainExperience, growthRates, lifespanEndDayOf, nextLifespanEventDay, rankFromExp, ROSTER_LIMIT, toSnapshot, unitName, useDrug } from '../common/game/model.ts';
 import type { UnitRecord } from '../common/game/model.ts';
-import { promotionsFor } from '../common/data/promotions.ts';
+import { allPromotionsFor } from '../common/data/promotions.ts';
 import { settleAttack, startAttack } from '../common/game/arena.ts';
 import type { ArenaDayRecord } from '../common/game/arena.ts';
 import type { AttackPlan, Defense } from '../common/arena/rules.ts';
@@ -48,11 +48,12 @@ import { MAINLINE_YEARS, rollGrowthType, rollRecruitAge } from '../common/data/g
 import type { Stats } from '../common/data/types.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
-import { activeSnapshot, applyBattleOutcome, bindDefense, dungeonFirstClearReward, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, hardUnlocks, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, companionPool, setupNeeded, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
+import { activeSnapshot, applyBattleOutcome, bindDefense, dungeonFirstClearReward, ensureArenaDay, ensureRatingPeriod, flushRecoveryBag, handleAnnualOutcome, handleRunOutcome, hardUnlocks, publicUnitSummary, recordDeath, recordRetire, settleArenaDay, settleDispatches, settleMonthlyRatings, snapshotData, companionPool, createSetupCompanion, setupNeeded, stateView, syncPlayer, unitDetail, unitOrigin, unitSummary } from './services.ts';
 import { canClaim, canReincarnate, claimLegacy, LEGACY_MIN_LEVEL, previewInheritance, REINCARNATION_GOLD, reincarnate, totalStats } from '../common/game/legacy.ts';
 import type { LegacyMode } from '../common/game/legacy.ts';
 import { canStart, createOrder, describeOrder, FACILITIES, facilityById, mature, RECIPES, recipeById, recipeUnlocked, slotsUsed } from '../common/game/production.ts';
 import { classMasteryOf, gainMastery, masteryNodesFor, setEquippedSkills, SKILL_SLOTS, switchClass, unlockedNodes } from '../common/game/mastery.ts';
+import { addTrainingWeaponExp, TRAIN_GOLD_PER_UNIT, TRAINING_GROUPS, trainingLimit, WEAPON_TRAINING_PER_DAY } from '../common/game/training.ts';
 import { createDispatch, dispatchSummary, DISPATCH_MAX_DAYS, DISPATCH_MAX_UNITS, DISPATCH_MIN_DAYS } from '../common/game/dispatch.ts';
 import { periodIdFor, rankByRating } from '../common/game/ratings.ts';
 import type { WeaponType } from '../common/data/types.ts';
@@ -96,9 +97,6 @@ export interface Context {
 
 type Handler = (ctx: Context, data: Record<string, unknown>) => unknown;
 type Json = Record<string, unknown>;
-
-// 训练的金币花费：TRAIN 扣款与 GET_TODAY 展示共用。
-const TRAIN_GOLD = 200;
 
 const asString = (value: unknown, name: string): string => {
   if (typeof value !== 'string' || value.length === 0) throw new OpError('BAD_REQUEST', `缺少字段 ${name}`);
@@ -372,8 +370,14 @@ function questMaxUnits(quest: { maxUnits?: number; scenarioId?: string; scenario
 }
 
 
-function dungeonPlan(player: Player, region: number, difficulty: AiDifficulty) {
-  const encounter = fieldEncounter(player.id, player.day, region, difficulty, 'dungeon');
+function availableFieldUnits(ctx: Context): number {
+  const fighting = new Set(ctx.store.activeBattle(ctx.player.id)?.state.units.filter(unit => unit.side === 'player').map(unit => unit.id));
+  return ctx.store.units(ctx.player.id).filter(unit => unit.status === 'active' && !unit.lockedRunId && !unit.lockedDispatchId && !fighting.has(unit.id)).length;
+}
+
+function dungeonPlan(ctx: Context, region: number, difficulty: AiDifficulty) {
+  const player = ctx.player;
+  const encounter = fieldEncounter(player.id, player.day, region, difficulty, 'dungeon', availableFieldUnits(ctx));
   const stages = mixedDungeonStages(encounter.seed, region);
   encounter.maxUnits = mixedDungeonMaxUnits(stages, encounter.maxUnits);
   return { encounter, stages };
@@ -492,19 +496,19 @@ const handlers: Record<number, Handler> = {
         { key: 'sortie', name: '出击', costDays: ACTION_DAYS.sortie, available: !fighting && unlocked.length > 0, note: fighting ? '已有进行中的战斗，打完再出击' : unlocked.length === 0 ? '先在世界地图选择行军路线' : '手动打一场野外战斗，经验与掉落最多',
           maxUnits: FIELD_BATTLE.maxUnits, turnLimit: FIELD_BATTLE.turnLimit, goalText: FIELD_BATTLE.goalText, lethal: true },
         { key: 'sweep', name: '扫荡', costDays: ACTION_DAYS.sweep, available: cleared.length > 0, note: cleared.length > 0 ? '自动结算已讨伐地区' : '先讨伐至少一个地区' },
-        { key: 'train', name: '训练', costDays: ACTION_DAYS.train, costGold: TRAIN_GOLD, available: true, note: '补武器熟练度，暂不发等级经验' },
+        { key: 'train', name: '训练', costDays: ACTION_DAYS.train, costGold: TRAIN_GOLD_PER_UNIT, weaponExp: ACTION_DAYS.train * WEAPON_TRAINING_PER_DAY, maxUnits: trainingLimit(ctx.player.day), groups: TRAINING_GROUPS, available: true, note: '每人200金币，所选组内每种武器每天获得1点经验' },
         { key: 'rest', name: '休整', costDays: 1, available: true, note: '自选日数推进日期' },
         { key: 'recruit', name: '游历招募', costDays: ACTION_DAYS.recruit, available: recruitBlock === null, note: recruitBlock ?? '只花行动日，按地区概率遇到新人；遇到后可接受或拒绝' },
       ],
       // 只有已解锁地区可出击；完整地图（含锁定节点与可选路线）走 GET_WORLD_MAP / state.world。
       sortieRegions: REGIONS.filter(region => unlocked.includes(region.id)).map(region => {
-        const normalDungeon = dungeonPlan(ctx.player, region.id, 'normal');
-        const hardDungeon = dungeonPlan(ctx.player, region.id, 'hard');
+        const normalDungeon = dungeonPlan(ctx, region.id, 'normal');
+        const hardDungeon = dungeonPlan(ctx, region.id, 'hard');
         return {
         id: region.id, name: region.name, resource: region.resource,
         materials: materialSources(region.id, enemyLevel(ctx.player.day, region.offset)),
         hardUnlocked: hardUnlocks(ctx.store, ctx.player).regions.includes(region.id),
-        encounters: { normal: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'normal'), hard: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'hard') },
+        encounters: { normal: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'normal', 'field', availableFieldUnits(ctx)), hard: fieldEncounter(ctx.player.id, ctx.player.day, region.id, 'hard', 'field', availableFieldUnits(ctx)) },
         dungeonEncounters: { normal: normalDungeon.encounter, hard: hardDungeon.encounter },
         dungeonStages: normalDungeon.stages,
         dungeonHardUnlocked: hardUnlocks(ctx.store, ctx.player).dungeons.includes(region.id),
@@ -555,7 +559,7 @@ const handlers: Record<number, Handler> = {
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const region = asNumber(data.region, 'region');
     if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
-    const encounter = fieldEncounter(ctx.player.id, ctx.player.day, region, aiDifficulty);
+    const encounter = fieldEncounter(ctx.player.id, ctx.player.day, region, aiDifficulty, 'field', availableFieldUnits(ctx));
     const ready = deploymentUnits(ctx, data.unitIds, encounter.maxUnits);
     // 种子由服务器生成，不采用客户端提交的 seed，避免预选随机结果 (docs/03)。
     const seed = randomUUID().slice(0, 8);
@@ -583,24 +587,20 @@ const handlers: Record<number, Handler> = {
   },
 
   [OP.TRAIN]: (ctx, data) => {
-    const unit = requireUnit(ctx.store, ctx.player, asString(data.unitId, 'unitId'));
-    if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在名册中');
-    if (unit.lockedDispatchId) throw new OpError('FORBIDDEN', '派遣中的角色不能参加武器专项训练');
-    if (ctx.player.gold < TRAIN_GOLD) throw new OpError('NOT_ENOUGH_GOLD', `训练需要 ${TRAIN_GOLD} 金币`);
-    const type = data.weaponType === 'dagger' ? 'sword' : typeof data.weaponType === 'string' ? data.weaponType : null;
-    const allowedWeapons = unit.weapons.filter(w => CLASSES[unit.classId].weapons[WEAPONS[w].type]);
-    const weaponId = type ? allowedWeapons.find(w => WEAPONS[w].type === type) : allowedWeapons[0];
-    if (!weaponId) throw new OpError('BAD_REQUEST', '当前职业没有携带可训练的该类武器');
-    ctx.player.gold -= TRAIN_GOLD;
-    const weaponType = WEAPONS[weaponId].type;
-    const before = unit.ranks[weaponType] ?? 'E';
-    const bonus = trainingBonusFor(unit.classId, studyForWeapon(weaponType)) ?? 0;
-    const rank = addWeaponExp(unit, weaponType, 10 + bonus);
+    const plan = trainingPlan(ctx, data);
+    if (plan.problems.length) throw plan.problems[0];
+    const weaponExpGained = ACTION_DAYS.train * WEAPON_TRAINING_PER_DAY;
+    const units = plan.units.map(unit => {
+      const weapons = plan.types.map(type => addTrainingWeaponExp(unit, type, weaponExpGained));
+      ctx.store.saveUnit(unit, ctx.player.id);
+      return { unit: unit.id, name: unitName(unit), weapons };
+    });
+    ctx.player.gold -= plan.costGold;
     ctx.player.day += ACTION_DAYS.train;
-    ctx.store.saveUnit(unit, ctx.player.id);
     syncPlayer(ctx.store, ctx.player);
     ctx.push(OP.STATE_CHANGED, { reason: 'train' });
-    return { unit: unit.id, weaponType, rankBefore: before, rankAfter: unit.ranks[weaponType] ?? 'E', rankUp: rank, day: ctx.player.day, gold: ctx.player.gold };
+    return { ...units[0].weapons[0], unit: units[0].unit, units, groupId: plan.groupId,
+      weaponExpGained, costGold: plan.costGold, days: ACTION_DAYS.train, day: ctx.player.day, gold: ctx.player.gold };
   },
 
   [OP.REST]: (ctx, data) => {
@@ -969,7 +969,7 @@ const handlers: Record<number, Handler> = {
     const name = asString(data.promotion, 'promotion');
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '战斗结束后才能转职');
     const target = Object.hasOwn(CLASSES, name) ? canonicalClassId(name as keyof typeof CLASSES) : name;
-    const promotion = promotionsFor(unit.classId).find(p => p.name === name || p.to === target);
+    const promotion = allPromotionsFor(unit.classId).find(p => p.name === name || p.to === target);
     if (!promotion) throw new OpError('NOT_FOUND', `当前职业没有转职方向 ${name}`);
     if (unit.status !== 'active') throw new OpError('BAD_REQUEST', '该单位不在现役名册');
     return handlers[OP.SWITCH_CLASS](ctx, { ...data, classId: promotion.to });
@@ -1289,7 +1289,7 @@ const handlers: Record<number, Handler> = {
     const region = asNumber(data.region, 'region');
     if (!playerRegions(ctx.player).includes(region)) throw new OpError('FORBIDDEN', `尚未解锁 ${regionById(region).name}；先在世界地图选择行军路线`);
     if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放大副本');
-    const { encounter, stages } = dungeonPlan(ctx.player, region, aiDifficulty);
+    const { encounter, stages } = dungeonPlan(ctx, region, aiDifficulty);
     const ready = deploymentUnits(ctx, data.unitIds, encounter.maxUnits);
     // 出发时锁定等级、名单与物品；只有实际创建 run 才锁配置（docs/13 §4.4）。
     const level = enemyLevel(ctx.player.day, regionById(region).offset);
@@ -2576,7 +2576,7 @@ const handlers: Record<number, Handler> = {
     hero.isProtagonist = true;
     ctx.store.addUnit(ctx.player.id, hero);
     for (const id of ids) {
-      ctx.store.addUnit(ctx.player.id, createUnit(id as CharacterId, 1, `u_${id}`, ctx.player.day, true, { classId: CHARACTERS[id as CharacterId].classId, startingGear: 'basic' }));
+      ctx.store.addUnit(ctx.player.id, createSetupCompanion(id as CharacterId, ctx.player.day));
     }
     ctx.player.protagonist = hero.character;
     ctx.player.flags.companions = ids as CharacterId[];
@@ -2660,6 +2660,40 @@ function deploymentUnits(ctx: Context, value: unknown, max: number) {
   return units;
 }
 
+function trainingPlan(ctx: Context, data: Json) {
+  if (data.unitIds !== undefined && data.unitId !== undefined) throw new OpError('BAD_REQUEST', 'unitIds 与 unitId 只能提供一个');
+  const ids = data.unitIds ?? [asString(data.unitId, 'unitId')];
+  if (!Array.isArray(ids) || !ids.length || ids.some(id => typeof id !== 'string' || !id.trim())) throw new OpError('BAD_REQUEST', '请选择至少一名训练角色');
+  if (new Set(ids).size !== ids.length) throw new OpError('BAD_REQUEST', '训练角色不能重复');
+  const limit = trainingLimit(ctx.player.day);
+  if (ids.length > limit) throw new OpError('BAD_REQUEST', `当前最多可同时训练 ${limit} 人`);
+  const units = ids.map(id => requireUnit(ctx.store, ctx.player, id));
+  const group = TRAINING_GROUPS.find(row => row.id === data.groupId);
+  if (data.groupId !== undefined && !group) throw new OpError('BAD_REQUEST', '请选择有效的训练分组');
+  if (data.unitIds !== undefined && !group) throw new OpError('BAD_REQUEST', '多人训练需要选择训练分组');
+  if (group && data.weaponType !== undefined) throw new OpError('BAD_REQUEST', '训练分组与单项武器不能同时选择');
+  let types: readonly WeaponType[];
+  if (group) types = group.weapons;
+  else {
+    // Older clients can still request their carried, class-permitted single weapon.
+    const type = data.weaponType === 'dagger' ? 'sword' : data.weaponType;
+    const allowed = units[0].weapons.filter(id => CLASSES[units[0].classId].weapons[WEAPONS[id].type]);
+    const weapon = type === undefined ? allowed[0] : allowed.find(id => WEAPONS[id].type === type);
+    if (!weapon) throw new OpError('BAD_REQUEST', '当前职业没有携带可训练的该类武器');
+    types = [WEAPONS[weapon].type];
+  }
+  const costGold = TRAIN_GOLD_PER_UNIT * units.length;
+  const problems: OpError[] = [];
+  const battle = ctx.store.activeBattle(ctx.player.id);
+  for (const unit of units) {
+    if (unit.status !== 'active') problems.push(new OpError('BAD_REQUEST', `${unitName(unit)} 不在现役名册中`));
+    if (unit.lockedRunId || unit.lockedDispatchId) problems.push(new OpError('FORBIDDEN', `${unitName(unit)} 正在远征或派遣中，不能训练`));
+    if (battle?.state.units.some(row => row.id === unit.id)) problems.push(new OpError('BATTLE_IN_PROGRESS', '战斗中的队员不能培养或调整物资'));
+  }
+  if (ctx.player.gold < costGold) problems.push(new OpError('NOT_ENOUGH_GOLD', `训练需要 ${costGold} 金币`));
+  return { units, types, groupId: group?.id ?? null, costGold, problems };
+}
+
 function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
   const player = ctx.player;
   const fighting = !!ctx.store.activeBattle(player.id);
@@ -2695,11 +2729,12 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
     }
     case 'train': {
       op = OP.TRAIN;
+      const plan = trainingPlan(ctx, data);
       costDays = ACTION_DAYS.train;
-      costGold = TRAIN_GOLD;
-      payload = { unitId: data.unitId, weaponType: data.weaponType };
-      if (ctx.store.activeBattle(player.id)?.state.units.some(unit => unit.id === data.unitId)) blockers.push('战斗中的队员不能培养或调整物资');
-      if (player.gold < TRAIN_GOLD) blockers.push(`训练需要 ${TRAIN_GOLD} 金币`);
+      costGold = plan.costGold;
+      payload = plan.groupId ? { unitIds: plan.units.map(unit => unit.id), groupId: plan.groupId }
+        : { unitId: plan.units[0].id, weaponType: plan.types[0] };
+      blockers.push(...plan.problems.map(problem => problem.message));
       break;
     }
     case 'art_training': {
@@ -2758,8 +2793,8 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
   if (action === 'sortie' || action === 'dungeon') {
     const region = asNumber(data.region, 'region');
     const difficulty = asAiDifficulty(data.aiDifficulty);
-    const dungeon = action === 'dungeon' ? dungeonPlan(player, region, difficulty) : null;
-    const plan = dungeon?.encounter ?? fieldEncounter(player.id, player.day, region, difficulty);
+    const dungeon = action === 'dungeon' ? dungeonPlan(ctx, region, difficulty) : null;
+    const plan = dungeon?.encounter ?? fieldEncounter(player.id, player.day, region, difficulty, 'field', availableFieldUnits(ctx));
     dungeonStages = dungeon?.stages;
     deploymentUnits(ctx, data.unitIds, plan.maxUnits);
     encounter = { ...plan, map: encounterMap(plan, player.day) };

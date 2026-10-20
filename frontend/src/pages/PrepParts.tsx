@@ -23,6 +23,17 @@ export const itemOf = (key: string): GameItem | undefined => GAME_ITEMS[key as I
 
 export const itemIcon = itemIconFor;
 
+export function itemResource(key: string): string | null {
+  const item = itemOf(key);
+  if (item?.weapon) {
+    const weapon = WEAPONS[item.weapon];
+    const maximum = weapon.maxCharges ?? weapon.maxDurability ?? 40;
+    return `${weapon.maxCharges !== undefined ? '次数' : '耐久'} ${maximum} / ${maximum}`;
+  }
+  if (item?.kind === 'spellbook' && item.uses !== undefined) return `次数 ${item.uses} / ${item.uses}`;
+  return null;
+}
+
 // One line on what the item does, in the backend's own terms (game/items.ts, data/weapons.ts).
 export function itemSpec(key: string): string {
   const item = itemOf(key);
@@ -32,7 +43,7 @@ export function itemSpec(key: string): string {
     case 'consumable': return item.note ?? (item.item ? `回复 ${ITEMS[item.item].heal} HP · 每件 ${item.uses} 次` : '');
     case 'stat': return `${item.stat ? STAT_NAMES[item.stat] : ''}永久 +${item.amount} · 每人每项最多 ${DRUG_LIMIT_PER_STAT} 次，合计 ${DRUG_LIMIT_TOTAL} 次`;
     case 'seal': return item.note ?? '转职印';
-    case 'food': return `${item.note ?? '恢复法术书次数'} · 在角色的书旁使用，不推进日期`;
+    case 'food': return item.note ?? '恢复法术书次数';
     case 'material': return item.note ?? '生产材料：在「生产」里播种、炼药或锻造，也可以出售';
     case 'spellbook': return `${item.note ?? ''} · 交给角色后可施法，剩余次数随书走`;
     case 'manual': return item.note ?? '';
@@ -81,7 +92,7 @@ export async function runOp<T>(op: number, data: Record<string, unknown>, done: 
 export function UnitPicker({ units, selected, onPick }: { units: ServerUnit[]; selected: ServerUnit | undefined; onPick: (id: string) => void }) {
   return (
     <section className="panel gear-picker" aria-labelledby="gu-h">
-      <div className="ph"><h2 id="gu-h">选择角色</h2><span style={{ fontSize: 12, color: '#6A6256' }}>当前：<b>{selected?.name ?? '未选择'}</b> · 仓库操作作用于此角色</span></div>
+      <div className="ph"><h2 id="gu-h">选择角色</h2><span style={{ fontSize: 12, color: '#6A6256' }}>当前：<b>{selected?.name ?? '未选择'}</b></span></div>
       <div className="gear-units" role="radiogroup" aria-label="选择角色">
         {units.map(u => {
           const worn = u.weaponInstances.some(w => w.durability < w.maxDurability) || [...u.bookInstances, ...u.spellbooks].some(b => b.charges < b.maxCharges);
@@ -240,7 +251,6 @@ export function DrugPanel({ unit }: { unit: ServerUnit }) {
           </div>
         ))}
       </div>
-      <p className="pfoot">每项最多 {DRUG_LIMIT_PER_STAT} 次、合计 {DRUG_LIMIT_TOTAL} 次，不会超过属性上限；用不了时道具不扣。</p>
     </section>
   );
 }
@@ -265,7 +275,6 @@ export function BexpPanel({ unit, bexp }: { unit: ServerUnit; bexp: number }) {
         <span className="cost">Lv {unit.level} · 经验 {unit.exp} / 100 → {capped ? '已满级' : `Lv ${reach} · 经验 ${reach >= max ? 0 : (unit.exp + spend) % 100} / 100`} · 消耗 {spend}，公共经验剩余 {bexp - spend} · 距满级还需 {remaining}</span>
       </div>
       <div className="flex items-center justify-between gap-2" style={{ padding: '10px 14px 12px' }}>
-        <span style={{ fontSize: 12, color: '#6A6256' }}>每 100 经验升 1 级，升级的成长照常随机；不推进日期。</span>
         <button type="button" className="btn btn-sm btn-primary" disabled={bexp <= 0 || capped}
           onClick={() => void runOp<{ amount: number; level: number; levelUps: unknown[] }>(OP.ASSIGN_BEXP, { unitId: unit.id, amount: spend },
             r => `${unit.name}获得 ${r.amount} 经验${r.levelUps.length > 0 ? `，升到 Lv ${r.level}（升了 ${r.levelUps.length} 级）` : ''}`)}>分配</button>

@@ -1,7 +1,21 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v19';
+export const RULESET_VERSION = 'rules-v21';
+// v52 / rules-v21: grouped camp training opens 1/3/5/8 slots by year, with shared three-day
+// duration and per-person payment; E→D needs 50 XP. New setup companions use stage-one classes.
+// Human promotion can target any qualified class. Flying movement is 7 at every stage;
+// stage-three+ non-armored foot/mounted movement is 6/7. Dragon weapons and arts are melee.
+// Early random encounters scale to the available roster and chapter (3–5 enemies); dispersed
+// layouts require eight available units. Existing learned ranks/stats and frozen encounters survive;
+// previous-rule replays retain their terminal snapshots instead of being re-simulated.
+// v51: fixed companions' nine-stat personal growth totals are 250–270. On load,
+// exact legacy templates on fixed companion IDs adopt the new personal growth only;
+// earned stats, inheritance, random recruits, protagonist and frozen battles/replays stay intact.
+// v50 / rules-v20: protagonist turn-start damage/speed aura and Lv60 desperation;
+// mastery gains halved, stage 0/1 classes grant no new mastery; weapon training is 1 XP/day.
+// Existing learned skills and attributes survive; unsold shop stock is capped at three.
+// Existing battle snapshots do not receive the new personal skill; old replays remain frozen.
 // v49 / rules-v19: 72 regional materials, six grades per herb/mineral/timber category, and five
 // canonical weapon material tiers. New field/run/dispatch rewards freeze at departure; legacy records
 // without loot fields use their former payouts. Existing inventory IDs and production outputs survive.
@@ -99,7 +113,7 @@ export const RULESET_VERSION = 'rules-v19';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 49;
+export const CATALOG_VERSION = 52;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

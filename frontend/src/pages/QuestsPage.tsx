@@ -2,7 +2,6 @@ import type { AiDifficulty } from '@common/engine/types.ts';
 import { DifficultyChoice, difficultyLabel } from '../battle/DifficultyChoice.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { REPUTATION_TIERS } from '@common/game/reputation.ts';
-import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ChallengeFloor, QuestRegion, QuestView } from '../api/session.ts';
@@ -21,7 +20,7 @@ import { QuestBoard } from './QuestBoard.tsx';
 import { CrossTimeEnemyPreview } from './CrossTimeEnemyPreview.tsx';
 import { CrossTimeBrief } from './CrossTimeBrief.tsx';
 import { crossTimeReward, isCrossTime, questsInRegion } from './cross-time.ts';
-import { itemSpec } from './PrepParts.tsx';
+import { itemResource, itemSpec } from './PrepParts.tsx';
 
 type Phase = 'locked' | 'ongoing' | 'available' | 'done' | 'claimed';
 const phaseOf = (q: QuestView): Phase => (q.inProgress ? 'ongoing' : !q.available && !q.done ? 'locked' : !q.done ? 'available' : isCrossTime(q) || q.claimed ? 'claimed' : 'done');
@@ -38,7 +37,6 @@ function FirstClearLoot({ reward }: { reward: NonNullable<QuestView['firstClearR
   if (!reward) return null;
   return <>
     {reward.items.map(({ item, count }) => `${itemName(item)} ×${count}`).join(' · ')} · 本难度首通：{reward.available ? '未完成' : '已完成'}
-    <br /><span className="muted">本难度首次完整通关自动入库；普通、困难各一次固定奖励，探索度仍只增加一次</span>
   </>;
 }
 
@@ -88,7 +86,6 @@ function RegionsTab() {
         <QuestBoard board={quests.board ?? []} />
         <section className="panel" style={{ padding: 16 }}>
           <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
-          <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>地区任务随讨伐路线逐区开放；先在世界地图上选择一条路线。</p>
           <a className="btn btn-primary" href={links.world}>打开世界地图</a>
         </section>
       </div>
@@ -129,7 +126,6 @@ function RegionsTab() {
         <div>
           <div className="eyebrow">地区任务 · {dateLabel(state.day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>地区任务与声望</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>每个地区一条本地任务链：短任务、标准任务与地区远征（连战多图）。胜利后任务标记完成，金币、物资与声望另行领取；倒下的普通角色永久死亡。</p>
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>声望档：{REPUTATION_TIERS.map(t => `${t.name} ${t.at}`).join(' · ')}</div>
       </div>
@@ -154,10 +150,8 @@ function RegionsTab() {
                 <dt>奖励</dt><dd>{isCrossTime(quest) ? crossTimeReward(effectiveDifficulty, effectiveDifficulty === 'normal' ? quest.done : quest.firstClearRewards?.hard?.available === false) : rewardText(quest)}{quest.optionalReward ? `；带回 1 箱即可完成，之后每多 1 箱再得${itemName(quest.optionalReward.item)} ×${quest.optionalReward.perExtraBox}` : ''}</dd>
                 {!isCrossTime(quest) && quest.firstClearRewards && <><dt>本难度首通</dt><dd><FirstClearLoot reward={quest.firstClearRewards[effectiveDifficulty]} /></dd></>}
                 {quest.stageNames && <><dt>关卡顺序</dt><dd>{quest.stageNames.join(' → ')}</dd></>}
-                <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡，主角只撤退；失败或撤退不发通关奖励，已发生的伤亡和消耗保留。</dd>
               </dl>
               {isCrossTime(quest) && <><CrossTimeBrief /><CrossTimeEnemyPreview difficulty={effectiveDifficulty} day={state.day} /></>}
-              {quest.done && !isCrossTime(quest) && <p className="pfoot">再次出征保留任务完成与领奖记录，固定任务奖励不会重复领取。</p>}
               {quest.hardAvailable && <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度完整通关本副本后解锁，仅限本副本。" help={isCrossTime(quest) ? '固定17名敌军，普通48级、困难52级，面板见上方敌军详情；两档均消耗8日。困难使用更强的行动规划，奖励按本副本独立结算。出发后难度与敌军面板固定。' : undefined} onChange={setAiDifficulty} disabled={busy !== null || locked || battleLocked} />}
               <TeamPicker units={active} team={team} max={quest.maxUnits} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} />
               <div className="go-bar">
@@ -208,10 +202,10 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
   const exploration = state?.world.nodes.find(node => node.id === region.region);
   const [shopFilter, setShopFilter] = useState<ItemFilter>('all');
   // 声望商店按物品分类过滤（武器按剑（含短刀）/枪/斧/弓/拳/兽/龙/魔道书/杖细分），芯片带数量。
-  const shopKeys = region.shop.map(s => s.item);
+  const shopKeys = region.shop.filter(s => s.unlocked && s.remaining > 0).map(s => s.item);
   const counts = filterCounts(shopKeys);
   const wares = region.shop
-    .filter(s => matchItemFilter(s.item, shopFilter))
+    .filter(s => s.unlocked && s.remaining > 0 && matchItemFilter(s.item, shopFilter))
     .sort((a, b) => kindOrder(a.item) - kindOrder(b.item) || a.price - b.price);
   return (
     <section className="panel" aria-labelledby={`rg-${region.region}`}>
@@ -221,7 +215,6 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
       </div>
       {exploration && <div style={{ padding: '12px 16px' }}>
         <RegionExploration region={exploration} />
-        <p style={{ fontSize: 12, color: '#6A6256', marginTop: 6 }}>单图任务完成 +{REGION_EXPLORATION_GAIN.quest} 探索度，多图任务首次整本通关 +{REGION_EXPLORATION_GAIN.dungeon}；跨时空试炼不增加探索度。探索满后可在<a href={links.world}>世界地图</a>开通相邻新路线。</p>
       </div>}
       <ol className="chapters quest-list">
         {region.quests.map(q => {
@@ -267,8 +260,8 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
           );
         })}
       </ol>
-      {region.shop.length > 0 && <>
-        <div className="grp">声望商店 · 每季只上架少数高级商品，每件限购；达到档位才能买，购买不扣声望{region.shopRefreshDay !== undefined && <> · {plainDate(region.shopRefreshDay)}换一批</>}</div>
+      {shopKeys.length > 0 && <>
+        <div className="grp">声望商店{region.shopRefreshDay !== undefined && <> · {plainDate(region.shopRefreshDay)}补货</>}</div>
         <div className="chips" role="group" aria-label={`${region.name}商店分类`} style={{ padding: '0 14px' }}>
           {ITEM_FILTERS.map(([f, label]) => (
             <button key={f} type="button" className="chip" aria-pressed={shopFilter === f}
@@ -279,12 +272,8 @@ function RegionPanel({ region, busy, startLocked, questName, onStart, onClaim, o
           {wares.map(s => (
             <li key={s.item}>
               <span className="slot-free" aria-hidden="true" />
-              <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span> <span className="tag tag-grey" title="本季最多购买的件数">限购 {s.bought}/{s.limit}</span></div><div className="sp">需要声望 {s.reputation} · {itemSpec(s.item)}</div></div>
-              {!s.unlocked
-                ? <span className="tag tag-grey">声望不足</span>
-                : s.remaining <= 0
-                  ? <span className="tag tag-brass">本季已买</span>
-                  : <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => onBuy(region.region, s.item)}>{busy === `b${region.region}-${s.item}` ? '购买中…' : '购买'}</button>}
+              <div className="min-w-0"><div className="nm">{s.name} <span className="cnt">{s.price.toLocaleString()} 金</span> <span className="tag tag-grey">剩 {s.remaining}</span></div><div className="sp">{itemSpec(s.item)}</div>{itemResource(s.item) && <span className="tag tag-grey">{itemResource(s.item)}</span>}</div>
+              <button type="button" className="btn btn-sm" disabled={busy !== null || (state?.gold ?? 0) < s.price} onClick={() => onBuy(region.region, s.item)}>{busy === `b${region.region}-${s.item}` ? '购买中…' : '购买'}</button>
             </li>
           ))}
           {wares.length === 0 && <li className="empty-row">这个分类下本季没有上架的物品</li>}
@@ -326,7 +315,6 @@ function TowerTab() {
         <div>
           <div className="eyebrow">挑战塔 · {dateLabel(state.day)}</div>
           <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>挑战塔</h1>
-          <p style={{ fontSize: 14, color: '#4E473D' }}>用经典地图与固定的高等级敌军检验军团；普通角色真实死亡。每层先通关，再分别领一次首通奖励与一次重复奖励。终层在主线第八章完成后开放。</p>
         </div>
       </div>
       {error && <p className="sys-strip">{error}</p>}

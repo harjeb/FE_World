@@ -1,28 +1,28 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CATALOG_CLASS_IDS } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES } from '../data/classes.ts';
 import { WEAPON_ARTS, WEAPON_ART_BY_ID } from '../data/weapon-arts.ts';
 import { createUnit, equipmentArts, growthRates, normalizeUnit, toBattleUnit, toSnapshot } from './model.ts';
 import { classMasteryOf, gainMastery, masteryNodesFor, setEquippedSkills, SKILL_SLOTS, switchClass, unlockedNodes } from './mastery.ts';
 
 test('mastery unlocks class nodes by threshold, not by total level', () => {
-  const unit = createUnit('erin', 70, 'm1', 0, false, { classId: 'gladiator', age: 20 });
+  const unit = createUnit('erin', 70, 'm1', 0, false, { classId: 'swordsman', age: 20 });
   assert.equal(classMasteryOf(unit), 0);
   assert.deepEqual(unlockedNodes(unit), []);
   // 70 total levels do not unlock the class; mastery does.
-  gainMastery(unit, 9);
+  gainMastery(unit, 19);
   assert.deepEqual(unlockedNodes(unit), []);
   const art = gainMastery(unit, 1);
-  assert.deepEqual(art.map(node => node.art), ['fw_art_52']);
-  assert.deepEqual(unit.learnedArts, ['fw_art_52']);
-  const unlocked = gainMastery(unit, 5);
+  assert.deepEqual(art.map(node => node.art), ['ground_cut']);
+  assert.deepEqual(unit.learnedArts, ['ground_cut']);
+  const unlocked = gainMastery(unit, 10);
   assert.equal(unlocked.length, 1);
-  assert.equal(classMasteryOf(unit), 15);
+  assert.equal(classMasteryOf(unit), 30);
   assert.ok(unit.learnedSkills.includes('opening'));
   assert.ok(unit.equippedSkills.includes('opening'));
-  gainMastery(unit, 30);
+  gainMastery(unit, 50);
   assert.ok(unit.learnedSkills.includes('keen'));
-  assert.equal(unlockedNodes(unit).length, masteryNodesFor(unit.classId).filter(node => node.threshold <= 45).length);
+  assert.equal(unlockedNodes(unit).length, masteryNodesFor(unit.classId).filter(node => node.threshold <= 80).length);
   // Reconciliation and re-crossing never grant a node or a shared art twice.
   const known = [...unlockedNodes(unit)];
   assert.deepEqual(gainMastery(unit, 0), []);
@@ -30,13 +30,19 @@ test('mastery unlocks class nodes by threshold, not by total level', () => {
   assert.equal(unit.learnedSkills.filter(s => s === 'opening').length, 1);
 });
 
-test('all 408 class teaching nodes unlock only at their own threshold and never include upgrades or equipment grants', () => {
+test('all 370 eligible class teaching nodes unlock only at their own threshold; lower classes grant none', () => {
   let links = 0;
   const taught = new Set<string>();
   for (const classId of CATALOG_CLASS_IDS) {
     const unit = createUnit('erin', 99, `mastery-${classId}`, 0, true, { classId, age: 20 });
     assert.deepEqual(unit.learnedArts, [], `${classId}: level does not teach arts`);
     const nodes = masteryNodesFor(classId).filter(node => node.art);
+    if (CLASSES[classId].stage <= 1) {
+      assert.deepEqual(masteryNodesFor(classId), []);
+      assert.deepEqual(gainMastery(unit, 1000), []);
+      assert.equal(classMasteryOf(unit), 0);
+      continue;
+    }
     assert.ok(classId === 'troubadour' || classId === 'valkyrie' ? nodes.length === 0 : nodes.length >= 4 && nodes.length <= 6, classId);
     let progress = 0;
     for (const node of nodes) {
@@ -56,8 +62,8 @@ test('all 408 class teaching nodes unlock only at their own threshold and never 
     assert.equal(unit.learnedArts!.length, nodes.length);
     assert.deepEqual(gainMastery(unit, 0), []);
   }
-  assert.equal(links, 408);
-  assert.equal(taught.size, 176);
+  assert.equal(links, 370);
+  assert.equal(taught.size, 174);
 });
 
 test('different teachers share one learned art, switching preserves it, and battle units receive it', () => {
@@ -91,14 +97,14 @@ test('loading an old mastery save reconciles new nodes without adding points or 
 });
 
 test('mastery nodes differ by class and are cleared by reincarnation', () => {
-  const a = masteryNodesFor('gladiator');
+  const a = masteryNodesFor('swordsman');
   const b = masteryNodesFor('sword_hero');
   assert.notDeepEqual(a.map(n => n.threshold), b.map(n => n.threshold));
   assert.ok(b[0].threshold > a[0].threshold, 'higher stages unlock later');
 });
 
 test('learned skills are freely equipped across classes, shared across five slots', () => {
-  const unit = createUnit('erin', 20, 'm2', 0, false, { classId: 'gladiator', age: 20 });
+  const unit = createUnit('erin', 20, 'm2', 0, false, { classId: 'swordsman', age: 20 });
   gainMastery(unit, 100);
   const learned = [...unit.learnedSkills];
   assert.ok(learned.length >= 2);
@@ -110,13 +116,13 @@ test('learned skills are freely equipped across classes, shared across five slot
 });
 
 test('switching class keeps mastery and learned skills but recomputes the class growth', () => {
-  const unit = createUnit('erin', 20, 'm3', 0, false, { classId: 'gladiator', age: 20 });
+  const unit = createUnit('erin', 20, 'm3', 0, false, { classId: 'swordsman', age: 20 });
   unit.ranks.sword = 'C';
-  gainMastery(unit, 20);
+  gainMastery(unit, 30);
   const before = growthRates(unit);
-  switchClass(unit, 'swordsman');
-  assert.equal(unit.classId, 'swordsman');
-  assert.equal(classMasteryOf(unit, 'gladiator'), 20, 'old class mastery is kept');
+  switchClass(unit, 'mercenary');
+  assert.equal(unit.classId, 'mercenary');
+  assert.equal(classMasteryOf(unit, 'swordsman'), 30, 'old class mastery is kept');
   assert.ok(unit.learnedSkills.includes('opening'));
   assert.notDeepEqual(growthRates(unit), before, 'changing class must recompute the full growth vector even when strength matches');
 });
@@ -171,7 +177,7 @@ test('new mastery cannot overflow a full mixed loadout and snapshots contain sel
   const unit = createUnit('erin', 20, 'full-slots', 0);
   unit.learnedArts = ['fw_art_29', 'fw_art_224', 'fe_art_gap_stab', 'chariot_line', 'fw_art_52'];
   assert.equal(setEquippedSkills(unit, [], unit.learnedArts), null);
-  gainMastery(unit, 100, 'commoner');
+  gainMastery(unit, 100, 'swordsman');
   assert.ok(unit.learnedSkills.includes('opening'));
   assert.deepEqual(unit.equippedSkills, [], 'passive autoequip also counts equipped arts');
   assert.equal(unit.equippedArts!.length, 5);

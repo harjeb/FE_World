@@ -143,17 +143,17 @@ export const DRUG_LIMIT_TOTAL = 20;
 // 王都只卖E级基础装备和常用补给；进阶武器由沿途地区武器店提供。
 // 仍保留每季限量的不朽盾与能力药，库存规则不因武器迁店改变。
 export const SHOP_STOCK: { item: ItemKey; stock: number }[] = [
-  { item: 'fw_weapon_1', stock: 8 }, { item: 'fw_weapon_24', stock: 8 }, { item: 'fw_weapon_52', stock: 8 },
-  { item: 'fw_weapon_72', stock: 8 }, { item: 'fw_weapon_89', stock: 8 },
-  { item: 'dagger', stock: 4 }, { item: 'beast_claw', stock: 4 }, { item: 'dragonstone', stock: 4 },
-  { item: 'fire', stock: 4 }, { item: 'heal', stock: 4 },
-  { item: 'spellbook:fire', stock: 4 }, { item: 'spellbook:fw_spell_12', stock: 4 },
-  { item: 'vulnerary', stock: 9 }, { item: 'antidote', stock: 6 }, { item: 'elixir', stock: 2 }, { item: 'immortal_shield', stock: 1 },
+  { item: 'fw_weapon_1', stock: 3 }, { item: 'fw_weapon_24', stock: 3 }, { item: 'fw_weapon_52', stock: 3 },
+  { item: 'fw_weapon_72', stock: 3 }, { item: 'fw_weapon_89', stock: 3 },
+  { item: 'dagger', stock: 3 }, { item: 'beast_claw', stock: 3 }, { item: 'dragonstone', stock: 3 },
+  { item: 'fire', stock: 3 }, { item: 'heal', stock: 3 },
+  { item: 'spellbook:fire', stock: 3 }, { item: 'spellbook:fw_spell_12', stock: 3 },
+  { item: 'vulnerary', stock: 3 }, { item: 'antidote', stock: 3 }, { item: 'elixir', stock: 2 }, { item: 'immortal_shield', stock: 1 },
   { item: 'seal_promote', stock: 2 },
   { item: 'energy_drop', stock: 1 }, { item: 'secret_book', stock: 1 }, { item: 'speedwing', stock: 1 },
   { item: 'goddess_icon', stock: 1 }, { item: 'dracoshield', stock: 1 }, { item: 'talisman', stock: 1 },
-  { item: 'herb', stock: 10 }, { item: 'copper_ore', stock: 6 }, { item: 'wood', stock: 10 }, { item: 'seed', stock: 10 },
-  { item: 'ether_ration', stock: 6 }, { item: 'full_meal', stock: 2 },
+  { item: 'herb', stock: 3 }, { item: 'copper_ore', stock: 3 }, { item: 'wood', stock: 3 }, { item: 'seed', stock: 3 },
+  { item: 'ether_ration', stock: 3 }, { item: 'full_meal', stock: 2 },
 ];
 
 // 王都商店的高级物品按年份上架（docs/38 §3.5）：开局只有基础装备、伤药、解毒药和材料；

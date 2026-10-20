@@ -2,14 +2,15 @@ import { CROSS_TIME_QUEST_ID } from '../common/game/cross-time.ts';
 import { crossTimeVictory, grantCrossTimeRewards } from './cross-time.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import { CHARACTERS, CHARACTER_IDS, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_ALLOCATION_DEFAULT, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION } from '../common/data/characters.ts';
-import { CLASSES } from '../common/data/classes.ts';
+import { CLASSES, initialClassOf, type ClassId } from '../common/data/classes.ts';
 import { STAT_KEYS } from '../common/data/types.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { GAME_ITEMS, spellbookItem } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
-import { addWeaponExp, ageAt, daysUntilBirthday, effectiveCaps, equipmentArts, gainExperience, growthRates, lifespanEndDayOf, lifespanWarning, toSnapshot, unitName } from '../common/game/model.ts';
-import { gainMastery, MASTERY_PER_BATTLE, MASTERY_PER_TRAIN_DAY, MASTERY_PER_WIN } from '../common/game/mastery.ts';
+import { addWeaponExp, ageAt, createUnit, daysUntilBirthday, effectiveCaps, equipmentArts, gainExperience, growthRates, lifespanEndDayOf, lifespanWarning, toSnapshot, unitName } from '../common/game/model.ts';
+import { classMasteryOf, gainMastery, MASTERY_PER_BATTLE, MASTERY_PER_TRAIN_DAY, MASTERY_PER_WIN } from '../common/game/mastery.ts';
 import { dispatchMaterials, dispatchWeapons } from '../common/game/dispatch.ts';
+import { WEAPON_TRAINING_PER_DAY } from '../common/game/training.ts';
 import type { DispatchResult } from '../common/game/dispatch.ts';
 import { createPeriod, periodIdFor, rankByRating, ratingDelta, rewardForRank } from '../common/game/ratings.ts';
 import type { RatingPeriod, RatingRow } from '../common/game/ratings.ts';
@@ -676,9 +677,10 @@ export function settleDispatches(store: Store, player: Player): DispatchResult[]
       const perDay = [11, 9, 7, 6, 5, 5, 4, 4][year];
       const exp = perDay * dispatch.durationDays;
       const ups = gainExperience(unit, exp, seedRng(`dispatch-exp:${dispatch.id}:${unitId}`));
-      const mastery = MASTERY_PER_TRAIN_DAY * dispatch.durationDays;
-      const unlocked = gainMastery(unit, mastery, dispatch.classId).map(node => node.name);
-      const weaponRank = addWeaponExp(unit, dispatch.weaponType, dispatch.durationDays, dispatch.classId);
+      const masteryBefore = classMasteryOf(unit, dispatch.classId);
+      const unlocked = gainMastery(unit, MASTERY_PER_TRAIN_DAY * dispatch.durationDays, dispatch.classId).map(node => node.name);
+      const mastery = classMasteryOf(unit, dispatch.classId) - masteryBefore;
+      const weaponRank = addWeaponExp(unit, dispatch.weaponType, dispatch.durationDays * WEAPON_TRAINING_PER_DAY, dispatch.classId);
       store.saveUnit(unit, player.id);
       unitRewards.push({ unitId, exp, levelUps: ups.map(u => ({ level: u.level, gains: u.gains as Record<string, number> })), mastery, unlocked, weaponType: dispatch.weaponType, weaponRank });
     }
@@ -819,6 +821,19 @@ export function companionPool(): CharacterId[] {
   return CHARACTER_IDS.filter(id => !QUEST_RECRUITS.includes(id));
 }
 
+// 开局同伴职业（用户追加定案）：主角固定平民（stage 0），开局可自选的同伴一律以
+// 所属路线的初级（stage 1）职业入队，不再沿用角色表的中级（stage 2）预设职业。
+// 装备与熟练度由 createUnit 的 startingGear:'basic' 按新职业生成（各武器类型 E 熟练度＋主武器类型的
+// 木制 E 装＋法系一本入门书），与初级职业权限天然兼容。
+export function setupCompanionClassId(id: CharacterId): ClassId {
+  return initialClassOf(CHARACTERS[id].classId);
+}
+
+// 开局同伴入队工厂：COMPLETE_SETUP 与开局候选视图共用同一映射，保证显示与落账一致。
+export function createSetupCompanion(id: CharacterId, day: number): UnitRecord {
+  return createUnit(id, 1, `u_${id}`, day, true, { classId: setupCompanionClassId(id), startingGear: 'basic' });
+}
+
 // 新账号只发占位主角，需要先完成自捏开局；老存档（已有多人）不再要求。
 export function setupNeeded(player: Player, activeCount: number): boolean {
   return !player.flags.setupCompleted && !player.flags.companions && activeCount <= 1;
@@ -871,7 +886,7 @@ export function stateView(store: Store, player: Player) {
     perfectWeapons: Object.fromEntries(Object.entries(player.flags.perfectWeapons ?? {}).filter(([, n]) => (n ?? 0) > 0)),
     setup: {
       needed: setupNeeded(player, active.length),
-      pool: companionPool().map(id => ({ id, name: CHARACTERS[id].name, classId: CHARACTERS[id].classId, level: 1 })),
+      pool: companionPool().map(id => ({ id, name: CHARACTERS[id].name, classId: setupCompanionClassId(id), level: 1 })),
       chosen: player.flags.companions ?? null,
       protagonist: {
         // 职业与成长类型固定（平民／成长型），不再下发职业／倾向选择器。

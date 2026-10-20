@@ -5,6 +5,7 @@ import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { AiDifficulty, Action, BattleEvent, BattleObject, BattleState, Point, ScenarioEvent, UnitState } from '../engine/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
+import { initializeTurnSkills } from '../engine/turn-skills.ts';
 import { generateMap } from '../maps/generate.ts';
 import { THEMES, type Theme } from '../maps/themes.ts';
 import { canEnter, neighbors, seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
@@ -98,6 +99,10 @@ export interface FieldBattleOptions {
   carry?: Record<string, RunCarry>;
   // 地区任务：覆盖目标、回合上限与图名（docs/20）。
   quest?: Quest;
+  // 前期平衡：当前可出战人数与章节（1–8），决定随机遭遇的前期布局门控与敌军压减；
+  // 省略时按日期推导章节、不按人数限制（旧行为）。
+  availableUnits?: number;
+  chapter?: number;
 }
 
 const DUNGEON_STAGE_NAMES = ['探路', '消耗战', '首领战'];
@@ -121,7 +126,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   if (!dungeon && !options.quest && options.region === 4) themes.push('riverlands');
   if (!dungeon && !options.quest && options.region === 5) themes.push('lakeland');
   const theme = themes[nextU32(seedRng(`${options.seed}:theme`)) % themes.length];
-  const encounter = options.encounter ?? (!options.quest && !options.legacyDeployment ? fieldEncounter(options.seed, options.day ?? 0, options.region, options.aiDifficulty, dungeon ? 'dungeon' : 'field') : undefined);
+  const encounter = options.encounter ?? (!options.quest && !options.legacyDeployment ? fieldEncounter(options.seed, options.day ?? 0, options.region, options.aiDifficulty, dungeon ? 'dungeon' : 'field', options.availableUnits, options.chapter) : undefined);
   const maxUnits = encounter?.maxUnits ?? options.quest?.maxUnits ?? FIELD_BATTLE.maxUnits;
   if (!units.length || units.length > maxUnits || new Set(units.map(u => u.id)).size !== units.length) throw new Error(`Invalid deployment (maximum ${maxUnits})`);
   const count = units.length;
@@ -180,6 +185,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   if (!encounter) addEnemyReserves(state, enemySpecs, map.spawns.player);
+  initializeTurnSkills(state);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,
     materialLoot: materialDrops(options.region, enemyLevel(options.day ?? 0, region.offset), `${options.seed}:materials`, options.aiDifficulty === 'hard' ? 5 : 4, options.aiDifficulty === 'hard' ? 0.12 : 0.08),
@@ -426,6 +432,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     rng: seedRng(`${options.seed}:classic:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   addEnemyReserves(state, enemySpecs, [...map.playerSpawns, ...spawns]);
+  initializeTurnSkills(state);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name, region: options.region ?? options.quest?.region,
     materialLoot: materialDrops(lootRegion, baseLevel, `${options.seed}:materials`, 4, options.aiDifficulty === 'hard' ? 0.12 : 0.08),
@@ -469,6 +476,7 @@ export function createFestivalBattle(units: UnitRecord[], round: number, seed: s
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: map.turnLimit, phase: 'player', goal,
     rng: seedRng(`${seed}:combat`), growthRng: seedRng(`${seed}:growth`),
   };
+  initializeTurnSkills(state);
   return {
     id: state.id, playerId: '', kind: 'arena', mode: 'festival', name: state.name, goalText: map.goalText,
     annualId: opts.annualId, initial: structuredClone(state), state, events: [], actions: [], seed,

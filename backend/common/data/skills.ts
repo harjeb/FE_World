@@ -1,6 +1,8 @@
 // Personal skills of the sample characters (docs/02). v1 skills are passive; the engine applies them
 // in engine/skills.ts.
 export const SKILLS = {
+  divine_inspiration: { name: '神之鼓舞', text: '回合开始时，若周围2格内有我方单位，则自己和周围2格内的我方单位伤害、速度＋3，持续1回合；30级起提升为＋6，60级起额外赋予猛攻。猛攻：主动攻击且可以追击时，在首次攻击后立即追击。' },
+  desperation: { name: '猛攻', text: '自己发动攻击时，若可以进行追击，则会在自己攻击后立即进行追击' },
   dragon_guard: { name: '一身是胆', text: '相邻有半血友军时回避＋10，受到首击最终伤害－2' },
   xiliang: { name: '西凉铁骑', text: '交战开始33%概率速度＋10，持续本次交战' },
   changban: { name: '长坂断桥', text: '防守且2格内至多1名友军时防御＋4，敌方命中－10' },
@@ -32,3 +34,12 @@ export const SKILLS = {
   lightshot: { name: '光明神射', text: '开战时满 HP 且使用弓，本次交战有效技巧 ×2；主动、反击、连击、追击及引用技巧的战技均生效，不改变永久属性或射程' },
 } as const;
 export type SkillId = keyof typeof SKILLS;
+
+// 按单位等级生成技能描述：神之鼓舞只显示当前等级生效的效果，不预告 30／60 级的后续提升；
+// 其余技能与 SKILLS.text 相同。level 缺省按 1 级处理。
+export function skillText(id: SkillId, level = 1): string {
+  if (id !== 'divine_inspiration') return SKILLS[id].text;
+  const amount = level >= 30 ? 6 : 3;
+  const extra = level >= 60 ? '，并额外赋予猛攻。猛攻：主动攻击且可以追击时，在首次攻击后立即追击。' : '。';
+  return `回合开始时，若周围2格内有我方单位，则自己和周围2格内的我方单位伤害、速度＋${amount}，持续1回合${extra}`;
+}

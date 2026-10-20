@@ -8,6 +8,7 @@ import { dispatch, type Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { fieldEncounter } from '../common/game/encounters.ts';
+import { chapterOpenDay } from '../common/game/story.ts';
 import { createFieldBattle, encounterMap } from '../common/game/battles.ts';
 
 function setup(): Context {
@@ -24,18 +25,58 @@ test('plans vary limits/layouts by seed, with fixed full deployment slots and en
   const roster = ctx.store.units(ctx.player.id).filter(u => u.status === 'active');
   const layouts = new Set<string>(), limits = new Set<number>();
   for (let i = 0; i < 30; i++) {
-    const plan = fieldEncounter(String(i), 0, 1);
+    // 中后期（无人数限制）抽签验证三种布局与原上限 4／6／8 仍会出现；
+    // 前期同一抽签会被门控压回集中出生的交错遭遇。
+    const plan = fieldEncounter(String(i), chapterOpenDay(3) + 1, 1);
     layouts.add(plan.layout); limits.add(plan.maxUnits);
-    const options = { region: 1, cleared: 0, day: 0, seed: 'combat', encounter: plan };
+    const gated = fieldEncounter(String(i), 0, 1);
+    if (plan.layout !== 'skirmish') assert.equal(gated.layout, 'skirmish', `early gates dispersed layouts: ${i}`);
+    const options = { region: 1, cleared: 0, day: 0, seed: 'combat', encounter: gated };
     const one = createFieldBattle(roster.slice(0, 1), options).state;
-    const full = createFieldBattle(roster.slice(0, plan.maxUnits), options).state;
+    const full = createFieldBattle(roster.slice(0, gated.maxUnits), options).state;
     assert.deepEqual(one.map, full.map);
     assert.deepEqual(one.units[0].pos, full.units[0].pos);
-    assert.equal(one.units.filter(u => u.side === 'enemy').length, plan.enemyCount);
+    assert.equal(one.units.filter(u => u.side === 'enemy').length, gated.enemyCount);
     assert.deepEqual(one.units.filter(u => u.side === 'enemy'), full.units.filter(u => u.side === 'enemy'));
-    assert.equal(fieldEncounter(String(i), 0, 1, 'hard').layout, plan.layout);
+    assert.equal(fieldEncounter(String(i), 0, 1, 'hard').layout, 'skirmish');
   }
-  assert.equal(layouts.size, 3); assert.equal(limits.size, 3);
+  assert.equal(layouts.size, 3);
+  // 中后期出战上限恢复各图原值 4／6／8；前期门控后的所有布局统一为 4。
+  assert.deepEqual([...limits].sort((a, b) => a - b), [4, 6, 8]);
+  const earlyLimits = new Set<number>();
+  for (let i = 0; i < 30; i++) earlyLimits.add(fieldEncounter(String(i), 0, 1).maxUnits);
+  assert.deepEqual([...earlyLimits], [4]);
+  // 中后期（默认第 3 章开啟日之后、显式可出战 12 人）：恢复各图原值 4／6／8。
+  const late = new Set<number>();
+  for (let i = 0; i < 30; i++) late.add(fieldEncounter(String(i), chapterOpenDay(3) + 1, 5, 'normal', 'field', 12).maxUnits);
+  assert.deepEqual([...late].sort((a, b) => a - b), [4, 6, 8]);
+});
+
+test('early balancing scales party caps and enemy counts, and converges to concentrated spawns', () => {
+  // 前期：可出战 3 人时上限与敌军都压到 3–5；首战（第 1 场）绝不分散。
+  for (let i = 0; i < 30; i++) {
+    for (const difficulty of ['normal', 'hard'] as const) {
+      const early = fieldEncounter(String(i), 0, 1, difficulty, 'field', 3);
+      assert.equal(early.maxUnits, 3, `availableUnits caps the plan: ${i}`);
+      assert.ok(early.enemyCount >= 3 && early.enemyCount <= 5, `${i}: ${early.enemyCount}`);
+    }
+  }
+  // 前期可出战 < 8：分散布局退回集中出生的交错遭遇，且同一未花费日内固定。
+  for (let i = 0; i < 30; i++) {
+    const plan = fieldEncounter(String(i), 0, 1, 'normal', 'field', 6);
+    if (plan.layout === 'pincer' || plan.layout === 'convergence') {
+      assert.equal(fieldEncounter(String(i), 0, 1, 'normal', 'field', 6).layout, plan.layout);
+    }
+  }
+  const concentrated = new Set<string>();
+  for (let i = 0; i < 60; i++) concentrated.add(fieldEncounter(String(i), 0, 1, 'normal', 'field', 7).layout);
+  assert.ok(!concentrated.has('convergence'), 'small early parties never get convergence');
+  assert.ok(concentrated.has('skirmish'), 'small early parties keep varied layouts');
+  // 可出战 ≥ 8 的中后期：分散布局重新可选且数值与旧版一致。
+  const late = new Set<string>();
+  for (let i = 0; i < 60; i++) late.add(fieldEncounter(String(i), chapterOpenDay(3) + 1, 5, 'normal', 'field', 12).layout);
+  assert.equal(late.size, 3);
+  assert.deepEqual(fieldEncounter('fixed', chapterOpenDay(3) + 1, 5, 'normal', 'field', 12), fieldEncounter('fixed', chapterOpenDay(3) + 1, 5, 'normal', 'field', 12), 'fixed seed stays stable');
 });
 
 for (const action of ['sortie', 'dungeon'] as const) {

@@ -181,6 +181,7 @@ export interface TodayAction {
   name: string;
   costDays: number;
   costGold?: number;
+  weaponExp?: number;
   available: boolean;
   note: string;
   maxUnits?: number;

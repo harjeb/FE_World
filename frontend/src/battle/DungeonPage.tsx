@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from 'react';
 import type { BattleState } from '@common/engine/index.ts';
 import { regionById } from '@common/game/calendar.ts';
 import { DUNGEON_DAYS, DUNGEON_STAGES, DUNGEON_STAGE_DAYS, runStageDays } from '@common/game/expedition.ts';
-import { REGION_EXPLORATION_GAIN } from '@common/game/region-map.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ActionQuote, ServerRun } from '../api/session.ts';
@@ -122,7 +121,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
           <div>
             <div className="eyebrow">出击 · 大副本 · {dateLabel(state.day)}</div>
             <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>{region.name}大副本</h1>
-            <p style={{ fontSize: 14, color: '#4E473D' }}>已拿下 {run.stageIndex} / {run.stageCount ?? DUNGEON_STAGES} 图。继续前确认队伍状态：HP 和道具都不会恢复，只有原名单里活着的人能进下一张图。</p>
+            <p style={{ fontSize: 14, color: '#4E473D' }}>已拿下 {run.stageIndex} / {run.stageCount ?? DUNGEON_STAGES} 图。</p>
           </div>
           <span className={`tag ${RUN_STATE[run.state][1]}`}>{RUN_STATE[run.state][0]}</span>
         </div>
@@ -130,14 +129,12 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
         <div className="sys-cols">
           <div className="colstack">
             <section className="panel" aria-labelledby="run-h">
-              <div className="ph"><h2 id="run-h">远征进度</h2><span style={{ fontSize: 12, color: '#6A6256' }}>敌 Lv {run.level}（出发时锁定）</span></div>
+              <div className="ph"><h2 id="run-h">远征进度</h2><span style={{ fontSize: 12, color: '#6A6256' }}>敌 Lv {run.level}</span></div>
               <RunMap run={run} />
               <dl className="facts">
                 <dt>战斗难度</dt><dd>{difficultyLabel(run.aiDifficulty)}（本次远征已锁定）</dd>
                 {run.encounter && <><dt>生成战场配置</dt><dd>{run.encounter.name} · {run.encounter.width} × {run.encounter.height} · 最多 {run.encounter.maxUnits} 人 · 敌军 {run.encounter.enemyCount} 人（经典终章按对应地图布阵）</dd></>}
-                <dt>待带回</dt><dd>{lootLine(run.pendingLoot)}<span className="muted">（完整通关才带回，撤离或失败作废）</span></dd>
                 <dt>下一图</dt><dd>{run.nextStageName ?? `第 ${next} 图`} · 推进 {stageDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
-                <dt>阵亡</dt><dd className="risk">倒下的普通角色永久死亡；全员倒下即远征失败。</dd>
               </dl>
               {warning && <p className="a-warn" role="note">{warning}</p>}
               {leaving && (
@@ -233,7 +230,6 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
           <FieldTabs current="dungeon" />
           <section className="panel" style={{ padding: 16 }}>
             <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
-            <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>先在世界地图上选择一条讨伐路线，开通后即可远征。</p>
             <a className="btn btn-primary" href={links.world}>打开世界地图</a>
           </section>
         </div>
@@ -254,7 +250,6 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const reward = chain ? chain.firstClearRewards?.[effectiveDifficulty] : target.dungeonFirstClearRewards[effectiveDifficulty];
   const warning = arenaTodayWarning();
   const startLocked = annualLive(annual) || !!today.battle || run?.state === 'battle' || run?.state === 'between_maps' || !!quests?.regions.some(r => r.quests.some(q => q.inProgress));
-  const lead = active.find(u => u.isProtagonist);
   const finished = run && run.state !== 'battle' && run.state !== 'between_maps' ? run : null;
 
   return (
@@ -265,7 +260,6 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
           <div>
             <div className="eyebrow">出击 · 大副本</div>
             <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>大副本准备</h1>
-            <p style={{ fontSize: 14, color: '#4E473D' }}>同一支队伍连打 {stageCount} 张图，合计 {costDays} 日，逐图推进 {stageDayCosts.join('、')} 日。完整通关后，掉落和金币才会带回。</p>
           </div>
           <div style={{ fontSize: 13, color: '#4E473D' }}>今天 <b>{dateLabel(today.day)}</b></div>
         </div>
@@ -280,7 +274,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
 
         <div className="prep-cols">
           <section className="panel" aria-labelledby="drg-h">
-            <div className="ph"><h2 id="drg-h">选择地区</h2><span style={{ fontSize: 12, color: '#6A6256' }}>敌人等级在出发时锁定</span></div>
+            <div className="ph"><h2 id="drg-h">选择地区</h2></div>
             <div className="regions" role="radiogroup" aria-label="远征地区">
               {today.sortieRegions.map(r => (
                 <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" disabled={busy !== null} onClick={() => { setRegion(r.id); setChainId(null); setAiDifficulty('normal'); setQuote(); }}>
@@ -292,11 +286,10 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
               ))}
             </div>
             {exploration && <div style={{ padding: '0 16px 12px' }}><RegionExploration region={exploration} /></div>}
-            <p className="pfoot">各地区大副本仅首次完整通关 +{REGION_EXPLORATION_GAIN.dungeon} 探索度，重复通关不加；中间关卡、撤离或失败不加。完整通关也会记为已讨伐。</p>
           </section>
 
           <section className="panel" aria-labelledby="dtm-h">
-            <div className="ph"><h2 id="dtm-h">远征队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2><span style={{ fontSize: 12, color: '#6A6256' }}>出发后名单固定，不能补人</span></div>
+            <div className="ph"><h2 id="dtm-h">远征队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2></div>
             <fieldset disabled={busy !== null} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><TeamPicker ordered units={active} team={selectedIds} max={max} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} /></fieldset>
           </section>
         </div>
@@ -324,15 +317,13 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
 
         <section className="panel prep-go" aria-label="确认出发">
           <dl className="facts">
-            <dt>流程</dt><dd>{stageCount} 张图连打；打完一张可以继续或撤离。HP、道具与武器沿用上一张图结束时的状态，出发后的整备改动不会带进远征。</dd>
             <dt>敌方等级</dt>
             <dd className={picked.length > 0 && enemyLevel > top ? 'risk' : undefined}>{chain?.name ?? target.name} 敌 Lv {enemyLevel}；我方最高 Lv {top}{picked.length > 0 && enemyLevel > top ? `，敌方高出 ${enemyLevel - top} 级` : ''}</dd>
             {reward && <>
-              <dt>本难度首通</dt><dd>{lootLine(reward.items)} · {reward.available ? '未完成' : '已完成'}<br /><span className="muted">本难度首次完整通关自动入库；普通、困难各一次固定奖励，探索度仍只增加一次</span></dd>
+              <dt>本难度首通</dt><dd>{lootLine(reward.items)} · {reward.available ? '未完成' : '已完成'}</dd>
             </>}
             <dt>关卡顺序</dt><dd>{stageNames.join(' → ')}</dd>
             <dt>总耗时</dt><dd>打满 {stageCount} 张共 {costDays} 日 → {total.label}{total.passes ? `；${total.passes}` : ''}（逐图支付 {stageDayCosts.join('、')} 日）</dd>
-            <dt>阵亡</dt><dd className="risk">倒下的角色永久死亡{lead ? `（主角${lead.name}倒下只撤退）` : ''}；撤离保留已发生的伤亡。</dd>
           </dl>
           <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason={chain ? '以普通难度完整通关本副本后解锁，仅限本副本。' : '以普通难度完整通关本地区远征后解锁，仅限本地区远征。'} onChange={value => { setQuote(); setAiDifficulty(value); }} disabled={busy !== null} />
           {warning && <p className="a-warn" role="note">{warning}</p>}
