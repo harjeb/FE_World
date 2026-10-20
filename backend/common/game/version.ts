@@ -4,6 +4,8 @@ export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v17';
 // v40: story duel opponents are random people built from the roster's highest level (+1/+1/+2) with a random
 // class of the same tier (stage) as the duelist's, drawn from available human classes that can attack. START_STORY_DUEL needs no new flags; battles already started are unchanged.
+// v42: preliminary story tasks pay a reward when they complete (gold by kind and chapter; duels also give shared
+// experience and two potions). No new flags: payment happens in the same call that marks the task done.
 // v41 / rules-v17: generic enemy classes unlock at Lv1/20/47/66/81; classic openings and
 // reinforcements downgrade along their route, relocating illegal ground spawns. Names describe factions.
 // Ordinary field sorties cost two days; dungeon and fixed cross-time costs are unchanged.
@@ -75,7 +77,7 @@ export const RULESET_VERSION = 'rules-v17';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 41;
+export const CATALOG_VERSION = 42;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

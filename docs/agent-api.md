@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 25
+docVersion: 26
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -155,7 +155,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 120 | GET_STORY | 读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章收尾战：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed、prerequisite 未完成的前置任务名）及 quest.steps（前置任务，每章两个、类型各章不同：dispatch/submit/find/duel/arena/tavern，各带 done/available 与各自的天数、材料、物品、对手、胜场进度），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。 |
+| 120 | GET_STORY | 读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章收尾战：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed、prerequisite 未完成的前置任务名）及 quest.steps（前置任务，每章两个、类型各章不同：dispatch/submit/find/duel/arena/tavern，各带 done/available、reward 与各自的天数、材料、物品、对手、胜场进度），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。 |
 | 121 | COMPLETE_STORY_EVENT | 确认一章主线事件完成；必须先打赢本章主线任务（胜利时已自动完成），不能绕过任务。只标记完成，不自动发奖。 |
 | 122 | CLAIM_REWARD | 按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。 |
 ### 任务
@@ -216,7 +216,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 145 | COMPLETE_STORY_STEP | 提交主线前置任务中 kind=submit 的材料（step 为前置任务 ID）：从仓库扣除指定数量后完成。其他类型不用提交：派遣满天数返程自动完成；find 在固定经典远征的宝箱里找到任务物品、持有即完成；arena／tavern 在章节开放后累计普通竞技场胜场／酒馆小游戏胜次；duel 用 START_STORY_DUEL。全部完成后才能接收尾战（story-N）。 |
+| 145 | COMPLETE_STORY_STEP | 提交主线前置任务中 kind=submit 的材料（step 为前置任务 ID）：从仓库扣除指定数量后完成。其他类型不用提交：派遣满天数返程自动完成；find 在固定经典远征的宝箱里找到任务物品、持有即完成；arena／tavern 在章节开放后累计普通竞技场胜场／酒馆小游戏胜次；duel 用 START_STORY_DUEL。全部完成后才能接收尾战（story-N）。每个前置任务完成的那一刻自动发放奖励（金币为主，单挑另有公共经验与伤药），返回的 reward／message 给出内容。 |
 | 146 | START_STORY_DUEL | 开始主线单挑类前置任务（story-N-a/b 中 kind=duel）：step 为前置任务 ID、unitId 为应战的一名己方角色。借一张小型经典图，该角色对一名随机生成的人物（名字随机，等级为现役名册最高等级加 1～2，职业是与应战角色同阶级（初级／中级／上级……）的随机一个，只从有攻击手段的人类职业里挑），推进 1 日；真实死亡、正常经验，获胜即完成前置任务，失败可再次挑战。需要章节已开放、没有进行中的战斗／远征／大竞技场。 |
 ### 战斗
 

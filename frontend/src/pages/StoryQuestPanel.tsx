@@ -35,6 +35,7 @@ function StepRow({ step, index }: { step: StoryStep; index: number }) {
         {step.done ? <span className="tag tag-brass">已完成</span> : step.optional && <span className="tag tag-grey">可选</span>}
       </p>
       <p className="ch-sub">{step.briefing}</p>
+      {step.reward && <p className="ch-sub"><span className="tag tag-grey">{step.done ? '已发放' : '完成奖励'}</span> {stepRewardLine(step.reward)}</p>}
       {!step.done && step.kind === 'dispatch' && (
         <p className="ch-sub">在<a href={links.dispatch}>后台派遣</a>里派一支队伍探索（任何已开通地区），<b>本章开放之后出发</b>、一次满 {step.days} 日，返程时自动完成。</p>
       )}
@@ -86,6 +87,8 @@ function StepRow({ step, index }: { step: StoryStep; index: number }) {
     </li>
   );
 }
+
+const stepRewardLine = (reward: NonNullable<StoryStep['reward']>) => [`${reward.gold.toLocaleString()} 金币`, ...(reward.bexp ? [`公共经验 ${reward.bexp}`] : []), ...(reward.items ?? []).map(([item, count]) => `${itemName(item)} ×${count}`)].join(' · ');
 
 const KIND_LABEL: Record<StoryStep['kind'], string> = { dispatch: '派遣', submit: '提交材料', find: '副本找物品', duel: '单挑', arena: '竞技场', tavern: '酒馆' };
 

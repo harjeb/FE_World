@@ -12,7 +12,7 @@ import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { validateClassicScenario } from '../common/game/classic-validation.ts';
 import { FESTIVAL_DISCOUNT_MAX, FESTIVAL_DISCOUNT_MIN, festivalPrice } from '../common/game/festival.ts';
 import { GAME_ITEMS } from '../common/game/items.ts';
-import { COMPANION_QUESTS, STORY_CHAPTER_QUESTS, STORY_QUESTS, storyClueKey, storyStepId } from '../common/game/story-quests.ts';
+import { COMPANION_QUESTS, STORY_CHAPTER_QUESTS, STORY_QUESTS, stepReward, storyClueKey, storyStepId } from '../common/game/story-quests.ts';
 import { interactObject } from '../common/engine/scenario.ts';
 import { createClassicBattle } from '../common/game/battles.ts';
 import { createUnit } from '../common/game/model.ts';
@@ -20,7 +20,7 @@ import { createStoryDuel, duelClass, duelClassPool, duelLevel } from '../common/
 import { CLASSES, classUnavailableReason } from '../common/data/classes.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { questById } from '../common/game/quests.ts';
-import { completeDuelStep, recordStoryWin } from './story.ts';
+import { completeDuelStep, grantStepRewards, recordStoryWin } from './story.ts';
 import type { BattleState } from '../common/engine/types.ts';
 
 const party = () => (['erin', 'victor', 'gustav'] as const).map((character, index) => createUnit(character, 20, `u${index}`, 0));
@@ -386,4 +386,77 @@ test('the duel opponent is a random class of the same tier, never one that canno
   const healer = enemyOf(createUnit('noah', 20, 'u1', 0), 'fixed');
   assert.ok(healer.weapons.some(id => !WEAPONS[id].heal), 'the opponent of a healer can fight');
   assert.equal(CLASSES[healer.classId].stage, CLASSES[createUnit('noah', 20, 'u1', 0).classId].stage);
+});
+
+test('every preliminary task pays its own reward once, when it completes', t => {
+  // The reward table: gold grows with the chapter, the duel also gives shared experience and potions.
+  for (const row of STORY_CHAPTER_QUESTS) for (const step of row.steps) {
+    const reward = stepReward(step, row.chapter);
+    assert.ok(reward.gold >= 350 && reward.gold <= 2500, `${step.id} gold ${reward.gold}`);
+    assert.equal(reward.bexp !== undefined, step.kind === 'duel', `${step.id}: only duels give shared experience`);
+  }
+  assert.deepEqual([stepReward(STORY_CHAPTER_QUESTS[2].steps[0], 3), stepReward(STORY_CHAPTER_QUESTS[2].steps[1], 3)],
+    [{ gold: 1100, bexp: 300, items: [['vulnerary', 2]] }, { gold: 600 }]);
+
+  const ctx = setup(t, 1482);
+  ctx.player.flags.clearedRegions = [1];
+  ctx.store.savePlayer(ctx.player);
+  const gold = () => ctx.player.gold;
+
+  // Hand-in (chapter 3, +600): the materials are spent and the reward is paid once.
+  ctx.store.addInventory(ctx.player.id, 'ore', 0, 20);
+  const g0 = gold();
+  const handIn = dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' }) as { reward: { gold: number }; message: string };
+  assert.equal(gold(), g0 + 600);
+  assert.equal(handIn.reward.gold, 600);
+  assert.match(handIn.message, /修复卷宗.*金币 \+600/);
+  assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_STEP, { step: 'story-3-b' }), /已经完成/);
+  assert.equal(gold(), g0 + 600, 'no second payment');
+
+  // Find (chapter 2, +600): paid the first time the item is noticed, not on later reads.
+  ctx.store.addInventory(ctx.player.id, 'story_find_2', 0, 1);
+  dispatch(ctx, OP.GET_STORY, {});
+  assert.equal(gold(), g0 + 1200);
+  dispatch(ctx, OP.GET_STORY, {});
+  dispatch(ctx, OP.GET_STORY, {});
+  assert.equal(gold(), g0 + 1200, 'reading again pays nothing');
+
+  // Dispatch (chapter 2, +450): paid when the team returns.
+  dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 3, unitIds: ['u_lina'] });
+  const beforeReturn = gold();
+  ctx.player.day += 3;
+  syncPlayer(ctx.store, ctx.player);
+  assert.equal(gold(), beforeReturn + 450);
+
+  // Duel (chapter 3, +1100, 300 shared experience, two potions): paid on the win, once.
+  const bexp = ctx.player.bexp;
+  const potions = ctx.store.countInventory(ctx.player.id, 'vulnerary');
+  const started = dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_erin' }) as { battleId: string };
+  const beforeDuel = gold();
+  win(ctx, started.battleId);
+  assert.equal(gold(), beforeDuel + 1100);
+  assert.equal(ctx.player.bexp, bexp + 300);
+  assert.equal(ctx.store.countInventory(ctx.player.id, 'vulnerary'), potions + 2);
+
+  // Events record each payment, and the step view shows the reward it paid.
+  const paid = ctx.store.events(ctx.player.id, 0, 1000).filter(e => e.kind === 'story' && e.text.includes('完成主线前置任务'));
+  assert.equal(paid.length, 4);
+  assert.ok(paid.some(e => e.text.includes('刮名人') && e.text.includes('公共经验 +300') && e.text.includes('伤药 ×2')));
+  const shown = (dispatch(ctx, OP.GET_STORY, {}) as { chapters: { chapter: number; quest: { steps: { id: string; done: boolean; reward: { gold: number } }[] } }[] })
+    .chapters.find(c => c.chapter === 3)!.quest.steps;
+  assert.deepEqual(shown.map(step => [step.id, step.done, step.reward.gold]), [['story-3-a', true, 1100], ['story-3-b', true, 600]]);
+});
+
+test('arena and tavern wins pay their reward when the count is reached', t => {
+  const ctx = setup(t, 600);
+  const g0 = ctx.player.gold;
+  grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'arena'));
+  assert.equal(ctx.player.gold, g0, 'the first of two arena wins pays nothing yet');
+  grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'arena'));
+  assert.equal(ctx.player.gold, g0 + 400, 'chapter 1 arena task: 300 + 100');
+  grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'tavern'));
+  grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'tavern'));
+  assert.equal(ctx.player.gold, g0 + 400 + 350, 'chapter 1 tavern task: 250 + 100');
+  grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'arena'));
+  assert.equal(ctx.player.gold, g0 + 750, 'a finished task never pays twice');
 });

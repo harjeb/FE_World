@@ -7,8 +7,8 @@ import { isActiveRun } from '../common/game/expedition.ts';
 import { questById, recruitedCharacters } from '../common/game/quests.ts';
 import { chapterAvailable, chapterOpenDay } from '../common/game/story.ts';
 import type { DispatchRecord } from '../common/game/dispatch.ts';
-import { GAME_ITEMS } from '../common/game/items.ts';
-import { COMPANION_EPILOGUES, COMPANION_QUEST_DEFS, STORY_CHAPTER_QUESTS, STORY_QUESTS, companionQuestId, storyClueKey, storyQuestId } from '../common/game/story-quests.ts';
+import { GAME_ITEMS, stockUses } from '../common/game/items.ts';
+import { COMPANION_EPILOGUES, COMPANION_QUEST_DEFS, STORY_CHAPTER_QUESTS, STORY_QUESTS, companionQuestId, stepReward, storyClueKey, storyQuestId } from '../common/game/story-quests.ts';
 import type { StoryStep } from '../common/game/story-quests.ts';
 import { duelLevel } from '../common/game/story-duel.ts';
 
@@ -71,7 +71,31 @@ export function syncFindSteps(store: Store, player: Player): string[] {
   return finished;
 }
 
-export function completeDuelStep(player: Player, stepId: string): void { markDone(player, stepId); }
+// 单挑获胜：返回是否是第一次完成（再次进入不重复发奖）。
+export function completeDuelStep(player: Player, stepId: string): boolean {
+  if (stepsDone(player).has(stepId)) return false;
+  markDone(player, stepId);
+  return true;
+}
+
+// 前置任务完成的那一刻发奖励（金币、公共经验、物品），并记一条事件。stepIds 必须是刚刚新完成的，
+// 调用方保证每个任务只会传入一次（各 complete／record／sync 函数只返回新完成的）。
+export function grantStepRewards(store: Store, player: Player, stepIds: readonly string[]): string[] {
+  const lines: string[] = [];
+  for (const id of stepIds) {
+    const found = findStoryStep(id);
+    if (!found) continue;
+    const reward = stepReward(found.step, found.chapter);
+    player.gold += reward.gold;
+    if (reward.bexp) player.bexp += reward.bexp;
+    for (const [item, count] of reward.items ?? []) store.addInventory(player.id, item, stockUses(item), count);
+    const parts = [`金币 +${reward.gold}`, ...(reward.bexp ? [`公共经验 +${reward.bexp}`] : []), ...(reward.items ?? []).map(([item, count]) => `${GAME_ITEMS[item].name} ×${count}`)];
+    lines.push(`完成主线前置任务「${found.step.name}」：${parts.join('、')}。`);
+    store.addEvent(player.id, 'story', lines[lines.length - 1], { step: id, reward });
+  }
+  if (lines.length) store.savePlayer(player);
+  return lines;
+}
 
 export function findStoryStep(stepId: string): { chapter: number; step: StoryStep } | null {
   for (const row of STORY_CHAPTER_QUESTS) {
@@ -88,7 +112,7 @@ function stepViews(store: Store, player: Player, chapter: number) {
   const open = chapterAvailable(chapter, player.day);
   const optional = legacyCompleted(player, chapter);
   return row.steps.map(step => {
-    const base = { id: step.id, kind: step.kind, name: step.name, briefing: step.briefing, optional, done: done.has(step.id), available: open && !done.has(step.id) };
+    const base = { id: step.id, kind: step.kind, name: step.name, briefing: step.briefing, optional, done: done.has(step.id), available: open && !done.has(step.id), reward: stepReward(step, chapter) };
     switch (step.kind) {
       case 'dispatch': return { ...base, days: step.days };
       case 'submit': return { ...base, item: step.item, itemName: GAME_ITEMS[step.item].name, count: step.count, held: store.countInventory(player.id, step.item) };

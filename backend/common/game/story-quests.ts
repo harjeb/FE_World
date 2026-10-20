@@ -35,6 +35,19 @@ export interface StoryChapterQuest {
   steps: StoryStep[];
 }
 
+// 前置任务本身的奖励（docs/38 §3.4）：完成的那一刻自动发放，每个前置任务一次。金币随章节递增；
+// 风险最高的单挑额外给公共经验和伤药。数值待校准。
+export interface StepReward { gold: number; bexp?: number; items?: [ItemKey, number][] }
+const STEP_GOLD: Record<StoryStep['kind'], [number, number]> = {
+  tavern: [250, 100], dispatch: [250, 100], arena: [300, 100], submit: [300, 100], find: [400, 100], duel: [500, 200],
+};
+export function stepReward(step: StoryStep, chapter: number): StepReward {
+  const [base, perChapter] = STEP_GOLD[step.kind];
+  const reward: StepReward = { gold: base + perChapter * chapter };
+  if (step.kind === 'duel') { reward.bexp = 300; reward.items = [['vulnerary', 2]]; }
+  return reward;
+}
+
 export const storyStepId = (chapter: number, part: 'a' | 'b'): string => `story-${chapter}-${part}`;
 type StepInput = StoryStep extends infer S ? S extends StoryStep ? Omit<S, 'id'> : never : never;
 const step = (chapter: number, part: 'a' | 'b', spec: StepInput): StoryStep => ({ id: storyStepId(chapter, part), ...spec }) as StoryStep;

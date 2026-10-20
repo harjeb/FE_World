@@ -59,9 +59,9 @@ import { STAT_KEYS, withCharm } from '../common/data/types.ts';import { createRu
 import { annualIndexFor, annualSummary, annualWindowOpen, nextAnnualWindowStart, ANNUAL_QUALIFIER_MATCHES, ANNUAL_QUALIFIER_WINS, createAnnualEntry, nextFestivalRound } from '../common/game/annual.ts';
 import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTERS } from '../common/game/story.ts';
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, recruitedCharacters, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
-import { COMPANION_EPILOGUES, STORY_QUESTS } from '../common/game/story-quests.ts';
+import { COMPANION_EPILOGUES, STORY_QUESTS, stepReward } from '../common/game/story-quests.ts';
 import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
-import { companionView, completeDuelStep, findStoryStep, recordStoryWin, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
+import { companionView, completeDuelStep, findStoryStep, grantStepRewards, recordStoryWin, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
 import { createStoryDuel, DUEL_DAYS, duelLevel } from '../common/game/story-duel.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
@@ -305,10 +305,8 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
   const annualOutcome = handleAnnualOutcome(ctx.store, ctx.player, record);
   // 主线单挑：获胜即完成该前置任务（败了可以再次挑战），不走地区任务的结算。
   const duel = record.questId ? findStoryStep(record.questId) : null;
-  if (duel && record.state.result?.winner === 'player') {
-    completeDuelStep(ctx.player, duel.step.id);
-    ctx.store.savePlayer(ctx.player);
-    ctx.store.addEvent(ctx.player.id, 'story', `完成主线前置任务「${duel.step.name}」。`, { step: duel.step.id });
+  if (duel && record.state.result?.winner === 'player' && completeDuelStep(ctx.player, duel.step.id)) {
+    grantStepRewards(ctx.store, ctx.player, [duel.step.id]);
   }
   // 地区任务胜利即标记完成；奖励用 CLAIM_QUEST_REWARD 另领（docs/20 §7）。
   if (record.questId && !duel && record.questId !== CROSS_TIME_QUEST_ID && !record.runId && record.state.result?.winner === 'player') {
@@ -340,7 +338,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     const day = ctx.store.arenaDay(ctx.player.id, record.arenaDay);
     if (day) {
       settleAttack(day, record.opponentId, record.state);
-      if (record.state.result?.winner === 'player') recordStoryWin(ctx.player, 'arena');
+      if (record.state.result?.winner === 'player') grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'arena'));
       ctx.store.saveArenaDay(day);
       // 三场都结束后立刻结算，奖励与积分不必等下一次 API 请求；中途只推进日期不会触发。
       if (Object.values(day.attacks).every(attack => attack.status === 'won' || attack.status === 'lost')) {
@@ -349,7 +347,7 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
     }
   }
   // 副本宝箱里取到的任务物品在结算入库后检查（找物品类前置任务）。
-  if (syncFindSteps(ctx.store, ctx.player).length > 0) ctx.store.savePlayer(ctx.player);
+  grantStepRewards(ctx.store, ctx.player, syncFindSteps(ctx.store, ctx.player));
   ctx.store.addEvent(ctx.player.id, 'battle-end', `${record.name} 结束：${record.state.result?.winner === 'player' ? '胜利' : '失败'}。`, {
     battleId: record.id, deaths: rewards.deaths, gold: rewards.gold, runState: runOutcome?.run.state ?? null, annualState: annualOutcome?.entry.state ?? null,
   });
@@ -2013,7 +2011,7 @@ const handlers: Record<number, Handler> = {
   // ---- eight-chapter story (docs/00 §9.4.2, docs/13 §6.3) --------------
 
   [OP.GET_STORY]: ctx => {
-    if (syncFindSteps(ctx.store, ctx.player).length > 0) ctx.store.savePlayer(ctx.player);
+    grantStepRewards(ctx.store, ctx.player, syncFindSteps(ctx.store, ctx.player));
     const annualEvent = ctx.store.events(ctx.player.id, 0, 10000).filter(event => event.kind === 'festival').at(-1);
     return {
     bexp: CHAPTER_BEXP,
@@ -2067,9 +2065,9 @@ const handlers: Record<number, Handler> = {
     ctx.store.takeInventory(ctx.player.id, step.item, step.count);
     ctx.player.flags.storyStepsDone = [...done, step.id];
     ctx.store.savePlayer(ctx.player);
-    ctx.store.addEvent(ctx.player.id, 'story', `完成主线前置任务「${step.name}」。`, { step: step.id });
+    const rewards = grantStepRewards(ctx.store, ctx.player, [step.id]);
     ctx.push(OP.STATE_CHANGED, { reason: 'story-step' });
-    return { step: step.id, chapter, item: step.item, count: step.count };
+    return { step: step.id, chapter, item: step.item, count: step.count, reward: stepReward(step, chapter), message: rewards[0] ?? null };
   },
 
   // 主线单挑类前置任务：借小型经典图，一名己方角色对一名强敌，真实死亡；败了可再次挑战。
@@ -2220,7 +2218,7 @@ const handlers: Record<number, Handler> = {
     ctx.player.gold += payout;
     ctx.player.flags.minigamePlays = (ctx.player.flags.minigamePlays ?? 0) + 1;
     // 返还高于下注才算赢（主线酒馆小游戏前置任务）。
-    if (payout > bet) recordStoryWin(ctx.player, 'tavern');
+    if (payout > bet) grantStepRewards(ctx.store, ctx.player, recordStoryWin(ctx.player, 'tavern'));
     ctx.store.savePlayer(ctx.player);
     ctx.store.addEvent(ctx.player.id, 'minigame', `${game === 'dice' ? '猜大小' : '青蛙赛跑'}：下注 ${bet}，返还 ${payout}。`, result);
     return { ...result as Record<string, unknown>, bet, net: payout - bet, remaining: MINIGAME_PLAYS_PER_QUARTER - ctx.player.flags.minigamePlays, day: ctx.player.day };
@@ -2363,7 +2361,7 @@ const handlers: Record<number, Handler> = {
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
     if (quest.story) {
       if (!chapterAvailable(quest.story, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
-      if (syncFindSteps(ctx.store, ctx.player).length > 0) ctx.store.savePlayer(ctx.player);
+      grantStepRewards(ctx.store, ctx.player, syncFindSteps(ctx.store, ctx.player));
       const missing = storyPrerequisite(ctx.player, quest.story);
       if (missing) throw new OpError('FORBIDDEN', `先完成本章前置任务「${missing}」`);
     }

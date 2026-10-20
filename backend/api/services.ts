@@ -37,7 +37,7 @@ import type { FeatureAccess, RegionProgress } from '../common/game/region-map.ts
 import type { FacilityId } from '../common/game/production.ts';
 import { recruitLevel, recruitPortrait } from '../common/game/random-recruit.ts';
 import type { Defense, SnapshotUnit } from '../common/arena/rules.ts';
-import { completeDispatchSteps, findStoryStep } from './story.ts';
+import { completeDispatchSteps, findStoryStep, grantStepRewards } from './story.ts';
 import type { Store, Player, SnapshotData } from './store.ts';
 import { SEED_DAY } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
@@ -688,10 +688,7 @@ export function settleDispatches(store: Store, player: Player): DispatchResult[]
     }
     store.addEvent(player.id, 'dispatch', `派遣返程：${dispatch.unitIds.length} 人经过 ${dispatch.durationDays} 日。`, { dispatchId: dispatch.id });
     const storyStep = completeDispatchSteps(player, dispatch);
-    if (storyStep) {
-      store.savePlayer(player);
-      store.addEvent(player.id, 'story', `完成主线前置任务「${findStoryStep(storyStep)?.step.name ?? storyStep}」。`, { step: storyStep });
-    }
+    if (storyStep) grantStepRewards(store, player, [storyStep]);
     settled.push(dispatch.result);
   }
   return settled;

@@ -236,7 +236,7 @@ export interface ServerRun {
   carry: Record<string, { hp: number; items: { id: string; uses: number }[]; weapons: string[] }>;
   pendingLoot: { item: string; count: number }[]; canContinue: boolean;
   // 经典地图副本按场景数结算；随机三图副本也返回 3。
-  stageCount?: number; stageDays?: number;
+  stageCount?: number; stageDays?: number; stageDayCosts?: number[];
   stageNames?: string[] | null; stageName?: string | null; nextStageName?: string | null;
   questId?: string | null;
 }
@@ -264,6 +264,8 @@ export interface StoryStep {
   days?: number; item?: string; itemName?: string; count?: number; held?: number | null;
   // find：在哪条固定经典远征、哪张图里；duel：对手名与等级；arena／tavern：需要的胜场和已有的进度。
   where?: string; mapName?: string; enemy?: string; level?: number; wins?: number; have?: number;
+  // 完成的那一刻自动发放的奖励。
+  reward?: { gold: number; bexp?: number; items?: [string, number][] };
 }
 // 主线任务（docs/38）：每章一张改编过的经典地图；胜利即完成本章，线索藏在图里的隐藏箱中。
 export interface StoryQuest {
