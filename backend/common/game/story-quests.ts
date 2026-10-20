@@ -94,8 +94,8 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '各地伙伴带着旧约的碎片赶往沙漠中的集合点，沿途有人拦截。接应他们汇合。',
     clue: { name: '旧约碎片', note: '各地伙伴保存的碎片，拼合后能补全守护阵的一角。' },
     steps: [
-      step(7, 'a', { kind: 'submit', name: '沙漠补给', briefing: '穿越黄沙的同伴需要补给。提交 12 份药草。', item: 'herb', count: 12 }),
-      step(7, 'b', { kind: 'arena', name: '集合前的比试', briefing: '旧约碎片的持有者想先确认你的实力。在普通竞技场赢 4 场。', wins: 4 }),
+      step(7, 'a', { kind: 'submit', name: '沙漠补给', briefing: '穿越黄沙的同伴需要补给。提交 15 份药草。', item: 'herb', count: 15 }),
+      step(7, 'b', { kind: 'arena', name: '集合前的比试', briefing: '旧约碎片的持有者想先确认你的实力。在普通竞技场赢 3 场。', wins: 3 }),
     ] },
   { chapter: 8, mapId: 'fe6-ch21-main', name: '守护·阵眼',
     briefing: '守护阵即将闭合，残余的力量涌向封印本身。击败守在阵眼的敌人，完成守护。',

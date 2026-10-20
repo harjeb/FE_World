@@ -15,12 +15,17 @@ function StepRow({ step, index }: { step: StoryStep; index: number }) {
   const { busy, act } = useAct();
   const [pickDuel, setPickDuel] = useState(false);
   const [duelist, setDuelist] = useState('');
+  const [acknowledged, setAcknowledged] = useState(false);
   const submit = () => act(`step-${step.id}`, () => session.run(OP.COMPLETE_STORY_STEP, { step: step.id }),
     () => `提交了「${step.name}」所需的 ${step.count} 份${step.itemName}`);
   const fight = () => act(`duel-${step.id}`, async () => { await session.run(OP.START_STORY_DUEL, { step: step.id, unitId: duelist }); go(links.field); return step.enemy; },
     enemy => `单挑「${enemy}」开始，进入战斗。`);
   const enough = (step.held ?? 0) >= (step.count ?? 0);
   const fighters = (state?.units ?? []).filter(u => u.status === 'active' && !busyReason(u, annual));
+  // 对手按队伍最高等级生成：应战者比对手低 3 级以上时要先确认风险（真实死亡）。
+  const chosen = fighters.find(u => u.id === duelist);
+  const gap = chosen && step.level !== undefined ? step.level - chosen.level : 0;
+  const risky = gap >= 3;
   return (
     <li className={`ch-step${step.done ? ' done' : ''}`} data-step={step.id} data-kind={step.kind}>
       <p className="ch-learned">
@@ -58,15 +63,23 @@ function StepRow({ step, index }: { step: StoryStep; index: number }) {
           {!pickDuel
             ? <button type="button" className="btn btn-sm btn-primary" disabled={!step.available || busy !== null} onClick={() => { setPickDuel(true); setDuelist(fighters[0]?.id ?? ''); }}>选人应战</button>
             : (
+              <>
               <p className="ch-sub">
-                <select value={duelist} onChange={e => setDuelist(e.target.value)} aria-label="应战的角色">
+                <select value={duelist} onChange={e => { setDuelist(e.target.value); setAcknowledged(false); }} aria-label="应战的角色">
                   {fighters.map(u => <option key={u.id} value={u.id}>{u.name} · {u.className} Lv {u.level}</option>)}
                 </select>
-                <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!duelist || busy !== null} onClick={() => void fight()}>
+                <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!duelist || busy !== null || (risky && !acknowledged)} onClick={() => void fight()}>
                   {busy === `duel-${step.id}` ? '出战中…' : '开始单挑'}
                 </button>
                 <button type="button" className="btn btn-sm btn-ghost" style={{ marginLeft: 6 }} onClick={() => setPickDuel(false)}>取消</button>
               </p>
+              {risky && (
+                <label className="ch-sub ch-req" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input type="checkbox" checked={acknowledged} onChange={e => setAcknowledged(e.target.checked)} />
+                  {chosen?.name} 比对手低 {gap} 级，战败会<b>永久死亡</b>。我确认要派他应战。
+                </label>
+              )}
+              </>
             )}
         </>
       )}
