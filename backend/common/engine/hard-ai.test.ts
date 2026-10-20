@@ -90,6 +90,42 @@ test('both difficulties choose an attack landing outside other enemies reach and
   assert.doesNotThrow(() => step(state, hard));
 });
 
+test('a pinned ranged enemy steps back and shoots instead of treating waiting as risk-free', () => {
+  for (const aiDifficulty of ['normal', 'hard'] as const) for (const hp of [7, 19]) {
+    const archer = createEnemy('archer', { classId: 'archer', level: 1, pos: [4, 3] });
+    archer.hp = hp;
+    const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [5, 3] });
+    foe.side = 'player'; foe.boss = true;
+    const ally = createEnemy('ally', { classId: 'knight', level: 1, pos: [0, 0], behavior: 'hold' });
+    const state = board([archer, ally, foe]); state.aiDifficulty = aiDifficulty;
+    const before = structuredClone(state);
+    const action = decide(state, archer);
+    assert.equal(action.act, 'attack', aiDifficulty);
+    assert.ok('target' in action && action.target === foe.id);
+    assert.equal(distance(action.to, archer.pos), 1, 'equivalent shots use the shortest move');
+    assert.equal(distance(action.to, foe.pos), 2, 'leave melee range before shooting');
+    assert.deepEqual(state, before, 'planning leaves the board and combat RNG unchanged');
+    assert.deepEqual(decide(structuredClone(state), structuredClone(archer)), action);
+    const result = step({ ...state, phase: 'player' }, { type: 'endPhase' });
+    assert.ok(result.events.some(event => event.t === 'combat' && event.attacker === archer.id));
+    assert.deepEqual(result.state.units.find(unit => unit.id === archer.id)!.pos, action.to);
+    assert.equal(result.state.units.find(unit => unit.id === archer.id)!.hp, hp, 'the sword cannot counter at range two');
+  }
+});
+
+test('ranged enemies still wait when rooting or blocked terrain prevents a legal shot', () => {
+  for (const aiDifficulty of ['normal', 'hard'] as const) for (const blocked of ['root', 'walls']) {
+    const archer = createEnemy('archer', { classId: 'archer', level: 1, pos: [4, 3] });
+    const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [5, 3] }); foe.side = 'player';
+    const state = board([archer, foe]); state.aiDifficulty = aiDifficulty;
+    if (blocked === 'root') archer.artEffects = { statuses: ['root'] };
+    else for (const [x, y] of [[3, 3], [4, 2], [4, 4]]) state.map.tiles[y][x] = 'wall';
+    const action = decide(state, archer);
+    assert.equal(action.act, 'wait');
+    assert.deepEqual(action.to, archer.pos);
+  }
+});
+
 test('hard search vacates an attack square before moving the rear fighter through a narrow passage', () => {
   const blocker = fighter('blocker', 'enemy', [5, 2], 'swordsman'); blocker.weapons = [];
   const attacker = fighter('attacker', 'enemy', [3, 2], 'swordsman'); attacker.stats.str = 20;

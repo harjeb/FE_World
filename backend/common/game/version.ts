@@ -1,7 +1,11 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v17';
+export const RULESET_VERSION = 'rules-v18';
+// v45 / rules-v18: attack risk is measured against staying put, so ranged units can step back
+// and shoot without a counter even when both positions can be chased next turn. Equal landings favor shorter moves.
+// Hold, guard, status and movement rules are unchanged. Finish active battles/runs and back up before deployment;
+// previous-rule replays keep their frozen snapshots and are never re-simulated with the new AI.
 // v44: preliminary story task rewards are per task (potions, elixirs, antidotes, weapons, a little gold). New battle
 // consumables elixir (full heal) and antidote (cures art-inflicted poison); additive, existing battles and replays are unchanged.
 // v43: new three-map dungeon runs cost 3/3/2 days (eight total), frozen in stageDayCosts.
@@ -82,7 +86,7 @@ export const RULESET_VERSION = 'rules-v17';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 44;
+export const CATALOG_VERSION = 45;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

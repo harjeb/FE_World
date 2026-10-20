@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 28;
+export const DOC_VERSION = 29;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

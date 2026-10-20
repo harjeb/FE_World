@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 28
+docVersion: 29
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 

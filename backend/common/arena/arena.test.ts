@@ -13,10 +13,10 @@ import type { AttackPlan, Defense } from './rules.ts';
 const frost = OPPONENTS.find(o => o.id === 'frost')!;
 
 // The attacker's first legal plan: allowed units in roster order, placed on the first zone cells.
-function firstPlan(defense: Defense, bans: string[]): AttackPlan {
+function firstPlan(defense: Defense, bans: string[], roster = MY_ROSTER): AttackPlan {
   const map = ARENA_MAPS[defense.map];
-  const reveal = applyBans(defense, bans as never, MY_ROSTER);
-  const picks = MY_ROSTER.filter(u => !reveal.barred.includes(u.character)).slice(0, map.deploy)
+  const reveal = applyBans(defense, bans as never, roster);
+  const picks = roster.filter(u => !reveal.barred.includes(u.character)).slice(0, map.deploy)
     .map((u, i) => ({ character: u.character, pos: map.attackerZone[i] }));
   return { picks, commander: picks[0].character };
 }
@@ -147,7 +147,8 @@ test('each demo opponent can be won and lost by the rule AI', () => {
     let wins = 0;
     for (let i = 0; i < 12; i++) {
       const bans = [...listed.slice(i % listed.length), ...listed].filter((c, j, all) => all.indexOf(c) === j).slice(0, map.bans);
-      wins += autoplay(createArenaBattle(defense, bans, MY_ROSTER, firstPlan(defense, bans), `${defense.id}-${i}`)).result!.winner === 'player' ? 1 : 0;
+      const roster = [...MY_ROSTER.slice(i), ...MY_ROSTER.slice(0, i)];
+      wins += autoplay(createArenaBattle(defense, bans, roster, firstPlan(defense, bans, roster), `${defense.id}-${i}`)).result!.winner === 'player' ? 1 : 0;
     }
     assert.ok(wins > 0 && wins < 12, `${defense.legion}: rule AI won ${wins} / 12`);
   }

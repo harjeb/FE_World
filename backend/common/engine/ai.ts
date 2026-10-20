@@ -33,7 +33,8 @@ function* attackChoices(state: BattleState, unit: UnitState, stops: number[], da
       }
     }
     for (const [target, positions] of targets) {
-      positions.sort((a, b) => landingCost(state, unit, a, danger) - landingCost(state, unit, b, danger));
+      positions.sort((a, b) => landingCost(state, unit, a, danger) - landingCost(state, unit, b, danger)
+        || distance(unit.pos, a) - distance(unit.pos, b));
       for (const to of positions.slice(0, landings)) {
         yield { target, action: { type: 'act', unit: unit.id, to, act: 'attack', target: target.id, weapon },
           forecast: forecast(state, unit.id, to, weapon, target.id) };
@@ -229,6 +230,8 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
     const cell = cellKey(state, action.to);
     const exposure = threats.reduce((sum, threat) => sum + (threat.cells.has(cell)
       ? threat.unit.id === target.id ? 1 - f.defenderDies : 1 : 0), 0);
+    // Staying put is exposed too; only added danger should veto a shot without a counter.
+    const exposureBefore = danger.get(cellKey(state, unit.pos)) ?? 0;
     const hpAfter = Math.max(0, unit.hp - f.expectedTaken) / unit.stats.hp;
     // Estimate a follow-up from each ally without reserving the same landing twice.
     let support = 0;
@@ -245,7 +248,7 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
     const terrain = terrainBonus(state, unit, action.to);
     const overkill = Math.max(0, f.attacker.damage * f.attacker.strikes - target.hp);
     const score = f.expectedDealt + 70 * f.defenderDies + focus - f.expectedTaken
-      - (unit.boss ? 150 : 80) * f.attackerDies - exposure * (8 + 12 * (1 - hpAfter))
+      - (unit.boss ? 150 : 80) * f.attackerDies - (exposure - exposureBefore) * (8 + 12 * (1 - hpAfter))
       + terrain.def * 2 + terrain.avoid / 10 - overkill * 0.15;
     if (score > 0) offer(action, score);
   }
