@@ -4,6 +4,7 @@ import type { CharacterId } from '../data/characters.ts';
 import { regionById } from './calendar.ts';
 import { DUNGEON_DAYS } from './expedition.ts';
 import { COMPANION_QUESTS, STORY_QUESTS } from './story-quests.ts';
+import { BOUNTY_QUESTS } from './bounties.ts';
 import { chapterAvailable } from './story.ts';
 
 const regionName = (id: number) => regionById(id).name;
@@ -38,6 +39,8 @@ export interface Quest {
   requires?: { quest?: string; reputation?: number; item?: ItemKey; chapter?: number; character?: CharacterId };
   // 主线任务所属章节（region 0，不属于任何地区）与伙伴任务所属人物。
   story?: number;
+  // 目标类支线任务（悬赏，region 0）：不用接取，满足条件后自动计数，完成后用 CLAIM_QUEST_REWARD 交付。
+  bounty?: import('./bounties.ts').BountySpec;
   companion?: CharacterId;
   reward: QuestReward;
   // 固定人物加入（docs/20 §5）：领取奖励时加入名册；已拥有则跳过（唯一性）。
@@ -124,7 +127,7 @@ export const CROSS_TIME_QUEST: Quest = {
 
 export function questById(id: string): Quest | undefined {
   if (id === CROSS_TIME_QUEST.id) return CROSS_TIME_QUEST;
-  return ALL_QUESTS.find(q => q.id === id) ?? STORY_QUESTS.find(q => q.id === id);
+  return ALL_QUESTS.find(q => q.id === id) ?? STORY_QUESTS.find(q => q.id === id) ?? BOUNTY_QUESTS.find(q => q.id === id);
 }
 
 export function questsForRegion(region: number): Quest[] {

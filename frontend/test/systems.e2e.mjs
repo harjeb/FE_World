@@ -200,6 +200,13 @@ try {
     const story1 = await page.text();
     check('the completed chapter reveals what was learned', story1.includes('本章所得') && story1.includes('神纹') && story1.includes('已完成'), story1.slice(story1.indexOf('盛会'), story1.indexOf('盛会') + 120));
 
+    // 任务板: four to seven doable quests, each marked 主线 or 支线; bounty quests need no acceptance.
+    await page.open(`${BASE}/#/quests`, '.quest-board');
+    const board = await page.evaluate(`(() => { const rows = [...document.querySelectorAll('.board-row')]; return JSON.stringify({ n: rows.length, labels: [...new Set(rows.map(r => r.dataset.label))].sort(), tags: rows.map(r => r.querySelector('.board-label').innerText), bounty: rows.some(r => r.dataset.board.startsWith('bounty-') && r.innerText.includes('不用接取')), bar: !!document.querySelector('.board-row progress') }); })()`);
+    const boardInfo = JSON.parse(board);
+    check('the quest board lists four to seven quests, marked main or side, with bounty progress',
+      boardInfo.n >= 4 && boardInfo.n <= 7 && boardInfo.labels.join() === 'main,side' && boardInfo.tags.every(tag => tag === '主线' || tag === '支线') && boardInfo.bounty && boardInfo.bar, board);
+
     // 职业资格: pick a class, confirm, and the server records the qualification and the price.
     await page.open(`${BASE}/#/roster/u_victor/classes`, '#mk-h');
     const gold0 = (await api(page, OP.GET_STATE)).gold;

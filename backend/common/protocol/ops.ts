@@ -84,7 +84,7 @@ export const OPS: readonly OpDef[] = [
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '确认一章主线事件完成；必须先打赢本章主线任务（胜利时已自动完成），不能绕过任务。只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
-  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。伙伴任务带 companion（人物 ID），固定人物经地区远征加入名册后才出现，阵亡不撤销，完成后 epilogue 给出后记。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。' },
+  { op: 123, name: 'GET_QUESTS', group: '任务', agentNote: '读取各地区任务与声望；crossTime 为第1000日起的单个账号共享时空任务（之前null），含acceptedRegion、availableRegions、repeatable、autoReward、固定enemyLevels普通48/困难52、首通与重复奖励；不复制到regions。档位、前置、可否接取、是否已完成/已领奖；hardAvailable 仅任务连战副本为真，hardUnlocked 表示已普通完整通关并开放困难。单图任务无困难版（crossTime时空试炼例外）。连战副本的 firstClearRewards={normal:{items,available},hard:{items,available}} 分别返回两档固定首通物品及资格，替代旧 firstClearReward；完整通关自动入库，与跨难度仅领一次的手动 reward 分开，单图为 null。dungeonOnly 标记统一副本入口的固定经典路线，stageNames 给出图名；archived 标记旧入口，旧进行中／待领奖记录仍返回，但不能新开。board 是任务板（现在能做、能交的 4～7 条，label=main 主线／side 支线，state=turnin 可交／doing 进行中／ready 可去做／wait 未开放，claim 是可直接交付的任务 ID，progress 是计数）；bounties 是目标类支线任务（击败指定职业路线的敌军、赢战斗、通关副本，不用接取，章节开放后自动计数，完成后用 CLAIM_QUEST_REWARD 交付，START_QUEST 会拒绝）。伙伴任务带 companion（人物 ID），固定人物经地区远征加入名册后才出现，阵亡不撤销，完成后 epilogue 给出后记。requires.item 为隐藏副本所需的任务物品（kind=key，仓库持有即可，不消耗、不能出售）；未持有时该任务不列出。' },
   { op: 124, name: 'START_QUEST', group: '任务', agentNote: '时空任务cross-time-throne：第1000日起可带region选择任一已开通地区，首次成功出发固定入口；每次8日、最多8人，普通48级、困难52级，普通首通才开放困难，可重复，胜利自动发奖，无地区探索或声望。主线任务 story-1..8 不属于任何地区（无需 region），对应章节开放后可接，单图、2 日、每章一次，胜利即完成该章并自动记入 storyCompleted，报酬用 CLAIM_QUEST_REWARD 领取（不记声望）；伙伴任务 companion-ren/ig/mira 需先通过地区远征招募对应人物。其余接取并开始一个地区任务或固定经典副本（clx-fe1／clx-fe2／clx-fe3／clx-fe6／clx-fe7／clx-fe8，每作一个，共六个，每个三图；fe1／fe6在地区2、fe2／fe7在地区3、fe3／fe8在地区5；逐图3／3／2日，共8日）；固定经典路线共用副本UI，不另设随机／经典导航分类，此API继续保留兼容，归档旧任务拒绝新开：单图任务仅 normal 且完成后不可重接；任务连战副本普通完整通关后可重打并选 hard，首通探索与固定任务奖励不重复发。可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），多图全程锁定；支付任务耗日并创建战斗，返回 battleId；胜利后任务标记完成，奖励另领；单图任务完成增加当地探索度5点，多图任务仅按副本首次完整通关增加20点，不叠加5点；领奖不增加。' },
   { op: 125, name: 'CLAIM_QUEST_REWARD', group: '任务', agentNote: '领取已完成任务的首次奖励（金币、物品、声望）；重复请求不会重复发。' },
   { op: 126, name: 'BUY_QUEST_ITEM', group: '任务', agentNote: '用金币购买地区声望商店的物品；只能买 GET_QUESTS.regions[].shop 里本季上架的少数高级商品（每季换一批，shopRefreshDay 是下次换批日），每件本季限购 limit 件（bought／remaining 给出已购与剩余），需达到对应声望档位，购买不扣声望。基础装备不在这里卖，见 GET_SHOP 的军需处轮换。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 31;
+export const DOC_VERSION = 32;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

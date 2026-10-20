@@ -38,6 +38,7 @@ import type { FacilityId } from '../common/game/production.ts';
 import { recruitLevel, recruitPortrait } from '../common/game/random-recruit.ts';
 import type { Defense, SnapshotUnit } from '../common/arena/rules.ts';
 import { completeDispatchSteps, findStoryStep, grantStepRewards } from './story.ts';
+import { announceBounties, trackDungeonBounties } from './bounties.ts';
 import type { Store, Player, SnapshotData } from './store.ts';
 import { SEED_DAY } from './store.ts';
 import { DEMO_LEVEL } from './store.ts';
@@ -551,6 +552,7 @@ export function handleRunOutcome(store: Store, player: Player, record: BattleRec
     if (run.stageIndex >= stageCount(run) - 1) {
       run.state = 'completed';
       completed = true;
+      announceBounties(store, player, trackDungeonBounties(player));
       if ((run.aiDifficulty ?? 'normal') === 'normal') {
         const unlocked = hardUnlocks(store, player);
         const quest = run.questId ? questById(run.questId) : undefined;

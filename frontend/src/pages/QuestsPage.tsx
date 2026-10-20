@@ -17,6 +17,7 @@ import { LockIcon } from '../ui/icons.tsx';
 import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { advance, dateLabel, plainDate } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
+import { QuestBoard } from './QuestBoard.tsx';
 import { CrossTimeEnemyPreview } from './CrossTimeEnemyPreview.tsx';
 import { CrossTimeBrief } from './CrossTimeBrief.tsx';
 import { crossTimeReward, isCrossTime, questsInRegion } from './cross-time.ts';
@@ -84,6 +85,7 @@ function RegionsTab() {
     return (
       <div className="prep">
         <Tabs current="regions" />
+        <QuestBoard board={quests.board ?? []} />
         <section className="panel" style={{ padding: 16 }}>
           <h1 className="serif" style={{ fontSize: 24 }}>还没有已开通的地区</h1>
           <p style={{ fontSize: 14, color: '#4E473D', margin: '8px 0 12px' }}>地区任务随讨伐路线逐区开放；先在世界地图上选择一条路线。</p>
@@ -131,6 +133,7 @@ function RegionsTab() {
         </div>
         <div style={{ fontSize: 13, color: '#4E473D', textAlign: 'right' }}>声望档：{REPUTATION_TIERS.map(t => `${t.name} ${t.at}`).join(' · ')}</div>
       </div>
+      <QuestBoard board={quests.board ?? []} />
 
       <div className="quest-cols">
         <section className="panel" aria-labelledby="rgl-h">

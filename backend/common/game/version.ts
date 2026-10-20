@@ -2,6 +2,8 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v18';
+// v48: bounty quests (bounty-*, no acceptance, auto-counted kills by class route, wins and dungeon clears, handed in with
+// CLAIM_QUEST_REWARD) and a server-built quest board of four to seven main/side quests. New flag flags.questProgress.
 // v47: reputation shops sell a few advanced items only (rank C+ gear, growth potions, elixir), four per region per season with a
 // per-item season limit (flags.regionShopBought); rank E/D gear moves to a rotating capital quartermaster (eight a season).
 // New games start with 1,500 gold instead of 13,120; test fixtures keep the old amount.
@@ -92,7 +94,7 @@ export const RULESET_VERSION = 'rules-v18';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 47;
+export const CATALOG_VERSION = 48;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

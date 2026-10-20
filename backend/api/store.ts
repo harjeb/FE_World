@@ -30,6 +30,8 @@ export interface PlayerFlags {
   hardUnlocks?: { regions: number[]; dungeons: number[]; quests: string[] };
   // 已领取的一次性隐藏要素（mapId:objectId），对应物件之后不再生成。
   secretsClaimed?: string[];
+  // 目标类支线任务（悬赏）的进度（任务 ID → 已计数），完成时记入 questsDone。
+  questProgress?: Record<string, number>;
   // 地区声望商店本季的已购数量（键 地区:物品），换季清零。
   regionShopSeason?: number;
   regionShopBought?: Record<string, number>;

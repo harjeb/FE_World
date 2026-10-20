@@ -314,7 +314,14 @@ export interface ServerCrossTimeRecruits {
 
 export interface QuestRegion { region: number; name: string; reputation: number; tier: { index: number; at: number; name: string; next: number | null }; // 每季只上架少数高级商品，每件限购；shopRefreshDay 是下次换一批的日期。
   shop: { item: string; name: string; price: number; reputation: number; unlocked: boolean; limit: number; bought: number; remaining: number }[]; shopRefreshDay?: number; quests: QuestView[] }
-export interface ServerQuests { regions: QuestRegion[]; crossTime?: (QuestView & { acceptedRegion: number | null; availableRegions: number[] }) | null }
+// 任务板：现在能做、能交的 4～7 条任务，每条标明主线或支线；目标类支线不用接取，自动计数，打完就能交。
+export interface BoardEntry {
+  id: string; label: 'main' | 'side'; state: 'turnin' | 'doing' | 'ready' | 'wait'; title: string; summary: string;
+  progress?: { have: number; need: number };
+  link: { page: 'story' | 'quests' | 'tavern' | 'arena' | 'dispatch' | 'field' | 'dungeon'; region?: number };
+  claim?: string;
+}
+export interface ServerQuests { board?: BoardEntry[]; regions: QuestRegion[]; crossTime?: (QuestView & { acceptedRegion: number | null; availableRegions: number[] }) | null }
 
 // GET_CHALLENGES: the tower floors (docs/00 §9.6).
 export interface ChallengeFloor {

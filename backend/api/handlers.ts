@@ -69,6 +69,8 @@ import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, fr
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { purchasableRank } from '../common/game/quest-shop.ts';
 import { boughtThisSeason, nextRefreshDay, regionShopView, stockRow } from './region-shop.ts';
+import { announceBounties, bountyRows, trackBattleBounties } from './bounties.ts';
+import { questBoard } from './quest-board.ts';
 import { normalizeRegions, routeCandidates, worldMap } from '../common/game/region-map.ts';
 import { addRegionExploration, adoptRegions, combatFeaturesOpen, playerRegions, tavernOpen, workshopFacilities, worldProgress } from './services.ts';
 import { reputationTier } from '../common/game/reputation.ts';
@@ -347,6 +349,8 @@ function finishBattle(ctx: Context, record: BattleRecord): void {
       }
     }
   }
+  // 目标类支线任务（悬赏）：击败的敌军和胜利计入进度，完成的当场记事件，之后用 CLAIM_QUEST_REWARD 交付。
+  announceBounties(ctx.store, ctx.player, trackBattleBounties(ctx.player, record));
   // 副本宝箱里取到的任务物品在结算入库后检查（找物品类前置任务）。
   grantStepRewards(ctx.store, ctx.player, syncFindSteps(ctx.store, ctx.player));
   ctx.store.addEvent(ctx.player.id, 'battle-end', `${record.name} 结束：${record.state.result?.winner === 'player' ? '胜利' : '失败'}。`, {
@@ -2127,10 +2131,7 @@ const handlers: Record<number, Handler> = {
     // 进行中的任务（活动远征或战斗）即使暂不满足可接条件也保留显示。
     const ongoing = new Set([ctx.store.activeRun(ctx.player.id)?.questId, ctx.store.activeBattle(ctx.player.id)?.questId]
       .filter((id): id is string => typeof id === 'string'));
-    return {
-      crossTime: crossTimeQuestView(ctx.store, ctx.player, unlocked),
-      // 只下发已解锁地区；可接或已完成的任务保留，进行中／可领奖的也不丢。
-      regions: QUEST_REGIONS.filter(region => unlocked.includes(region)).map(region => {
+    const regions = QUEST_REGIONS.filter(region => unlocked.includes(region)).map(region => {
         const rep = reputation[region] ?? 0;
         return {
           region, name: regionById(region).name, reputation: rep, tier: reputationTier(rep),
@@ -2159,7 +2160,14 @@ const handlers: Record<number, Handler> = {
             available: !q.archived && ((supportsHardQuest(q) && done.has(q.id)) || questAvailable(q, { done, reputation: rep, holds, day: ctx.player.day, recruited })),
           })).filter(row => row.available || row.done || ongoing.has(row.id)),
         };
-      }),
+      });
+    return {
+      crossTime: crossTimeQuestView(ctx.store, ctx.player, unlocked),
+      // 只下发已解锁地区；可接或已完成的任务保留，进行中／可领奖的也不丢。
+      regions,
+      // 目标类支线任务（不用接取，自动计数）和任务板（现在能做、能交的 4～7 条，标明主线／支线）。
+      bounties: bountyRows(ctx.player),
+      board: questBoard(ctx.store, ctx.player, regions),
     };
   },
 
@@ -2364,6 +2372,7 @@ const handlers: Record<number, Handler> = {
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
     const quest = questById(asString(data.questId, 'questId'));
     if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
+    if (quest.bounty) throw new OpError('FORBIDDEN', '目标类任务不用接取：打完对应的战斗会自动计数，完成后直接交任务');
     if (quest.archived) throw new OpError('FORBIDDEN', '此经典关卡已编入副本；旧奖励仍可领取，已开始的远征可以继续');
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
     if (quest.story) {
