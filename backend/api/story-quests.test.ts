@@ -16,7 +16,8 @@ import { COMPANION_QUESTS, STORY_CHAPTER_QUESTS, STORY_QUESTS, storyClueKey, sto
 import { interactObject } from '../common/engine/scenario.ts';
 import { createClassicBattle } from '../common/game/battles.ts';
 import { createUnit } from '../common/game/model.ts';
-import { createStoryDuel, duelClass, duelLevel } from '../common/game/story-duel.ts';
+import { createStoryDuel, duelClass, duelClassPool, duelLevel } from '../common/game/story-duel.ts';
+import { CLASSES, classUnavailableReason } from '../common/data/classes.ts';
 import { WEAPONS } from '../common/data/weapons.ts';
 import { questById } from '../common/game/quests.ts';
 import { completeDuelStep, recordStoryWin } from './story.ts';
@@ -297,7 +298,7 @@ test('a duel is one chosen unit against one named champion with real death, and 
   const highest = Math.max(...ctx.store.units(ctx.player.id).filter(u => u.status === 'active').map(u => u.level));
   assert.equal(enemies[0].level, highest + 1, `the champion is built from the roster's highest level (${highest})`);
   assert.equal(view.level, highest + 1, 'the page shows the same level');
-  assert.equal(enemies[0].classId, ctx.store.unit(ctx.player.id, 'u_erin')!.classId, 'the class matches the chosen duelist');
+  assert.equal(CLASSES[enemies[0].classId].stage, CLASSES[ctx.store.unit(ctx.player.id, 'u_erin')!.classId].stage, 'the class is of the same tier as the chosen duelist');
   assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_victor' }), /进行中的战斗/);
 
   // Losing leaves the task open and lets the player try again; winning completes it and pays no region first-clear.
@@ -361,18 +362,28 @@ test('a dispatch started before the chapter opened does not count, and one dispa
   assert.deepEqual(both.player.flags.storyStepsDone, ['story-2-b'], 'chapters 2 and 5 are both open but one dispatch completes only the earliest');
 });
 
-test('the duel opponent follows the duelist\'s class, never a class that cannot attack, and is deterministic per seed', () => {
-  assert.equal(duelClass('swordsman'), 'swordsman');
-  assert.equal(duelClass('archer'), 'archer');
-  assert.equal(duelClass('cleric'), 'mage', 'a pure healer faces a mage instead of a harmless opponent');
+test('the duel opponent is a random class of the same tier, never one that cannot attack, and is deterministic per seed', () => {
+  for (const id of ['commoner', 'swordsman', 'archer', 'cleric', 'paladin', 'sage'] as const) {
+    const pool = duelClassPool(id);
+    assert.ok(pool.length >= 2, `${id} has several same-tier classes to draw from`);
+    for (const candidate of pool) {
+      assert.equal(CLASSES[candidate].stage, CLASSES[id].stage, `${candidate} is the same tier as ${id}`);
+      assert.notEqual(CLASSES[candidate].source, 'species');
+      assert.equal(classUnavailableReason(candidate), null);
+    }
+    assert.equal(duelClass(id, 's1'), duelClass(id, 's1'), 'the same seed picks the same class');
+    assert.ok(new Set(Array.from({ length: 40 }, (_, i) => duelClass(id, `seed-${i}`))).size > 1, `${id}: different seeds draw different classes`);
+  }
+  // A pure healer is not a pool member, so its tier-mates are all fighters.
+  assert.ok(!duelClassPool('cleric').includes('cleric'));
   const step = STORY_CHAPTER_QUESTS[2].steps[0] as Extract<typeof STORY_CHAPTER_QUESTS[2]['steps'][number], { kind: 'duel' }>;
   assert.equal(duelLevel([{ level: 12, status: 'active' }, { level: 30, status: 'dead' }, { level: 25, status: 'active' }], step), 26, 'fallen units do not count');
   const hero = createUnit('erin', 20, 'u0', 0);
-  const a = createStoryDuel(hero, step, { seed: 'fixed', day: 1482, level: 30 }).state.units.find(u => u.side === 'enemy')!;
-  const b = createStoryDuel(hero, step, { seed: 'fixed', day: 1482, level: 30 }).state.units.find(u => u.side === 'enemy')!;
-  const c = createStoryDuel(hero, step, { seed: 'other', day: 1482, level: 30 }).state.units.find(u => u.side === 'enemy')!;
-  assert.deepEqual([a.name, a.stats], [b.name, b.stats]);
+  const enemyOf = (unit: typeof hero, seed: string) => createStoryDuel(unit, step, { seed, day: 1482, level: 30 }).state.units.find(u => u.side === 'enemy')!;
+  const a = enemyOf(hero, 'fixed'), b = enemyOf(hero, 'fixed'), c = enemyOf(hero, 'other');
+  assert.deepEqual([a.name, a.classId, a.stats], [b.name, b.classId, b.stats]);
   assert.notEqual(a.name, c.name, 'another seed rolls another person');
-  const healer = createStoryDuel(createUnit('noah', 20, 'u1', 0), step, { seed: 'fixed', day: 1482, level: 30 }).state.units.find(u => u.side === 'enemy')!;
+  const healer = enemyOf(createUnit('noah', 20, 'u1', 0), 'fixed');
   assert.ok(healer.weapons.some(id => !WEAPONS[id].heal), 'the opponent of a healer can fight');
+  assert.equal(CLASSES[healer.classId].stage, CLASSES[createUnit('noah', 20, 'u1', 0).classId].stage);
 });

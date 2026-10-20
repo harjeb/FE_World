@@ -4,19 +4,27 @@ import { createEnemy, defaultBehavior, templateFor } from './enemies.ts';
 import { generateRecruit } from './random-recruit.ts';
 import type { UnitRecord } from './model.ts';
 import type { StoryStep } from './story-quests.ts';
-import { CLASSES } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
+import { nextU32, seedRng } from '../engine/rng.ts';
 import type { ClassId } from '../data/classes.ts';
 import { WEAPONS } from '../data/weapons.ts';
 
 export type DuelStep = Extract<StoryStep, { kind: 'duel' }>;
 export const DUEL_DAYS = 1;
 
-// 对手的职业与应战角色相近：同一职业；如果这个职业拿不到攻击武器（纯治疗），换成有攻击手段的近似职业，
-// 免得单挑变成一场不会还手的仪式。
-export function duelClass(classId: ClassId): ClassId {
+// 对手的职业是与应战角色**同阶级**（同一 stage：初级／中级／上级／最上级／神将级）的随机一个：
+// 只从目录里可用、有攻击手段的人类职业里挑（纯治疗职业、兽龙种族职业不参与），免得对手不会还手。
+// 同一个种子挑出的职业固定；池子为空时退回应战者自己的职业（再不行就剑士）。
+export function duelClassPool(classId: ClassId): ClassId[] {
   const attacks = (id: ClassId) => templateFor(id).weapons.some(weapon => !WEAPONS[weapon].heal && WEAPONS[weapon].might > 0);
-  if (attacks(classId)) return classId;
-  return CLASSES[classId].weapons.tome !== undefined || CLASSES[classId].weapons.staff !== undefined ? 'mage' : 'swordsman';
+  return (CATALOG_CLASS_IDS as ClassId[]).filter(id => CLASSES[id].stage === CLASSES[classId].stage && CLASSES[id].source !== 'species'
+    && !classUnavailableReason(id) && attacks(id));
+}
+
+export function duelClass(classId: ClassId, seed: string): ClassId {
+  const pool = duelClassPool(classId);
+  if (pool.length === 0) return templateFor(classId).weapons.some(weapon => !WEAPONS[weapon].heal) ? classId : 'swordsman';
+  return pool[nextU32(seedRng(`duel-class:${seed}`)) % pool.length];
 }
 
 // 玩家名册里现役角色的最高等级：单挑对手按它来设计。
@@ -29,13 +37,13 @@ export function duelLevel(units: readonly Pick<UnitRecord, 'level' | 'status'>[]
 }
 
 // 主线单挑（docs/38 §3.4）：借一张小型经典图，只留我方一人，对手是按种子随机生成的人物——名字随机，
-// 等级是玩家名册里最高等级再加 levelBonus，职业与应战角色相近。击败他即获胜。战斗是普通野外战斗：
+// 等级是玩家名册里最高等级再加 levelBonus，职业是与应战角色同阶级的随机一个。击败他即获胜。战斗是普通野外战斗：
 // 真实死亡、正常经验，但不算地区讨伐。
 export function createStoryDuel(unit: UnitRecord, step: DuelStep, options: { seed: string; day: number; level: number }): BattleRecord {
   const record = createClassicBattle([unit], { mapId: step.mapId, seed: options.seed, day: options.day });
   const state = record.state;
   const boss = state.units.find(u => u.side === 'enemy' && u.boss) ?? state.units.find(u => u.side === 'enemy')!;
-  const classId = duelClass(unit.classId);
+  const classId = duelClass(unit.classId, options.seed);
   const name = `${generateRecruit(`duel:${options.seed}`).name}（${step.enemy}）`;
   const champion = createEnemy('e0', { seed: `duel:${options.seed}`, classId, level: options.level, pos: boss.pos, boss: true, name, behavior: defaultBehavior(classId) });
   state.units = [...state.units.filter(u => u.side === 'player'), champion];

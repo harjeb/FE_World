@@ -2,8 +2,8 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v16';
-// v40: story duel opponents are random people built from the roster's highest level (+1/+1/+2) with the
-// duelist's class (healers face a mage). START_STORY_DUEL needs no new flags; battles already started are unchanged.
+// v40: story duel opponents are random people built from the roster's highest level (+1/+1/+2) with a random
+// class of the same tier (stage) as the duelist's, drawn from available human classes that can attack. START_STORY_DUEL needs no new flags; battles already started are unchanged.
 // v38: the two preliminary tasks per chapter now vary by chapter (dispatch, hand-in, dungeon-chest quest item,
 // duel, arena wins, tavern wins). New key items story_find_2/4/6/8 and chest overlays gated by chapter
 // (secret.chapter), START_STORY_DUEL, flags.storyProgress. Existing saves keep storyStepsDone as is.
