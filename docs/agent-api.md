@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 29
+docVersion: 30
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -76,7 +76,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 40 | GET_SHOP | 读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。 |
+| 40 | GET_SHOP | 读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。 |
 | 41 | BUY | 用金币购买商品；库存有限，买入再卖出会亏损。 |
 | 42 | SELL | 卖出仓库物品换取金币；uses 可指定剩余次数的一叠，count 为出售数量，默认1。 |
 | 43 | TRANSFER_ITEM | 在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具、法术书（item 为 spellbook:<法术id>，同种只带一本）各最多 5 件；只有武器、法术书和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，耐久与剩余次数随物品走；出战或远征中的角色不能搬运。 |

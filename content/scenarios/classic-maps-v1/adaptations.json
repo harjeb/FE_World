@@ -576,7 +576,7 @@
      "state": "closed",
      "label": "宝箱",
      "loot": {
-      "item": "restore",
+      "item": "energy_drop",
       "count": 1
      },
      "sourceId": "0x08668BCC"
@@ -591,8 +591,8 @@
      "state": "closed",
      "label": "宝箱",
      "loot": {
-      "item": "wood",
-      "count": 4
+      "item": "speedwing",
+      "count": 1
      },
      "sourceId": "0x08668BD8"
     },
@@ -666,7 +666,7 @@
      "state": "closed",
      "label": "宝箱",
      "loot": {
-      "item": "hand_axe",
+      "item": "talisman",
       "count": 1
      },
      "sourceId": "0x08668C14"
@@ -2611,7 +2611,7 @@
      "state": "closed",
      "label": "宝箱",
      "loot": {
-      "item": "dracoshield",
+      "item": "energy_drop",
       "count": 1
      },
      "sourceId": "0x08669454"

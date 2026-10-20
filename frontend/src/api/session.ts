@@ -700,8 +700,13 @@ class SessionStore {
   }
 
   async shop(): Promise<ShopRow[]> {
-    const result = await call<{ items: ShopRow[] }>(OP.GET_SHOP);
-    return result.items;
+    return (await this.shopView()).items;
+  }
+
+  // 王都商店：items 是现在能买的，locked 是还没上架的高级物品（按年份上架）。
+  async shopView(): Promise<{ items: ShopRow[]; locked: { item: string; name: string; openDay: number }[] }> {
+    const result = await call<{ items: ShopRow[]; locked?: { item: string; name: string; openDay: number }[] }>(OP.GET_SHOP);
+    return { items: result.items, locked: result.locked ?? [] };
   }
 
   async snapshots(): Promise<ServerSnapshot[]> {

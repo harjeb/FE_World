@@ -141,13 +141,24 @@ export const SHOP_STOCK: { item: ItemKey; stock: number }[] = [
   { item: 'dagger', stock: 4 }, { item: 'beast_claw', stock: 4 }, { item: 'dragonstone', stock: 4 },
   { item: 'fire', stock: 4 }, { item: 'heal', stock: 4 },
   { item: 'spellbook:fire', stock: 4 }, { item: 'spellbook:fw_spell_12', stock: 4 },
-  { item: 'vulnerary', stock: 9 }, { item: 'immortal_shield', stock: 1 },
+  { item: 'vulnerary', stock: 9 }, { item: 'antidote', stock: 6 }, { item: 'elixir', stock: 2 }, { item: 'immortal_shield', stock: 1 },
   { item: 'seal_promote', stock: 2 },
   { item: 'energy_drop', stock: 1 }, { item: 'secret_book', stock: 1 }, { item: 'speedwing', stock: 1 },
   { item: 'goddess_icon', stock: 1 }, { item: 'dracoshield', stock: 1 }, { item: 'talisman', stock: 1 },
   { item: 'herb', stock: 10 }, { item: 'ore', stock: 10 }, { item: 'wood', stock: 10 }, { item: 'seed', stock: 10 },
   { item: 'ether_ration', stock: 6 }, { item: 'full_meal', stock: 2 },
 ];
+
+// 王都商店的高级物品按年份上架（docs/38 §3.5）：开局只有基础装备、伤药、解毒药和材料；
+// 第 2 年（第 500 日起）上架特效药、完整料理和六种能力药，第 3 年（第 1000 日起）上架不朽盾。
+// 转职印是培养的必需品，从开局就卖。库存行仍按旧档规则补插，只是未到日期不展示、不能买。
+export const SHOP_OPEN_DAY: Partial<Record<ItemKey, number>> = {
+  elixir: 500, full_meal: 500,
+  energy_drop: 500, secret_book: 500, speedwing: 500, goddess_icon: 500, dracoshield: 500, talisman: 500,
+  immortal_shield: 1000,
+};
+export const shopOpenDay = (item: string): number => SHOP_OPEN_DAY[item as ItemKey] ?? 0;
+export const shopItemOpen = (item: string, day: number): boolean => day >= shopOpenDay(item);
 
 const CENTRAL_SHOP_ITEMS = new Set<string>(SHOP_STOCK.map(row => row.item));
 export const isCentralShopItem = (item: string): boolean => CENTRAL_SHOP_ITEMS.has(item);

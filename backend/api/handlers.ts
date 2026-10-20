@@ -21,7 +21,7 @@ import { CHARACTER_STORIES } from '../common/data/character-stories.ts';
 import { CHARACTERS, deriveProtagonistTendency, PROTAGONIST_ALLOCATION_BUDGET, PROTAGONIST_BASE_STATS, PROTAGONIST_CLASS_ID, PROTAGONIST_GROWTH_TYPE, PROTAGONIST_MAX_ALLOCATION, PROTAGONIST_MIN_ALLOCATION, PROTAGONIST_TENDENCIES } from '../common/data/characters.ts';
 import type { CharacterId } from '../common/data/characters.ts';
 import { generatedPortraitSex } from '../common/portraits/random.ts';
-import { GAME_ITEMS, isCentralShopItem, isItemKey, spellbookItem, stockUses } from '../common/game/items.ts';
+import { GAME_ITEMS, isCentralShopItem, isItemKey, shopItemOpen, shopOpenDay, spellbookItem, stockUses } from '../common/game/items.ts';
 import type { ItemKey } from '../common/game/items.ts';
 import { catalog } from '../common/game/catalog.ts';
 import { ACTION_DAYS, DAYS_PER_SEASON, DAYS_PER_YEAR, dateOf, enemyLevel, encounterLevel, isArenaDay, nextArenaDay, nextMonthStart, REGIONS, regionById, regionLevel } from '../common/game/calendar.ts';
@@ -746,7 +746,10 @@ const handlers: Record<number, Handler> = {
     season: dateOf(ctx.player.day).season,
     // 旧档 shop 表可能还存着已迁往地区商店的旧行：只展示当前王都商店在售商品。
     // 庆典窗口内整店打折（docs/38）：price 为实付单价，basePrice 为原价，discount 为折扣百分比（非庆典为 0）。
-    items: ctx.store.shop(ctx.player.id).filter(row => isCentralShopItem(row.item)).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name,
+    // 高级物品按年份上架：未到日期的不在 items 里，列在 locked 里提示何时上架。
+    locked: ctx.store.shop(ctx.player.id).filter(row => isCentralShopItem(row.item) && !shopItemOpen(row.item, ctx.player.day))
+      .map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name, openDay: shopOpenDay(row.item) })).sort((x, y) => x.openDay - y.openDay),
+    items: ctx.store.shop(ctx.player.id).filter(row => isCentralShopItem(row.item) && shopItemOpen(row.item, ctx.player.day)).map(row => ({ item: row.item, name: GAME_ITEMS[row.item].name,
       discount: festivalDiscount(ctx.player.id, ctx.player.day, row.item), basePrice: GAME_ITEMS[row.item].price,
       price: festivalPrice(GAME_ITEMS[row.item].price, festivalDiscount(ctx.player.id, ctx.player.day, row.item)), stock: row.stock, kind: GAME_ITEMS[row.item].kind })),
   }),
@@ -757,6 +760,7 @@ const handlers: Record<number, Handler> = {
     if (!isItemKey(item)) throw new OpError('NOT_FOUND', `没有商品 ${item}`);
     // 已迁往地区声望商店的旧商品即使残留在旧档 SQLite 行里也不能再买。
     if (!isCentralShopItem(item)) throw new OpError('NOT_FOUND', '王都不再出售这件物品；进阶武器请到对应地区的声望商店购买');
+    if (!shopItemOpen(item, ctx.player.day)) throw new OpError('FORBIDDEN', `${GAME_ITEMS[item].name}要到第 ${Math.floor(shopOpenDay(item) / 500) + 1} 年（第 ${shopOpenDay(item)} 日起）才上架`);
     const stockRow = ctx.store.shop(ctx.player.id).find(s => s.item === item);
     if (!stockRow || stockRow.stock < count) throw new OpError('BAD_REQUEST', '库存不足');
     const price = festivalPrice(GAME_ITEMS[item].price, festivalDiscount(ctx.player.id, ctx.player.day, item)) * count;

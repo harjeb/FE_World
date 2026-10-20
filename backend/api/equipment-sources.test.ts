@@ -116,7 +116,8 @@ test('limited manuals teach their spell once, need the school, and reincarnation
   assert.equal(quests.regions.find(r => r.region === 5)!.quests.find(q => q.id === 'wl7')!.exclusive!.item, 'fw_weapon_8');
   player.flags.questsDone = ['wl7', 'wl8']; store.savePlayer(player);
   const reward = dispatch(ctx, OP.CLAIM_QUEST_REWARD, { questId: 'wl8' }) as { items: [string, number][] };
-  assert.deepEqual(reward.items.map(([item]) => item), [spellbookItem('fw_spell_60'), manualItem('fw_spell_60')]);
+  // 地区核心任务（-8）另给一枚按地区轮换的成长药（地区 5 是龙盾），书和教材仍是原来的限量投放。
+  assert.deepEqual(reward.items.map(([item]) => item), ['dracoshield', spellbookItem('fw_spell_60'), manualItem('fw_spell_60')]);
   assert.ok(store.inventory(player.id).some(row => row.item === spellbookItem('fw_spell_60') && row.uses === 1));
   assert.throws(() => dispatch(ctx, OP.USE_ITEM, { unitId: 'u_erin', item: manualItem('fw_spell_60') }), /权限/);
   dispatch(ctx, OP.USE_ITEM, { unitId: 'u_sera', item: manualItem('fw_spell_60') });

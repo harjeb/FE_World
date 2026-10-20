@@ -1,5 +1,5 @@
 {
-  "docVersion": 29,
+  "docVersion": 30,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -488,7 +488,7 @@
       "op": 40,
       "name": "GET_SHOP",
       "group": "整备",
-      "agentNote": "读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。",
+      "agentNote": "读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。",
       "push": false,
       "dataSchema": {
         "type": "object",

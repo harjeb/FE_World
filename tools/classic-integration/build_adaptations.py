@@ -384,6 +384,20 @@ def apply_find(entry: dict, map_data: dict, route: str, chapter: int, item: str)
                              'loot': {'item': item, 'count': 1}, 'secret': {'quest': route, 'chapter': chapter}})
 
 
+# 属性成长药（能力药）的宝箱掉落：经典图里约四分之一的普通宝箱改放一枚成长药，种类按哈希在六种里选。
+# 只动普通宝箱：隐藏要素、主线改编、找物品的箱子都带 secret／hideIn，不参与；其余宝箱的掉落保持原样。
+GROWTH_POTIONS = ['energy_drop', 'secret_book', 'speedwing', 'goddess_icon', 'dracoshield', 'talisman']
+GROWTH_POTION_PERCENT = 25
+
+
+def apply_growth_potions(entry: dict) -> None:
+    for obj in entry['objects']:
+        if obj['kind'] != 'chest' or 'secret' in obj or 'hideIn' in obj or 'loot' not in obj:
+            continue
+        if hashed(entry['mapId'], 'growth-potion', obj['id']) % 100 < GROWTH_POTION_PERCENT:
+            obj['loot'] = {'item': GROWTH_POTIONS[hashed(entry['mapId'], 'growth-kind', obj['id']) % len(GROWTH_POTIONS)], 'count': 1}
+
+
 def build() -> dict:
     catalog = load_json(CATALOG)
     by_game: dict[str, list[dict]] = {}
@@ -482,6 +496,7 @@ def build() -> dict:
         for route, map_id, chapter, item in FIND_CHESTS:
             if entry['mapId'] == map_id:
                 apply_find(entry, catalog_by_id[map_id], route, chapter, item)
+        apply_growth_potions(entry)
     return {'format': 'agent-tactics.classic-adaptations', 'schemaVersion': 1, 'count': len(out), 'maps': out}
 
 

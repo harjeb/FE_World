@@ -170,6 +170,16 @@ const LIMITED_REWARDS: Record<string, [ItemKey, number][]> = {
   wl8: [[spellbookItem('fw_spell_60'), 1], [manualItem('fw_spell_60'), 1]],
   'r11-3': [[spellbookItem('fw_spell_11'), 1], [manualItem('fw_spell_11'), 1]],
 };
+// 属性成长药（能力药）的任务获取：每个地区的第二个核心任务（-8）给一枚，六种药按地区轮换；
+// 旧三地的前缀是 gw／ih／wl，其余是 r<地区号>。
+const GROWTH_POTIONS: ItemKey[] = ['energy_drop', 'secret_book', 'speedwing', 'goddess_icon', 'dracoshield', 'talisman'];
+const REGION_PREFIX: Record<number, string> = { 2: 'gw', 3: 'ih', 5: 'wl' };
+for (let region = 1; region <= 12; region++) {
+  const id = REGION_PREFIX[region] ? `${REGION_PREFIX[region]}8` : `r${region}-8`;
+  const quest = ALL_QUESTS.find(q => q.id === id);
+  if (!quest) throw new Error(`地区 ${region} 缺少核心任务 ${id}`);
+  quest.reward = { ...quest.reward, items: [...(quest.reward.items ?? []), [GROWTH_POTIONS[(region - 1) % GROWTH_POTIONS.length], 1]] };
+}
 for (const quest of ALL_QUESTS) {
   quest.event ??= `${quest.name}：${quest.objective}。当地斥候已标出路线，完成后可领取本地资源。`;
   if (LIMITED_REWARDS[quest.id]) quest.reward = { ...quest.reward, items: [...(quest.reward.items ?? []), ...LIMITED_REWARDS[quest.id]] };

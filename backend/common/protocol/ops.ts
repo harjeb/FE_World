@@ -34,7 +34,7 @@ export const OPS: readonly OpDef[] = [
   { op: 38, name: 'PREVIEW_ACTION', group: '日历', agentNote: '为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。dungeon 另返回 dungeonStages（各图 name、可选 scenarioId）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。' },
   { op: 39, name: 'EXECUTE_ACTION', group: '日历', agentNote: '用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。' },
 
-  { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。' },
+  { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。' },
   { op: 41, name: 'BUY', group: '整备', agentNote: '用金币购买商品；库存有限，买入再卖出会亏损。' },
   { op: 42, name: 'SELL', group: '整备', agentNote: '卖出仓库物品换取金币；uses 可指定剩余次数的一叠，count 为出售数量，默认1。' },
   { op: 43, name: 'TRANSFER_ITEM', group: '整备', agentNote: '在仓库与单位之间搬运物品、更换装备：action 为 equip / toUnit / toWarehouse。武器、道具、法术书（item 为 spellbook:<法术id>，同种只带一本）各最多 5 件；只有武器、法术书和伤药等战斗道具能带上；toUnit 可用 uses 指定哪一叠，耐久与剩余次数随物品走；出战或远征中的角色不能搬运。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 29;
+export const DOC_VERSION = 30;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

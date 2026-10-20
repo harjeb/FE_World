@@ -2,6 +2,9 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v18';
+// v46: advanced capital shop items open by year (elixir, full meal and the six growth potions from day 500, the
+// immortal shield from day 1000); elixir and antidote join the shop. Growth potions also drop from region core quests (-8),
+// story tasks, companion quests and a quarter of the plain classic chests. No flags; old saves gain shop rows through ensureShopRows.
 // v45 / rules-v18: attack risk is measured against staying put, so ranged units can step back
 // and shoot without a counter even when both positions can be chased next turn. Equal landings favor shorter moves.
 // Hold, guard, status and movement rules are unchanged. Finish active battles/runs and back up before deployment;
@@ -86,7 +89,7 @@ export const RULESET_VERSION = 'rules-v18';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 45;
+export const CATALOG_VERSION = 46;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

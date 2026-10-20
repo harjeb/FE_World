@@ -44,18 +44,18 @@ const STEP_REWARDS: Record<string, StepReward> = {
   'story-1-b': { gold: 150, items: [['vulnerary', 3], ['elixir', 1]] },
   'story-2-a': { gold: 200, items: [['killer_lance', 1], ['antidote', 1]] },
   'story-2-b': { gold: 200, items: [['vulnerary', 3]] },
-  'story-3-a': { gold: 300, bexp: 300, items: [['killing_edge', 1], ['elixir', 1], ['vulnerary', 2]] },
+  'story-3-a': { gold: 300, bexp: 300, items: [['killing_edge', 1], ['elixir', 1], ['vulnerary', 2], ['secret_book', 1]] },
   'story-3-b': { gold: 250, items: [['elixir', 1], ['vulnerary', 2]] },
-  'story-4-a': { gold: 300, items: [['longbow', 1], ['antidote', 2]] },
+  'story-4-a': { gold: 300, items: [['longbow', 1], ['antidote', 2], ['talisman', 1]] },
   'story-4-b': { gold: 300, items: [['elixir', 2], ['vulnerary', 2]] },
   'story-5-a': { gold: 350, items: [['vulnerary', 4], ['antidote', 2]] },
-  'story-5-b': { gold: 400, bexp: 300, items: [['levin_sword', 1], ['elixir', 1], ['antidote', 1]] },
+  'story-5-b': { gold: 400, bexp: 300, items: [['levin_sword', 1], ['elixir', 1], ['antidote', 1], ['speedwing', 1]] },
   'story-6-a': { gold: 350, items: [['antidote', 3], ['elixir', 1]] },
-  'story-6-b': { gold: 400, items: [['silver_sword', 1], ['elixir', 1]] },
+  'story-6-b': { gold: 400, items: [['silver_sword', 1], ['elixir', 1], ['goddess_icon', 1]] },
   'story-7-a': { gold: 450, items: [['elixir', 2], ['ether_ration', 2]] },
   'story-7-b': { gold: 450, items: [['elixir', 2], ['vulnerary', 3]] },
-  'story-8-a': { gold: 600, bexp: 400, items: [['brave_lance', 1], ['elixir', 2], ['antidote', 2]] },
-  'story-8-b': { gold: 500, items: [['brave_axe', 1], ['elixir', 1]] },
+  'story-8-a': { gold: 600, bexp: 400, items: [['brave_lance', 1], ['elixir', 2], ['antidote', 2], ['dracoshield', 1]] },
+  'story-8-b': { gold: 500, items: [['brave_axe', 1], ['elixir', 1], ['energy_drop', 1]] },
 };
 export const STORY_STEP_REWARDS: Readonly<Record<string, StepReward>> = STEP_REWARDS;
 export function stepReward(step: StoryStep, _chapter?: number): StepReward {
@@ -174,15 +174,15 @@ export const COMPANION_QUEST_DEFS: readonly CompanionQuest[] = [
   { character: 'ren', region: 2, mapId: 'fe7-ch20-eliwood', name: '雷恩的旧剑',
     briefing: '雷恩认出了林中据点缴获的一柄旧剑，想把它送回原主的墓前。陪他走一趟。',
     epilogue: '雷恩把剑插在墓前：「这柄剑的主人，曾替竞技场守过一道不该打开的门。」',
-    reward: { gold: 2_400, reputation: 0, items: [['killing_edge', 1], ['vulnerary', 2]] } },
+    reward: { gold: 2_400, reputation: 0, items: [['killing_edge', 1], ['vulnerary', 2], ['secret_book', 1]] } },
   { character: 'ig', region: 3, mapId: 'fe6-ch19-ilia', name: '伊格的矿坑',
     briefing: '伊格说矿区深处有他年轻时见过的刻痕，如今那里被人占了。跟他去看一眼。',
     epilogue: '伊格沉默了很久：「矿坑深处的刻痕，我年轻时见过。那时没人信我。」',
-    reward: { gold: 2_400, reputation: 0, items: [['killer_axe', 1], ['vulnerary', 2]] } },
+    reward: { gold: 2_400, reputation: 0, items: [['killer_axe', 1], ['vulnerary', 2], ['dracoshield', 1]] } },
   { character: 'mira', region: 5, mapId: 'fe8-ch12-eirika', name: '米拉的祈祷',
     briefing: '渡口外的村子很久没有回音，米拉想去为那里的人祈祷。有人守在村口，不让外人进去。',
     epilogue: '米拉合上祈祷书：「静寂的村子里，每一块墓碑上都有同一个符号。」',
-    reward: { gold: 2_400, reputation: 0, items: [['physic', 1], ['vulnerary', 2]] } },
+    reward: { gold: 2_400, reputation: 0, items: [['physic', 1], ['vulnerary', 2], ['talisman', 1]] } },
 ];
 
 export const companionQuestId = (character: CharacterId): string => `companion-${character}`;

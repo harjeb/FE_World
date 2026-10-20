@@ -21,7 +21,8 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
   const { state } = useSession();
   const [filter, setFilter] = useState<ItemFilter>('all');
   const [shop, setShop] = useState<ShopRow[] | null>(null);
-  const loadShop = () => session.shop().then(setShop).catch(() => setShop([]));
+  const [locked, setLocked] = useState<{ item: string; name: string; openDay: number }[]>([]);
+  const loadShop = () => session.shopView().then(view => { setShop(view.items); setLocked(view.locked); }).catch(() => setShop([]));
   useEffect(() => { void loadShop(); }, []);
 
   // 派遣中的角色不能搬运物品或使用道具（服务端拒绝），所以不列在这里。
@@ -144,6 +145,7 @@ export function PrepPage({ unit: wanted }: { unit: string | null }) {
                 </li>
               ))}
               {shop !== null && wares.length === 0 && <li className="empty-row">商店里没有这类物品</li>}
+              {filter === 'all' && locked.length > 0 && <li className="empty-row" data-locked-wares>未上架：{locked.map(l => `${l.name}（${plainDate(l.openDay)}起）`).join('、')}</li>}
               {shop === null && <li className="empty-row">读取商店…</li>}
             </ul>
           </section>
