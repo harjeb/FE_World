@@ -40,13 +40,14 @@ test('magic weapons, the levin sword and magic bows strike with 魔 against 魔�
     range(foe, weapon);
     me.stats.str = 0; me.stats.mag = 30; foe.stats.def = 50; foe.stats.res = 0;
     const f = forecast(state, me.id, me.pos, weapon, foe.id);
-    assert.equal(f.attacker.damage, 30 + WEAPONS[weapon].might * (f.attacker.effective ? 3 : 1), weapon);
-    assert.equal(unitCombatStats(state, me, weapon).attack, 30 + WEAPONS[weapon].might, weapon);
+    const rankAttack = WEAPONS[weapon].type === 'sword' ? 3 : WEAPONS[weapon].type === 'fist' ? 1 : 2;
+    assert.equal(f.attacker.damage, 30 + WEAPONS[weapon].might * (f.attacker.effective ? 3 : 1) + rankAttack, weapon);
+    assert.equal(unitCombatStats(state, me, weapon).attack, 30 + WEAPONS[weapon].might + rankAttack, weapon);
   }
   // 物理普攻武器授予的魔法战技另算：锤矛普通攻击仍按力量对防御。
   const { state, me, foe } = duel('fw_weapon_66', null);
   me.stats.str = 0; me.stats.mag = 30; foe.stats.def = 0; foe.stats.res = 50;
-  assert.equal(forecast(state, me.id, me.pos, 'fw_weapon_66', foe.id).attacker.damage, WEAPONS.fw_weapon_66.might);
+  assert.equal(forecast(state, me.id, me.pos, 'fw_weapon_66', foe.id).attacker.damage, WEAPONS.fw_weapon_66.might + 1);
 });
 
 test('configured effectiveness reaches every new bow, the brave bow and the anti-mount and beast weapons', () => {
@@ -193,6 +194,7 @@ test('the Dagda club only lends its own art, and the Sol lance heals 100% with S
 test('tome charges pay per cast: follow-ups and counters each spend one, and run dry instead of refilling', () => {
   const { state, me, foe } = duel('fire', 'thunder');
   me.stats.spd = 40; foe.stats.spd = 0; me.stats.skl = 200; foe.stats.skl = 200; foe.stats.hp = 500; foe.hp = 500;
+  me.stats.hp = 500; me.hp = 500;
   me.bookInstances = [{ id: 'fire', charges: 1, maxCharges: 20 }];
   foe.bookInstances = [{ id: 'thunder', charges: 5, maxCharges: 20 }];
   let f = forecast(state, me.id, me.pos, 'fire', foe.id);
@@ -228,10 +230,10 @@ test('shallows lower avoid in combat and terrain defense only blocks physical da
   state.map.tiles[foe.pos[1]][foe.pos[0]] = 'fort'; // def +2
   me.stats.str = 30; me.stats.mag = 30; foe.stats.def = 5; foe.stats.res = 5;
   const sword = forecast(state, me.id, me.pos, 'iron_sword', foe.id).attacker;
-  assert.equal(sword.damage, 30 + WEAPONS.iron_sword.might - 5 - 2, 'physical hits pay the fort defense');
+  assert.equal(sword.damage, 30 + WEAPONS.iron_sword.might + 3 - 5 - 2, 'physical hits pay the fort defense');
   me.weapons = ['levin_sword']; me.weaponInstances = [{ id: 'levin_sword', durability: 40, maxDurability: 40 }];
   const levin = forecast(state, me.id, me.pos, 'levin_sword', foe.id).attacker;
-  assert.equal(levin.damage, 30 + WEAPONS.levin_sword.might - 5, 'magic ignores the fort defense');
+  assert.equal(levin.damage, 30 + WEAPONS.levin_sword.might + 3 - 5, 'magic ignores the fort defense');
   assert.equal(unitCombatStats(state, foe, null).resistance, 5, '魔防 has no terrain part');
   assert.equal(unitCombatStats(state, foe, null).protection, 5 + 2, '物防 includes terrain');
 });

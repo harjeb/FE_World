@@ -8,6 +8,8 @@ export interface WeaponInstance { id: WeaponId; durability: number; maxDurabilit
 export interface Weapon {
   name: string;
   type: WeaponType;
+  // Virtual spell weapons retain the proficiency school, including offensive white magic.
+  proficiencyType?: WeaponType;
   rank: Rank;
   might: number;
   hit: number;

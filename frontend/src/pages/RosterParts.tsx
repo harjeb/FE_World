@@ -9,6 +9,7 @@ import { SKILLS, skillText } from '@common/data/skills.ts';
 import type { SkillId } from '@common/data/skills.ts';
 import { SPELLBOOK_BY_ID } from '@common/data/spellbooks.ts';
 import { STAT_KEYS, STAT_NAMES, WEAPON_TYPE_NAMES } from '@common/data/types.ts';
+import { weaponRankBonusText } from '@common/data/weapon-proficiency.ts';
 import { WEAPON_ART_BY_ID } from '@common/data/weapon-arts.ts';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
@@ -327,15 +328,17 @@ export function WeaponRanksPanel({ unit }: { unit: ServerUnit }) {
         {rows.map(w => {
           const span = w.next !== null ? w.next - w.floor : 0;
           const done = w.next !== null ? Math.min(span, w.exp - w.floor) : 0;
-          const tip = !w.cap ? `武器经验 ${w.exp}${w.next !== null && !w.capped ? ` / ${w.next} → 升至 ${w.nextRank}` : ''}；${cls.name}不能使用这类武器。`
+          const bonus = weaponRankBonusText(w.type, w.rank);
+          const tip = (!w.cap ? `武器经验 ${w.exp}${w.next !== null && !w.capped ? ` / ${w.next} → 升至 ${w.nextRank}` : ''}；${cls.name}不能使用这类武器。`
             : w.capped ? `已到${cls.name}上限 ${w.cap}；武器经验 ${w.exp}，换上上限更高的职业后继续提升。`
-              : `武器经验 ${w.exp} / ${w.next} → 升至 ${w.nextRank}；${cls.name}上限 ${w.cap}。`;
+              : `武器经验 ${w.exp} / ${w.next} → 升至 ${w.nextRank}；${cls.name}上限 ${w.cap}。`) + (bonus ? ` 使用时：${bonus}。` : '');
           return (
             <li key={w.type} className={w.cap ? '' : 'off'} title={tip}>
               <img className="px" src={weaponIcon(w.type)} width={24} height={24} alt="" />
               <span className="wr-r pixel">{w.rank}</span>
               <span className="wr-n">{WEAPON_TYPE_NAMES[w.type]}</span>
               <span className="wr-bar" aria-label={tip}><i style={{ width: w.next !== null && !w.capped ? `${Math.round(100 * done / Math.max(1, span))}%` : '100%' }} className={w.capped ? 'capped' : ''} /></span>
+              {bonus && <small className="wr-bonus">{bonus}</small>}
             </li>
           );
         })}

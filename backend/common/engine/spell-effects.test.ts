@@ -41,9 +41,9 @@ test('physical-defense spells read 物防, effective spells triple might, Luna i
   foe.stats.def = 0; foe.stats.res = 30; foe.classId = 'pegasus';
   const glass = spellForecast(state, 'me', [3, 3], 'fw_spell_8', 'foe');
   assert.equal(glass.attacker.effective, true);
-  assert.equal(glass.attacker.damage, 20 + 12 * 3);
+  assert.equal(glass.attacker.damage, 20 + 12 * 3 + 2);
   const luna = spellForecast(state, 'me', [3, 3], 'fw_spell_38', 'foe');
-  assert.equal(luna.attacker.damage, 20 + 1);
+  assert.equal(luna.attacker.damage, 20 + 1 + 2);
   foe.classId = 'cavalier';
   assert.equal(spellForecast(state, 'me', [3, 3], 'fw_spell_11', 'foe').attacker.effective, true);
   foe.tags = ['demon'];
@@ -131,23 +131,23 @@ test('Miracle Dodge, Magic Shield and Barrier buff an ally until the next own ph
   enemy.weapons = ['iron_sword']; enemy.ranks = { sword: 'SSS' }; enemy.stats.str = 40; enemy.stats.skl = 200; enemy.pos = [3, 5];
   ally.stats.def = 0; ally.stats.lck = 200; ally.weapons = []; ally.hp = 60;
   const strikes = runCombat(warded, enemy, ally, 'iron_sword', []);
-  assert.equal(strikes.find(s => s.by === 'foe' && s.hit)!.damage, Math.floor((40 + 5) / 2));
+  assert.equal(strikes.find(s => s.by === 'foe' && s.hit)!.damage, Math.floor((40 + 5 + 3) / 2));
   assert.equal(artBonus(unitById(warded, 'ally'), 'ward'), 0, 'the barrier is spent after one exchange');
   const again = runCombat(warded, enemy, ally, 'iron_sword', []);
-  assert.equal(again.find(s => s.by === 'foe' && s.hit)!.damage, 40 + 5);
+  assert.equal(again.find(s => s.by === 'foe' && s.hit)!.damage, 40 + 5 + 3);
 });
 
 test('healing books use their own base, Recover-style bonus rolls once, and area heals reach every injured ally', () => {
   const { state, ally } = field(['fw_spell_26', 'fw_spell_24', 'fw_spell_50']);
   ally.hp = 1;
   const big = cast(state, 'fw_spell_26', 'ally');
-  assert.equal(unitById(big.state, 'ally').hp, 1 + 20 + 30);
+  assert.equal(unitById(big.state, 'ally').hp, 1 + 20 + 30 + 5);
   let bonus = false;
   for (let seed = 0; seed < 80 && !bonus; seed++) {
     const trial = structuredClone(state); trial.rng = seedRng(`heal-${seed}`);
     unitById(trial, 'ally').hp = 1;
     const hp = unitById(cast(trial, 'fw_spell_24', 'ally').state, 'ally').hp;
-    assert.ok(hp === 1 + 20 + 3 || hp === 60, String(hp));
+    assert.ok(hp === 1 + 20 + 3 + 5 || hp === 60, String(hp));
     bonus ||= hp === 60;
   }
   assert.ok(bonus, 'a 10% bonus heal should occur within 80 casts');
@@ -155,7 +155,7 @@ test('healing books use their own base, Recover-style bonus rolls once, and area
   state.units.push(second); unitById(state, 'ally').hp = 5;
   const area = cast(state, 'fw_spell_50', 'ally');
   assert.equal(area.events.filter(e => e.t === 'heal').length, 2);
-  assert.equal(unitById(area.state, 'ally2').hp, 5 + 20 + 20);
+  assert.equal(unitById(area.state, 'ally2').hp, 5 + 20 + 20 + 5);
 });
 
 test('regen cannot be refreshed, torch has no target without fog, and the fortify staff heals its whole range', () => {
@@ -167,8 +167,8 @@ test('regen cannot be refreshed, torch has no target without fog, and the fortif
   ally.hp = 10;
   const other = structuredClone(ally); other.id = 'ally2'; other.pos = [6, 3]; other.hp = 10; state.units.push(other);
   const healed = step(state, { type: 'act', unit: 'me', to: me.pos, act: 'heal', target: 'ally', weapon: 'fortify' });
-  assert.equal(unitById(healed.state, 'ally').hp, 10 + 20 + 5);
-  assert.equal(unitById(healed.state, 'ally2').hp, 10 + 20 + 5);
+  assert.equal(unitById(healed.state, 'ally').hp, 10 + 20 + 5 + 5);
+  assert.equal(unitById(healed.state, 'ally2').hp, 10 + 20 + 5 + 5);
 });
 
 test('casting needs school permission, rank and, for manual spells, the learned manual', () => {

@@ -33,9 +33,9 @@ test('Apollo doubles effective skill after buffs only at full HP with the actual
   const before = JSON.stringify(state);
   const stats = unitCombatStats(state, me, 'silver_bow');
   assert.equal(stats.skl, 118);
-  assert.equal(stats.hit, WEAPONS.silver_bow.hit + 118 * 2 + 12);
-  assert.equal(stats.crit, WEAPONS.silver_bow.crit + 59);
-  assert.equal(forecast(state, me.id, me.pos, 'silver_bow', foe.id).attacker.crit, 34);
+  assert.equal(stats.hit, WEAPONS.silver_bow.hit + 118 * 2 + 12 + 10);
+  assert.equal(stats.crit, WEAPONS.silver_bow.crit + 59 + 5);
+  assert.equal(forecast(state, me.id, me.pos, 'silver_bow', foe.id).attacker.crit, 39);
   assert.equal(combatStats(me, WEAPONS.iron_sword).skl, 59);
   assert.equal(combatStats(me, null).skl, 59);
   assert.equal(inRange(me, 'silver_bow', me.pos, [4, 3]), false);

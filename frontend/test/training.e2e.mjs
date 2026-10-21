@@ -1,4 +1,4 @@
-// Focused browser coverage for multi-unit training, group rewards and a narrow viewport.
+// Focused browser coverage for training rewards, rank bonuses and a narrow viewport.
 // Run after npm run build; CHROME_BIN points to Chromium/Chrome/Edge.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -21,6 +21,9 @@ const account = store.db.prepare('SELECT id FROM players LIMIT 1').get();
 const player = store.getPlayer(account.id);
 player.day = 500;
 store.savePlayer(player);
+const veteran = store.unit(player.id, 'u_erin');
+veteran.ranks.sword = 'S'; veteran.weaponExp.sword = RANK_EXP.S;
+store.saveUnit(veteran, player.id);
 store.db.close();
 const origin = 'http://127.0.0.1:8616';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -100,8 +103,17 @@ try {
       assert.equal(unitAfter.weaponExp[type], Math.max(unitBefore.weaponExp[type] ?? 0, RANK_EXP[unitBefore.ranks[type] ?? 'E']) + 3);
     }
   }
+  await evaluate(`location.hash='#/roster/u_erin'`);
+  await until(() => evaluate(`!!document.querySelector('.wr-bonus')`), 'weapon rank bonuses missing');
+  assert.ok(await evaluate(`Array.from(document.querySelectorAll('.wr-bonus')).some(row=>row.innerText==='攻击 +3 · 命中 +5 · 必杀 +5')`));
+  assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth && document.querySelector('.wr-grid').scrollWidth<=document.querySelector('.wr-grid').clientWidth`), true, 'rank bonuses fit mobile');
+  if (shotDir) {
+    await evaluate(`document.querySelector('.wr-grid').scrollIntoView({block:'center'})`);
+    const image = await send('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(join(shotDir, 'proficiency-mobile.png'), Buffer.from(image.data, 'base64'));
+  }
   assert.deepEqual(errors, []);
-  console.log('PASS: 3-unit selection limit, groups, 12 rewards, 600 gold/3 days, mobile layout and no browser exceptions');
+  console.log('PASS: 3-unit selection limit, groups, 12 rewards, 600 gold/3 days, S-rank bonuses, mobile layout and no browser exceptions');
 } finally {
   // Let Chromium close its profile and renderers before falling back to process termination.
   if (socket?.readyState === WebSocket.OPEN) {

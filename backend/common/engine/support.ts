@@ -232,7 +232,7 @@ export function spellWeapon(book: SpellbookDef): Weapon {
   const routes = (e.effective ?? []).filter(tag => tag === 'beast' || tag === 'dragon');
   const tags = (e.effective ?? []).filter(tag => tag === 'demon');
   return {
-    name: book.name, type: hostile ? 'tome' : 'staff', rank: book.rank, might: book.might, hit: book.hit, weight: book.weight,
+    name: book.name, type: hostile ? 'tome' : 'staff', proficiencyType: book.study === 'whiteMagic' ? 'staff' : 'tome', rank: book.rank, might: book.might, hit: book.hit, weight: book.weight,
     crit: book.crit, range: book.range, maxCharges: book.maxCharges,
     ...(hostile ? {
       ...(book.defense === 'def' ? { defense: 'def' as const } : {}),

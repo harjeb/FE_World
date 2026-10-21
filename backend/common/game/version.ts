@@ -1,14 +1,21 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v24';
-// v24: thief looting is now a visible Fire Emblem-style three-step: the thief stays put until turn 3
+export const RULESET_VERSION = 'rules-v25';
+// v54 / rules-v25: C–S bonuses for all nine weapon types share the combat forecast,
+// resolution, unit stats and healing formulas. SS/SSS retain S bonuses; only used weapons count.
+// Ranks now require 0/50/200/600/1500/3000/5000/8000 cumulative XP; v3 unit migration
+// preserves learned ranks and earned in-rank points from either original or v2 curves.
+// New battles give 1 XP per actual strike (including misses, counters and follow-ups),
+// or per utility spell/staff use. Catalog-53 battles retain 2/exchange; earlier retain 2/map.
+// Older replays remain terminal snapshots; see docs/40-weapon-proficiency.md.
+// rules-v24: thief looting is now a visible Fire Emblem-style three-step: the thief stays put until turn 3
 // (thiefTurn), the player gets a scenario warning when it wakes, it steals into `carrying`, then flees to
 // the nearest map edge and leaves for good; killing it drops the stolen item back to the player.
-// v23: classic-map thieves (original class thief/assassin) loot the nearest closed chest or idle
+// rules-v23: classic-map thieves (original class thief/assassin) loot the nearest closed chest or idle
 // village when the map has any, taking the item out of the player's haul. One-shot quest objects
 // (once) are never stolen. Other enemies still cannot interact with objects; old battles are frozen.
-// v22: enemy AI follows Fire Emblem behaviour tables instead of a stronger search.
+// rules-v22: enemy AI follows Fire Emblem behaviour tables instead of a stronger search.
 // 固守 units now strike anything already in reach without leaving their tile (bosses, armour);
 // new battles give enemies a 5-cell 警戒半径 (7 on hard) so they hold position until a player unit
 // enters it, instead of charging across the map on turn one. Enemies also take a losing-but-safe
@@ -129,7 +136,7 @@ export const RULESET_VERSION = 'rules-v24';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 53;
+export const CATALOG_VERSION = 54;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

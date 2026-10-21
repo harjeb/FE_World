@@ -2,7 +2,7 @@ import { afterTraitExchange, hasTrait, prepareTraitExchange } from './personal-t
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import { TERRAINS } from '../maps/map.ts';
-import { combatProgress, forecast, resolveStrike, skipStrike, strikeRates } from './combat.ts';
+import { combatProgress, forecast, resolveStrike, skipStrike, strikeRates, weaponProficiencyBonus } from './combat.ts';
 import type { CombatArt } from './combat.ts';
 import { artState, clearArtEffects } from './arts.ts';
 import { addArtBuff, artHeal, consumeArtExchange, inflictArtStatus } from './art-effects.ts';
@@ -139,7 +139,7 @@ export function healAmount(healer: UnitState, target: UnitState, weaponId: Weapo
   const w = WEAPONS[weaponId];
   if (w.heal === 'full') return missing;
   const classHeal = (healer.classSkills ?? []).includes('sk-93') ? 5 : 0;
-  return Math.min(missing, healer.stats.mag + (w.healBase ?? 10) + (healer.skill === 'prayer' ? 5 : 0) + classHeal);
+  return Math.min(missing, healer.stats.mag + (w.healBase ?? 10) + weaponProficiencyBonus(healer, weaponId).heal + (healer.skill === 'prayer' ? 5 : 0) + classHeal);
 }
 
 // `extra` adds a separately rolled bonus (圣治 +100); it still never heals past max HP or a petrified unit.

@@ -39,7 +39,7 @@ test('a class weapon list does not grant proficiency or impose a beginner-only r
   const unit = createUnit('erin', 1, 'catalog-ranks', 0, false, { classId: 'gladiator' });
   unit.ranks.sword = 'E';
   assert.equal(canWield(toBattleUnit(unit, 'player', unit.id, [0, 0]), 'silver_sword'), false);
-  assert.equal(addWeaponExp(unit, 'sword', 1000), 'S');
+  assert.equal(addWeaponExp(unit, 'sword', RANK_EXP.S), 'S');
   assert.equal(canWield(toBattleUnit(unit, 'player', unit.id, [0, 0]), 'silver_sword'), true);
   const before = structuredClone(unit.weaponExp);
   assert.equal(addWeaponExp(unit, 'bow', 1000), null);

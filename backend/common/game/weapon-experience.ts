@@ -3,16 +3,60 @@ import type { WeaponType } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { BattleRecord } from './battles.ts';
 
-// Awakening-style WEXP: one award per exchange, regardless of follow-ups, damage or hit.
-export const WEAPON_EXP_PER_USE = 2;
+// Current battles grant one point for each actual strike, or each non-attack use.
+export const WEAPON_EXP_PER_USE = 1;
 
 export function battleWeaponExperience(record: BattleRecord): Map<string, Map<WeaponType, number>> {
+  if ((record.catalogVersion ?? 0) < 54) return legacyBattleWeaponExperience(record);
+  const gained = new Map<string, Map<WeaponType, number>>();
+  const players = new Set(record.initial.units.filter(unit => unit.side === 'player' && !unit.npc).map(unit => unit.id));
+  const add = (id: string, type: WeaponType | undefined, amount = WEAPON_EXP_PER_USE) => {
+    if (!players.has(id) || !type || amount <= 0) return;
+    const row = gained.get(id) ?? new Map<WeaponType, number>();
+    row.set(type, (row.get(type) ?? 0) + amount);
+    gained.set(id, row);
+  };
+  const typeOf = (id: string, cast = false): WeaponType | undefined => {
+    const weapon = WEAPONS[id as keyof typeof WEAPONS];
+    if (weapon && !cast) return weapon.type;
+    const spell = SPELLBOOK_BY_ID.get(id);
+    return spell ? spell.study === 'whiteMagic' ? 'staff' : 'tome' : weapon?.type;
+  };
+  let cast: { unit: string; spell: string } | undefined;
+  for (const event of record.events) {
+    if (event.t === 'cast') {
+      const spell = SPELLBOOK_BY_ID.get(event.spell);
+      if (spell && spell.role !== 'attack') add(event.unit, typeOf(event.spell, true));
+      cast = spell?.role === 'attack' ? { unit: event.unit, spell: event.spell } : undefined;
+    } else if (event.t === 'combat') {
+      const castAttack = cast?.unit === event.attacker && cast.spell === event.weapons[0];
+      cast = undefined;
+      for (const strike of event.strikes) {
+        const weapon = strike.by === event.attacker ? event.weapons[0] : strike.by === event.defender ? event.weapons[1] : null;
+        if (weapon) add(strike.by, typeOf(weapon, strike.by === event.attacker && castAttack));
+      }
+    }
+  }
+  // Area effects still spend one staff charge; misses and utility staves spend one too.
+  for (const initial of record.initial.units) {
+    if (!players.has(initial.id)) continue;
+    const final = record.state.units.find(unit => unit.id === initial.id);
+    if (!final) continue;
+    const charges = (books: typeof initial.bookInstances) => (books ?? [])
+      .filter(book => WEAPONS[book.id]?.type === 'staff').reduce((sum, book) => sum + book.charges, 0);
+    add(initial.id, 'staff', Math.max(0, charges(initial.bookInstances) - charges(final.bookInstances)));
+  }
+  return gained;
+}
+
+// Frozen catalog-53 battles retain the former two points per exchange/paid use.
+function legacyBattleWeaponExperience(record: BattleRecord): Map<string, Map<WeaponType, number>> {
   const gained = new Map<string, Map<WeaponType, number>>();
   const players = new Set(record.initial.units.filter(unit => unit.side === 'player' && !unit.npc).map(unit => unit.id));
   const add = (id: string, type: WeaponType | undefined, uses = 1) => {
     if (!players.has(id) || !type || uses <= 0) return;
     const row = gained.get(id) ?? new Map<WeaponType, number>();
-    row.set(type, (row.get(type) ?? 0) + uses * WEAPON_EXP_PER_USE);
+    row.set(type, (row.get(type) ?? 0) + uses * 2);
     gained.set(id, row);
   };
   const weaponType = (id: string): WeaponType | undefined => {

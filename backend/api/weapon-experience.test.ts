@@ -12,6 +12,7 @@ import { step } from '../common/engine/step.ts';
 import type { Action, UnitState } from '../common/engine/types.ts';
 import { RANKS } from '../common/data/types.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
+import { chapterOpenDay } from '../common/game/story.ts';
 
 function setup(t: { after: (fn: () => void) => void }) {
   const store = new Store(openDb(':memory:'));
@@ -58,15 +59,15 @@ function exchanges(record: BattleRecord, count = 3) {
   }
 }
 
-test('ranks require rising incremental costs, including 60 points from D to C', () => {
-  const totals = [0, 50, 110, 180, 260, 350, 450, 560];
+test('ranks require sharply rising incremental costs, including 150 points from D to C', () => {
+  const totals = [0, 50, 200, 600, 1500, 3000, 5000, 8000];
   RANKS.forEach((rank, i) => {
     assert.equal(rankFromExp(totals[i]), rank);
     if (i) assert.equal(rankFromExp(totals[i] - 1), RANKS[i - 1]);
   });
   const unit = createUnit('erin', 1, 'new-curve', 0);
   unit.ranks.sword = 'D'; unit.weaponExp.sword = 50;
-  assert.equal(addWeaponExp(unit, 'sword', 59), null);
+  assert.equal(addWeaponExp(unit, 'sword', 149), null);
   assert.equal(addWeaponExp(unit, 'sword', 1), 'C');
 });
 
@@ -79,7 +80,8 @@ test('old saves retain ranks, points within each rank and stats; reloading never
   const stats = structuredClone(unit.stats);
   normalizeUnit(unit);
   assert.deepEqual(unit.ranks, { sword: 'C', bow: 'A', fist: 'D' });
-  assert.deepEqual(unit.weaponExp, { sword: 123, bow: 279, fist: 50 });
+  assert.deepEqual(unit.weaponExp, { sword: 213, bow: 1519, fist: 50 });
+  assert.equal(unit.weaponExpVersion, 3);
   assert.deepEqual(unit.stats, stats);
   const once = structuredClone(unit);
   normalizeUnit(unit);
@@ -88,7 +90,7 @@ test('old saves retain ranks, points within each rank and stats; reloading never
   assert.deepEqual(store.unit(player.id, unit.id), once);
 });
 
-test('two attacks and an actual counter give 6 WEXP despite follow-ups and zero damage, even on defeat', t => {
+test('each actual strike counts, including follow-ups, counters and zero damage on defeat', t => {
   const { store, player, record, settle } = setup(t);
   exchanges(record);
   assert.equal(battleWeaponExperience(record).get('xp-sword')?.get('sword'), 6);
@@ -97,6 +99,20 @@ test('two attacks and an actual counter give 6 WEXP despite follow-ups and zero 
   assert.equal(unit.weaponExp.sword, 55);
   assert.equal(unit.ranks.sword, 'D');
   assert.ok(rewards.weaponRanks.some(row => row.unit === unit.id && row.type === 'sword' && row.rank === 'D'));
+});
+
+test('single strikes earn one point while brave follow-ups earn four, including misses', t => {
+  const { record, fighter, foe } = setup(t);
+  fighter.stats.spd = foe.stats.spd;
+  runCombat(record.state, fighter, foe, 'iron_sword', record.events);
+  assert.equal(battleWeaponExperience(record).get(fighter.id)?.get('sword'), 1);
+  record.events = [];
+  fighter.stats.spd = 30; fighter.ranks.sword = 'A'; fighter.weapons = ['brave_sword'];
+  fighter.weaponInstances = [{ id: 'brave_sword', durability: 40, maxDurability: 40 }];
+  const strikes = runCombat(record.state, fighter, foe, 'brave_sword', record.events);
+  assert.equal(strikes.filter(strike => strike.by === fighter.id).length, 4);
+  assert.ok(strikes.some(strike => strike.by === fighter.id && !strike.hit));
+  assert.equal(battleWeaponExperience(record).get(fighter.id)?.get('sword'), 4);
 });
 
 test('a ranged attack against a sword gives no WEXP to the defender who never counters', t => {
@@ -128,8 +144,43 @@ test('an already-started v52 battle retains its old once-per-map reward', t => {
   assert.equal(store.unit(player.id, 'xp-sword')!.weaponExp.sword, 51);
 });
 
+test('an already-started v53 battle retains two points per exchange', t => {
+  const { store, player, record, settle } = setup(t);
+  record.catalogVersion = 53;
+  exchanges(record);
+  settle();
+  assert.equal(store.unit(player.id, 'xp-sword')!.weaponExp.sword, 55);
+});
+
+test('v2 saves migrate once, preserving an existing S and earned points within each rank', t => {
+  const { store, player } = setup(t);
+  const unit = createUnit('erin', 1, 'v2-curve', 0);
+  unit.weaponExpVersion = 2;
+  unit.ranks = { sword: 'C', bow: 'A', fist: 'S' };
+  unit.weaponExp = { sword: 123, bow: 279, fist: 355 };
+  normalizeUnit(unit);
+  assert.deepEqual(unit.weaponExp, { sword: 213, bow: 1519, fist: 3005 });
+  assert.deepEqual(unit.ranks, { sword: 'C', bow: 'A', fist: 'S' });
+  assert.equal(unit.weaponExpVersion, 3);
+  const once = structuredClone(unit);
+  store.addUnit(player.id, unit);
+  assert.deepEqual(store.unit(player.id, unit.id), once);
+});
+
+test('continuous training and frequent combat still stay below S before chapter three', () => {
+  const days = chapterOpenDay(3);
+  assert.equal(days, 1482);
+  assert.ok(days < RANK_EXP.S, 'one point per day cannot reach S');
+  const battles = Math.floor(days / 10), strikes = battles * 8;
+  const total = strikes + days - battles * 2;
+  assert.equal(total, 2370);
+  assert.equal(rankFromExp(total), 'A');
+  const costs = RANKS.slice(1).map((rank, i) => RANK_EXP[rank] - RANK_EXP[RANKS[i]]);
+  assert.ok(costs.every((cost, i) => i === 0 || cost > costs[i - 1]));
+});
+
 for (const staff of ['fortify', 'sleep_staff'] as const) {
-  test(`${staff} grants 2 WEXP for one paid use, including area effects or a missed status`, t => {
+  test(`${staff} grants 1 WEXP for one paid use, including area effects or a missed status`, t => {
     const { record, caster, fighter, foe, perform, settle, store, player } = setup(t);
     caster.weapons = [staff]; caster.bookInstances = [{ id: staff, charges: 5, maxCharges: 5 }];
     caster.hp = 50; fighter.hp = 50; foe.stats.res = 200;
@@ -143,11 +194,11 @@ for (const staff of ['fortify', 'sleep_staff'] as const) {
     if (staff === 'fortify') assert.ok(events.filter(event => event.t === 'heal').length >= 2);
     else assert.ok(events.some(event => event.t === 'statusRoll' && !event.landed));
     settle();
-    assert.equal(store.unit(player.id, caster.id)!.weaponExp.staff, RANK_EXP.A + 2);
+    assert.equal(store.unit(player.id, caster.id)!.weaponExp.staff, RANK_EXP.A + 1);
   });
 }
 
-test('a two-target dragon art grants one paid use instead of one per target', t => {
+test('a two-target dragon art grants one point for each actual strike', t => {
   const { record, fighter, foe, perform } = setup(t);
   fighter.classId = 'dragonkin'; fighter.ranks = { dragon: 'B' };
   fighter.weapons = ['dragonstone']; fighter.weaponInstances = [{ id: 'dragonstone', durability: 30, maxDurability: 30 }];
@@ -161,7 +212,7 @@ test('a two-target dragon art grants one paid use instead of one per target', t 
   assert.equal(battleWeaponExperience(record).get(fighter.id)?.get('dragon'), 2);
 });
 
-for (const spellId of ['fw_spell_36', 'fw_spell_12', 'fw_spell_40']) {
+for (const spellId of ['fw_spell_36', 'fw_spell_12', 'fw_spell_40', 'light']) {
   test(`${spellId} grants one award to the correct school without double counting combat or healing`, t => {
     const { record, caster, fighter, foe, perform, settle, store, player } = setup(t);
     const spell = SPELLBOOK_BY_ID.get(spellId)!;
@@ -170,10 +221,12 @@ for (const spellId of ['fw_spell_36', 'fw_spell_12', 'fw_spell_40']) {
     record.initial = structuredClone(record.state);
     const events = perform({ type: 'act', unit: caster.id, to: caster.pos, act: 'cast', target: spell.role === 'heal' ? fighter.id : foe.id, spell: spellId });
     assert.ok(events.some(event => event.t === 'cast'));
-    if (spell.role === 'attack') assert.ok(events.some(event => event.t === 'combat' && event.strikes.filter(strike => strike.by === caster.id).length === 2));
+    const strikes = events.flatMap(event => event.t === 'combat' ? event.strikes.filter(strike => strike.by === caster.id) : []);
+    if (spellId === 'fw_spell_36') assert.equal(strikes.length, 2);
+    if (spell.role === 'attack') assert.ok(strikes.length > 0);
     settle();
     const unit = store.unit(player.id, caster.id)!;
-    assert.equal(unit.weaponExp[spell.study === 'whiteMagic' ? 'staff' : 'tome'], RANK_EXP.A + 2);
+    assert.equal(unit.weaponExp[spell.study === 'whiteMagic' ? 'staff' : 'tome'], RANK_EXP.A + (spell.role === 'attack' ? strikes.length : 1));
     assert.equal(unit.weaponExp[spell.study === 'whiteMagic' ? 'tome' : 'staff'], RANK_EXP.A);
   });
 }

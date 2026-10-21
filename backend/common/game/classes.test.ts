@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CLASSES, CLASS_PATHS } from '../data/classes.ts';
 import { PROMOTIONS, promotionsFor } from '../data/promotions.ts';
-import { createUnit, gainExperience, promote, addWeaponExp, toBattleUnit } from './model.ts';
+import { createUnit, gainExperience, promote, addWeaponExp, RANK_EXP, toBattleUnit } from './model.ts';
 import { seedRng } from '../engine/rng.ts';
 import { effectiveLevel } from '../engine/units.ts';
 import { createFieldBattle } from './battles.ts';
@@ -42,7 +42,7 @@ test('progression stops at 99, uses universal caps and weapon ranks belong to th
   assert.ok(u.stats.str >= 120);
   u.classId = 'gladiator';
   u.ranks.sword = 'E';
-  assert.equal(addWeaponExp(u, 'sword', 1000), 'S');
+  assert.equal(addWeaponExp(u, 'sword', RANK_EXP.S), 'S');
   const p = promotionsFor(u.classId)[0];
   promote(u, p);
   assert.equal(addWeaponExp(u, 'sword', 1), null);

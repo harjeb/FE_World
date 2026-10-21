@@ -57,7 +57,7 @@ test('forecast numbers follow the combat formulas', () => {
   const f = forecast(state, 'erin', [14, 7], 'killing_edge', 'axe1');
   assert.deepEqual(
     [f.attacker.attackSpeed, f.attacker.damage, f.attacker.hit, f.attacker.crit, f.attacker.followUpCrit, f.attacker.strikes],
-    [13, 12, 86, 34, 44, 2],
+    [13, 13, 86, 34, 44, 2],
   );
   assert.deepEqual([f.defender.damage, f.defender.hit, f.defender.crit, f.defender.strikes], [12, 37, 0, 1]);
   assert.equal(f.attacker.triangle, 1);
@@ -70,7 +70,7 @@ test('forecast numbers follow the combat formulas', () => {
   assert.equal(forecast(state, 'archer1', [11, 6], 'iron_bow', 'lina').attacker.effective, true);
   const armor = forecast(state, 'victor', [21, 7], 'armorslayer', 'brock');
   assert.equal(armor.attacker.effective, true);
-  assert.equal(armor.attacker.damage, 11 + 7 * 3 - 13 - 2);
+  assert.equal(armor.attacker.damage, 11 + 7 * 3 + 1 - 13 - 2);
 });
 
 test('an action is atomic: invalid commands throw and never mutate the input', () => {

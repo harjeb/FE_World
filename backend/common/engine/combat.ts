@@ -1,6 +1,7 @@
 import { hasTrait, prepareTraitExchange, traitBranches, traitOpening } from './personal-traits.ts';
 import type { TraitRolls } from './personal-traits.ts';
 import { WEAPONS, triangle } from '../data/weapons.ts';
+import { weaponRankBonus } from '../data/weapon-proficiency.ts';
 import type { Weapon, WeaponAilment, WeaponId } from '../data/weapons.ts';
 import { ART_MECHANICS } from '../data/art-mechanics.ts';
 import type { ArtMechanics } from '../data/art-mechanics.ts';
@@ -161,15 +162,20 @@ export function terrainBonus(state: BattleState, unit: UnitState, [x, y]: Point)
 export function isMagicWeapon(w: Weapon): boolean {
   return !!w.magic || w.type === 'tome' || w.type === 'dragon';
 }
+export function weaponProficiencyBonus(unit: UnitState, weaponId: WeaponId | null) {
+  const weapon = weaponId ? WEAPONS[weaponId] : undefined;
+  const type = weapon?.proficiencyType ?? weapon?.type;
+  return weaponRankBonus(type ?? 'sword', type ? unit.ranks[type] : 'E');
+}
 export function unitCombatStats(state: BattleState, unit: UnitState, weaponId: WeaponId | null, pos: Point = unit.pos) {
-  const w = weaponId ? WEAPONS[weaponId] : null, s = combatStats(unit, w);
+  const w = weaponId ? WEAPONS[weaponId] : null, s = combatStats(unit, w), rank = weaponProficiencyBonus(unit, weaponId);
   const mods = skillMods(state, { unit, pos, weapon: w, moved: unit.movedTurn === state.turn });
   const as = attackSpeed(unit, weaponId);
   return {
     skl: s.skl,
-    attack: w ? (isMagicWeapon(w) ? s.mag : s.str) + w.might + mods.attack + artBonus(unit, 'attack') : 0,
-    hit: w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + mods.hit + artBonus(unit, 'hit') : 0,
-    crit: w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(unit, 'crit') : 0,
+    attack: w ? (isMagicWeapon(w) ? s.mag : s.str) + w.might + rank.attack + mods.attack + artBonus(unit, 'attack') : 0,
+    hit: w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + rank.hit + mods.hit + artBonus(unit, 'hit') : 0,
+    crit: w ? w.crit + Math.floor(s.skl / 2) + rank.crit + mods.crit + artBonus(unit, 'crit') : 0,
     attackSpeed: as + mods.attackSpeed + artBonus(unit, 'as'),
     avoid: as * 2 + s.lck + terrainBonus(state, unit, pos).avoid + mods.avoid + artBonus(unit, 'avoid') + (w?.bonus?.avoid ?? 0),
     // 守方一侧（sideVs 的 defense / dodge，不含对手战技）：物防含地形防御，魔防不含；必杀回避。
@@ -190,7 +196,7 @@ export function weaponEffective(w: Weapon | null, foe: UnitState): boolean {
     || !!w.effectiveRoutes?.some(route => route === c.route) || !!w.effectiveTags?.some(tag => matches(foe, tag));
 }
 function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe: Fighter, foeWeapon: WeaponId | null, role: StrikeSpec['side'], art?: CombatArt, incoming?: CombatArt): SideForecast {
-  const w = me.weapon, fw = foe.weapon, s = combatStats(me.unit, w), fs = combatStats(foe.unit, fw);
+  const w = me.weapon, fw = foe.weapon, s = combatStats(me.unit, w), fs = combatStats(foe.unit, fw), rank = weaponProficiencyBonus(me.unit, meWeapon);
   // 逆克制：任一方持逆克制武器时本次克制反转，双方都持有则抵消。
   const raw = w && fw ? triangle(w.type, fw.type) : 0, tri = raw && !!w?.reaver !== !!fw?.reaver ? -raw as -1 | 1 : raw;
   const effective = weaponEffective(w, foe.unit) || !!art?.effective?.some(kind => matches(foe.unit, kind));
@@ -198,20 +204,20 @@ function sideVs(state: BattleState, me: Fighter, meWeapon: WeaponId | null, foe:
   // 战技按战技自己的伤害类型；普通攻击按武器（魔法武器、法术书与龙石为魔力）。
   const magic = art ? !!art.magic || w?.type === 'tome' || w?.type === 'dragon' : !!w && isMagicWeapon(w);
   const vsRes = !art && w?.defense ? w.defense === 'res' : magic;
-  const attack = w ? (magic ? s.mag : s.str) + (w.might + tri) * (effective ? 3 : 1) + mods.attack + artBonus(me.unit, 'attack') + (art?.might ?? 0) + (am?.attack ?? 0) + (im?.attack ?? 0)
+  const attack = w ? (magic ? s.mag : s.str) + (w.might + tri) * (effective ? 3 : 1) + rank.attack + mods.attack + artBonus(me.unit, 'attack') + (art?.might ?? 0) + (am?.attack ?? 0) + (im?.attack ?? 0)
     + (role === 'defender' ? w.guard?.attack ?? 0 : 0) : 0;
   const ft = terrainBonus(state, foe.unit, foe.pos), foeAm = incoming?.mods, foeIm = art?.foeMods;
   const defense = vsRes ? (!art && w?.ignoreRes ? 0 : fs.res) + fm.res + (foeAm?.res ?? 0) + (foeIm?.res ?? 0) + (fw?.bonus?.res ?? 0)
     : fs.def + fm.def + (foeAm?.def ?? 0) + (foeIm?.def ?? 0) + (role === 'attacker' ? fw?.guard?.def ?? 0 : 0);
   // 地形防御只挡物理伤害；魔法（对魔防）不吃地形。
   const protection = Math.max(0, defense - (art?.pierce ?? 0)) + (art?.ignoreTerrain || vsRes ? 0 : ft.def);
-  const hitRaw = w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + tri * 15 + mods.hit + artBonus(me.unit, 'hit') + (art?.hit ?? 0) + (am?.hit ?? 0) + (im?.hit ?? 0)
+  const hitRaw = w ? w.hit + s.skl * 2 + Math.floor(s.lck / 2) + tri * 15 + rank.hit + mods.hit + artBonus(me.unit, 'hit') + (art?.hit ?? 0) + (am?.hit ?? 0) + (im?.hit ?? 0)
     + (art ? w.artHit ?? 0 : 0) + (foe.unit.artEffects?.scent?.includes(me.unit.side) && art?.id !== 'fe_art_king_fang' ? 10 : 0) : 0;
   // 地形回避：削减战技只减正加成（最低 0）；浅滩这类负值照常扣。无视地形的战技两者都不计。
   const terrainAvoid = art?.ignoreTerrain ? 0 : ft.avoid > 0 ? Math.max(0, ft.avoid - (art?.terrainAvoid ?? 0)) : ft.avoid;
   const avoid = attackSpeed(foe.unit, foeWeapon) * 2 + fs.lck + terrainAvoid + fm.avoid + artBonus(foe.unit, 'avoid') + (foeAm?.avoid ?? 0) + (foeIm?.avoid ?? 0)
     + (fw?.bonus?.avoid ?? 0);
-  const critRaw = w ? w.crit + Math.floor(s.skl / 2) + mods.crit + artBonus(me.unit, 'crit') + (art?.crit ?? 0) + (am?.crit ?? 0) + (im?.crit ?? 0) : 0;
+  const critRaw = w ? w.crit + Math.floor(s.skl / 2) + rank.crit + mods.crit + artBonus(me.unit, 'crit') + (art?.crit ?? 0) + (am?.crit ?? 0) + (im?.crit ?? 0) : 0;
   const dodge = fs.lck + artBonus(foe.unit, 'dodge') + (foeAm?.dodge ?? 0) + (foeIm?.dodge ?? 0);
   const rawDamage = w ? attack + mods.damage - protection : 0;
   // 普通攻击／反击／施法的武器效果；主动战技不叠加武器的附毒、吸血或反噬。
