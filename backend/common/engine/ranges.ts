@@ -91,8 +91,11 @@ export function canFinishGather(state: BattleState): boolean {
 }
 
 export function canEscape(state: BattleState, unit: UnitState, at: Point): boolean {
+  // 敌军盗贼没有撤离点目标：带着贓物走到地图任意边缘即可离场。
+  if (unit.side !== 'player') {
+    return !!unit.carrying && (at[0] === 0 || at[1] === 0 || at[0] === state.map.width - 1 || at[1] === state.map.height - 1);
+  }
   const goal = state.goal;
-  if (unit.side !== 'player') return false;
   if (goal.kind !== 'escape' && goal.kind !== 'gather' && goal.kind !== 'escort') return false;
   return goal.exits.some(e => e[0] === at[0] && e[1] === at[1]);
 }

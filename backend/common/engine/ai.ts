@@ -10,7 +10,7 @@ import { interactionOptions } from './scenario.ts';
 import { seedRng } from './rng.ts';
 import { step } from './step.ts';
 import { spellTargets } from './support.ts';
-import { attackWeapons, cellKey, distance, isAsleep, isBerserk, keyPoint, living, staffWeapons } from './units.ts';
+import { attackWeapons, cellKey, distance, isAsleep, isBerserk, keyPoint, living, samePoint, staffWeapons } from './units.ts';
 import type { ActAction, BattleObject, BattleState, Point, UnitState } from './types.ts';
 
 // Deterministic rule AI (docs/03「服务端规则 AI」). Same state, same decision; only combat rolls are random.
@@ -27,7 +27,32 @@ function inVision(state: BattleState, unit: UnitState, anySide = false): boolean
   return foes.some(foe => !foe.petrified && distance(unit.pos, foe.pos) <= unit.vision!);
 }
 
-// 盗贼（火纹 thief）：先去拿最近的宝箱／村庄，没得拿了再当普通战斗单位。
+// 盗贼默认从第 3 回合才开始抢宝（docs/03）；抢到东西后立刻向地图边缘逃跑。
+export const THIEF_FIRST_TURN = 3;
+
+function thiefAwake(state: BattleState, unit: UnitState): boolean {
+  return state.turn >= (unit.thiefTurn ?? THIEF_FIRST_TURN);
+}
+
+// 抢完就向最近的边缘格逃跑，站到边缘就撤离。
+function escapeDecision(state: BattleState, unit: UnitState, stops: number[]): ActAction | null {
+  const { width, height } = state.map;
+  const borders: Point[] = [];
+  for (let x = 0; x < width; x++) borders.push([x, 0], [x, height - 1]);
+  for (let y = 0; y < height; y++) borders.push([0, y], [width - 1, y]);
+  if (borders.some(point => samePoint(point, unit.pos))) return { type: 'act', unit: unit.id, to: unit.pos, act: 'escape' };
+  const costs = travelCosts(state, unit, borders);
+  let best: number | null = null, bestCost = Infinity, bestNear = Infinity;
+  for (const stop of stops) {
+    const cost = costs.get(stop) ?? Infinity;
+    const near = distance(keyPoint(state, stop), unit.pos);
+    // 先看离边缘多近，同样近就走最少步数的那一格，避免为了贴边绕远路。
+    if (cost < bestCost || (cost === bestCost && near < bestNear)) { bestCost = cost; bestNear = near; best = stop; }
+  }
+  return best === null ? null : { type: 'act', unit: unit.id, to: keyPoint(state, best), act: 'wait' };
+}
+
+// 盗贼（火纹 thief）：先去拿最近的宝箱／村庄，抢到后逃跑；没得拿了再当普通战斗单位。
 function lootTarget(state: BattleState, unit: UnitState): BattleObject | null {
   // 主线/一次性任务物件（once）不让盗贼抢走，避免把任务物品变成永久损失。
   const objects = (state.objects ?? []).filter(object => (object.kind === 'chest' || object.kind === 'village')
@@ -43,6 +68,9 @@ function lootTarget(state: BattleState, unit: UnitState): BattleObject | null {
 }
 
 function thiefDecision(state: BattleState, unit: UnitState, stops: number[]): ActAction | null {
+  // 抢到手就先跑，不再碰其他物件。
+  if (unit.carrying) return escapeDecision(state, unit, stops);
+  if (!thiefAwake(state, unit)) return null;
   const object = lootTarget(state, unit);
   if (!object) return null;
   if (interactionOptions(state, unit, unit.pos).some(option => option.object === object.id)) {
@@ -176,6 +204,8 @@ function normalDecision(state: BattleState, unit: UnitState): ActAction {
   if (behavior === 'thief') {
     const loot = thiefDecision(state, unit, sortedStops(range));
     if (loot) return loot;
+    // 还没到动手的回合：只在自己格上还击，不主动迎上来。
+    if (!thiefAwake(state, unit)) return bestAttack(state, unit, [range.origin], 1, berserk) ?? stay;
   }
   if (behavior !== 'healer' && behavior !== 'thief' && !inVision(state, unit, berserk)) return stay;
   let stops = sortedStops(range);
@@ -245,6 +275,7 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
     if (unit.behavior === 'thief') {
       const loot = thiefDecision(state, unit, range.stops.size ? sortedStops(range) : [range.origin]);
       if (loot) { offer(loot, 500); continue; }
+      if (!thiefAwake(state, unit)) { offer(normalDecision(state, unit), -2000); continue; }
     }
     // 视野外不主动推进；固守只在自己格上出手。
     if (!hold && unit.behavior !== 'healer' && unit.behavior !== 'thief' && !inVision(state, unit)) {

@@ -26,7 +26,7 @@ import type { RunCarry } from './expedition.ts';
 import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
-import { ENEMY_VISION } from '../engine/ai.ts';
+import { ENEMY_VISION, THIEF_FIRST_TURN } from '../engine/ai.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
 import { materialDrops, materialSources, MATERIALS } from './materials.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
@@ -389,12 +389,14 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     const level = Math.max(1, Math.min(95, baseLevel + (boss ? policy.bossBonus : spread)));
     const classId = enemyClassForLevel(enemy.classId as UnitState['classId'], level);
     const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
+    const thief = !boss && (enemy.classId === 'thief' || enemy.classId === 'assassin') && lootable;
     return {
       aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level, vision: options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
-      // 按原始图的职业判断盗贼：等级回退后盗贼可能被降阶，抢宝身份不变。
-      behavior: boss ? 'hold' : (enemy.classId === 'thief' || enemy.classId === 'assassin') && lootable ? 'thief'
+      // 按原始图的职业判新盗贼：等级回退后盗贼可能被降阶，抢宝身份不变。
+      behavior: boss ? 'hold' : thief ? 'thief'
         : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
+      ...(thief ? { thiefTurn: THIEF_FIRST_TURN } : {}),
     };
   });
   placeClassicEnemies(map, enemySpecs, playerUnits.map(unit => unit.pos), objectBlocked);

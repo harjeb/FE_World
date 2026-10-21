@@ -77,6 +77,9 @@ export interface UnitState {
   escaped?: boolean;
   // 携带的物资箱数量（抢物资任务）。
   carried?: number;
+  // 盗贼：从第几回合开始动手抢；抢到手的战利品逃跑时带走，战死时掉回给我方。
+  thiefTurn?: number;
+  carrying?: { item: string; count: number; object?: string };
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
   boss?: boolean;
   behavior?: Behavior;

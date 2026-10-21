@@ -5,6 +5,8 @@ import { addEnemyReserves } from '../game/enemy-formation.ts';
 import { MOVEMENT, TERRAINS } from '../maps/map.ts';
 import { attackWeapons, cellKey, classOf, inBounds, living, samePoint, unitAt, wake } from './units.ts';
 import { WEAPONS } from '../data/weapons.ts';
+import { GAME_ITEMS } from '../game/items.ts';
+import type { ItemKey } from '../game/items.ts';
 import { EngineError } from './types.ts';
 import { breakIce } from './terrain.ts';
 import type {
@@ -87,9 +89,11 @@ export function damageObject(state: BattleState, unit: UnitState, objectId: stri
 
 function objectTreasure(state: BattleState, unit: UnitState, object: BattleObject, events: BattleEvent[]): void {
   if (!object.loot) return;
-  // 敌军盗贼拿走的东西不会进入我方带回清单，也不生成“获得”事件，相当于失去该宝箱。
   if (unit.side !== 'player') {
+    // 敌军盗贼把东西拿到手里：逃出地图就永久失去，战死则掉回给我方。
     addFlag(state, `stolen:${object.id}`);
+    unit.carrying = { item: object.loot.item, count: object.loot.count, object: object.id };
+    events.push({ t: 'scenario', event: `thief-steal:${object.id}`, message: `${unit.name}抢走了${GAME_ITEMS[object.loot.item as ItemKey]?.name ?? object.loot.item}，正往地图边缘逃跑！` });
     return;
   }
   if (!addLoot(state, `object:${object.id}`, object.loot.item, object.loot.count)) return;

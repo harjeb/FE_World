@@ -1,7 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v23';
+export const RULESET_VERSION = 'rules-v24';
+// v24: thief looting is now a visible Fire Emblem-style three-step: the thief stays put until turn 3
+// (thiefTurn), the player gets a scenario warning when it wakes, it steals into `carrying`, then flees to
+// the nearest map edge and leaves for good; killing it drops the stolen item back to the player.
 // v23: classic-map thieves (original class thief/assassin) loot the nearest closed chest or idle
 // village when the map has any, taking the item out of the player's haul. One-shot quest objects
 // (once) are never stolen. Other enemies still cannot interact with objects; old battles are frozen.

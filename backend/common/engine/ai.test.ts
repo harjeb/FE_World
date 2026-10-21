@@ -221,34 +221,72 @@ test('field enemies carry a difficulty-scaled vision radius; legacy battles stay
   assert.ok(make('hard').state.units.filter(u => u.side === 'enemy').every(u => u.vision === 7));
 });
 
-test('敌军盗贼会去拿附近的宝箱，拿走的东西不进我方带回清单', () => {
-  const state = createPinepassBattle('thief-ai');
-  state.map = { width: 14, height: 6, tiles: Array.from({ length: 6 }, () => Array(14).fill('plain')) };
-  const thief = createEnemy('thief', { classId: 'thief', level: 5, pos: [2, 2], behavior: 'thief' });
-  const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [12, 5] }); foe.side = 'player';
-  state.units = [thief, foe]; state.goal = { kind: 'rout' }; state.phase = 'enemy';
-  state.objects = [{ id: 'chest1', kind: 'chest', pos: [5, 2], state: 'closed', loot: { item: 'silver_sword', count: 1 } }];
-  const first = decide(state, thief);
-  assert.equal(first.act, 'wait', 'walks toward the chest before looting');
-  const moved = unitById(step(state, first).state, thief.id);
-  moved.acted = false;
-  const afterMove = step(state, first).state;
-  const current = unitById(afterMove, thief.id); current.acted = false;
-  const loot = decide(afterMove, current);
-  const distanceToChest = Math.abs(current.pos[0] - 5) + Math.abs(current.pos[1] - 2);
-  if (distanceToChest === 1) {
-    assert.equal(loot.act, 'interact');
-    const result = step(afterMove, loot);
-    assert.equal(result.state.objects![0].state, 'opened');
-    assert.deepEqual(result.state.loot ?? [], [], '敌方拿走的东西不会出现在我方战利品里');
-    assert.ok(result.state.scenario?.flags.includes('stolen:chest1'));
-    const player = result.state.units.find(unit => unit.side === 'player')!;
-    player.pos = [5, 3];
-    assert.deepEqual(interactionOptions(result.state, player, player.pos), [], '被抢走的宝箱我方也无法再取');
-  } else {
-    assert.equal(loot.act, 'wait', 'keeps walking while the chest is still two or more tiles away');
-  }
-  assert.ok(moved.pos[0] > thief.pos[0], 'moves toward the chest, not toward the player');
+test('敌军盗贼：前几回合不动手，动手前提示，抢到后带赃逃跑，被杀则掉回我方', () => {
+  const build = () => {
+    const state = createPinepassBattle('thief-ai');
+    state.map = { width: 14, height: 6, tiles: Array.from({ length: 6 }, () => Array(14).fill('plain')) };
+    const thief = createEnemy('thief', { classId: 'thief', level: 5, pos: [2, 2], behavior: 'thief', thiefTurn: 3 });
+    const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [12, 5] }); foe.side = 'player';
+    state.units = [thief, foe]; state.goal = { kind: 'rout' }; state.phase = 'enemy'; state.turn = 1;
+    state.objects = [{ id: 'chest1', kind: 'chest', pos: [5, 2], state: 'closed', loot: { item: 'silver_sword', count: 1 } }];
+    return { state, thief, foe };
+  };
+
+  // 第 1、2 回合：守着不动，等提示之后才开始。
+  const { state, thief } = build();
+  assert.deepEqual(decide(state, thief), { type: 'act', unit: 'thief', to: thief.pos, act: 'wait' });
+
+  // 第 3 回合开始时先给玩家一条明确提示，然后才开始走向宝箱。
+  state.turn = 2; state.phase = 'player';
+  const alerted = step(state, { type: 'endPhase' });
+  const warning = alerted.events.find(event => event.t === 'scenario' && event.event.startsWith('thief-alert'));
+  assert.ok(warning && 'message' in warning && warning.message.includes('抢夺'), 'warns the player before the thief acts');
+  assert.equal(alerted.state.turn, 3);
+  const walk = decide(alerted.state, unitById(alerted.state, thief.id)!);
+  assert.equal(walk.act, 'wait');
+  assert.ok(walk.to[0] > thief.pos[0], 'moves toward the chest, not toward the player');
+
+  // 抢到手里：提示里写明抢了什么，东西不进我方清单。
+  const lootState = build();
+  const looter = unitById(lootState.state, thief.id)!;
+  looter.pos = [4, 2]; lootState.state.turn = 3; looter.acted = false;
+  const stolen = step(lootState.state, decide(lootState.state, looter));
+  const stealNote = stolen.events.find(event => event.t === 'scenario' && event.event.startsWith('thief-steal'));
+  assert.ok(stealNote && 'message' in stealNote && stealNote.message.includes('银剑'), 'says what was taken');
+  assert.deepEqual(stolen.state.objects![0].state, 'opened');
+  assert.deepEqual(stolen.state.loot ?? [], [], 'loot stays with the thief, not with us');
+  assert.ok(stolen.state.scenario?.flags.includes('stolen:chest1'));
+  const player = stolen.state.units.find(unit => unit.side === 'player')!;
+  player.pos = [5, 3];
+  assert.deepEqual(interactionOptions(stolen.state, player, player.pos), [], 'the emptied chest cannot be looted twice');
+
+  // 抢完就跑：先走到边缘，下一回合撤离，赃物永久失去。
+  const runner = unitById(stolen.state, thief.id)!;
+  runner.pos = [1, 3]; runner.acted = false;
+  const flee = decide(stolen.state, runner);
+  assert.equal(flee.act, 'wait');
+  assert.deepEqual(flee.to, [0, 3], 'runs for the map edge with the loot');
+  const atEdge = step(stolen.state, flee).state;
+  const escaper = unitById(atEdge, thief.id)!; escaper.acted = false;
+  const out = step(atEdge, decide(atEdge, escaper));
+  assert.ok(out.events.some(event => event.t === 'escape' && event.unit === thief.id));
+  assert.ok(out.events.some(event => event.t === 'scenario' && event.event.startsWith('thief-escape')), 'the player sees the loot leave the map');
+  assert.deepEqual(out.state.loot ?? [], [], 'escaping with the loot loses it for good');
+
+  // 半路被击杀：赃物掉回给我方。
+  const killed = build();
+  const doomed = unitById(killed.state, thief.id)!;
+  doomed.pos = [4, 2]; doomed.acted = false; doomed.hp = 1;
+  killed.state.turn = 3;
+  const carry = step(killed.state, decide(killed.state, doomed)).state;
+  const bearer = unitById(carry, thief.id)!; bearer.acted = false;
+  carry.phase = 'player';
+  const killer = carry.units.find(unit => unit.side === 'player')!;
+  killer.pos = [3, 2]; killer.acted = false; killer.weapons = ['iron_sword'];
+  killer.ranks = { ...killer.ranks, sword: 'S' }; killer.stats.str = 30;
+  const dead = step(carry, { type: 'act', unit: killer.id, to: killer.pos, act: 'attack', target: bearer.id, weapon: 'iron_sword' });
+  assert.equal(dead.state.units.find(unit => unit.id === thief.id)!.alive, false);
+  assert.deepEqual(dead.state.loot?.map(entry => entry.item), ['silver_sword'], 'a killed thief drops the loot back to us');
 });
 
 test('没有可抢的东西时盗贼按普通单位作战', () => {

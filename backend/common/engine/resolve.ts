@@ -97,6 +97,15 @@ export function runCombat(state: BattleState, attacker: UnitState, defender: Uni
       events.push({ t: 'drop', unit: unit.id, boxes: unit.carried, at: [...unit.pos] });
       unit.carried = 0;
     }
+    // 抢宝的盗贼被击杀：贓物掉回给我方，不会凭空消失。
+    if (unit.carrying) {
+      state.loot ??= [];
+      const loot = unit.carrying;
+      const id = `object:${loot.object ?? unit.id}`;
+      if (!state.loot.some(entry => entry.id === id)) state.loot.push({ id, item: loot.item, count: loot.count });
+      events.push({ t: 'treasure', unit: (attacker.side === 'player' ? attacker : defender).id, object: loot.object ?? unit.id, item: loot.item, count: loot.count });
+      unit.carrying = undefined;
+    }
     events.push({ t: 'defeated', unit: unit.id });
   }
   // Surviving player units that took part gain experience, including a defender that only countered.

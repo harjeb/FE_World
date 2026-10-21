@@ -253,6 +253,9 @@ function applyAct(state: BattleState, action: ActAction, events: BattleEvent[], 
     finish(state, events, 'player', '压制王座');
     return;
   } else if (action.act === 'escape') {
+    // 盗贼带着贓物逃出地图：这部分宝物永久失去。
+    if (unit.carrying) events.push({ t: 'scenario', event: `thief-escape:${unit.id}`, message: `${unit.name}带着抢来的东西逃出了地图` });
+    unit.carrying = undefined;
     events.push({ t: 'escape', unit: unit.id });
     unit.acted = true;
     unit.alive = false;
@@ -465,5 +468,12 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     return;
   }
   state.turn += 1;
+  // 盗贼动手前给出明确提示，玩家能在敌方行动前看到。
+  for (const thief of living(state, 'enemy')) {
+    if (thief.behavior !== 'thief' || thief.carrying) continue;
+    if (thief.thiefTurn !== undefined && state.turn === thief.thiefTurn) {
+      events.push({ t: 'scenario', event: `thief-alert:${thief.id}`, message: `${thief.name}盯上了宝物，准备动手抢夺！` });
+    }
+  }
   startPhase(state, 'player', events);
 }
