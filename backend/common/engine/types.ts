@@ -80,6 +80,8 @@ export interface UnitState {
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
   boss?: boolean;
   behavior?: Behavior;
+  // 警戒半径（火纹式“进射程才动”）：友方单位进入该曼哈顿距离内才会主动行动；缺省不限。
+  vision?: number;
   acted: boolean;
   movedTurn?: number;
   // 庇护: def +2 while state.turn equals this turn.

@@ -181,3 +181,41 @@ test('attack scoring still favors a high-probability kill over an ordinary nonle
   assert.equal(action.act, 'attack');
   assert.ok('target' in action && action.target === foe.id);
 });
+
+test('a 固守 unit attacks in place but never leaves its tile', () => {
+  const state = createPinepassBattle('hold-ai');
+  state.map = { width: 12, height: 6, tiles: Array.from({ length: 6 }, () => Array(12).fill('plain')) };
+  const guard = createEnemy('guard', { classId: 'general', level: 20, pos: [5, 3], behavior: 'hold' });
+  const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [6, 3] });
+  foe.side = 'player';
+  state.units = [guard, foe]; state.goal = { kind: 'rout' }; state.phase = 'enemy';
+  const action = decide(state, guard);
+  assert.equal(action.act, 'attack', 'a guard-type boss strikes a foe already in reach');
+  assert.deepEqual(action.to, guard.pos, 'and stays on its own tile');
+  foe.pos = [11, 5];
+  assert.deepEqual(decide(state, guard), { type: 'act', unit: guard.id, to: guard.pos, act: 'wait' });
+});
+
+test('警戒半径 keeps enemies from marching until a player unit is inside it', () => {
+  const scene = (foeAt: [number, number], vision?: number) => {
+    const state = createPinepassBattle('vision-ai');
+    state.map = { width: 24, height: 6, tiles: Array.from({ length: 6 }, () => Array(24).fill('plain')) };
+    const enemy = createEnemy('enemy', { classId: 'fighter', level: 20, pos: [2, 3] });
+    const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: foeAt }); foe.side = 'player';
+    if (vision === undefined) delete enemy.vision; else enemy.vision = vision;
+    state.units = [enemy, foe]; state.goal = { kind: 'rout' }; state.phase = 'enemy';
+    return { state, enemy };
+  };
+  const far = scene([15, 3], 5);
+  assert.deepEqual(decide(far.state, far.enemy), { type: 'act', unit: far.enemy.id, to: far.enemy.pos, act: 'wait' });
+  const near = scene([7, 3], 5);
+  assert.equal(decide(near.state, near.enemy).act, 'attack', 'pursues once the player is inside the radius');
+  const blank = scene([15, 3]);
+  assert.notDeepEqual(decide(blank.state, blank.enemy).to, blank.enemy.pos, 'no radius keeps the old unrestricted advance');
+});
+
+test('field enemies carry a difficulty-scaled vision radius; legacy battles stay unrestricted', () => {
+  const make = (aiDifficulty?: 'normal' | 'hard') => createClassicBattle([createUnit('erin', 5, 'hero')], { mapId: 'fe1-ch20', seed: 'vision', day: 0, aiDifficulty });
+  assert.ok(make('normal').state.units.filter(u => u.side === 'enemy').every(u => u.vision === 5));
+  assert.ok(make('hard').state.units.filter(u => u.side === 'enemy').every(u => u.vision === 7));
+});

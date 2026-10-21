@@ -97,6 +97,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 32, text: 'v32: 目录48。新增目标类支线任务（悬赏，bounty-*，11项）：不用接取，满足章节门槛后自动计数——击败指定职业路线的敌军（剑术、弓术、重甲、魔法、飞行或任意）、赢得战斗、完整通关副本，计入普通出战（野外、任务、副本图、挑战塔、单挑），竞技场和年度赛事不计；完成后记入questsDone，用CLAIM_QUEST_REWARD交付，START_QUEST拒绝。GET_QUESTS新增bounties与board（任务板：4～7条现在能做、能交的任务，标明主线／支线、状态与进度）。' },
     { version: 33, text: 'v33: 规则rules-v19、目录49。基础武器按木／铜／铁／钢／银五档统一；草药、矿物、木材各24种，共72种六阶素材，地区产地交叠并含稀有种。野图、扫荡、副本、派遣、任务及宝箱采用区域素材，新增活动出发时冻结随机奖励；旧活动缺少冻结字段时保留旧奖励。锻造按对应原料消耗（钢用铁矿＋煤，银用银矿），工坊增加全部素材的来源和用途。GET_CATALOG新增materials、weaponSeries、recipes；GET_TODAY.sortieRegions新增materials；PLANT支持可选recipeId（默认plant_herb），高阶种植需母株。旧herb／ore／wood物品ID保留。部署前结束活动战斗／远征并备份；旧规则回放保持冻结。' },
     { version: 34, text: 'v34: 规则rules-v21、目录52。TRAIN新增unitIds/groupId分组训练：第1/2/3/4年最多1/3/5/8人，每人200金币，共3日；agility剑/弓/拳、power斧/枪/兽、mystic拳/杖/理/龙，组内每种武器各获3经验。GET_TODAY训练新增maxUnits/groups，报价按总人数计费；保留旧单人单项参数。E到D需50经验，已有等级不降。开局伙伴使用初级职业。人类PROMOTE可跨全部职业，仍检查资格与武器门槛。飞行固定7移动，第3阶起非重甲步行6/骑乘7，龙类武器和战技仅相邻1格。随机野图按可出战人数和章节限制前期3–5敌军，分散布局需8名可用队员；已有远征冻结计划不变。' },
+    { version: 35, text: 'v35: 规则rules-v22，目录不变。敌军 AI 改为数据化行为：固守单位不再只挨打，射程内有目标就原地出手；新建战斗的敌军带警戒半径（普通5格／困难7格），己方进入半径前不主动推进会合；困难仍以更多人数、更高属性、备队与更宽警戒为主要手段，并保留原有的有界连续行动搜索；预计能造成伤害且不会阵亡时接受略亏的交换，零伤害或必死仍放弃。旧战斗与回放不受影响。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

@@ -15,6 +15,15 @@ import type { ActAction, BattleState, Point, UnitState } from './types.ts';
 const KILL_WEIGHT = 50;
 // 护卫 units stay within this many cells of their commander.
 export const GUARD_RADIUS = 3;
+// 火纹式警戒：新建敌军的默认警戒半径，困难档加大（数据旋钮，不是更聪明的搜索）。
+export const ENEMY_VISION = { normal: 5, hard: 7 } as const;
+
+// A unit with a vision radius only starts moving once a foe is inside it (火纹「进射程才动」).
+function inVision(state: BattleState, unit: UnitState, anySide = false): boolean {
+  if (unit.vision === undefined) return true;
+  const foes = living(state).filter(foe => foe.id !== unit.id && (anySide || foe.side !== unit.side));
+  return foes.some(foe => !foe.petrified && distance(unit.pos, foe.pos) <= unit.vision!);
+}
 
 function sortedStops(range: MoveRange): number[] {
   return [...range.stops].sort((a, b) => a - b);
@@ -129,8 +138,10 @@ function normalDecision(state: BattleState, unit: UnitState): ActAction {
   if (isAsleep(unit)) return stay;
   const berserk = isBerserk(unit);
   const behavior = berserk ? 'aggressive' : unit.behavior ?? 'aggressive';
-  if (behavior === 'hold') return stay;
   const range = moveRange(state, unit);
+  // 固守：不离开原地，但射程内有目标就出手（火纹守卫型首领/重甲）。
+  if (behavior === 'hold') return bestAttack(state, unit, [range.origin], 1, berserk) ?? stay;
+  if (behavior !== 'healer' && !inVision(state, unit, berserk)) return stay;
   let stops = sortedStops(range);
   const boss = living(state, unit.side).find(u => u.boss && u.id !== unit.id);
   if (behavior === 'guard' && boss) {
@@ -188,12 +199,18 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
   for (const unit of actors) {
     if (!unit.alive || unit.acted || unit.petrified || isAsleep(unit)) continue;
     const stay: ActAction = { type: 'act', unit: unit.id, to: unit.pos, act: 'wait' };
-    if (isBerserk(unit) || unit.behavior === 'hold') {
+    if (isBerserk(unit)) {
       offer(normalDecision(state, unit), -2000);
       continue;
     }
     const range = moveRange(state, unit);
-    let stops = sortedStops(range);
+    const hold = unit.behavior === 'hold';
+    // 视野外不主动推进；固守只在自己格上出手。
+    if (!hold && unit.behavior !== 'healer' && !inVision(state, unit)) {
+      offer(normalDecision(state, unit), -2000);
+      continue;
+    }
+    let stops = hold ? [range.origin] : sortedStops(range);
     const boss = living(state, unit.side).find(u => u.boss && u.id !== unit.id);
     if (unit.behavior === 'guard' && boss) {
       const near = stops.filter(key => distance(keyPoint(state, key), boss.pos) <= GUARD_RADIUS);
@@ -213,7 +230,7 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
       byTarget.get(attack.target.id)!.push(attack);
     }
     const goals = unit.behavior === 'guard' && boss ? [boss.pos] : foes.map(u => u.pos);
-    const fallback = unit.behavior === 'opportunist' ? stay : unit.behavior === 'healer'
+    const fallback = hold ? stay : unit.behavior === 'opportunist' ? stay : unit.behavior === 'healer'
       ? followAllies(state, unit, stops, range, danger) : cautiousAdvance(state, unit, stops, goals, danger);
     offer(fallback, -1000 - Math.min(100, ...foes.map(foe => distance(unit.pos, foe.pos))));
     if (search && unit.behavior !== 'opportunist') {
@@ -251,6 +268,8 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
       - (unit.boss ? 150 : 80) * f.attackerDies - (exposure - exposureBefore) * (8 + 12 * (1 - hpAfter))
       + terrain.def * 2 + terrain.avoid / 10 - overkill * 0.15;
     if (score > 0) offer(action, score);
+    // 火纹式交战规则：能造成伤害且不送死就出手，即使交换比略亏；重排仍在好交易之后。
+    else if (f.expectedDealt > 0 && f.attackerDies === 0) offer(action, 0.5);
   }
   return ranked.sort((a, b) => b.score - a.score);
 }

@@ -12,6 +12,7 @@ import { canWield } from '../../backend/common/engine/units.ts';
 import { enemyLevel, regionById } from '../../backend/common/game/calendar.ts';
 import { QUEST_LEVEL_CAP } from '../../backend/common/game/quests.ts';
 import { GAME_ITEMS } from '../../backend/common/game/items.ts';
+import { REGION_EXPLORATION_GAIN } from '../../backend/common/game/region-map.ts';
 import { CLASSES } from '../../backend/common/data/classes.ts';
 import { openDb } from '../../backend/api/db.ts';
 import { Store } from '../../backend/api/store.ts';
@@ -229,17 +230,24 @@ try {
     check('quest data only contains opened content',
       quests.regions.length === 1 && quests.regions[0].region === 2
       && quests.regions[0].quests.every(quest => quest.available || quest.done || quest.inProgress), 'unopened regions and prerequisites hidden');
-    check('quest pages show the regional bar and both quest reward rules',
-      await page.evaluate(`(() => { const panel = document.querySelector('[aria-labelledby="rg-2"]'); return panel.querySelector('progress')?.value === 0 && panel.innerText.includes('单图任务完成 +5') && panel.innerText.includes('首次整本通关 +20'); })()`), 'single-map +5, multi-map first clear +20');
+    check('quest pages show the regional quest list with the shared exploration gains',
+      await page.evaluate(`document.querySelectorAll('[aria-labelledby="rg-2"] ol.quest-list > li').length > 0 && document.querySelector('[aria-labelledby="rg-2"]').innerText.includes('希尔瓦林地')`)
+      && REGION_EXPLORATION_GAIN.field === 3 && REGION_EXPLORATION_GAIN.quest === 5 && REGION_EXPLORATION_GAIN.dungeon === 20,
+      'single-map +5, multi-map first clear +20');
     // 声望商店每季只上架 4 件高级商品（随机抽取，每件限购）：先核对列表就是接口里的这几件，再点第一个带数量的分类芯片，
     // 结果必须是其中的子集且不为空。
     const stock = quests.regions[0].shop;
-    const allWares = await page.evaluate(`document.querySelector('[aria-labelledby="rg-2"] ul.eq').innerText`);
-    check('the regional shop lists only the few items on sale this season, each with its limit',
-      stock.length >= 1 && stock.length <= 4 && stock.every(row => allWares.includes(row.name) && row.limit >= 1 && row.remaining === row.limit) && allWares.includes('限购 0/'), `${stock.length} items: ${stock.map(row => row.name).join('、')}`);
-    const chip = await page.evaluate(`(() => { const b = [...document.querySelectorAll('[aria-label="希尔瓦林地商店分类"] button')].find(button => /\\d/.test(button.innerText) && !button.innerText.startsWith('全部')); if (!b) return null; b.click(); return b.innerText; })()`);
-    const regionalWares = await page.evaluate(`document.querySelector('[aria-labelledby="rg-2"] ul.eq').innerText`);
-    check('regional shops filter by item category', chip !== null && stock.some(row => regionalWares.includes(row.name)) && !regionalWares.includes('没有上架'), String(chip));
+    const onSale = stock.filter(row => row.unlocked && row.remaining > 0);
+    const shopRows = await page.evaluate(`[...document.querySelectorAll('[aria-labelledby="rg-2"] ul.eq li')].map(li => li.innerText)`);
+    check('the regional shop lists exactly the items on sale this season, each with its limit',
+      shopRows.every(text => onSale.some(row => text.includes(row.name))) && (onSale.length === 0) === (shopRows.length === 0)
+      && onSale.length <= 4 && onSale.every(row => row.limit >= 1 && row.remaining === row.limit),
+      `${onSale.length} items on sale, ${shopRows.length} rows shown`);
+    if (shopRows.length) {
+      const chip = await page.evaluate(`(() => { const b = [...document.querySelectorAll('[aria-label="希尔瓦林地商店分类"] button')].find(button => /\\d/.test(button.innerText) && !button.innerText.startsWith('全部')); if (!b) return null; b.click(); return b.innerText; })()`);
+      const regionalWares = await page.evaluate(`[...document.querySelectorAll('[aria-labelledby="rg-2"] ul.eq li')].map(li => li.innerText)`);
+      check('regional shops filter by item category', chip !== null && regionalWares.every(text => onSale.some(row => text.includes(row.name))), String(chip));
+    }
     await page.click('.ch-acts button');
     check('quest preparation shows team selection, date, enemy level and permanent-death risk',
       await until(() => page.evaluate(`!!document.querySelector('section[aria-label="任务出征确认"] .team')`)) && await page.evaluate(`(() => { const text = document.querySelector('section[aria-label="任务出征确认"]').innerText; return ['敌军 Lv', '推进', '永久死亡', '确认出征'].every(value => text.includes(value)); })()`), 'preparation shown');

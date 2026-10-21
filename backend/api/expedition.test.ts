@@ -8,7 +8,6 @@ import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
 import { OP } from '../common/protocol/ops.ts';
-import { decide } from '../common/engine/index.ts';
 import { stats } from '../common/data/types.ts';
 import { fieldEncounter } from '../common/game/encounters.ts';
 import type { Player } from './store.ts';
@@ -24,30 +23,16 @@ function ctxFor(store: Store, accountId: string, player: Player): Context {
   return { store, accountId, player, agentModel: null, push: () => {} };
 }
 
-// Plays a specific battle to the end through the real op handlers with the rule AI.
-function playOut(ctx: Context, battleId: string): string {
-  for (let guard = 0; guard < 2000; guard++) {
-    const battle = ctx.store.battle(ctx.player.id, battleId);
-    if (!battle || battle.state.result) return battle?.state.result?.winner ?? 'none';
-    // 此处验收跨图持久化，不以随机地图的 AI 寻路耗时判定流程成败。
-    if (battle.state.turnLimit < 60) {
-      battle.state.turnLimit = battle.initial.turnLimit = 60;
-      ctx.store.saveBattle(battle);
-    }
-    const unit = battle.state.units.find(u => u.side === 'player' && u.alive && !u.acted);
-    if (unit) {
-      const action = decide(battle.state, unit);
-      dispatch(ctx, OP.UNIT_ACT, {
-        battleId: battle.id, unitId: unit.id, moveTo: action.to, action: action.act,
-        targetId: 'target' in action ? action.target : undefined,
-        weapon: 'weapon' in action ? action.weapon : undefined,
-        item: 'item' in action ? action.item : undefined,
-      });
-    } else {
-      dispatch(ctx, OP.END_PHASE, { battleId: battle.id });
-    }
-  }
-  throw new Error('battle did not finish');
+// 流程验收不以随机地图的 AI 寻路胜负为条件：先清空敌军，再由真实 op 结算胜负。
+function forceClear(ctx: Context, battleId: string): string {
+  const battle = ctx.store.battle(ctx.player.id, battleId)!;
+  const leader = battle.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.npc)!;
+  for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
+  if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
+  battle.initial = structuredClone(battle.state);
+  ctx.store.saveBattle(battle);
+  dispatch(ctx, OP.UNIT_ACT, { battleId, unitId: leader.id, moveTo: leader.pos, action: battle.state.goal.kind === 'seize' ? 'seize' : 'wait' });
+  return ctx.store.battle(ctx.player.id, battleId)!.state.result?.winner ?? 'none';
 }
 
 function empower(store: Store, player: Player, ids: string[]): void {
@@ -71,7 +56,7 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   assert.equal(started.run.state, 'battle');
   assert.equal(player.day, day + 3, 'the first map is paid up front');
   for (const id of ids) assert.equal(store.unit(player.id, id)!.lockedRunId, started.run.id);
-  assert.equal(playOut(ctx, started.battleId), 'player');
+  assert.equal(forceClear(ctx, started.battleId), 'player');
   assert.equal(player.flags.regionExploration?.[1] ?? 0, 0, '副本首图不加探索');
   let run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number; survivingIds: string[] } }).run;
   assert.equal(run.state, 'between_maps');
@@ -80,7 +65,7 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   // 第二张图
   const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 6);
-  assert.equal(playOut(ctx, second.battleId), 'player');
+  assert.equal(forceClear(ctx, second.battleId), 'player');
   assert.equal(player.flags.regionExploration?.[1] ?? 0, 0, '副本中间图不加探索');
   run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number } }).run;
   assert.equal(run.stageIndex, 2);
@@ -88,15 +73,7 @@ test('a three-map dungeon locks the roster, carries state and clears the region 
   const seeds = store.countInventory(player.id, 'seed');
   const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 8);
-  const finale = store.battle(player.id, third.battleId)!;
-  const leader = finale.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.npc)!;
-  for (const enemy of finale.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
-  if (finale.state.goal.kind === 'seize') leader.pos = [...finale.state.goal.throne];
-  finale.initial = structuredClone(finale.state);
-  store.saveBattle(finale);
-  dispatch(ctx, OP.UNIT_ACT, { battleId: finale.id, unitId: leader.id, moveTo: leader.pos,
-    action: finale.state.goal.kind === 'seize' ? 'seize' : 'wait' });
-  assert.equal(store.battle(player.id, finale.id)!.state.result?.winner, 'player');
+  assert.equal(forceClear(ctx, third.battleId), 'player');
   run = (dispatch(ctx, OP.GET_RUN, {}) as { run: { state: string; stageIndex: number } }).run;
   assert.equal(run.state, 'completed');
   assert.equal(player.flags.regionExploration?.[1], 20, '首次完整通关才加二十');

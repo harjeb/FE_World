@@ -86,7 +86,7 @@ const HARD_GEAR: Partial<Record<WeaponId, WeaponId>> = {
   heal: 'recover', recover: 'physic',
 };
 
-export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; name?: string; tags?: UnitState['tags'] }
+export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; vision?: number; name?: string; tags?: UnitState['tags'] }
 
 export function createEnemy(id: string, spec: EnemySpec): UnitState {
   const hard = spec.aiDifficulty === 'hard';
@@ -127,6 +127,7 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
     id, name: spec.name ?? ENEMY_NAMES[nextU32(seedRng(`${spec.seed ?? id}:name:${id}`)) % ENEMY_NAMES.length], side: 'enemy', classId: spec.classId, level, exp: 0,
     stats: statsValue, con: hard ? 8 + int(rules.conMin, rules.conMax) : 8, hp: statsValue.hp, pos: [spec.pos[0], spec.pos[1]], weapons,
     items: [], ranks, boss: spec.boss, behavior, acted: false, alive: true,
+    ...(spec.vision === undefined ? {} : { vision: spec.vision }),
     ...(spec.tags ? { tags: [...spec.tags] } : {}),
   };
 }

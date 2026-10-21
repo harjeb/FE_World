@@ -1,7 +1,12 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v21';
+export const RULESET_VERSION = 'rules-v22';
+// v22: enemy AI follows Fire Emblem behaviour tables instead of a stronger search.
+// 固守 units now strike anything already in reach without leaving their tile (bosses, armour);
+// new battles give enemies a 5-cell 警戒半径 (7 on hard) so they hold position until a player unit
+// enters it, instead of charging across the map on turn one. Enemies also take a losing-but-safe
+// exchange when they can deal damage and will not die. Old battles have no radius and stay unrestricted.
 // v53: Fire Emblem-inspired cumulative WEXP costs 50/60/70/80/90/100/110 per rank.
 // normalizeUnit migrates each old unit once, keeping learned ranks and points within the rank.
 // New battles grant 2 WEXP per actual exchange/cast/staff use; unopened counters grant none,

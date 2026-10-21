@@ -190,7 +190,16 @@ test('old saves and player auto-actions retain normal decisions', () => {
 test('hard mode respects hold, guard, sleep, petrification and berserk rules', () => {
   const state = focusBoard(), unit = state.units[0];
   unit.behavior = 'hold';
+  // 固守：不离开原地，但射程内有目标就出手（火纹守卫型首领/重甲）。
+  const held = decide(state, unit);
+  assert.deepEqual(held.to, unit.pos, 'hold never leaves its tile');
+  assert.equal(held.act, 'attack', 'hold attacks a foe already in reach');
+  unit.statuses = { sleep: true };
+  assert.equal(decide(state, unit).act, 'wait');
+  delete unit.statuses;
+  for (const foe of living(state, 'player')) foe.pos = [11, 7];
   assert.deepEqual(decide(state, unit), { type: 'act', unit: unit.id, to: unit.pos, act: 'wait' });
+  for (const foe of living(state, 'player')) foe.pos = [[3, 1], [3, 3]][foe.id === 'tank' ? 0 : 1];
   unit.behavior = 'guard'; unit.artEffects = undefined;
   const boss = state.units[1]; boss.boss = true; boss.pos = [0, 2]; boss.behavior = 'hold';
   assert.ok(distance(decide(state, unit).to, boss.pos) <= 3);

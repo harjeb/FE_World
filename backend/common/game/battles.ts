@@ -26,6 +26,7 @@ import type { RunCarry } from './expedition.ts';
 import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
+import { ENEMY_VISION } from '../engine/ai.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
 import { materialDrops, materialSources, MATERIALS } from './materials.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
@@ -143,8 +144,9 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
   const classes = pickClasses(`${options.seed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
+  const vision = options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal;
   const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
-    aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0,
+    aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0, vision,
     name: i === 0 ? `${region.name}守将` : undefined,
   }));
   const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, spec));
@@ -385,7 +387,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     const classId = enemyClassForLevel(enemy.classId as UnitState['classId'], level);
     const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
     return {
-      aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level,
+      aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level, vision: options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
       behavior: boss ? 'hold' : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
     };
@@ -466,7 +468,7 @@ export function createFestivalBattle(units: UnitRecord[], round: number, seed: s
   });
   const classes = pickClasses(`${seed}:festival`, Math.min(map.deploy, map.defenderZone.length), ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
   const enemies = classes.map((classId, i) => createEnemy(`d${i}`, {
-    classId, level, pos: map.defenderZone[i], boss: i === 0, name: i === 0 ? `第 ${round} 轮主将` : undefined,
+    classId, level, pos: map.defenderZone[i], boss: i === 0, vision: ENEMY_VISION.normal, name: i === 0 ? `第 ${round} 轮主将` : undefined,
   }));
   const goal: BattleState['goal'] = map.goal === 'boss' ? { kind: 'boss', target: 'd0' }
     : map.goal === 'seize' ? { kind: 'seize', throne: throneOf(map) } : { kind: 'rout' };
