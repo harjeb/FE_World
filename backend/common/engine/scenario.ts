@@ -1,5 +1,6 @@
 import { conditionMet } from './conditions.ts';
 import { createEnemy, enemyClassForLevel, type EnemySpec } from '../game/enemies.ts';
+import { enemyIdentityName } from '../game/enemy-identities.ts';
 import { CLASSES } from '../data/classes.ts';
 import type { MoveType } from '../data/types.ts';
 import { addEnemyReserves } from '../game/enemy-formation.ts';
@@ -203,6 +204,7 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
         thiefTrigger: spec.thiefTrigger, thiefApproach: spec.thiefApproach,
       };
       const enemy = createEnemy(id, enemySpec);
+      if (state.enemyIdentity) enemy.name = enemyIdentityName(state.enemyIdentity, enemy, true);
       deployed.push(enemySpec);
       state.units.push(enemy);
       events.push({ t: 'spawn', unit: id, event: event.id, spawned: structuredClone(enemy) });

@@ -109,7 +109,7 @@ export const OPS: readonly OpDef[] = [
   { op: 143, name: 'GET_CROSS_TIME_RECRUITS', group: '整备', agentNote: '读取跨时空固定兑换名单、永久兑换记录、碎片与三个在队名额；普通时空首通解锁。' },
   { op: 144, name: 'EXCHANGE_CROSS_TIME_RECRUIT', group: '整备', agentNote: '营地用3枚时空碎片兑换identityId，必须带commandId；每身份账号仅一次，同时最多3名未轮回的存活时空武将，入队20级成长型。' },
   { op: 145, name: 'COMPLETE_STORY_STEP', group: '故事', agentNote: '提交主线前置任务中 kind=submit 的材料（step 为前置任务 ID）：从仓库扣除指定数量后完成。其他类型不用提交：派遣满天数返程自动完成；find 在固定经典远征的宝箱里找到任务物品、持有即完成；arena／tavern 在章节开放后累计普通竞技场胜场／酒馆小游戏胜次；duel 用 START_STORY_DUEL。全部完成后才能接收尾战（story-N）。每个前置任务完成的那一刻自动发放奖励（每个任务单独指定：伤药、特效药、解毒药等战斗消耗品、各档武器和少量金币，单挑另有公共经验），返回的 reward／message 给出内容。' },
-  { op: 146, name: 'START_STORY_DUEL', group: '故事', agentNote: '开始主线单挑类前置任务（story-N-a/b 中 kind=duel）：step 为前置任务 ID、unitId 为应战的一名己方角色。借一张小型经典图，该角色对一名随机生成的人物（名字随机，等级为现役名册最高等级加 1～2，职业是与应战角色同阶级（初级／中级／上级……）的随机一个，只从有攻击手段的人类职业里挑），推进 1 日；真实死亡、正常经验，获胜即完成前置任务，失败可再次挑战。需要章节已开放、没有进行中的战斗／远征／大竞技场。' },
+  { op: 146, name: 'START_STORY_DUEL', group: '故事', agentNote: '开始主线单挑类前置任务（story-N-a/b 中 kind=duel）：step 为前置任务 ID、unitId 为应战的一名己方角色。借一张小型经典图，该角色对一名具名剧情对手（姓名与 GET_STORY 步骤的 enemy 及对白一致；等级为现役名册最高等级加 1～2，职业是与应战角色同阶级（初级／中级／上级……）的随机一个，只从有攻击手段的人类职业里挑），推进 1 日；真实死亡、正常经验，获胜即完成前置任务，失败可再次挑战。需要章节已开放、没有进行中的战斗／远征／大竞技场。' },
 
   { op: 50, name: 'GET_BATTLE', group: '战斗', agentNote: '读取当前局面：紧凑 JSON 加一份 ASCII 地图；detail:true 时附带完整属性。encounter 返回本次随机战场的布局与人数配置；map.season 为出发季节，单位含当前位置 terrain、实际 move、moveType 和 armored。未揭开的密室物件（state=hidden）及揭开它们的事件不下发，触发后随状态出现。冬季草地变雪地、水域及浅滩结冰；起点雪地移动−1、冰面+1，飞行不受影响；重甲经过或落脚即碎为水域，terrain 事件保存变化。' },
   { op: 51, name: 'GET_REACHABLE', group: '战斗', agentNote: '某个单位能走到哪些格：move 为本次行动移动力，stops[].path 为实际路径（重甲会踩裂路径上的冰面）。每格能攻击／治疗到谁、用什么武器，以及可用的战技、法术、功能杖、舞蹈与合法落点。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 38;
+export const DOC_VERSION = 39;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

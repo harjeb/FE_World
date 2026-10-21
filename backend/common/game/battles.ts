@@ -26,6 +26,8 @@ import { DUNGEON_STAGE_DAYS } from './expedition.ts';
 import type { RunCarry } from './expedition.ts';
 import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
+import { battleEnemyIdentity, enemyIdentityName } from './enemy-identities.ts';
+import type { EnemyIdentity } from './enemy-identities.ts';
 import { ROYAL_CAPITAL_BOSS } from './story-bosses.ts';
 import type { NarrativeBoss } from './story-bosses.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
@@ -148,9 +150,10 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   });
   const classes = pickClasses(`${options.seed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
   const vision = options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal;
+  const enemyIdentity = battleEnemyIdentity({ quest, region: options.region });
   const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
     aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0, vision,
-    name: i === 0 ? `${region.name}守将` : undefined,
+    name: enemyIdentityName(enemyIdentity, { classId, boss: i === 0, behavior: defaultBehavior(classId) }),
   }));
   const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, spec));
   const tiles = map.tiles;
@@ -181,7 +184,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
       : { kind: 'boss', target: 'e0' };
   const state: BattleState = {
     encounter: encounter ? { ...encounter, playerGroups: map.playerGroups } : undefined,
-    engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `field-${options.seed}-${stage}`, kind: 'field', name,
+    engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `field-${options.seed}-${stage}`, kind: 'field', name, enemyIdentity,
     map: seasonalMap(tiles, dateOf(options.day ?? 0).season),
     units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
     goal, boxes: quest?.kind === 'gather' ? gatherBoxes(exit, tiles[0].length, tiles.length) : undefined,
@@ -206,6 +209,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 // 地图与初始敌军来自 catalog；玩家名单仍来自名册，王座/首领与跨图携带沿用现有引擎。
 export interface ClassicBattleOptions {
   name?: string;
+  enemyIdentity?: EnemyIdentity;
   boss?: NarrativeBoss;
   region?: number;
   aiDifficulty?: AiDifficulty;
@@ -391,6 +395,8 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const stageBonus = options.stageIndex === undefined ? adaptation.difficulty : (options.stageIndex * policy.stageBonus);
   const baseLevel = Math.max(1, Math.min(95, (options.level ?? enemyLevel(options.day ?? 0, regionOffset)) + stageBonus));
   const narrativeBoss = options.boss ?? (options.quest?.story === 8 ? ROYAL_CAPITAL_BOSS : undefined);
+  const enemyIdentity = structuredClone(options.enemyIdentity ?? battleEnemyIdentity({ quest: options.quest, region: options.region, mapName: map.name }));
+  if (narrativeBoss) enemyIdentity.commander = narrativeBoss.name;
   const enemySpecs: EnemySpec[] = map.enemies.map((enemy, index) => {
     const boss = !!enemy.boss;
     const spread = Math.max(-policy.spread, Math.min(policy.spread, enemy.level - median));
@@ -400,7 +406,8 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     const thief = !boss && lootable ? adaptation.thieves.find(entry => entry.enemy === index) : undefined;
     return {
       aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level, vision: options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal,
-      pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? narrativeBoss?.name ?? `${map.name}守将` : undefined,
+      pos: [enemy.pos[0], enemy.pos[1]], boss,
+      name: enemyIdentityName(enemyIdentity, { classId, boss, behavior: thief ? 'thief' : defaultBehavior(classId) }),
       // 抢宝身份和启动条件按本图的源 AI 配置；不从降阶后的职业猜测。
       behavior: boss ? 'hold' : thief ? 'thief'
         : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
@@ -412,8 +419,8 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   if (enemies.length === 0) throw new Error(`经典地图 ${map.id} 没有初始敌军`);
   if (!enemies.some(enemy => enemy.boss)) enemies[0].boss = true;
   const boss = enemies.find(enemy => enemy.boss)!;
+  boss.name = enemyIdentity.commander;
   if (narrativeBoss) {
-    boss.name = narrativeBoss.name;
     for (const [key, amount] of Object.entries(narrativeBoss.bonus)) {
       const stat = key as keyof typeof boss.stats;
       boss.stats[stat] = Math.min(stat === 'hp' ? 150 : Infinity, boss.stats[stat] + amount);
@@ -438,7 +445,7 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   for (const object of layer.objects) if (object.loot) replaceMaterial(object.loot);
   for (const event of layer.events) for (const action of event.actions) if (action.kind === 'loot') replaceMaterial(action);
   const state: BattleState = {
-    engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `classic-${map.id}-${options.seed}`, kind: 'field', name,
+    engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `classic-${map.id}-${options.seed}`, kind: 'field', name, enemyIdentity,
     map: seasonalMap(map.terrain, season),
     units: [...playerUnits, ...enemies], turn: 1, turnLimit: options.quest?.turnLimit ?? map.turnLimit,
     phase: 'player', goal,

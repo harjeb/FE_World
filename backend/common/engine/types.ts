@@ -196,6 +196,8 @@ export interface BattleState {
   // Frozen when departing; absent in older battles means normal.
   aiDifficulty?: AiDifficulty;
   name: string;
+  // Names for later reinforcements/reserves are frozen with the opening board; absent in older saves.
+  enemyIdentity?: import('../game/enemy-identities.ts').EnemyIdentity;
   map: { width: number; height: number; tiles: Terrain[][]; season?: number };
   units: UnitState[];
   turn: number;

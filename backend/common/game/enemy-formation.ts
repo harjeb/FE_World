@@ -3,6 +3,7 @@ import { objectBlocks } from '../engine/scenario.ts';
 import type { BattleState, Point, UnitState } from '../engine/types.ts';
 import { neighbors, canEnter } from '../maps/map.ts';
 import { createEnemy, HARD_ENEMY_RULES } from './enemies.ts';
+import { enemyIdentityName } from './enemy-identities.ts';
 import type { EnemySpec } from './enemies.ts';
 
 // Keep reserves in the original formation's connected area, never across walls or in player deployment.
@@ -46,6 +47,7 @@ export function addEnemyReserves(state: BattleState, specs: EnemySpec[], deploym
       let id = `reserve-${state.units.length}`;
       while (state.units.some(unit => unit.id === id)) id += '-x';
       const unit = createEnemy(id, { ...spec, seed: `${state.id}:reserves`, aiDifficulty: 'hard', pos, boss: false, name: undefined });
+      if (state.enemyIdentity) unit.name = enemyIdentityName(state.enemyIdentity, unit);
       state.units.push(unit);
       added.push(unit);
       break;

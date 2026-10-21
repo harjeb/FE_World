@@ -66,6 +66,7 @@ import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
 import { companionView, completeDuelStep, findStoryStep, grantStepRewards, recordStoryWin, storyBattleBlocker, storyChapterBlocker, storyInvestigationOpen, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
 import { STORY_POSTGAME, STORY_PROLOGUE } from '../common/game/story-narrative.ts';
 import { createStoryDuel, DUEL_DAYS, duelLevel } from '../common/game/story-duel.ts';
+import { CHALLENGE_ENEMY_IDENTITIES } from '../common/game/enemy-identities.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
 import { CHALLENGE_FLOORS, challengeBlocker, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
@@ -2288,7 +2289,7 @@ const handlers: Record<number, Handler> = {
     const units = deploymentUnits(ctx, data.unitIds, maxUnits);
     const block = lifespanBlockers(ctx, ctx.player.day + floor.costDays);
     if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
-    const record = createClassicBattle(units, { name: floor.name, mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level, aiDifficulty: floor.postgame ? 'hard' : 'normal', boss: floor.boss, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
+    const record = createClassicBattle(units, { name: floor.name, enemyIdentity: CHALLENGE_ENEMY_IDENTITIES[floor.id], mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level, aiDifficulty: floor.postgame ? 'hard' : 'normal', boss: floor.boss, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
     record.playerId = ctx.player.id;
     record.challengeId = floor.id;
     record.costDays = floor.costDays;

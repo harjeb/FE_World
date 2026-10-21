@@ -62,7 +62,7 @@ function StepRow({ step, index, readOnly = false }: { step: StoryStep; index: nu
       )}
       {!readOnly && !step.done && step.kind === 'duel' && (
         <>
-          <p className="ch-sub">对手是一名随机人物（{step.enemy}）：等级 Lv {step.level}，按你队伍里的最高等级来；职业与你选的应战者同阶级（具体职业随机）。只有你选的一名角色应战，<b>真实死亡</b>；输了可以再来，推进 1 日。</p>
+          <p className="ch-sub">对手是 {step.enemy}：等级 Lv {step.level}，按你队伍里的最高等级来；职业与你选的应战者同阶级（具体职业随机）。只有你选的一名角色应战，<b>真实死亡</b>；输了可以再来，推进 1 日。</p>
           {!pickDuel
             ? <button type="button" className="btn btn-sm btn-primary" disabled={!step.available || busy !== null} onClick={() => { setPickDuel(true); setDuelist(fighters[0]?.id ?? ''); }}>选人应战</button>
             : (

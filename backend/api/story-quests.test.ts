@@ -286,7 +286,7 @@ test('a duel is one chosen unit against one named champion with real death, and 
   assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-1-a', unitId: 'u_erin' }), /没有这个单挑任务/);
   const view = storyView(ctx, 3).steps[0] as View & { enemy?: string; level?: number };
   assert.equal(view.kind, 'duel');
-  assert.equal(view.enemy, '刮名人');
+  assert.equal(view.enemy, '刮名人·奥斯');
 
   const day = ctx.player.day;
   const started = dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_erin' }) as { battleId: string };
@@ -296,7 +296,7 @@ test('a duel is one chosen unit against one named champion with real death, and 
   assert.deepEqual(record.state.units.filter(u => u.side === 'player').map(u => u.id), ['u_erin']);
   const enemies = record.state.units.filter(u => u.side === 'enemy');
   assert.equal(enemies.length, 1);
-  assert.match(enemies[0].name, /^.+（刮名人）$/, 'a random person, named with the step\'s title');
+  assert.equal(enemies[0].name, view.enemy, 'the combatant has the name shown by the quest and dialogue');
   assert.equal(enemies[0].boss, true);
   const highest = Math.max(...ctx.store.units(ctx.player.id).filter(u => u.status === 'active').map(u => u.level));
   assert.equal(enemies[0].level, highest + 1, `the champion is built from the roster's highest level (${highest})`);
@@ -386,7 +386,7 @@ test('the duel opponent is a random class of the same tier, never one that canno
   const enemyOf = (unit: typeof hero, seed: string) => createStoryDuel(unit, step, { seed, day: 1482, level: 30 }).state.units.find(u => u.side === 'enemy')!;
   const a = enemyOf(hero, 'fixed'), b = enemyOf(hero, 'fixed'), c = enemyOf(hero, 'other');
   assert.deepEqual([a.name, a.classId, a.stats], [b.name, b.classId, b.stats]);
-  assert.notEqual(a.name, c.name, 'another seed rolls another person');
+  assert.equal(a.name, c.name, 'the narrative identity survives retries with different class seeds');
   const healer = enemyOf(createUnit('noah', 20, 'u1', 0), 'fixed');
   assert.ok(healer.weapons.some(id => !WEAPONS[id].heal), 'the opponent of a healer can fight');
   assert.equal(CLASSES[healer.classId].stage, CLASSES[createUnit('noah', 20, 'u1', 0).classId].stage);

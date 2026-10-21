@@ -1,7 +1,6 @@
 import { createClassicBattle } from './battles.ts';
 import type { BattleRecord } from './battles.ts';
 import { createEnemy, defaultBehavior, templateFor } from './enemies.ts';
-import { generateRecruit } from './random-recruit.ts';
 import type { UnitRecord } from './model.ts';
 import type { StoryStep } from './story-quests.ts';
 import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
@@ -36,15 +35,16 @@ export function duelLevel(units: readonly Pick<UnitRecord, 'level' | 'status'>[]
   return Math.min(99, highestLevel(units) + step.levelBonus);
 }
 
-// 主线单挑（docs/38 §3.4）：借一张小型经典图，只留我方一人，对手是按种子随机生成的人物——名字随机，
-// 等级是玩家名册里最高等级再加 levelBonus，职业是与应战角色同阶级的随机一个。击败他即获胜。战斗是普通野外战斗：
+// 主线单挑（docs/38 §3.4）：借一张小型经典图，只留我方一人；对手使用剧情中的固定身份。
+// 等级是玩家名册里最高等级再加 levelBonus，职业仍是与应战角色同阶级的随机一个。击败他即获胜。战斗是普通野外战斗：
 // 真实死亡、正常经验，但不算地区讨伐。
 export function createStoryDuel(unit: UnitRecord, step: DuelStep, options: { seed: string; day: number; level: number }): BattleRecord {
   const record = createClassicBattle([unit], { mapId: step.mapId, seed: options.seed, day: options.day });
   const state = record.state;
   const boss = state.units.find(u => u.side === 'enemy' && u.boss) ?? state.units.find(u => u.side === 'enemy')!;
   const classId = duelClass(unit.classId, options.seed);
-  const name = `${generateRecruit(`duel:${options.seed}`).name}（${step.enemy}）`;
+  const name = step.enemy;
+  state.enemyIdentity = { faction: '单挑护卫', commander: name };
   const champion = createEnemy('e0', { seed: `duel:${options.seed}`, classId, level: options.level, pos: boss.pos, boss: true, name, behavior: defaultBehavior(classId) });
   state.units = [...state.units.filter(u => u.side === 'player'), champion];
   state.goal = { kind: 'boss', target: champion.id };

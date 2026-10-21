@@ -1,3 +1,5 @@
+import { STORY_DUEL_NAMES, STORY_ENEMY_IDENTITIES } from './enemy-identities.ts';
+
 // 王城主线的叙事数据只由服务器按调查进度下发；客户端只引用类型。
 export interface StoryLine { speaker: string; text: string }
 export interface StoryScene { id: string; title: string; lines: StoryLine[] }
@@ -57,7 +59,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     beforeBattle: scene('story-1-battle', '旧镇 · 烧信的人', [
       ['书记官·薇拉', '驿站被人占了。他们不抢粮食，只烧登记簿和信件。'],
       ['你', '把还没烧完的东西留下。'],
-      ['蒙面守卫', '退回城里。冠军的死，不该再有人过问。'],
+      [STORY_ENEMY_IDENTITIES[1].commander, '退回城里。冠军的死，不该再有人过问。'],
     ]),
     ending: scene('story-1-ending', '旧镇 · 半张回执', [
       ['旁白', '灰烬里留下半张送信回执，日期比教会公布的出城日早了三天。'],
@@ -101,7 +103,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     beforeBattle: scene('story-2-battle', '废关门 · 被撤下的路标', [
       ['书记官·薇拉', '这里原本只守北面的路。现在弩都对着回王城的方向。'],
       ['你', '他们在防什么东西回来，还是防人追上去？'],
-      ['关门守卫', '朝圣道已封。任何人不得靠近仓房。'],
+      [STORY_ENEMY_IDENTITIES[2].commander, '朝圣道已封。任何人不得靠近仓房。'],
     ]),
     ending: scene('story-2-ending', '关门后的空车', [
       ['旁白', '仓房里只剩一辆卸空的车，车板上有血，固定重物的皮带却被反复修补过。'],
@@ -118,15 +120,15 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     ]),
     steps: {
       a: {
-        before: scene('story-3-a-before', '档案馆外 · 守门的剑客', [
-          ['守门剑客', '我领钱看门，不认你们的公文。派一个人来赢我，后面的路我当没看见。'],
+        before: scene('story-3-a-before', '档案馆外 · 守门人', [
+          [STORY_DUEL_NAMES['story-3-a'], '我领钱看门，不认你们的公文。派一个人来赢我，后面的路我当没看见。'],
           ['你', '你替谁看门？'],
-          ['守门剑客', '付钱的人没有报名字。你也最好别报。'],
+          [STORY_DUEL_NAMES['story-3-a'], '付钱的人没有报名字。你也最好别报。'],
         ]),
         after: scene('story-3-a-after', '门缝里的纸条', [
-          ['守门剑客', '后门还有一班人。他们拿的不是兵器，是油桶。'],
+          [STORY_DUEL_NAMES['story-3-a'], '后门还有一班人。他们拿的不是兵器，是油桶。'],
           ['你', '你为什么告诉我？'],
-          ['守门剑客', '有人在里面做了一辈子抄写员。我收的钱，可没算他的命。'],
+          [STORY_DUEL_NAMES['story-3-a'], '有人在里面做了一辈子抄写员。我收的钱，可没算他的命。'],
         ]),
       },
       b: {
@@ -145,7 +147,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     beforeBattle: scene('story-3-battle', '旧库房 · 油桶的味道', [
       ['书记官·薇拉', '火已经点起来了。先打开库房，再找运输底册。'],
       ['你', '还有人在里面，留出撤退的路。'],
-      ['焚卷人', '封存的东西，谁也不能带走。'],
+      [STORY_ENEMY_IDENTITIES[3].commander, '封存的东西，谁也不能带走。'],
     ]),
     ending: scene('story-3-ending', '底册 · 没有注销的编号', [
       ['书记官·薇拉', '阿尔维恩被列进了死亡名册，可医护车上的“第七号”还在每月领取药物。'],
@@ -189,7 +191,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     },
     beforeBattle: scene('story-4-battle', '地下慈济室', [
       ['旁白', '地下没有祈祷声，墙内却传来缓慢的撞击，像一台不肯停下的钟。'],
-      ['慈济室护卫', '探视到此为止。再往前，就按闯入圣所处置。'],
+      [STORY_ENEMY_IDENTITIES[4].commander, '探视到此为止。再往前，就按闯入圣所处置。'],
       ['你', '病床上躺的是谁？为什么不让他见人？'],
     ]),
     ending: scene('story-4-ending', '未撤走的病历', [
@@ -219,9 +221,9 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
       },
       b: {
         before: scene('story-5-b-before', '暗仓外 · 押车人的赌约', [
-          ['押车头目', '货主是谁，我不能说。赢我手下一个人，账本归你，我也好说是被抢走的。'],
+          [STORY_DUEL_NAMES['story-5-b'], '货主是谁，我不能说。赢我，账本归你，我也好说是被抢走的。'],
           ['你', '连你也怕付钱的人？'],
-          ['押车头目', '他们有本事让死人继续签收货物。你说我怕不怕。'],
+          [STORY_DUEL_NAMES['story-5-b'], '他们有本事让死人继续签收货物。你说我怕不怕。'],
         ]),
         after: scene('story-5-b-after', '副页上的两笔费用', [
           ['书记官·薇拉', '“维生药剂”和“导晶损耗”，每次都记在一起。下面还有一句：“不得使供体提前死亡”。'],
@@ -234,6 +236,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
       ['铸器师·维洛', '再晚一步，你们要找的人就会随车转移。我还以为没人记得他。'],
       ['你', '让开。'],
       ['铸器师·维洛', '别乱砍管线。你们砍错一根，他会死得比守卫更快。'],
+      [STORY_ENEMY_IDENTITIES[5].commander, '把地窖封上！谁也别想带走供体。'],
     ]),
     ending: scene('story-5-ending', '暗仓深处 · 第七号', [
       ['旁白', '阿尔维恩躺在玻璃与铜环之间，瘦得几乎认不出。床沿的冠军刻字，被束带磨去了大半。'],
@@ -280,6 +283,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
       ['你', '你知道他在里面受什么苦。'],
       ['铸器师·维洛', '正因为知道，我才把药量算得那么准。'],
       ['你', '先切断向外的管线。维生的那一侧留下。'],
+      [STORY_ENEMY_IDENTITIES[6].commander, '保护节点！把他们挡在导管外面！'],
     ]),
     ending: scene('story-6-ending', '断流后的声音', [
       ['旁白', '外送的导管停止发光，地下却传来一次沉重的断裂声。维洛趁混乱逃向北道，留下写满数字的记录板。'],
@@ -320,7 +324,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
       },
     },
     beforeBattle: scene('story-7-battle', '驿站外 · 追来的火把', [
-      ['追捕者', '教首命令：交还病人，烧掉带走的书。'],
+      [STORY_ENEMY_IDENTITIES[7].commander, '教首命令：交还病人，烧掉带走的书。'],
       ['逃亡教士', '我们愿意回城作证。可他们不想让任何人听见。'],
       ['你', '护住病床和档案。让愿意说话的人活着回去。'],
     ]),
@@ -341,11 +345,11 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     steps: {
       a: {
         before: scene('story-8-a-before', '旧通道 · 最后一名守卫', [
-          ['祭台守卫', '教首曾救过我的妻儿。我不会把路让给一份来历不明的指控。'],
+          [STORY_DUEL_NAMES['story-8-a'], '教首曾救过我的妻儿。我不会把路让给一份来历不明的指控。'],
           ['你', '那就由一个人来应战。别把逃出去的观众拖进来。'],
         ]),
         after: scene('story-8-a-after', '放下的兵器', [
-          ['祭台守卫', '我守在这里时，听见他对着空房间说“就快了”。从来没有另一个人回答。'],
+          [STORY_DUEL_NAMES['story-8-a'], '我守在这里时，听见他对着空房间说“就快了”。从来没有另一个人回答。'],
           ['你', '带外面的人走。这道门由我们来开。'],
         ]),
       },
@@ -366,7 +370,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
       ['你', '阿尔维恩还活着。他被绑在那里，每一天都在替你付账。'],
       ['教首·洛德里克', '我知道。每一张药单，我都看过。'],
       ['旁白', '灯中传来的不是女子的声音。最后一枚锁环崩开，教首的影子爬满祭台，扭曲成陌生的神像。'],
-      ['邪神化的教首', '再等一会儿……她就会回来了。'],
+      [STORY_ENEMY_IDENTITIES[8].commander, '再等一会儿……她就会回来了。'],
     ]),
     ending: scene('story-8-ending', '黎明 · 活着的人', [
       ['旁白', '钥石合上回路。失去神力支撑的教首倒在灯前，灯中没有走出任何人。王城的钟，终于恢复了原来的声音。'],

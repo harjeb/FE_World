@@ -2,6 +2,7 @@ import type { CharacterId } from '../data/characters.ts';
 import { classicMap } from './classic-catalog.ts';
 import type { ItemKey } from './items.ts';
 import { materialDrops } from './materials.ts';
+import { STORY_DUEL_NAMES } from './enemy-identities.ts';
 import type { Quest, QuestKind } from './quests.ts';
 
 // 主线任务与伙伴任务（docs/38）。两者都是单图经典地图任务，沿用任务系统的出征、结算和奖励键：
@@ -96,7 +97,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '冠军远行前后的记录正被人替换。进入王城旧档案库，夺回那辆医护车的原始底册。',
     clue: { name: '第七号底册', note: '阿尔维恩被宣告死亡后，“第七号”仍持续领取维生药物；求援调令的原文并非冠军自请。' },
     steps: [
-      step(3, 'a', { kind: 'duel', name: '刮名人', briefing: '受雇的剑客拦在档案馆外，要求你派一人应战。赢得单挑，赶在另一批人焚卷前进入。', mapId: 'fe2-map-03', enemy: '刮名人', levelBonus: 1 }),
+      step(3, 'a', { kind: 'duel', name: '刮名人', briefing: '受雇的守门人奥斯拦在档案馆外，要求你派一人应战。赢得单挑，赶在另一批人焚卷前进入。', mapId: 'fe2-map-03', enemy: STORY_DUEL_NAMES['story-3-a'], levelBonus: 1 }),
       step(3, 'b', { kind: 'submit', name: '修复卷宗', briefing: '破损的卷宗需要矿物粉修补。提交 8 份铁矿。', item: 'ore', count: 8 }),
     ] },
   { chapter: 4, mapId: 'fe8-ch14-ephraim', name: '旧约·地下慈济室',
@@ -111,7 +112,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     clue: { name: '供体账本', note: '维生药物与导晶损耗共同记账，批注写着“不得使供体提前死亡”，签字人为维洛。' },
     steps: [
       step(5, 'a', { kind: 'dispatch', name: '追查货源', briefing: '药物与导晶从同一商路送走。派队伍沿车辙追踪，满 5 日归来。', days: 5 }),
-      step(5, 'b', { kind: 'duel', name: '押车人的赌约', briefing: '押车头目不肯直接出卖货主，却答应在单挑落败后交出账本副页。派一人应战。', mapId: 'fe2-map-05', enemy: '走私头目', levelBonus: 1 }),
+      step(5, 'b', { kind: 'duel', name: '押车人的赌约', briefing: '押车头目不肯直接出卖货主，却答应在单挑落败后交出账本副页。派一人应战。', mapId: 'fe2-map-05', enemy: STORY_DUEL_NAMES['story-5-b'], levelBonus: 1 }),
     ] },
   { chapter: 6, mapId: 'fe7-ch25-eliwood-kenneth', name: '夺取·封印节点',
     briefing: '沿装置管线追到竞技场地下。分离维生回路，切断向外输送神力的节点，夺下铸器师保存的记录。',
@@ -131,7 +132,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '第八届竞技场散场后，祭台仍未熄灯。率队进入地下，阻止最后的交换，击败接入装置后邪神化的教首洛德里克。',
     clue: { name: '最后的交换手札', note: '教首准备亲自接入装置完成交换，亡妻却从未真正回应。已经流向北地的神力正在唤醒禁忌之地。' },
     steps: [
-      step(8, 'a', { kind: 'duel', name: '祭台前的守卫', briefing: '守在旧通道的护卫不肯相信指控，只接受一人应战。赢下单挑，打通撤离观众后进入祭台的路。', mapId: 'fe2-map-07', enemy: '阵眼守卫', levelBonus: 2 }),
+      step(8, 'a', { kind: 'duel', name: '祭台前的守卫', briefing: '守在旧通道的护卫不肯相信指控，只接受一人应战。赢下单挑，打通撤离观众后进入祭台的路。', mapId: 'fe2-map-07', enemy: STORY_DUEL_NAMES['story-8-a'], levelBonus: 2 }),
       step(8, 'b', { kind: 'find', name: '阵眼钥石', briefing: '黑暗龙与光之剑的三图远征里，有一只箱子压着阵眼的钥石。取回「阵眼钥石」。', item: 'story_find_8', route: 'clx-fe3', mapId: 'fe3-book1-ch20' }),
     ] },
 ];
@@ -177,15 +178,15 @@ export interface CompanionQuest {
 // 伙伴任务：奖励从现有目录取，数值待校准。
 export const COMPANION_QUEST_DEFS: readonly CompanionQuest[] = [
   { character: 'ren', region: 2, mapId: 'fe7-ch20-eliwood', name: '雷恩的旧剑',
-    briefing: '雷恩认出了林中据点缴获的一柄旧剑，想把它送回原主的墓前。陪他走一趟。',
+    briefing: '雷恩认出了林中据点缴获的一柄旧剑，想把它送回原主的墓前。墓园已被盗墓团占据，陪他夺回墓道。',
     epilogue: '雷恩把剑插在墓前：「这柄剑的主人，曾替竞技场守过一道不该打开的门。」',
     reward: { gold: 2_400, reputation: 0, items: [['killing_edge', 1], ['vulnerary', 2], ['secret_book', 1]] } },
   { character: 'ig', region: 3, mapId: 'fe6-ch19-ilia', name: '伊格的矿坑',
-    briefing: '伊格说矿区深处有他年轻时见过的刻痕，如今那里被人占了。跟他去看一眼。',
+    briefing: '伊格说矿区深处有他年轻时见过的刻痕，如今那里被占矿佣兵封锁。跟他去看一眼。',
     epilogue: '伊格沉默了很久：「矿坑深处的刻痕，我年轻时见过。那时没人信我。」',
     reward: { gold: 2_400, reputation: 0, items: [['killer_axe', 1], ['vulnerary', 2], ['dracoshield', 1]] } },
   { character: 'mira', region: 5, mapId: 'fe8-ch12-eirika', name: '米拉的祈祷',
-    briefing: '渡口外的村子很久没有回音，米拉想去为那里的人祈祷。有人守在村口，不让外人进去。',
+    briefing: '渡口外的村子很久没有回音，米拉想去为那里的人祈祷。一群自称黑碑守卫的人封住村口，不让外人进去。',
     epilogue: '米拉合上祈祷书：「静寂的村子里，每一块墓碑上都有同一个符号。」',
     reward: { gold: 2_400, reputation: 0, items: [['physic', 1], ['vulnerary', 2], ['talisman', 1]] } },
 ];

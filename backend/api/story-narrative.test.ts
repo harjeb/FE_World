@@ -12,6 +12,9 @@ import { STORY_CHAPTER_QUESTS, storyQuestId } from '../common/game/story-quests.
 import { STORY_NARRATIVE } from '../common/game/story-narrative.ts';
 import type { StoryScene } from '../common/game/story-narrative.ts';
 import { CHALLENGE_FLOORS } from '../common/game/challenges.ts';
+import { createClassicBattle } from '../common/game/battles.ts';
+import { runScenarioEvents } from '../common/engine/scenario.ts';
+import type { BattleEvent } from '../common/engine/types.ts';
 
 function setup(t: { after(fn: () => void): void }, day = 4000): Context {
   const store = new Store(openDb(':memory:'));
@@ -75,7 +78,13 @@ test('all eight chapters reveal task testimony, battle dialogue and conclusions 
     assert.equal(ready.quest.available, true);
     assert.deepEqual(ready.quest.scenes.map(s => s.id), [`story-${chapter}-opening`, `story-${chapter}-battle`]);
     const { battleId } = dispatch(ctx, OP.START_QUEST, { questId: storyQuestId(chapter), unitIds: ['u_erin', 'u_victor'] }) as { battleId: string };
+    const battle = ctx.store.battle(ctx.player.id, battleId)!;
+    const boss = battle.state.units.find(unit => unit.side === 'enemy' && unit.boss)!;
+    assert.ok(ready.quest.scenes.at(-1)!.lines.some(line => line.speaker === boss.name), 'the enemy commander is the person who speaks before the fight');
+    assert.ok(battle.state.units.filter(unit => unit.side === 'enemy' && !unit.boss).every(unit => unit.name.startsWith(`${battle.state.enemyIdentity!.faction}·`)), 'ordinary troops belong to this chapter');
     finish(ctx, battleId, chapter === 8);
+    const replay = ctx.store.replay(ctx.player.id, battleId)!;
+    assert.deepEqual(replay.data.initial.units.map(unit => unit.name), battle.initial.units.map(unit => unit.name), 'the report preserves the identities seen on entry');
     const done = current();
     assert.ok(done.learned);
     assert.equal(done.quest.scenes.at(-1)!.id, `story-${chapter}-ending`);
@@ -145,6 +154,8 @@ test('forbidden land opens after the capital case, enforces its route and create
     assert.equal(battle.state.aiDifficulty, 'hard');
     assert.equal(battle.state.goal.kind, 'boss');
     assert.equal(battle.initial.units.find(u => u.boss && u.side === 'enemy')!.name, floor.boss!.name);
+    assert.ok(battle.state.units.some(unit => unit.id.startsWith('reserve-')), 'hard-mode additional troops are present');
+    assert.ok(battle.state.units.filter(unit => unit.side === 'enemy' && !unit.boss).every(unit => unit.name.startsWith(`${battle.state.enemyIdentity!.faction}·`)), 'including reserves, the forbidden-land enemies share the appropriate faction');
     assert.equal(finish(ctx, battleId, true).state.result?.winner, 'player');
     assert.ok(ctx.player.flags.towerCleared!.includes(floor.id));
     const claim = () => dispatch(ctx, OP.CLAIM_CHALLENGE_REWARD, { floorId: floor.id }) as { gold: number };
@@ -153,6 +164,41 @@ test('forbidden land opens after the capital case, enforces its route and create
     assert.throws(claim, /已经领取/);
     assert.equal(floors().find(f => f.id === floor.id)!.claimedEquipment, true);
   }
+});
+
+test('saved identities reach later waves, hard reserves and animation events without renaming legacy battles', t => {
+  const ctx = setup(t);
+  const identity = { faction: '节点卫队', commander: '节点卫队长' };
+  const record = createClassicBattle([ctx.store.unit(ctx.player.id, 'u_erin')!], {
+    mapId: 'fe6-ch16-main', seed: 'frozen-enemy-names', day: ctx.player.day, aiDifficulty: 'hard', enemyIdentity: identity,
+  });
+  record.playerId = ctx.player.id;
+  ctx.store.saveBattle(record);
+  identity.faction = '之后修改的目录';
+  const saved = ctx.store.battle(ctx.player.id, record.id)!;
+  assert.equal(saved.state.enemyIdentity!.faction, '节点卫队', 'new catalog objects do not mutate a battle snapshot');
+  saved.state.turn = 10;
+  const events: BattleEvent[] = [];
+  runScenarioEvents(saved.state, events);
+  const spawns = events.filter(event => event.t === 'spawn');
+  assert.ok(spawns.some(event => event.unit.startsWith('reserve-')), 'later waves include their hard-mode reserves');
+  assert.ok(spawns.some(event => event.spawned?.behavior === 'thief'), 'the actual source thief wave arrives');
+  for (const event of spawns) {
+    assert.ok(event.spawned!.name.startsWith('节点卫队·'));
+    assert.equal(event.spawned!.name, saved.state.units.find(unit => unit.id === event.unit)!.name, 'the animation and board use the same name');
+  }
+  ctx.store.saveBattle(saved);
+  assert.deepEqual(ctx.store.battle(ctx.player.id, record.id)!.state.units, saved.state.units, 'wave identities survive another save/load');
+
+  const legacy = structuredClone(record.initial);
+  delete legacy.enemyIdentity;
+  legacy.turn = 10;
+  const before = legacy.units.map(unit => [unit.id, unit.name]);
+  const legacyEvents: BattleEvent[] = [];
+  runScenarioEvents(legacy, legacyEvents);
+  assert.deepEqual(legacy.units.slice(0, before.length).map(unit => [unit.id, unit.name]), before);
+  assert.ok(legacyEvents.some(event => event.t === 'spawn'));
+  assert.ok(legacyEvents.filter(event => event.t === 'spawn').every(event => !event.spawned!.name.startsWith('节点卫队·')), 'old snapshots continue their old naming policy');
 });
 
 test('legacy completed chapters keep their evidence and equipment reward eligibility', t => {
