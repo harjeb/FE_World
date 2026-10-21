@@ -52,6 +52,19 @@ function playOut(ctx: Context, battleId: string): string {
   throw new Error('battle did not finish');
 }
 
+// 流程验收用真实 op 结算一手可胜的棋盘，不依赖随机地图上的 AI 寻路。
+function forceClear(ctx: Context, battleId: string): string {
+  const battle = ctx.store.battle(ctx.player.id, battleId)!;
+  const leader = battle.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.npc)!;
+  for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
+  if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
+  battle.initial = structuredClone(battle.state);
+  ctx.store.saveBattle(battle);
+  dispatch(ctx, OP.UNIT_ACT, { battleId, unitId: leader.id, moveTo: leader.pos,
+    action: battle.state.goal.kind === 'seize' ? 'seize' : 'wait' });
+  return ctx.store.battle(ctx.player.id, battleId)!.state.result?.winner ?? 'none';
+}
+
 function empower(store: Store, player: Player, ids: string[]): void {
   for (const id of ids) {
     const unit = store.unit(player.id, id)!;
@@ -237,27 +250,19 @@ test('a region expedition runs three maps and only marks the quest done at the e
   assert.equal(started.run.stageIndex, 0);
   assert.equal(player.day, day + 3, 'region expedition pays its frozen first-stage cost');
   assert.equal(store.battle(player.id, started.battleId)!.state.goal.kind, 'seize', 'map 1 探路 = seize');
-  assert.equal(playOut(ctx, started.battleId), 'player');
+  assert.equal(forceClear(ctx, started.battleId), 'player');
   assert.ok(!(player.flags.questsDone ?? []).includes('gw6'), 'stage one does not complete the quest');
   assert.equal(player.flags.regionExploration?.[2] ?? 0, 0);
   const second = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 6);
   assert.equal(store.battle(player.id, second.battleId)!.state.goal.kind, 'rout', 'map 2 消耗战 = rout');
-  assert.equal(playOut(ctx, second.battleId), 'player');
+  assert.equal(forceClear(ctx, second.battleId), 'player');
   const third = dispatch(ctx, OP.CONTINUE_DUNGEON, {}) as { battleId: string };
   assert.equal(player.day, day + 8);
   const finale = classicMap(store.activeRun(player.id)!.stages![2].scenarioId!);
   const battle = store.battle(player.id, third.battleId)!;
   assert.equal(battle.state.goal.kind, finale.goal.kind, 'map 3 keeps its saved classic objective');
-  // 此处验收完成标记，经典压轴准备一手可胜的棋盘，避免 AI 寻路影响结算测试。
-  const leader = battle.state.units.find(unit => unit.side === 'player' && unit.alive && !unit.npc)!;
-  for (const enemy of battle.state.units.filter(unit => unit.side === 'enemy')) { enemy.alive = false; enemy.hp = 0; }
-  if (battle.state.goal.kind === 'seize') leader.pos = [...battle.state.goal.throne];
-  battle.initial = structuredClone(battle.state);
-  store.saveBattle(battle);
-  dispatch(ctx, OP.UNIT_ACT, { battleId: battle.id, unitId: leader.id, moveTo: leader.pos,
-    action: battle.state.goal.kind === 'seize' ? 'seize' : 'wait' });
-  assert.equal(store.battle(player.id, battle.id)!.state.result?.winner, 'player');
+  assert.equal(forceClear(ctx, third.battleId), 'player');
   assert.ok(player.flags.questsDone!.includes('gw6'), 'finishing all three maps completes the quest');
   assert.equal(player.flags.regionExploration?.[2], 20, '多图任务按副本首通二十，不叠加任务五分');
 });

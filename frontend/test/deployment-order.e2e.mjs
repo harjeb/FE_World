@@ -200,11 +200,16 @@ try {
   await evaluate(`document.querySelector('.prep-go .btn-primary').click()`);
   await until(() => evaluate(`!!document.querySelector('.hud')`), 'battle did not start');
   const battle = await api(50, { full: true });
+  const enemies = battle.state.units.filter(unit => unit.side === 'enemy');
+  const enemyBoss = enemies.find(unit => unit.boss);
+  assert.ok(enemyBoss && enemies.filter(unit => !unit.boss).every(unit => enemyBoss.level > unit.level
+    && Object.entries(unit.stats).every(([key, value]) => enemyBoss.stats[key] >= Math.min(key === 'hp' ? 150 : Infinity, value + 1))),
+  'the deployed field commander has the highest level and every stat');
   const deployed = battle.state.units.filter(unit => unit.side === 'player');
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');
   assert.deepEqual(errors, []);
-  console.log('PASS: deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; actual battle commander');
+  console.log('PASS: deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; player commander and stronger field boss');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ id: 1000000000, method: 'Browser.close' })); await sleep(200);

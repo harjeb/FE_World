@@ -2,6 +2,10 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v26';
+// v62: new ordinary field commanders use base level +4 (before hard bonuses), the highest
+// attacking class stage allowed at that level, and at least each mob's stats plus HP6/other1.
+// This brings promotions forward four levels; HP150 and level99 remain the limits. Quest/dungeon,
+// classic/festival/fixed bosses and saved battle snapshots are unchanged. Combat rules do not change.
 // v61: dungeon routes and all sixty classic maps use local scene names without source-work
 // titles. New first-clear bundles guarantee quality equipment, stat boosters, elixirs, full meals
 // and promotion seals; rewards no longer downgrade at low departure levels. Saved runs retain
@@ -157,7 +161,7 @@ export const RULESET_VERSION = 'rules-v26';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 61;
+export const CATALOG_VERSION = 62;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

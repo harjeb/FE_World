@@ -17,8 +17,10 @@ test('date, not cleared regions or player level, decides a new field battle', ()
   const make = (cleared: number) => createFieldBattle([unit], { region: 1, day: 120, cleared, seed: 'date' });
   const before = make(0);
   unit.level = 99;
-  assert.equal(make(12).state.units.find(u => u.side === 'enemy')!.level, 5);
-  assert.equal(before.state.units.find(u => u.side === 'enemy')!.level, 5);
+  const foes = make(12).state.units.filter(u => u.side === 'enemy');
+  assert.equal(foes.find(u => u.boss)!.level, 9, 'date-level 5 plus commander bonus 4');
+  assert.equal(foes.find(u => !u.boss)!.level, 5);
+  assert.deepEqual(foes, before.state.units.filter(u => u.side === 'enemy'));
 });
 
 test('dungeon stages use the locked entry level even across calendar bands', () => {

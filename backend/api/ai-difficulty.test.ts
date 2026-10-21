@@ -16,14 +16,16 @@ import { STAT_KEYS } from '../common/data/types.ts';
 import type { UnitState } from '../common/engine/types.ts';
 import { canWield } from '../common/engine/units.ts';
 
-function assertBoosted(enemy: UnitState) {
+function assertBoosted(enemy: UnitState, fieldMobs?: UnitState[]) {
   const base = enemyStats(enemy.classId, enemy.level);
   for (const key of STAT_KEYS) {
     const low = key === 'hp' ? HARD_ENEMY_RULES.hpMin : HARD_ENEMY_RULES.statMin;
     const high = key === 'hp' ? HARD_ENEMY_RULES.hpMax : HARD_ENEMY_RULES.statMax;
     const cap = CLASSES[enemy.classId].caps[key] ?? Infinity;
-    assert.ok(enemy.stats[key] >= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * low / 100))), `${enemy.id} ${key}: minimum bonus`);
-    assert.ok(enemy.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * high / 100))), `${enemy.id} ${key}: maximum bonus`);
+    const bonus = fieldMobs && enemy.boss ? (key === 'hp' ? 6 : 1) : 0;
+    const floor = fieldMobs && enemy.boss ? Math.max(0, ...fieldMobs.map(unit => unit.stats[key])) : 0;
+    assert.ok(enemy.stats[key] >= Math.min(cap, Math.max(floor, base[key] + Math.max(1, Math.ceil(base[key] * low / 100))) + bonus), `${enemy.id} ${key}: minimum bonus`);
+    assert.ok(enemy.stats[key] <= Math.min(cap, Math.max(floor, base[key] + Math.max(1, Math.ceil(base[key] * high / 100))) + bonus), `${enemy.id} ${key}: maximum bonus`);
   }
   assert.ok(enemy.con >= 9 && enemy.con <= 11);
   assert.ok(enemy.weapons.every(id => canWield(enemy, id)), `${enemy.id}: legal equipment`);
@@ -53,8 +55,9 @@ function start(ctx: Context, op: number, args: Record<string, unknown>) {
   const result = dispatch(ctx, op, { unitIds: ['u_erin'], ...args }) as { battleId: string; battle: { aiDifficulty: string }; run?: { aiDifficulty: string } };
   if (result.battle.aiDifficulty === 'hard') {
     const record = ctx.store.battle(ctx.player.id, result.battleId)!;
+    const fieldMobs = !record.questId && !record.dungeon ? record.state.units.filter(u => u.side === 'enemy' && !u.boss) : undefined;
     for (const enemy of record.state.units.filter(u => u.side === 'enemy')) {
-      assertBoosted(enemy);
+      assertBoosted(enemy, fieldMobs);
     }
   }
   return result;
@@ -174,7 +177,8 @@ test('hard expands and upgrades enemies deterministically while preserving playe
     const normalEnemies = normal.state.units.filter(u => u.side === 'enemy');
     const hardEnemies = hard.state.units.filter(u => u.side === 'enemy');
     assert.equal(hardEnemies.length, normalEnemies.length + Math.ceil(normalEnemies.length * HARD_ENEMY_RULES.extraRatio));
-    for (const enemy of hardEnemies) assertBoosted(enemy);
+    const fieldMobs = !hard.state.scenario && !hard.questId && !hard.dungeon ? hardEnemies.filter(u => !u.boss) : undefined;
+    for (const enemy of hardEnemies) assertBoosted(enemy, fieldMobs);
     for (const original of normalEnemies) {
       const enemy = hardEnemies.find(u => u.id === original.id)!;
       assert.ok(enemy.level >= Math.min(99, original.level + 2) && enemy.level <= Math.min(99, original.level + 5));

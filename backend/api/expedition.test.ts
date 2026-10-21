@@ -158,8 +158,10 @@ test('a cleared region uses departure date rather than its historical first-clea
   const preview = dispatch(ctx, OP.GET_TODAY, {}) as { sortieRegions: { id: number; level: number }[] };
   const sortie = dispatch(ctx, OP.SORTIE, { region: 3, unitIds: ['u_erin', 'u_victor'] }) as { battleId: string };
   const battle = store.battle(player.id, sortie.battleId)!;
-  const enemy = battle.state.units.find(u => u.side === 'enemy')!;
+  const enemy = battle.state.units.find(u => u.side === 'enemy' && !u.boss)!;
+  const boss = battle.state.units.find(u => u.side === 'enemy' && u.boss)!;
   assert.equal(enemy.level, 11, 'day 240 base 10 plus region offset 1');
+  assert.equal(boss.level, 15, 'commander is four levels above the date-level baseline');
   assert.equal(preview.sortieRegions.find(r => r.id === 3)!.level, enemy.level);
 });
 
