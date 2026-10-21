@@ -31,6 +31,23 @@ test('normal creation preserves template stats and metadata with level-tier gear
   }
 });
 
+test('high growth uses the class template and 150% of its effective growth, not other enemies', () => {
+  for (const classId of CATALOG_CLASS_IDS) for (const level of [1, 5, 20, 54, 99]) {
+    const cls = CLASSES[classId], tpl = templateFor(classId);
+    const spec = { classId, level, pos: [0, 0] as [number, number], highGrowth: true };
+    const enemy = createEnemy('boss', spec);
+    assert.deepEqual(enemy.stats, enemyStats(classId, level, true));
+    assert.equal(enemy.hp, enemy.stats.hp);
+    for (const key of STAT_KEYS) {
+      const growth = Math.max(0, cls.growth[key] + (key === 'hp' ? 50 : 25));
+      assert.equal(enemy.stats[key], Math.min(cls.caps[key] ?? Infinity, tpl.base[key] + Math.floor(growth * 1.5 * (level - 1) / 100)));
+    }
+  }
+  const armor = enemyStats('general', 50, true), sword = enemyStats('swordmaster', 50, true), mage = enemyStats('sage', 50, true);
+  assert.ok(armor.def > sword.def && armor.spd < sword.spd, 'armor keeps its defense/speed tradeoff');
+  assert.ok(mage.mag > mage.str && mage.def < armor.def, 'mages keep their magic focus and lower defense');
+});
+
 test('material gear changes at level boundaries and hard adds one tier capped at silver', () => {
   for (const [level, normalId, hardId] of [
     // fw_weapon_1/2 are the catalog's wooden/copper swords.

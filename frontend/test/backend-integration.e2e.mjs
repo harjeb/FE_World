@@ -329,21 +329,19 @@ try {
     const normalEnemyLevel = Math.min(QUEST_LEVEL_CAP.standard, enemyLevel(hardDeparture.day, regionById(2).offset));
     const hardMobs = hardEnemies.filter(unit => !unit.boss);
     const fieldBoss = hardEnemies.find(unit => unit.boss);
-    check('the field commander has the highest level and every stat', fieldBoss && hardMobs.every(unit =>
-      fieldBoss.level > unit.level && STAT_KEYS.every(key => fieldBoss.stats[key] > unit.stats[key])), 'commander bonuses survive hard generation');
+    check('the field commander has the highest level', fieldBoss && hardMobs.every(unit =>
+      fieldBoss.level > unit.level), 'commander level bonus survives hard generation');
     check('hard enemy levels include the commander bonus and configured hard range', hardEnemies.every(unit =>
       unit.level >= Math.min(99, normalEnemyLevel + (unit.boss ? 4 : 0) + HARD_ENEMY_RULES.levelMin)
       && unit.level <= Math.min(99, normalEnemyLevel + (unit.boss ? 4 : 0) + HARD_ENEMY_RULES.levelMax)), `normal level ${normalEnemyLevel}, hard levels ${hardEnemies.map(unit => unit.level).join(', ')}`);
     check('UI-started hard enemies boost every stat within capped random ranges', hardEnemies.every(unit => {
-      const base = enemyStats(unit.classId, unit.level);
+      const base = enemyStats(unit.classId, unit.level, unit.boss);
       return unit.hp === unit.stats.hp && unit.con >= 9 && unit.con <= 11 && STAT_KEYS.every(key => {
         const min = key === 'hp' ? HARD_ENEMY_RULES.hpMin : HARD_ENEMY_RULES.statMin;
         const max = key === 'hp' ? HARD_ENEMY_RULES.hpMax : HARD_ENEMY_RULES.statMax;
         const cap = CLASSES[unit.classId].caps[key] ?? Infinity;
-        const bonus = unit.boss ? (key === 'hp' ? 6 : 1) : 0;
-        const floor = unit.boss ? Math.max(0, ...hardMobs.map(mob => mob.stats[key])) : 0;
-        return unit.stats[key] >= Math.min(cap, Math.max(floor, base[key] + Math.max(1, Math.ceil(base[key] * min / 100))) + bonus)
-          && unit.stats[key] <= Math.min(cap, Math.max(floor, base[key] + Math.max(1, Math.ceil(base[key] * max / 100))) + bonus);
+        return unit.stats[key] >= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * min / 100)))
+          && unit.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * max / 100)));
       });
     }), `${hardEnemies.length} enemies checked at their actual increased levels`);
     check('hard enemies retain original gear and carry better usable equipment', hardEnemies.every(unit => {

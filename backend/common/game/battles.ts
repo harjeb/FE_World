@@ -1,7 +1,7 @@
 import { fieldEncounter, type FieldEncounter } from './encounters.ts';
 import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
 import type { Rank, WeaponType } from '../data/types.ts';
-import { stats, STAT_KEYS } from '../data/types.ts';
+import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
 import type { AiDifficulty, Action, BattleEvent, BattleObject, BattleState, Point, ScenarioEvent, UnitState } from '../engine/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
@@ -167,7 +167,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     name: enemyIdentityName(enemyIdentity, { classId, boss: i === 0, behavior: defaultBehavior(classId) }),
   }));
   // Reserves use the ordinary class/level, including legacy one-enemy encounters.
-  const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, fieldBoss && i === 0 ? { ...spec, classId: bossClass, level: bossLevel } : spec));
+  const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, fieldBoss && i === 0 ? { ...spec, classId: bossClass, level: bossLevel, highGrowth: true } : spec));
   const tiles = map.tiles;
   const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
   const encounterTheme = encounter?.theme ?? theme;
@@ -205,15 +205,6 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   if (!encounter) addEnemyReserves(state, enemySpecs, map.spawns.player);
-  if (fieldBoss) {
-    const boss = enemies[0];
-    const mobs = state.units.filter(unit => unit.side === 'enemy' && !unit.boss);
-    for (const key of STAT_KEYS) {
-      boss.stats[key] = Math.min(CLASSES[boss.classId].caps[key] ?? Infinity,
-        Math.max(boss.stats[key], ...mobs.map(unit => unit.stats[key])) + (key === 'hp' ? 6 : 1));
-    }
-    boss.hp = boss.stats.hp;
-  }
   initializeTurnSkills(state);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,

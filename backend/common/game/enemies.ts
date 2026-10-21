@@ -60,11 +60,12 @@ export function templateFor(classId: ClassId): Template {
     weapons: (Object.keys(cls.weapons) as WeaponType[]).map(type => basic[type]), ranks: { ...cls.weapons } };
 }
 
-export function enemyStats(classId: ClassId, level: number): Stats {
+export function enemyStats(classId: ClassId, level: number, highGrowth = false): Stats {
   const cls = CLASSES[classId], tpl = templateFor(classId);
   const out = {} as Stats;
   for (const key of STAT_KEYS) {
-    out[key] = Math.min(cls.caps[key] ?? Infinity, tpl.base[key] + Math.floor(Math.max(0, cls.growth[key] + (key === 'hp' ? 50 : 25)) * (level - 1) / 100));
+    const growth = Math.max(0, cls.growth[key] + (key === 'hp' ? 50 : 25)) * (highGrowth ? 1.5 : 1);
+    out[key] = Math.min(cls.caps[key] ?? Infinity, tpl.base[key] + Math.floor(growth * (level - 1) / 100));
   }
   return out;
 }
@@ -86,7 +87,7 @@ const HARD_GEAR: Partial<Record<WeaponId, WeaponId>> = {
   heal: 'recover', recover: 'physic',
 };
 
-export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; vision?: number; thiefTurn?: number; thiefTrigger?: UnitState['thiefTrigger']; thiefApproach?: Point; name?: string; tags?: UnitState['tags'] }
+export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; highGrowth?: boolean; behavior?: Behavior; vision?: number; thiefTurn?: number; thiefTrigger?: UnitState['thiefTrigger']; thiefApproach?: Point; name?: string; tags?: UnitState['tags'] }
 
 export function createEnemy(id: string, spec: EnemySpec): UnitState {
   const hard = spec.aiDifficulty === 'hard';
@@ -95,7 +96,7 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
   const int = (min: number, max: number) => min + Math.floor(nextU32(rng) / 4294967296 * (max - min + 1));
   const rules = HARD_ENEMY_RULES;
   const level = hard ? Math.max(spec.level, Math.min(99, spec.level + int(rules.levelMin, rules.levelMax))) : spec.level;
-  const statsValue = enemyStats(spec.classId, level);
+  const statsValue = enemyStats(spec.classId, level, spec.highGrowth);
   if (hard) {
     for (const key of STAT_KEYS) {
       const percent = key === 'hp' ? int(rules.hpMin, rules.hpMax) : int(rules.statMin, rules.statMax);

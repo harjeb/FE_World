@@ -10,6 +10,7 @@ import { seedBrowserAccount } from './fixtures.mjs';
 import { stopProcess } from './processes.mjs';
 import { openDb } from '../../backend/api/db.ts';
 import { Store } from '../../backend/api/store.ts';
+import { enemyStats } from '../../backend/common/game/enemies.ts';
 
 const temp = mkdtempSync(join(tmpdir(), 'fe-deployment-'));
 const dbPath = join(temp, 'test.db'), name = 'deployment-browser';
@@ -202,9 +203,10 @@ try {
   const battle = await api(50, { full: true });
   const enemies = battle.state.units.filter(unit => unit.side === 'enemy');
   const enemyBoss = enemies.find(unit => unit.boss);
-  assert.ok(enemyBoss && enemies.filter(unit => !unit.boss).every(unit => enemyBoss.level > unit.level
-    && Object.entries(unit.stats).every(([key, value]) => enemyBoss.stats[key] >= Math.min(key === 'hp' ? 150 : Infinity, value + 1))),
-  'the deployed field commander has the highest level and every stat');
+  assert.ok(enemyBoss && enemies.filter(unit => !unit.boss).every(unit => enemyBoss.level > unit.level),
+    'the deployed field commander has the highest level');
+  assert.deepEqual(enemyBoss.stats, enemyStats(enemyBoss.classId, enemyBoss.level, true),
+    'the deployed field commander uses its own class with high growth');
   const deployed = battle.state.units.filter(unit => unit.side === 'player');
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');

@@ -1,5 +1,5 @@
 {
-  "docVersion": 44,
+  "docVersion": 45,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
