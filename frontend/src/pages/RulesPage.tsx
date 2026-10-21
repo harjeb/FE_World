@@ -112,7 +112,7 @@ export function RulesPage() {
         <Section id="quests" title="地区任务与挑战塔" link={features.quests ? ['任务', links.quests] : undefined}>
           <li>每个地区一条本地任务链，胜利后任务标记完成，金币、物资与声望另行领取；声望永久保留，购买不扣。</li>
           <li>每张图规定出战人数与敌军等级上限；名册上限 {ROSTER_LIMIT} 人，多出的人留作替补。</li>
-          <li>挑战塔：{CHALLENGE_FLOORS.map(f => `${f.name.replace('挑战塔 · ', '')} 敌 Lv ${f.level}、${f.costDays} 日`).join('；')}；先通关，再分别领一次首通与一次重复奖励。终层在主线第八章完成后开放。</li>
+          <li>挑战塔：{CHALLENGE_FLOORS.filter(f => !f.postgame).map(f => `${f.name.replace('挑战塔 · ', '')} 敌 Lv ${f.level}、${f.costDays} 日`).join('；')}；先通关，再分别领一次首通与一次重复奖励。完成主线第八章后开放禁忌之地，按关卡顺序挑战高难首领。</li>
         </Section>
 
         <Section id="dispatch" title="后台派遣" link={features.dispatch ? ['派遣', links.dispatch] : undefined}>

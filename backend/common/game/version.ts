@@ -2,6 +2,12 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v26';
+// v56: eight royal-capital investigations with server-gated background, testimony, pre-battle and
+// post-battle scenes. Calendar openings also require preceding investigations; completed legacy
+// chapters remain readable/replayable. Chapter eight fights a named transformed church leader after
+// the eighth personal tournament ends (or day 4000 for nonentrants). Postgame challenge tower-3 keeps
+// its reward keys and opens two further hard forbidden-land bosses. Existing battle snapshots,
+// completed chapters, inventory IDs and claimed rewards are retained; no unit migration or rule change.
 // v55 / rules-v26: every classic map explicitly audits its looting units and activation conditions.
 // No default turn or assassin-class heuristic. Source thief waves read chapter turnBytes, not event
 // indices, and match the catalog's original FE7 mode. FE3 waypoint scripts become latched position
@@ -143,7 +149,7 @@ export const RULESET_VERSION = 'rules-v26';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 55;
+export const CATALOG_VERSION = 56;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

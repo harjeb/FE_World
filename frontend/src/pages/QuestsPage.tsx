@@ -314,7 +314,7 @@ function TowerTab() {
       <div className="brief-head">
         <div>
           <div className="eyebrow">挑战塔 · {dateLabel(state.day)}</div>
-          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>挑战塔</h1>
+          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>{floors?.some(f => f.postgame) ? '挑战塔与禁忌之地' : '挑战塔'}</h1>
         </div>
       </div>
       {error && <p className="sys-strip">{error}</p>}
@@ -325,14 +325,17 @@ function TowerTab() {
             <section key={f.id} className={`panel floor${f.cleared ? ' cleared' : ''}${!f.available ? ' locked' : ''}`} aria-labelledby={`fl-${f.id}`}>
               <div className="ph">
                 <h2 id={`fl-${f.id}`}>{f.name}</h2>
-                <span className={`tag ${f.cleared ? 'tag-green' : f.available ? 'tag-blue' : 'tag-grey'}`}>{f.cleared ? '已通关' : f.available ? '可挑战' : '第八章后开放'}</span>
+                <span className={`tag ${f.cleared ? 'tag-green' : f.available ? 'tag-blue' : 'tag-grey'}`}>{f.cleared ? '已通关' : f.available ? f.postgame ? '高难挑战' : '可挑战' : '尚未开放'}</span>
               </div>
+              {f.briefing && <p className="story-background" style={{ padding: '0 16px' }}>{f.briefing}</p>}
+              {f.blockedReason && <p className="ch-req" style={{ padding: '0 16px', fontSize: 13 }}>{f.blockedReason}</p>}
               <dl className="facts">
+                {f.boss && <><dt>首领</dt><dd>{f.boss.name}</dd></>}
                 <dt>地图</dt><dd>{f.mapName} · 敌 Lv {f.level}{top < f.level ? <span className="risk">（我方最高 Lv {top}）</span> : ''}</dd>
                 <dt>出战</dt><dd>最多 {f.maxUnits} 人 · 推进 {f.costDays} 日</dd>
                 <dt>首通</dt><dd>{rewardLine(f.first)}{f.claimedFirst ? '（已领）' : ''}</dd>
                 <dt>重复</dt><dd>{rewardLine(f.repeat)}{f.claimedRepeat ? '（已领）' : f.claimedFirst ? '' : '（首通领取后）'}</dd>
-                <dt>首通装备</dt><dd>{f.equipment.map(itemName).join(' · ')}（{f.claimedEquipment ? '已领' : '未领'}）</dd>
+                {f.equipment.length > 0 && <><dt>首通装备</dt><dd>{f.equipment.map(itemName).join(' · ')}（{f.claimedEquipment ? '已领' : '未领'}）</dd></>}
                 <dt>阵亡</dt><dd className="risk">普通角色永久死亡</dd>
               </dl>
               <div className="go-bar">

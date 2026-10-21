@@ -5,6 +5,7 @@ import type { AiDifficulty } from '@common/engine/types.ts';
 import type { FieldEncounter } from '@common/game/encounters.ts';
 import type { BattleMap } from '@common/maps/map.ts';
 import { useSyncExternalStore } from 'react';
+import type { StoryScene } from '@common/game/story-narrative.ts';
 import { OP } from '@common/protocol/ops.ts';
 import type { Action, BattleEvent, BattleState, Point } from '@common/engine/index.ts';
 import type { SnapshotUnit } from '@common/arena/rules.ts';
@@ -257,7 +258,7 @@ export interface ServerAnnual {
 export interface StoryChapter {
   chapter: number; openDay: number; available: boolean; completed: boolean; claimed: boolean; title: string | null; learned: string | null;
   event?: string | null; discoveries?: string[];
-  finalBoss?: { floorId: string; available: boolean; defeated: boolean } | null;
+  finalBoss?: { questId: string; name: string; available: boolean; defeated: boolean } | null;
   quest?: StoryQuest | null;
 }
 export interface StoryStep {
@@ -267,9 +268,11 @@ export interface StoryStep {
   where?: string; mapName?: string; enemy?: string; level?: number; wins?: number; have?: number;
   // 完成的那一刻自动发放的奖励。
   reward?: { gold: number; bexp?: number; items?: [string, number][] };
+  scenes: StoryScene[];
 }
 // 主线任务（docs/38）：每章一张改编过的经典地图；胜利即完成本章，线索藏在图里的隐藏箱中。
 export interface StoryQuest {
+  background: string; scenes: StoryScene[]; blocker: string | null;
   id: string; name: string; briefing: string; objective: string; kind: QuestView['kind']; mapName: string;
   turnLimit: number; maxUnits: number; costDays: number; toDay: number; enemyLevel: number;
   reward: { gold: number; reputation: number; items?: [string, number][] };
@@ -282,7 +285,11 @@ export interface StoryQuest {
 export interface StoryCompanion {
   character: string; name: string; region: number; recruited: boolean; questId: string; questName: string; done: boolean; epilogue: string | null;
 }
-export interface ServerStory { bexp: number; annualSummary?: { text: string; data: unknown }; chapters: StoryChapter[]; companions?: StoryCompanion[] }
+export interface ServerStory {
+  bexp: number; annualSummary?: { text: string; data: unknown }; chapters: StoryChapter[]; companions?: StoryCompanion[];
+  prologue: { title: string; paragraphs: string[] };
+  postgame: { title: string; text: string } | null;
+}
 
 // GET_QUESTS: regional quests and reputation (docs/20).
 export interface QuestView {
@@ -327,6 +334,7 @@ export interface ServerQuests { board?: BoardEntry[]; regions: QuestRegion[]; cr
 // GET_CHALLENGES: the tower floors (docs/00 §9.6).
 export interface ChallengeFloor {
   id: string; name: string; mapId: string; mapName: string; level: number; costDays: number; maxUnits: number; risk: 'permadeath';
+  postgame?: boolean; briefing?: string; boss?: { name: string }; blockedReason: string | null;
   first: { gold: number; items: [string, number][] }; repeat: { gold: number; items: [string, number][] };
   equipment: string[]; claimedEquipment: boolean;
   cleared: boolean; available: boolean; claimedFirst: boolean; claimedRepeat: boolean;

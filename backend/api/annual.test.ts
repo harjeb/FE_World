@@ -68,10 +68,9 @@ test('story chapters open on the personal calendar and pay once', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   const story = dispatch(ctx, OP.GET_STORY, {}) as { chapters: { chapter: number; available: boolean; completed: boolean; claimed: boolean }[] };
-  // GET_STORY 只下发已开放或已完成的章节：第 999 日开放第 1–2 章，第 3 章整行隐藏。
-  assert.deepEqual(story.chapters.map(c => c.chapter), [1, 2]);
+  // 日期已到第二章，但第一章调查完成前不下发第二章内容。
+  assert.deepEqual(story.chapters.map(c => c.chapter), [1]);
   assert.equal(story.chapters[0].available, true, 'chapter 1 is open at day 999');
-  assert.equal(story.chapters[1].available, true, 'chapter 2 opens at day 982');
   assert.equal(story.chapters.some(c => c.chapter === 3), false, 'chapter 3 opens at day 1482 and stays hidden');
   assert.throws(() => dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 3 }), /尚未开放/);
   // 章节事件由主线任务完成；没打主线任务前不能直接标记完成。
@@ -79,6 +78,9 @@ test('story chapters open on the personal calendar and pay once', () => {
   player.flags.questsDone = [...(player.flags.questsDone ?? []), 'story-1'];
   store.savePlayer(player);
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
+  const next = dispatch(ctx, OP.GET_STORY, {}) as typeof story;
+  assert.deepEqual(next.chapters.map(c => c.chapter), [1, 2]);
+  assert.equal(next.chapters[1].available, true, 'chapter 2 follows the completed investigation once its date arrives');
   const bexp = player.bexp;
   const claimed = dispatch(ctx, OP.CLAIM_REWARD, { rewardKey: 'chapter:1' }) as { bexp: number };
   assert.equal(claimed.bexp, 1350);

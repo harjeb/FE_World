@@ -80,7 +80,7 @@ export const OPS: readonly OpDef[] = [
   { op: 112, name: 'START_ANNUAL_MATCH', group: '赛事', agentNote: '开打下一场年度比赛：海选三场至少两胜，正赛 64 强单败；真实死亡与消耗跨轮保留。' },
   { op: 113, name: 'WITHDRAW_ANNUAL', group: '赛事', agentNote: '退出本届年度赛事，保留真实伤亡与消耗、放弃后续比赛；当届不能重新报名。' },
 
-  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章收尾战：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed、prerequisite 未完成的前置任务名）及 quest.steps（前置任务，每章两个、类型各章不同：dispatch/submit/find/duel/arena/tavern，各带 done/available、reward 与各自的天数、材料、物品、对手、胜场进度），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。' },
+  { op: 120, name: 'GET_STORY', group: '故事', agentNote: '读取王城八章调查主线；按个人日历并依次完成此前章节后揭露，名次不阻挡。prologue为公开背景，quest.background/scenes与steps[].scenes按调查进度下发：任务完成才给后续证词、前置齐全才给战前对白、收尾战获胜才给结局。quest.blocker给出赛事等阻挡；第八章收尾战须结束本届参赛或等到第4000日，通关后的postgame引向禁忌之地。保留quest前置任务、奖励、线索与伙伴任务视图；旧档已完成章节可回看和补打。' },
   { op: 121, name: 'COMPLETE_STORY_EVENT', group: '故事', agentNote: '确认一章主线事件完成；必须先打赢本章主线任务（胜利时已自动完成），不能绕过任务。只标记完成，不自动发奖。' },
   { op: 122, name: 'CLAIM_REWARD', group: '故事', agentNote: '按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。' },
 
@@ -95,8 +95,8 @@ export const OPS: readonly OpDef[] = [
   { op: 131, name: 'HIRE_TAVERN', group: '整备', agentNote: '用金币雇佣酒馆候选；不耗行动日，满员/重复/金币不足会拒绝。' },
   { op: 132, name: 'INN_REST', group: '整备', agentNote: '旅馆休息 1 日，恢复指定法术书的全部次数；战斗中/远征/年度赛事中不可用。' },
   { op: 133, name: 'USE_FOOD', group: '整备', agentNote: '使用以太口粮或完整料理，恢复指定法术书 25%/全部次数；消耗食物，不耗日。' },
-  { op: 134, name: 'GET_CHALLENGES', group: '任务', agentNote: '读取挑战塔层、风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。' },
-  { op: 135, name: 'START_CHALLENGE', group: '任务', agentNote: '带固定名单挑战塔层；支付层日数并创建经典地图战斗，普通角色真实死亡。' },
+  { op: 134, name: 'GET_CHALLENGES', group: '任务', agentNote: '读取挑战塔及通关后禁忌之地。postgame关卡在第八章后显示，available/blockedReason说明逐关前置；boss/briefing给出首领与背景。保留风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。' },
+  { op: 135, name: 'START_CHALLENGE', group: '任务', agentNote: '带固定名单挑战塔层或禁忌之地；禁忌之地按关卡顺序挑战，固定hard难度和具名首领。支付关卡日数并创建经典地图战斗，普通角色真实死亡。' },
   { op: 136, name: 'CLAIM_CHALLENGE_REWARD', group: '任务', agentNote: '领取已通关塔层的首通／重复奖励及该层限量equipment实物，每种奖励只发一次；旧档已领完常规奖励仍可只补领装备，不重发金币。' },
   { op: 137, name: 'GET_MINIGAMES', group: '酒馆', agentNote: '读取本季度剩余酒馆小游戏局数、下注档位与赔率；frogs 列出每只青蛙的夺冠率（%）与押中返还（十分之一倍，含本金）。' },
   { op: 138, name: 'PLAY_MINIGAME', group: '酒馆', agentNote: '服务端结算一局猜大小或青蛙赛跑；扣金币、占季度额度、生成并保存赛果，重试不重掷。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 37;
+export const DOC_VERSION = 38;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

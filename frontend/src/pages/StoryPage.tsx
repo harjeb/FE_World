@@ -37,7 +37,7 @@ export function StoryPage() {
       <div className="brief-head">
         <div>
           <div className="eyebrow">主线 · {dateLabel(day)}</div>
-          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>八届大竞技场</h1>
+          <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>{story.prologue.title}</h1>
         </div>
         <div style={{ textAlign: 'right', fontSize: 13, color: '#4E473D' }}>
           已完成 <b className="num">{done}</b> / {chapters.length} 章 · 已领奖 <b className="num">{claimed}</b> 章
@@ -47,10 +47,15 @@ export function StoryPage() {
         </div>
       </div>
 
+      <details className="panel story-prologue" open={done === 0}>
+        <summary className="serif">故事背景 · 白冠王城</summary>
+        <div>{story.prologue.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}</div>
+      </details>
+
       <div className="sys-cols">
         <section className="panel" aria-labelledby="ch-h">
           <div className="ph"><h2 id="ch-h">章节</h2></div>
-          <ol className="chapters">
+          <ol className="chapters story-chapters">
             {chapters.map(c => {
               const phase = phaseOf(c);
               const [label, tag] = PHASE_TAG[phase];
@@ -69,11 +74,8 @@ export function StoryPage() {
                     {c.learned && <p className="ch-learned"><span className="tag tag-grey">本章所得</span>{c.learned}</p>}
                     {(c.discoveries ?? []).length > 0 && <ul className="ch-disc">{c.discoveries!.map(d => <li key={d}>{d}</li>)}</ul>}
                     {c.quest && <StoryQuestPanel quest={c.quest} />}
-                    {c.finalBoss && (
-                      <p className="ch-learned">
-                        <span className={`tag ${c.finalBoss.defeated ? 'tag-green' : c.finalBoss.available ? 'tag-red' : 'tag-grey'}`}>最终首领</span>
-                        {c.finalBoss.defeated ? '已在挑战塔终层击败。' : c.finalBoss.available ? <>挑战塔终层已开放：<a href={links.tower}>前往挑战塔 ›</a></> : ''}
-                      </p>
+                    {c.finalBoss?.defeated && (
+                      <p className="ch-learned"><span className="tag tag-green">王城终战</span>{c.finalBoss.name}已被击败。</p>
                     )}
                   </div>
                   <div className="ch-acts">
@@ -98,6 +100,13 @@ export function StoryPage() {
         </section>
 
         <div className="colstack">
+          {story.postgame && (
+            <section className="panel story-postgame" aria-labelledby="postgame-h">
+              <div className="ph"><h2 id="postgame-h">{story.postgame.title}</h2><span className="tag tag-red">通关后 · 高难</span></div>
+              <p>{story.postgame.text}</p>
+              <a className="btn btn-sm btn-primary" href={links.tower}>前往禁忌之地 ›</a>
+            </section>
+          )}
           <section className="panel" aria-labelledby="an-h">
             <div className="ph"><h2 id="an-h">本届大竞技场</h2><a className="btn btn-sm btn-ghost" href={links.annual}>赛程 ›</a></div>
             <div style={{ padding: '10px 16px 12px', fontSize: 14 }}>

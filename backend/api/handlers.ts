@@ -63,10 +63,11 @@ import { CHAPTER_BEXP, CHAPTERS, chapterAvailable, chapterOpenDay, STORY_CHAPTER
 import { QUEST_DAY_COST, QUEST_LEVEL_CAP, QUESTS, questById, questsForRegion, questAvailable, recruitedCharacters, supportsHardQuest, QUEST_REGIONS, RECRUIT_LINES } from '../common/game/quests.ts';
 import { COMPANION_EPILOGUES, STORY_QUESTS, stepReward } from '../common/game/story-quests.ts';
 import { festivalDiscount, festivalPrice } from '../common/game/festival.ts';
-import { companionView, completeDuelStep, findStoryStep, grantStepRewards, recordStoryWin, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
+import { companionView, completeDuelStep, findStoryStep, grantStepRewards, recordStoryWin, storyBattleBlocker, storyChapterBlocker, storyInvestigationOpen, storyPrerequisite, storyQuestView, syncFindSteps } from './story.ts';
+import { STORY_POSTGAME, STORY_PROLOGUE } from '../common/game/story-narrative.ts';
 import { createStoryDuel, DUEL_DAYS, duelLevel } from '../common/game/story-duel.ts';
 import { classicMap } from '../common/game/classic-catalog.ts';
-import { CHALLENGE_FLOORS, challengeById } from '../common/game/challenges.ts';
+import { CHALLENGE_FLOORS, challengeBlocker, challengeById } from '../common/game/challenges.ts';
 import { dicePayout, FROG_CHANCE, frogPayout, FROG_NAMES, FROG_RETURN_TENTHS, frogRace, MINIGAME_BETS, MINIGAME_PLAYS_PER_QUARTER, rollDice } from '../common/game/minigames.ts';
 import { classicAdaptation } from '../common/game/classic-adaptation.ts';
 import { purchasableRank } from '../common/game/quest-shop.ts';
@@ -2033,13 +2034,16 @@ const handlers: Record<number, Handler> = {
     const annualEvent = ctx.store.events(ctx.player.id, 0, 10000).filter(event => event.kind === 'festival').at(-1);
     return {
     bexp: CHAPTER_BEXP,
+    prologue: STORY_PROLOGUE,
+    postgame: (ctx.player.flags.storyCompleted ?? []).includes(8) ? STORY_POSTGAME : null,
     annualSummary: annualEvent ? { text: annualEvent.text, data: annualEvent.data } : { text: '本届大竞技场未参赛。', data: null },
     // 只下发已开放或已完成的章节：未开放的章节不提前剧透，也不出现在列表里。
     chapters: Array.from({ length: STORY_CHAPTERS }, (_, i) => {
       const chapter = i + 1;
       const available = chapterAvailable(chapter, ctx.player.day);
       const completed = (ctx.player.flags.storyCompleted ?? []).includes(chapter);
-      if (!available && !completed) return null;
+      if ((!available && !completed) || !storyInvestigationOpen(ctx.player, chapter)) return null;
+      const quest = available ? storyQuestView(ctx.store, ctx.player, chapter) : null;
       return {
         chapter, openDay: chapterOpenDay(chapter), available, completed,
         claimed: ctx.player.flags.chapterExpClaimed.includes(chapter),
@@ -2047,9 +2051,9 @@ const handlers: Record<number, Handler> = {
         title: available ? CHAPTERS[i].title : null,
         learned: completed ? CHAPTERS[i].learned : null,
         event: completed ? CHAPTERS[i].event : null,
-        finalBoss: chapter === 8 ? { floorId: 'tower-3', available: completed, defeated: (ctx.player.flags.towerCleared ?? []).includes('tower-3') } : null,
+        finalBoss: chapter === 8 ? { questId: 'story-8', name: '邪神化教首·洛德里克', available: quest?.available ?? false, defeated: completed } : null,
         discoveries: completed ? CHAPTERS[i].discoveries : [],
-        quest: available ? storyQuestView(ctx.store, ctx.player, chapter) : null,
+        quest,
       };
     }).filter((row): row is NonNullable<typeof row> => row !== null),
     companions: companionView(ctx.player),
@@ -2075,6 +2079,8 @@ const handlers: Record<number, Handler> = {
     const { chapter, step } = found;
     if (step.kind !== 'submit') throw new OpError('BAD_REQUEST', '这类前置任务不用提交材料：派遣满天数返程时自动完成，找物品／胜场／单挑按各自的方式完成');
     if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+    const chapterBlocker = storyChapterBlocker(ctx.player, chapter);
+    if (chapterBlocker) throw new OpError('FORBIDDEN', chapterBlocker);
     const done = new Set(ctx.player.flags.storyStepsDone ?? []);
     if (done.has(step.id)) throw new OpError('FORBIDDEN', '这个前置任务已经完成');
     if (ctx.store.countInventory(ctx.player.id, step.item) < step.count) {
@@ -2094,6 +2100,8 @@ const handlers: Record<number, Handler> = {
     if (!found || found.step.kind !== 'duel') throw new OpError('NOT_FOUND', '没有这个单挑任务');
     const { chapter, step } = found;
     if (!chapterAvailable(chapter, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+    const chapterBlocker = storyChapterBlocker(ctx.player, chapter);
+    if (chapterBlocker) throw new OpError('FORBIDDEN', chapterBlocker);
     if ((ctx.player.flags.storyStepsDone ?? []).includes(step.id)) throw new OpError('FORBIDDEN', '这个单挑已经赢过了');
     if (ctx.store.activeBattle(ctx.player.id)) throw new OpError('BATTLE_IN_PROGRESS', '已有进行中的战斗');
     if (isActiveRun(ctx.store.activeRun(ctx.player.id))) throw new OpError('FORBIDDEN', '远征进行中，先打完或撤离');
@@ -2250,7 +2258,7 @@ const handlers: Record<number, Handler> = {
     const towerOpen = combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player));
     const cleared = ctx.player.flags.towerCleared ?? [];
     const storyDone = ctx.player.flags.storyCompleted ?? [];
-    const opened = (floor: (typeof CHALLENGE_FLOORS)[number]) => floor.id !== 'tower-3' || storyDone.includes(8);
+    const opened = (floor: (typeof CHALLENGE_FLOORS)[number]) => !floor.postgame || storyDone.includes(8);
     return {
       // 只显示已开放或已通关的塔层；特性未开时列表为空（挑战塔随首次讨伐开放）。
       floors: CHALLENGE_FLOORS.filter(floor => (towerOpen && opened(floor)) || cleared.includes(floor.id)).map(floor => ({
@@ -2258,10 +2266,11 @@ const handlers: Record<number, Handler> = {
       mapName: classicMap(floor.mapId).name,
       maxUnits: classicAdaptation(floor.mapId).deployment.max,
       cleared: cleared.includes(floor.id),
-      available: opened(floor),
+      available: !challengeBlocker(floor, storyDone, cleared),
+      blockedReason: challengeBlocker(floor, storyDone, cleared),
       claimedFirst: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`),
       claimedRepeat: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:repeat`),
-      claimedEquipment: (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:equipment-v1`),
+      claimedEquipment: floor.equipment.length === 0 || (ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:equipment-v1`),
     })),
     };
   },
@@ -2272,16 +2281,14 @@ const handlers: Record<number, Handler> = {
     if (!combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放挑战塔');
     const floor = challengeById(asString(data.floorId, 'floorId'));
     if (!floor) throw new OpError('NOT_FOUND', '没有这个塔层');
-    if (floor.id === 'tower-3' && !(ctx.player.flags.storyCompleted ?? []).includes(8)) throw new OpError('FORBIDDEN', '完成第八章后才能挑战最终首领');
-    const ids = Array.isArray(data.unitIds) ? data.unitIds as string[] : [];
-    const units = ids.map(id => requireUnit(ctx.store, ctx.player, id)).filter(unit => unit.status === 'active');
-    if (units.length === 0) throw new OpError('BAD_REQUEST', '没有可出战单位');
-    if (units.some(unit => unit.lockedRunId || unit.lockedDispatchId)) throw new OpError('FORBIDDEN', '远征或派遣中的单位不能挑战塔');
+    if (ctx.store.activeAnnualEntry(ctx.player.id)) throw new OpError('FORBIDDEN', '大竞技场进行中，暂时不能挑战');
+    const blocked = challengeBlocker(floor, ctx.player.flags.storyCompleted ?? [], ctx.player.flags.towerCleared ?? []);
+    if (blocked) throw new OpError('FORBIDDEN', blocked);
     const maxUnits = classicAdaptation(floor.mapId).deployment.max;
-    if (units.length > maxUnits) throw new OpError('BAD_REQUEST', `该层最多出战 ${maxUnits} 人`);
+    const units = deploymentUnits(ctx, data.unitIds, maxUnits);
     const block = lifespanBlockers(ctx, ctx.player.day + floor.costDays);
     if (block.length) throw new OpError('FORBIDDEN', block.join('；'));
-    const record = createClassicBattle(units, { mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
+    const record = createClassicBattle(units, { name: floor.name, mapId: floor.mapId, seed: `tower:${ctx.player.id}:${floor.id}:${ctx.player.day}`, day: ctx.player.day, level: floor.level, aiDifficulty: floor.postgame ? 'hard' : 'normal', boss: floor.boss, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
     record.playerId = ctx.player.id;
     record.challengeId = floor.id;
     record.costDays = floor.costDays;
@@ -2295,7 +2302,8 @@ const handlers: Record<number, Handler> = {
   [OP.CLAIM_CHALLENGE_REWARD]: (ctx, data) => {
     const floor = challengeById(asString(data.floorId, 'floorId'));
     if (!floor) throw new OpError('NOT_FOUND', '没有这个塔层');
-    if (floor.id === 'tower-3' && !(ctx.player.flags.storyCompleted ?? []).includes(8)) throw new OpError('FORBIDDEN', '完成第八章后才能挑战最终首领');
+    const blocked = challengeBlocker(floor, ctx.player.flags.storyCompleted ?? [], ctx.player.flags.towerCleared ?? []);
+    if (blocked) throw new OpError('FORBIDDEN', blocked);
     if (!(ctx.player.flags.towerCleared ?? []).includes(floor.id)) throw new OpError('FORBIDDEN', '该层尚未通关');
     const first = !(ctx.player.flags.challengeRewardsClaimed ?? []).includes(`${floor.id}:first`);
     ctx.player.flags.challengeRewardsClaimed ??= [];
@@ -2384,6 +2392,8 @@ const handlers: Record<number, Handler> = {
     if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, ctx.player, playerRegions(ctx.player))) throw new OpError('FORBIDDEN', '完成一次地区讨伐后开放副本');
     if (quest.story) {
       if (!chapterAvailable(quest.story, ctx.player.day)) throw new OpError('FORBIDDEN', '该章尚未开放');
+      const storyBlocker = storyBattleBlocker(ctx.store, ctx.player, quest.story);
+      if (storyBlocker) throw new OpError('FORBIDDEN', storyBlocker);
       grantStepRewards(ctx.store, ctx.player, syncFindSteps(ctx.store, ctx.player));
       const missing = storyPrerequisite(ctx.player, quest.story);
       if (missing) throw new OpError('FORBIDDEN', `先完成本章前置任务「${missing}」`);

@@ -31,6 +31,8 @@ function setup(t: { after: (fn: () => void) => void }, day = 600): Context {
   const { player, accountId } = loginOrRegister(store, 'story-quests');
   seedFullRoster(store, player);
   player.day = day;
+  // 聚焦当前章机制的旧测试默认已经完成更早的调查。
+  player.flags.storyCompleted = Array.from({ length: Math.max(0, Math.min(7, Math.floor((day + 18) / 500) - 1)) }, (_, i) => i + 1);
   player.flags.regionReputation = { 2: 9999, 3: 9999, 5: 9999 };
   store.savePlayer(player);
   return { store, player: syncPlayer(store, player), accountId, agentModel: null, push() {} };
@@ -279,6 +281,7 @@ test('a duel is one chosen unit against one named champion with real death, and 
   const ctx = setup(t, 1000);
   assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-3-a', unitId: 'u_erin' }), /尚未开放/);
   ctx.player.day = 1482;
+  ctx.player.flags.storyCompleted = [1, 2];
   ctx.store.savePlayer(ctx.player);
   assert.throws(() => dispatch(ctx, OP.START_STORY_DUEL, { step: 'story-1-a', unitId: 'u_erin' }), /没有这个单挑任务/);
   const view = storyView(ctx, 3).steps[0] as View & { enemy?: string; level?: number };
@@ -341,6 +344,7 @@ test('a dispatch started before the chapter opened does not count, and one dispa
   const ctx = setup(t, 2470);
   ctx.player.flags.clearedRegions = [1];
   ctx.player.flags.storyStepsDone = ['story-2-b'];
+  ctx.player.flags.storyCompleted = [1, 2, 3, 4];
   ctx.store.savePlayer(ctx.player);
   dispatch(ctx, OP.START_DISPATCH, { region: 1, durationDays: 20, unitIds: ['u_victor'] });
   ctx.player.day = 2495;

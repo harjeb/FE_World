@@ -51,7 +51,31 @@
 .ch-quest .ch-acts { margin-top: 8px; display: flex; gap: 8px; }
 .ch-steps { list-style: none; margin: 6px 0 8px; padding: 0; }
 .ch-step { padding: 6px 0 6px 10px; border-left: 3px solid var(--color-line); margin-bottom: 4px; }
-.ch-step.done { border-left-color: var(--color-green); opacity: .8; }
+.ch-step.done { border-left-color: var(--color-green); }
+.story-chapters .chap { align-items: start; grid-template-columns: 56px minmax(0, 1fr); }
+.story-chapters .ch-acts { grid-column: 2; }
+.story-prologue { margin: 16px 0; }
+.story-prologue > summary { padding: 13px 16px; cursor: pointer; font-size: 16px; font-weight: 700; color: var(--color-ink); }
+.story-prologue > div { padding: 0 16px 14px; }
+.story-prologue p, .story-background { margin: 8px 0; font-size: 14px; line-height: 1.85; color: var(--color-ink-2); }
+.story-scenes { min-width: 0; }
+.story-scene { margin: 10px 0; border: 1px solid #d9cbb0; border-radius: 6px; background: #faf5e9; overflow: hidden; }
+.story-scene > summary { padding: 9px 12px; font-size: 13px; font-weight: 700; color: #76592d; cursor: pointer; overflow-wrap: anywhere; }
+.story-scene > summary:focus-visible, .story-prologue > summary:focus-visible, .story-investigation > summary:focus-visible { outline: 2px solid var(--color-blue); outline-offset: -3px; }
+.story-lines { padding: 0 12px 10px; }
+.story-line { display: grid; grid-template-columns: minmax(0, 108px) minmax(0, 1fr); gap: 6px 12px; margin: 0; padding: 9px 0; border-top: 1px solid #e7decb; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.story-line > b { font-size: 12px; color: #76592d; padding-top: 2px; }
+.story-line.protagonist > b { color: var(--color-blue); }
+.story-narrator { margin: 4px 0 9px; font-size: 13px; line-height: 1.9; color: var(--color-muted); }
+.story-investigation > summary { cursor: pointer; font-size: 13px; color: var(--color-muted); padding: 8px 0; }
+.story-postgame { padding-bottom: 16px; }
+.story-postgame > p { padding: 0 16px; font-size: 14px; line-height: 1.85; }
+.story-postgame > a { margin: 8px 16px 0; }
+@media (max-width: 600px) {
+  .story-line { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .story-chapters .chap { gap: 8px; padding: 12px 10px; grid-template-columns: 40px minmax(0, 1fr); }
+  .story-chapters .ch-no { width: 40px; height: 50px; }
+}
 .ch-acts { display: flex; gap: 6px; }
 
 /* 生产 */

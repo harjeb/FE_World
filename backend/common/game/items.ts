@@ -81,11 +81,11 @@ const MANUAL_ITEMS = Object.fromEntries(SPELLBOOKS.filter(book => book.effects.m
 }])) as Record<ManualItemKey, GameItem>;
 
 const STORY_CLUE_ITEMS = Object.fromEntries(STORY_CHAPTER_QUESTS.map(row => [storyClueKey(row.chapter), {
-  name: `「${row.clue.name}」`, kind: 'key' as const, price: 0, bound: true, note: `主线线索（第 ${row.chapter} 章）：${row.clue.note}不能出售，也不能带进战斗`,
+  name: `「${row.clue.name}」`, kind: 'key' as const, price: 0, bound: true, note: `主线线索（第 ${row.chapter} 章），调查内容可在对应主线章节回看。不能出售，也不能带进战斗`,
 }])) as Record<StoryClueKey, GameItem>;
 
 const STORY_FIND_ITEMS = Object.fromEntries(Object.entries(STORY_FIND_NOTES).map(([key, row]) => [key, {
-  name: `「${row.name}」`, kind: 'key' as const, price: 0, bound: true, note: `主线任务物品：${row.note}不能出售，也不能带进战斗`,
+  name: `「${row.name}」`, kind: 'key' as const, price: 0, bound: true, note: '主线任务物品，详情见已开放的调查记录。不能出售，也不能带进战斗',
 }])) as Record<StoryFindKey, GameItem>;
 
 export const MATERIAL_ITEMS = Object.fromEntries(MATERIAL_IDS.map(id => {

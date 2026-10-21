@@ -5,12 +5,13 @@ import type { StoryQuest, StoryStep } from '../api/session.ts';
 import { annualLive, busyReason } from '../model/roster.ts';
 import { go, links } from '../router.ts';
 import { advance } from '../ui/calendar.ts';
+import { StoryDialogue } from './StoryDialogue.tsx';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 
 const rewardLine = (q: StoryQuest) => [`${q.reward.gold.toLocaleString()} 金币`, ...(q.reward.items ?? []).map(([item, count]) => `${itemName(item)} ×${count}`)].join(' · ');
 
 // 前置任务（每章两个，类型各章不同）：派遣、提交材料、副本宝箱找物品、单挑、竞技场胜场、酒馆小游戏胜次。
-function StepRow({ step, index }: { step: StoryStep; index: number }) {
+function StepRow({ step, index, readOnly = false }: { step: StoryStep; index: number; readOnly?: boolean }) {
   const { state, annual } = useSession();
   const { busy, act } = useAct();
   const [pickDuel, setPickDuel] = useState(false);
@@ -35,11 +36,12 @@ function StepRow({ step, index }: { step: StoryStep; index: number }) {
         {step.done ? <span className="tag tag-brass">已完成</span> : step.optional && <span className="tag tag-grey">可选</span>}
       </p>
       <p className="ch-sub">{step.briefing}</p>
+      <StoryDialogue scenes={step.scenes} expanded={readOnly ? undefined : step.scenes.at(-1)?.id} />
       {step.reward && <p className="ch-sub"><span className="tag tag-grey">{step.done ? '已发放' : '完成奖励'}</span> {stepRewardLine(step.reward)}</p>}
-      {!step.done && step.kind === 'dispatch' && (
+      {!readOnly && !step.done && step.kind === 'dispatch' && (
         <p className="ch-sub">在<a href={links.dispatch}>后台派遣</a>里派一支队伍探索（任何已开通地区），<b>本章开放之后出发</b>、一次满 {step.days} 日，返程时自动完成。</p>
       )}
-      {!step.done && step.kind === 'submit' && (
+      {!readOnly && !step.done && step.kind === 'submit' && (
         <p className="ch-sub">
           需要 {step.count} 份{step.itemName}，仓库里有 <b>{step.held ?? 0}</b> 份；提交后从仓库扣除。
           <button type="button" className="btn btn-sm btn-primary" style={{ marginLeft: 8 }} disabled={!step.available || !enough || busy !== null} title={!enough ? '材料不足' : undefined} onClick={() => void submit()}>
@@ -47,18 +49,18 @@ function StepRow({ step, index }: { step: StoryStep; index: number }) {
           </button>
         </p>
       )}
-      {!step.done && step.kind === 'find' && (
+      {!readOnly && !step.done && step.kind === 'find' && (
         <p className="ch-sub">
           在「{step.where}」里（{step.mapName}）找到被藏起来的箱子，取得{step.itemName}；<b>本章开放之后</b>进入副本才会出现，整趟完整通关后入库，每个账号一次。<a href={links.quests}>前往任务</a>
         </p>
       )}
-      {!step.done && step.kind === 'arena' && (
+      {!readOnly && !step.done && step.kind === 'arena' && (
         <p className="ch-sub">在<a href={links.arena}>普通竞技场</a>赢 {step.wins} 场（本章开放之后的胜场才计）：<b>{step.have ?? 0} / {step.wins}</b></p>
       )}
-      {!step.done && step.kind === 'tavern' && (
+      {!readOnly && !step.done && step.kind === 'tavern' && (
         <p className="ch-sub">在<a href={links.tavern}>酒馆</a>的小游戏里赢 {step.wins} 次（返还高于下注，本章开放之后才计）：<b>{step.have ?? 0} / {step.wins}</b></p>
       )}
-      {!step.done && step.kind === 'duel' && (
+      {!readOnly && !step.done && step.kind === 'duel' && (
         <>
           <p className="ch-sub">对手是一名随机人物（{step.enemy}）：等级 Lv {step.level}，按你队伍里的最高等级来；职业与你选的应战者同阶级（具体职业随机）。只有你选的一名角色应战，<b>真实死亡</b>；输了可以再来，推进 1 日。</p>
           {!pickDuel
@@ -123,13 +125,17 @@ export function StoryQuestPanel({ quest }: { quest: StoryQuest }) {
         {quest.done && <span className={`tag ${quest.claimed ? 'tag-brass' : 'tag-green'}`}>{quest.claimed ? '已完成' : '奖励待领取'}</span>}
         {quest.inProgress && <span className="tag tag-brass">进行中</span>}
       </p>
-      {quest.steps.length > 0 && !quest.done && (
-        <ul className="ch-steps" aria-label="前置任务">{quest.steps.map((step, index) => <StepRow key={step.id} step={step} index={index} />)}</ul>
-      )}
+      <p className="story-background">{quest.background}</p>
+      <StoryDialogue scenes={quest.scenes.slice(0, 1)} expanded={quest.done ? undefined : quest.scenes[0]?.id} />
+      {quest.steps.length > 0 && (quest.done
+        ? <details className="story-investigation"><summary>回看调查经过</summary><ul className="ch-steps" aria-label="调查记录">{quest.steps.map((step, index) => <StepRow key={step.id} step={step} index={index} readOnly />)}</ul></details>
+        : <ul className="ch-steps" aria-label="前置任务">{quest.steps.map((step, index) => <StepRow key={step.id} step={step} index={index} />)}</ul>)}
+      <StoryDialogue scenes={quest.scenes.slice(1)} expanded={quest.scenes.at(-1)?.id} />
       <p className="ch-sub">{quest.briefing}</p>
       <p className="ch-sub">
         改编自经典地图「{quest.mapName}」· {quest.objective} · {quest.costDays} 日 · 最多 {quest.maxUnits} 人 · 敌 Lv {quest.enemyLevel} · 倒下的普通角色永久死亡
       </p>
+      {quest.blocker && !quest.done && <p className="ch-sub ch-req">{quest.blocker}。</p>}
       {quest.prerequisite && !quest.done && <p className="ch-sub ch-req">收尾战要先完成前置任务「{quest.prerequisite}」。</p>}
       <p className="ch-learned"><span className="tag tag-grey">报酬</span>{rewardLine(quest)}</p>
       <p className="ch-learned">
@@ -155,7 +161,7 @@ export function StoryQuestPanel({ quest }: { quest: StoryQuest }) {
       <div className="ch-acts">
         {quest.inProgress && <a className="btn btn-sm btn-primary" href={links.field}>继续任务</a>}
         {!quest.done && !quest.inProgress && !open && (
-          <button type="button" className="btn btn-sm btn-primary" disabled={!quest.available || busy !== null} title={quest.prerequisite ? `先完成前置任务「${quest.prerequisite}」` : quest.available ? undefined : '先结束进行中的战斗、远征或大竞技场'} onClick={prepare}>准备出征</button>
+          <button type="button" className="btn btn-sm btn-primary" disabled={!quest.available || busy !== null} title={quest.blocker ?? (quest.prerequisite ? `先完成前置任务「${quest.prerequisite}」` : quest.available ? undefined : '先结束进行中的战斗、远征或大竞技场')} onClick={prepare}>准备出征</button>
         )}
         {quest.done && !quest.claimed && (
           <button type="button" className="btn btn-sm btn-primary" disabled={busy !== null} onClick={() => void claim()}>{busy === `c${quest.id}` ? '领取中…' : '领取任务报酬'}</button>

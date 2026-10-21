@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 37
+docVersion: 38
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -8,7 +8,7 @@ docVersion: 37
 
 MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。
 
-SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，HP上限150，其余八项属性无上限，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。耗日及任务固定奖励不变，随机战场的出战上限和敌军规模由地图／难度配置决定，更多高等级敌人会自然增加战斗经验，敌军携带装备不会按概率掉落。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal。
+SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，HP上限150，其余八项属性无上限，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。耗日及任务固定奖励不变，随机战场的出战上限和敌军规模由地图／难度配置决定，更多高等级敌人会自然增加战斗经验，敌军携带装备不会按概率掉落。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal；主线通关后的禁忌之地挑战固定 hard。
 
 随机野外与随机副本先确定战场，再选择队伍：GET_TODAY.sortieRegions 的 encounters／dungeonEncounters 分别提供 normal、hard 的布局、尺寸、maxUnits 与 enemyCount；少带人不会减少敌军。同一账号、日期、地区与活动的战场固定，刷新、换队或切换难度不会重抽布局；推进日期后才更新。PREVIEW_ACTION 返回 encounter.map 的真实地形、双方出生点与 playerGroups，报价按玩家版本绑定。出征名单按unitIds数组顺序分配到map.spawns.player对应落点，首位为主将；必须互不重复、可用且不超过该图该难度的上限；副本开局保存RunRecord.stages，出战上限取整趟所有图的限制（含经典终图）。地图布局含交错遭遇、隔墙分队会合和分散据点；已保存战场不重排。
 
@@ -155,7 +155,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 120 | GET_STORY | 读取八章主线的开放与完成状态；时间到章节就开放，名次、是否参赛都不阻挡。章节开放后给标题和 quest（本章收尾战：简报、改编地图、敌军等级、报酬、线索 clue、available/done/claimed、prerequisite 未完成的前置任务名）及 quest.steps（前置任务，每章两个、类型各章不同：dispatch/submit/find/duel/arena/tavern，各带 done/available、reward 与各自的天数、材料、物品、对手、胜场进度），完成后给本章得到的认识；companions 列出地区固定人物（雷恩／伊格／米拉）的伙伴任务状态。 |
+| 120 | GET_STORY | 读取王城八章调查主线；按个人日历并依次完成此前章节后揭露，名次不阻挡。prologue为公开背景，quest.background/scenes与steps[].scenes按调查进度下发：任务完成才给后续证词、前置齐全才给战前对白、收尾战获胜才给结局。quest.blocker给出赛事等阻挡；第八章收尾战须结束本届参赛或等到第4000日，通关后的postgame引向禁忌之地。保留quest前置任务、奖励、线索与伙伴任务视图；旧档已完成章节可回看和补打。 |
 | 121 | COMPLETE_STORY_EVENT | 确认一章主线事件完成；必须先打赢本章主线任务（胜利时已自动完成），不能绕过任务。只标记完成，不自动发奖。 |
 | 122 | CLAIM_REWARD | 按唯一奖励键领取团队公共经验等奖励；重复请求不会重复发。 |
 ### 任务
@@ -185,8 +185,8 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 | op | 名称 | 说明 |
 | --- | --- | --- |
-| 134 | GET_CHALLENGES | 读取挑战塔层、风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。 |
-| 135 | START_CHALLENGE | 带固定名单挑战塔层；支付层日数并创建经典地图战斗，普通角色真实死亡。 |
+| 134 | GET_CHALLENGES | 读取挑战塔及通关后禁忌之地。postgame关卡在第八章后显示，available/blockedReason说明逐关前置；boss/briefing给出首领与背景。保留风险、首通/重复奖励及36种授予战技实物的分层限量奖励；equipment与claimedEquipment说明装备领取状态。 |
+| 135 | START_CHALLENGE | 带固定名单挑战塔层或禁忌之地；禁忌之地按关卡顺序挑战，固定hard难度和具名首领。支付关卡日数并创建经典地图战斗，普通角色真实死亡。 |
 | 136 | CLAIM_CHALLENGE_REWARD | 领取已通关塔层的首通／重复奖励及该层限量equipment实物，每种奖励只发一次；旧档已领完常规奖励仍可只补领装备，不重发金币。 |
 ### 酒馆
 

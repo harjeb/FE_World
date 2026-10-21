@@ -45,7 +45,7 @@ test('story chapters show a title once open and what was learned once completed'
   dispatch(ctx, OP.COMPLETE_STORY_EVENT, { chapter: 1 });
   const done = story().chapters[0];
   assert.equal(done.completed, true);
-  assert.ok(done.learned && done.learned.includes('神纹'));
+  assert.ok(done.learned && done.learned.includes('求援信'));
 });
 
 test('the memorial reports the free emergency recruit status and the op follows it', () => {

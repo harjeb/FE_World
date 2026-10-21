@@ -11,6 +11,28 @@ import { GAME_ITEMS, stockUses } from '../common/game/items.ts';
 import { COMPANION_EPILOGUES, COMPANION_QUEST_DEFS, STORY_CHAPTER_QUESTS, STORY_QUESTS, companionQuestId, stepReward, storyClueKey, storyQuestId } from '../common/game/story-quests.ts';
 import type { StoryStep } from '../common/game/story-quests.ts';
 import { duelLevel } from '../common/game/story-duel.ts';
+import { STORY_NARRATIVE } from '../common/game/story-narrative.ts';
+
+// 先完成调查才揭露下一章；旧档已经完成的章节仍能回看、补打。
+export function storyInvestigationOpen(player: Player, chapter: number): boolean {
+  const completed = new Set(player.flags.storyCompleted ?? []);
+  const quests = new Set(player.flags.questsDone ?? []);
+  return completed.has(chapter) || quests.has(storyQuestId(chapter))
+    || Array.from({ length: chapter - 1 }, (_, i) => i + 1).every(prior => completed.has(prior) || quests.has(storyQuestId(prior)));
+}
+
+export function storyChapterBlocker(player: Player, chapter: number): string | null {
+  return storyInvestigationOpen(player, chapter) ? null : '先完成此前章节的调查';
+}
+
+// 不要求夺冠：第八届参赛流程结束即可；未参赛者等到赛季窗口结束。
+export function storyBattleBlocker(store: Store, player: Player, chapter: number): string | null {
+  const earlier = storyChapterBlocker(player, chapter);
+  if (earlier) return earlier;
+  if (chapter !== 8 || legacyCompleted(player, chapter) || (player.flags.questsDone ?? []).includes(storyQuestId(chapter)) || player.day >= 4000) return null;
+  const entry = store.annualEntryFor(player.id, 8);
+  return entry && ['champion', 'eliminated', 'withdrawn'].includes(entry.state) ? null : '等待第八届竞技场落幕：结束本届参赛，或到第 4000 日后前往祭台';
+}
 
 const stepsDone = (player: Player): Set<string> => new Set(player.flags.storyStepsDone ?? []);
 
@@ -32,7 +54,7 @@ const markDone = (player: Player, stepId: string): void => {
 // 每种前置任务的统一入口：这些函数只改玩家状态，由调用方存盘。返回新完成的前置任务 ID。
 function openSteps(player: Player, kind: StoryStep['kind']): StoryStep[] {
   const done = stepsDone(player);
-  return STORY_CHAPTER_QUESTS.filter(row => chapterAvailable(row.chapter, player.day))
+  return STORY_CHAPTER_QUESTS.filter(row => chapterAvailable(row.chapter, player.day) && storyInvestigationOpen(player, row.chapter))
     .flatMap(row => row.steps.filter(step => step.kind === kind && !done.has(step.id)));
 }
 
@@ -112,7 +134,8 @@ function stepViews(store: Store, player: Player, chapter: number) {
   const open = chapterAvailable(chapter, player.day);
   const optional = legacyCompleted(player, chapter);
   return row.steps.map(step => {
-    const base = { id: step.id, kind: step.kind, name: step.name, briefing: step.briefing, optional, done: done.has(step.id), available: open && !done.has(step.id), reward: stepReward(step, chapter) };
+    const narrative = STORY_NARRATIVE[chapter].steps[step.id.endsWith('-a') ? 'a' : 'b'];
+    const base = { id: step.id, kind: step.kind, name: step.name, briefing: step.briefing, optional, done: done.has(step.id), available: open && !done.has(step.id), reward: stepReward(step, chapter), scenes: [narrative.before, ...(done.has(step.id) ? [narrative.after] : [])] };
     switch (step.kind) {
       case 'dispatch': return { ...base, days: step.days };
       case 'submit': return { ...base, item: step.item, itemName: GAME_ITEMS[step.item].name, count: step.count, held: store.countInventory(player.id, step.item) };
@@ -127,20 +150,26 @@ function stepViews(store: Store, player: Player, chapter: number) {
 export function storyQuestView(store: Store, player: Player, chapter: number) {
   const quest = STORY_QUESTS.find(q => q.story === chapter);
   const def = STORY_CHAPTER_QUESTS.find(row => row.chapter === chapter);
-  if (!quest || !def) return null;
+  if (!quest || !def || !storyInvestigationOpen(player, chapter)) return null;
   const done = (player.flags.questsDone ?? []).includes(quest.id);
   const clueKey = storyClueKey(chapter);
   const adaptation = classicAdaptation(quest.scenarioId!);
   const busy = !!store.activeBattle(player.id) || isActiveRun(store.activeRun(player.id)) || !!store.activeAnnualEntry(player.id);
   const open = chapterAvailable(chapter, player.day);
+  const blocker = storyBattleBlocker(store, player, chapter);
+  const ready = storyPrerequisite(player, chapter) === null;
+  const narrative = STORY_NARRATIVE[chapter];
   return {
+    background: narrative.background,
+    scenes: [narrative.opening, ...(done || (ready && !blocker) ? [narrative.beforeBattle] : []), ...(done ? [narrative.ending] : [])],
+    blocker,
     id: quest.id, name: quest.name, briefing: quest.event, objective: quest.objective, kind: quest.kind,
     mapName: classicMap(quest.scenarioId!).name, turnLimit: quest.turnLimit, maxUnits: adaptation.deployment.max,
     costDays: quest.costDays, toDay: player.day + (quest.costDays ?? 2), enemyLevel: Math.min(99, enemyLevel(player.day, 0) + adaptation.difficulty),
     reward: quest.reward, done, claimed: (player.flags.questRewardsClaimed ?? []).includes(quest.id),
     inProgress: store.activeBattle(player.id)?.questId === quest.id,
     steps: stepViews(store, player, chapter), prerequisite: storyPrerequisite(player, chapter),
-    available: open && !done && !busy && storyPrerequisite(player, chapter) === null,
+    available: open && !done && !busy && ready && !blocker,
     // 旧档里这一章可能早就被旧版“完成本章事件”按钮标记过：任务仍可补打，领取奖励与线索。
     legacyCompleted: !done && (player.flags.storyCompleted ?? []).includes(chapter),
     clue: { item: clueKey, name: def.clue.name, held: store.countInventory(player.id, clueKey) > 0, note: done || store.countInventory(player.id, clueKey) > 0 ? def.clue.note : null },

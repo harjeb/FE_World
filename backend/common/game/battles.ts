@@ -26,6 +26,8 @@ import { DUNGEON_STAGE_DAYS } from './expedition.ts';
 import type { RunCarry } from './expedition.ts';
 import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
+import { ROYAL_CAPITAL_BOSS } from './story-bosses.ts';
+import type { NarrativeBoss } from './story-bosses.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
 import { ENEMY_VISION } from '../engine/ai.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
@@ -203,6 +205,8 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
 // ---- 经典地图战斗（docs/24） -------------------------------------------------
 // 地图与初始敌军来自 catalog；玩家名单仍来自名册，王座/首领与跨图携带沿用现有引擎。
 export interface ClassicBattleOptions {
+  name?: string;
+  boss?: NarrativeBoss;
   region?: number;
   aiDifficulty?: AiDifficulty;
   mapId: string;
@@ -386,16 +390,17 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   const policy = adaptation.levelPolicy;
   const stageBonus = options.stageIndex === undefined ? adaptation.difficulty : (options.stageIndex * policy.stageBonus);
   const baseLevel = Math.max(1, Math.min(95, (options.level ?? enemyLevel(options.day ?? 0, regionOffset)) + stageBonus));
+  const narrativeBoss = options.boss ?? (options.quest?.story === 8 ? ROYAL_CAPITAL_BOSS : undefined);
   const enemySpecs: EnemySpec[] = map.enemies.map((enemy, index) => {
     const boss = !!enemy.boss;
     const spread = Math.max(-policy.spread, Math.min(policy.spread, enemy.level - median));
     const level = Math.max(1, Math.min(95, baseLevel + (boss ? policy.bossBonus : spread)));
-    const classId = enemyClassForLevel(enemy.classId as UnitState['classId'], level);
+    const classId = enemyClassForLevel(boss && narrativeBoss ? narrativeBoss.classId : enemy.classId as UnitState['classId'], level);
     const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
     const thief = !boss && lootable ? adaptation.thieves.find(entry => entry.enemy === index) : undefined;
     return {
       aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level, vision: options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal,
-      pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
+      pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? narrativeBoss?.name ?? `${map.name}守将` : undefined,
       // 抢宝身份和启动条件按本图的源 AI 配置；不从降阶后的职业猜测。
       behavior: boss ? 'hold' : thief ? 'thief'
         : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
@@ -407,11 +412,19 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
   if (enemies.length === 0) throw new Error(`经典地图 ${map.id} 没有初始敌军`);
   if (!enemies.some(enemy => enemy.boss)) enemies[0].boss = true;
   const boss = enemies.find(enemy => enemy.boss)!;
-  const goal = map.goal.kind === 'seize'
+  if (narrativeBoss) {
+    boss.name = narrativeBoss.name;
+    for (const [key, amount] of Object.entries(narrativeBoss.bonus)) {
+      const stat = key as keyof typeof boss.stats;
+      boss.stats[stat] = Math.min(stat === 'hp' ? 150 : Infinity, boss.stats[stat] + amount);
+    }
+    boss.hp = boss.stats.hp;
+  }
+  const goal = narrativeBoss ? { kind: 'boss', target: boss.id } as BattleState['goal'] : map.goal.kind === 'seize'
     ? { kind: 'seize', throne: [map.goal.position[0], map.goal.position[1]] } as BattleState['goal']
     : map.goal.kind === 'boss' ? { kind: 'boss', target: boss.id } as BattleState['goal'] : { kind: 'rout' } as BattleState['goal'];
-  const name = options.quest?.name ?? map.name;
-  const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
+  const name = options.name ?? options.quest?.name ?? map.name;
+  const goalText = narrativeBoss ? `击败${narrativeBoss.name}` : goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
   const lootRegion = options.region ?? (options.quest?.region || 1);
   const replaceMaterial = (loot: { item: string; count: number }) => {
     if (!['herb', 'ore', 'wood'].includes(loot.item)) return;
