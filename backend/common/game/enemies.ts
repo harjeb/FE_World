@@ -86,7 +86,7 @@ const HARD_GEAR: Partial<Record<WeaponId, WeaponId>> = {
   heal: 'recover', recover: 'physic',
 };
 
-export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; vision?: number; thiefTurn?: number; name?: string; tags?: UnitState['tags'] }
+export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; behavior?: Behavior; vision?: number; thiefTurn?: number; thiefTrigger?: UnitState['thiefTrigger']; thiefApproach?: Point; name?: string; tags?: UnitState['tags'] }
 
 export function createEnemy(id: string, spec: EnemySpec): UnitState {
   const hard = spec.aiDifficulty === 'hard';
@@ -129,6 +129,8 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
     items: [], ranks, boss: spec.boss, behavior, acted: false, alive: true,
     ...(spec.vision === undefined ? {} : { vision: spec.vision }),
     ...(spec.thiefTurn === undefined ? {} : { thiefTurn: spec.thiefTurn }),
+    ...(spec.thiefTrigger ? { thiefTrigger: structuredClone(spec.thiefTrigger) } : {}),
+    ...(spec.thiefApproach ? { thiefApproach: [...spec.thiefApproach] as Point } : {}),
     ...(spec.tags ? { tags: [...spec.tags] } : {}),
   };
 }

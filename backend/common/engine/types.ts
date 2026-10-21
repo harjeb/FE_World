@@ -77,7 +77,11 @@ export interface UnitState {
   escaped?: boolean;
   // 携带的物资箱数量（抢物资任务）。
   carried?: number;
-  // 盗贼：从第几回合开始动手抢；抢到手的战利品逃跑时带走，战死时掉回给我方。
+  // Map-specific activation; active is latched so leaving a trigger area cannot put a thief back to sleep.
+  thiefTrigger?: ScenarioTrigger;
+  thiefApproach?: Point;
+  thiefActive?: boolean;
+  // Explicit timing retained for battles saved under rules-v24/v25; no global default.
   thiefTurn?: number;
   carrying?: { item: string; count: number; object?: string };
   // The side's commander (主将 / 首领): the boss target, the unit guards follow.
@@ -138,7 +142,7 @@ export interface BattleObject {
 
 export interface ScenarioMapChange { id: string; position: Point; terrain: (Terrain | null)[][] }
 
-export interface ScenarioSpawn { classId: ClassId; pos: Point; levelOffset: number; boss?: boolean; behavior?: Behavior }
+export interface ScenarioSpawn { classId: ClassId; pos: Point; levelOffset: number; boss?: boolean; behavior?: Behavior; thiefTrigger?: ScenarioTrigger; thiefApproach?: Point }
 
 export type ScenarioAction =
   | { kind: 'spawn'; units: ScenarioSpawn[] }
@@ -155,7 +159,9 @@ export type ScenarioAction =
 export type ScenarioTrigger =
   | { kind: 'turn'; turn: number }
   | { kind: 'object'; object: string; state: BattleObjectState }
-  | { kind: 'flag'; flag: string };
+  | { kind: 'flag'; flag: string }
+  | { kind: 'area'; side: Side | 'self'; min: Point; max: Point }
+  | { kind: 'any' | 'all'; conditions: ScenarioTrigger[] };
 
 export interface ScenarioEvent { id: string; trigger: ScenarioTrigger; actions: ScenarioAction[] }
 

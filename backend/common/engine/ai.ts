@@ -1,4 +1,5 @@
 import { isCrossTimeDormant } from './cross-time-groups.ts';
+import { thiefAwake } from './conditions.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
 import { neighbors } from '../maps/map.ts';
 import { forecast, terrainBonus } from './combat.ts';
@@ -27,12 +28,7 @@ function inVision(state: BattleState, unit: UnitState, anySide = false): boolean
   return foes.some(foe => !foe.petrified && distance(unit.pos, foe.pos) <= unit.vision!);
 }
 
-// 盗贼默认从第 3 回合才开始抢宝（docs/03）；抢到东西后立刻向地图边缘逃跑。
-export const THIEF_FIRST_TURN = 3;
-
-function thiefAwake(state: BattleState, unit: UnitState): boolean {
-  return state.turn >= (unit.thiefTurn ?? THIEF_FIRST_TURN);
-}
+// 抢宝的启动条件来自地图配置；旧战斗只沿用显式保存的 thiefTurn。
 
 // 抢完就向最近的边缘格逃跑，站到边缘就撤离。
 function escapeDecision(state: BattleState, unit: UnitState, stops: number[]): ActAction | null {
@@ -53,15 +49,15 @@ function escapeDecision(state: BattleState, unit: UnitState, stops: number[]): A
 }
 
 // 盗贼（火纹 thief）：先去拿最近的宝箱／村庄，抢到后逃跑；没得拿了再当普通战斗单位。
-function lootTarget(state: BattleState, unit: UnitState): BattleObject | null {
+function lootTarget(state: BattleState, unit: UnitState, routes: BattleState): BattleObject | null {
   // 主线/一次性任务物件（once）不让盗贼抢走，避免把任务物品变成永久损失。
   const objects = (state.objects ?? []).filter(object => (object.kind === 'chest' || object.kind === 'village')
-    && !object.once && (object.state === 'closed' || object.state === 'idle'));
+    && !object.once && object.loot && (object.state === 'closed' || object.state === 'idle'));
   if (!objects.length) return null;
-  const costs = travelCosts(state, unit, objects.flatMap(object => neighbors(object.pos, state.map.width, state.map.height)));
+  const costs = travelCosts(routes, unit, objects.flatMap(object => [...neighbors(object.pos, state.map.width, state.map.height), object.pos]));
   let best: BattleObject | null = null, bestCost = Infinity;
   for (const object of objects) {
-    const cost = Math.min(...neighbors(object.pos, state.map.width, state.map.height).map(point => costs.get(cellKey(state, point)) ?? Infinity));
+    const cost = Math.min(...[...neighbors(object.pos, state.map.width, state.map.height), object.pos].map(point => costs.get(cellKey(state, point)) ?? Infinity));
     if (cost < bestCost) { bestCost = cost; best = object; }
   }
   return best;
@@ -70,19 +66,26 @@ function lootTarget(state: BattleState, unit: UnitState): BattleObject | null {
 function thiefDecision(state: BattleState, unit: UnitState, stops: number[]): ActAction | null {
   // 抢到手就先跑，不再碰其他物件。
   if (unit.carrying) return escapeDecision(state, unit, stops);
-  if (!thiefAwake(state, unit)) return null;
-  const object = lootTarget(state, unit);
+  if (!thiefAwake(state, unit)) return unit.thiefApproach ? advance(state, unit, stops, [unit.thiefApproach]) : null;
+  // Plan through doors, then spend a real interaction to open whichever door blocks the route.
+  const routes: BattleState = { ...state, objects: state.objects?.map(object => object.kind === 'door' && object.state === 'closed' ? { ...object, state: 'open' } : object) };
+  const object = lootTarget(state, unit, routes);
   if (!object) return null;
   if (interactionOptions(state, unit, unit.pos).some(option => option.object === object.id)) {
     return { type: 'act', unit: unit.id, to: unit.pos, act: 'interact', target: object.id };
   }
-  const costs = travelCosts(state, unit, neighbors(object.pos, state.map.width, state.map.height));
-  let best: number | null = null, bestCost = Infinity;
+  const costs = travelCosts(routes, unit, [...neighbors(object.pos, state.map.width, state.map.height), object.pos]);
+  let best: number | null = null, bestCost = Infinity, bestMove = Infinity;
   for (const stop of stops) {
-    const cost = costs.get(stop) ?? Infinity;
-    if (cost < bestCost) { bestCost = cost; best = stop; }
+    const cost = costs.get(stop) ?? Infinity, moved = distance(unit.pos, keyPoint(state, stop));
+    if (cost < bestCost || cost === bestCost && moved < bestMove) { bestCost = cost; bestMove = moved; best = stop; }
   }
-  return best === null ? null : { type: 'act', unit: unit.id, to: keyPoint(state, best), act: 'wait' };
+  if (best === null) return null;
+  const to = keyPoint(state, best);
+  const door = interactionOptions(state, unit, to).find(option => option.kind === 'door'
+    && (costs.get(cellKey(state, state.objects!.find(entry => entry.id === option.object)!.pos)) ?? Infinity) < bestCost);
+  return door ? { type: 'act', unit: unit.id, to, act: 'interact', target: door.object }
+    : { type: 'act', unit: unit.id, to, act: 'wait' };
 }
 
 function sortedStops(range: MoveRange): number[] {
@@ -204,7 +207,7 @@ function normalDecision(state: BattleState, unit: UnitState): ActAction {
   if (behavior === 'thief') {
     const loot = thiefDecision(state, unit, sortedStops(range));
     if (loot) return loot;
-    // 还没到动手的回合：只在自己格上还击，不主动迎上来。
+    // 条件尚未满足：只在自己格上还击，不主动迎上来。
     if (!thiefAwake(state, unit)) return bestAttack(state, unit, [range.origin], 1, berserk) ?? stay;
   }
   if (behavior !== 'healer' && behavior !== 'thief' && !inVision(state, unit, berserk)) return stay;

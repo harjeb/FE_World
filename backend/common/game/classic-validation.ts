@@ -1,5 +1,6 @@
 import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
 import type { ClassId } from '../data/classes.ts';
+import type { ScenarioTrigger } from '../engine/types.ts';
 import { TERRAINS } from '../maps/map.ts';
 import type { Terrain } from '../maps/map.ts';
 import { isItemKey } from './items.ts';
@@ -131,8 +132,37 @@ export function validateClassicScenario(mapId: string): ScenarioProblem[] {
     }
   }
 
+  const validateTrigger = (trigger: ScenarioTrigger, label: string, self = false, depth = 0): void => {
+    if (depth > 8) { add('TRIGGER_DEPTH', `${label} 条件嵌套过深`); return; }
+    if (trigger.kind === 'turn') {
+      if (!Number.isInteger(trigger.turn) || trigger.turn < 1 || trigger.turn > map.turnLimit) add('TRIGGER_TURN', `${label} 回合无效`);
+    } else if (trigger.kind === 'object') {
+      if (!objectIds.has(trigger.object)) add('TRIGGER_OBJECT', `${label} 引用了不存在物件 ${trigger.object}`);
+    } else if (trigger.kind === 'flag') {
+      if (!trigger.flag.trim()) add('TRIGGER_FLAG', `${label} 标记为空`);
+    } else if (trigger.kind === 'area') {
+      if (!inside(map, trigger.min) || !inside(map, trigger.max) || trigger.min[0] > trigger.max[0] || trigger.min[1] > trigger.max[1]
+        || ![...trigger.min, ...trigger.max].every(Number.isInteger)) add('TRIGGER_AREA', `${label} 区域无效`);
+      if (!['player', 'enemy', ...(self ? ['self'] : [])].includes(trigger.side)) add('TRIGGER_SIDE', `${label} 区域阵营无效`);
+    } else if (trigger.kind === 'any' || trigger.kind === 'all') {
+      if (!trigger.conditions.length) add('TRIGGER_EMPTY', `${label} 组合条件为空`);
+      for (const child of trigger.conditions) validateTrigger(child, label, self, depth + 1);
+    } else add('TRIGGER_KIND', `${label} 触发类型无效`);
+  };
+  if (!adaptation.thiefAudit?.trim() || !Array.isArray(adaptation.thieves)) add('THIEF_AUDIT', '缺少逐图盗贼审核配置');
+  const thiefIndices = new Set<number>();
+  for (const thief of adaptation.thieves ?? []) {
+    const enemy = map.enemies[thief.enemy];
+    if (!Number.isInteger(thief.enemy) || !enemy || enemy.boss || thiefIndices.has(thief.enemy)) add('THIEF_UNIT', `抢宝单位索引无效：${thief.enemy}`);
+    thiefIndices.add(thief.enemy);
+    if (!thief.evidence.trim()) add('THIEF_EVIDENCE', `盗贼 ${thief.enemy} 缺少源证据`);
+    validateTrigger(thief.trigger, `盗贼 ${thief.enemy}`, true);
+    if (thief.approach && (!inside(map, thief.approach) || !passable(map.terrain[thief.approach[1]][thief.approach[0]]))) add('THIEF_APPROACH', `盗贼 ${thief.enemy} 路标不可站立`);
+  }
+
   const eventIds = new Set<string>();
   for (const event of adaptation.events) {
+    validateTrigger(event.trigger, event.id);
     if (eventIds.has(event.id)) add('EVENT_ID', `事件 id 重复：${event.id}`);
     eventIds.add(event.id);
     for (const action of event.actions) {
@@ -143,6 +173,9 @@ export function validateClassicScenario(mapId: string): ScenarioProblem[] {
           if (!inside(map, unit.pos)) add('SPAWN_BOUNDS', `${event.id} 的增援在 map 外`);
           else if (!passable(map.terrain[unit.pos[1]][unit.pos[0]])) add('SPAWN_TERRAIN', `${event.id} 的增援落在不可通行地形`);
           if (!CLASSES[unit.classId as ClassId]) add('SPAWN_CLASS', `${event.id} 引用了未知职业 ${unit.classId}`);
+          if (unit.behavior === 'thief' && !unit.thiefTrigger) add('THIEF_TRIGGER', `${event.id} 的盗贼缺少启动条件`);
+          if (unit.thiefTrigger) validateTrigger(unit.thiefTrigger, event.id, true);
+          if (unit.thiefApproach && (!inside(map, unit.thiefApproach) || !passable(map.terrain[unit.thiefApproach[1]][unit.thiefApproach[0]]))) add('THIEF_APPROACH', `${event.id} 的盗贼路标不可站立`);
         }
       }
       if (action.kind === 'mapChange' && !adaptation.mapChanges.some(change => change.id === action.change)) {

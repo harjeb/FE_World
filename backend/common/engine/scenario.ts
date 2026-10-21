@@ -1,3 +1,4 @@
+import { conditionMet } from './conditions.ts';
 import { createEnemy, enemyClassForLevel, type EnemySpec } from '../game/enemies.ts';
 import { CLASSES } from '../data/classes.ts';
 import type { MoveType } from '../data/types.ts';
@@ -199,6 +200,7 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
         aiDifficulty: state.aiDifficulty, seed: `${state.id}:${event.id}`,
         classId, level,
         pos, boss: spec.boss, behavior: spec.behavior,
+        thiefTrigger: spec.thiefTrigger, thiefApproach: spec.thiefApproach,
       };
       const enemy = createEnemy(id, enemySpec);
       deployed.push(enemySpec);
@@ -259,13 +261,9 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
 }
 
 function triggered(state: BattleState, event: ScenarioEvent): boolean {
-  const trigger = event.trigger;
-  if (trigger.kind === 'turn') return state.phase === 'player' && state.turn >= trigger.turn;
-  if (trigger.kind === 'object') {
-    const object = state.objects?.find(entry => entry.id === trigger.object);
-    return !!object && object.state === trigger.state;
-  }
-  return !!state.scenario?.flags.includes(trigger.flag);
+  // Timed waves still enter on the player phase. Area/object/flag conditions can fire after any action.
+  if (event.trigger.kind === 'turn' && state.phase !== 'player') return false;
+  return conditionMet(state, event.trigger);
 }
 
 export function runScenarioEvents(state: BattleState, events: BattleEvent[]): void {

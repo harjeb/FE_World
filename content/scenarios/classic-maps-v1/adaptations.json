@@ -5,7 +5,7 @@
  "maps": [
   {
    "mapId": "fe6-ch13-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "f0c146fc5c5625ab104ea91fb2d2f67c809e3275cbf381d838e0ac5307453cb7",
    "difficulty": 0,
    "levelPolicy": {
@@ -244,11 +244,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe6-ch14-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "aee7bc7dfe90b59db63c398fc95b76c189481b06772860c39233ccd70f523bd4",
    "difficulty": 0,
    "levelPolicy": {
@@ -534,11 +536,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe6-ch16-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "0ff7b9e1eff63d49583191ad9d40e2265d48eda9049d77f429d651010730f521",
    "difficulty": 0,
    "levelPolicy": {
@@ -783,42 +787,6 @@
    ],
    "events": [
     {
-     "id": "wave-group-67ef74",
-     "trigger": {
-      "kind": "turn",
-      "turn": 3
-     },
-     "actions": [
-      {
-       "kind": "spawn",
-       "units": [
-        {
-         "classId": "thief",
-         "pos": [
-          12,
-          22
-         ],
-         "levelOffset": -2,
-         "boss": false
-        },
-        {
-         "classId": "thief",
-         "pos": [
-          21,
-          2
-         ],
-         "levelOffset": -2,
-         "boss": false
-        }
-       ]
-      },
-      {
-       "kind": "scenario",
-       "message": "第 3 回合增援抵达"
-      }
-     ]
-    },
-    {
      "id": "wave-group-67ef54",
      "trigger": {
       "kind": "turn",
@@ -842,6 +810,52 @@
       {
        "kind": "scenario",
        "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-67ef74",
+     "trigger": {
+      "kind": "turn",
+      "turn": 10
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          12,
+          22
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 10
+         }
+        },
+        {
+         "classId": "thief",
+         "pos": [
+          21,
+          2
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 10
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 10 回合增援抵达"
       }
      ]
     },
@@ -919,11 +933,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 0 名，条件增援 2 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe6-ch18-ilia",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "9d4af392d2bef49a3ed9d7be05b0d7723f76a45ac65667cc5f2a92de36555fd4",
    "difficulty": 1,
    "levelPolicy": {
@@ -1228,11 +1244,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe6-ch19-ilia",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "a962677867954808181ddbf28a9a8183de2f4898fb0d938f44176b8e9063268c",
    "difficulty": 1,
    "levelPolicy": {
@@ -1546,11 +1564,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe6-ch20-ilia",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "24b75d0cc51caead1647d762648fa031048b9d9fcf1a2488907e048003eac0b7",
    "difficulty": 1,
    "levelPolicy": {
@@ -1820,7 +1840,7 @@
      "label": "可破坏的墙"
     },
     {
-     "id": "switch-63",
+     "id": "switch-66",
      "kind": "switch",
      "pos": [
       6,
@@ -2121,10 +2141,88 @@
      ]
     },
     {
+     "id": "wave-group-680254",
+     "trigger": {
+      "kind": "turn",
+      "turn": 10
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          30,
+          20
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 10
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 10 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-680274",
+     "trigger": {
+      "kind": "turn",
+      "turn": 10
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          13,
+          0
+         ],
+         "levelOffset": 2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 10
+         }
+        },
+        {
+         "classId": "thief",
+         "pos": [
+          14,
+          0
+         ],
+         "levelOffset": 2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 10
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 10 回合增援抵达"
+      }
+     ]
+    },
+    {
      "id": "event-lever-change-9",
      "trigger": {
       "kind": "object",
-      "object": "switch-63",
+      "object": "switch-66",
       "state": "triggered"
      },
      "actions": [
@@ -2234,11 +2332,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 0 名，条件增援 3 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe6-ch21-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "22279297e511d8199667243b13c2c3f090820ea80097065323b26893d517a0af",
    "difficulty": 2,
    "levelPolicy": {
@@ -2539,11 +2639,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe6-ch22-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "a414f2328d3f33f5f1a67c35822c0f291dfb01fbc69b22af4bf046b1ca57d89d",
    "difficulty": 2,
    "levelPolicy": {
@@ -2761,6 +2863,70 @@
      ]
     },
     {
+     "id": "wave-group-6811c0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 15
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          30,
+          7
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 15
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 15 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-6811e0",
+     "trigger": {
+      "kind": "turn",
+      "turn": 15
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          1,
+          6
+         ],
+         "levelOffset": 2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 15
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 15 回合增援抵达"
+      }
+     ]
+    },
+    {
      "id": "status-15-31",
      "trigger": {
       "kind": "turn",
@@ -2800,11 +2966,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 0 名，条件增援 2 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe6-ch23-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "f4c9775e6cd711d6d7a6a0c06a01648d1c95fbd4d527d5daaceca5afb306cf7a",
    "difficulty": 2,
    "levelPolicy": {
@@ -3055,11 +3223,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe6-ch24-main",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "06a1417dd6b9d13ead25dffd9266959b307c7d403d90dba2571c8c143039c2c4",
    "difficulty": 3,
    "levelPolicy": {
@@ -3250,11 +3420,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch19-eliwood",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "62543f6b50a9fc89a819da87c847fb4323a713b57648518f51ab861a9961f86a",
    "difficulty": 0,
    "levelPolicy": {
@@ -3426,7 +3598,7 @@
      "label": "可破坏的墙"
     },
     {
-     "id": "switch-59",
+     "id": "switch-60",
      "kind": "switch",
      "pos": [
       3,
@@ -3541,6 +3713,38 @@
    ],
    "events": [
     {
+     "id": "wave-group-d98034",
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          20,
+          16
+         ],
+         "levelOffset": 2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 1
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 1 回合增援抵达"
+      }
+     ]
+    },
+    {
      "id": "wave-group-d97ed4",
      "trigger": {
       "kind": "turn",
@@ -3567,6 +3771,38 @@
          ],
          "levelOffset": 0,
          "boss": false
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-d97f94",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          20,
+          16
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 2
+         }
         }
        ]
       },
@@ -3604,10 +3840,42 @@
      ]
     },
     {
+     "id": "wave-group-d97fb4",
+     "trigger": {
+      "kind": "turn",
+      "turn": 3
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          20,
+          16
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 3
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 3 回合增援抵达"
+      }
+     ]
+    },
+    {
      "id": "event-lever-change-0",
      "trigger": {
       "kind": "object",
-      "object": "switch-59",
+      "object": "switch-60",
       "state": "triggered"
      },
      "actions": [
@@ -3653,11 +3921,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 0 名，条件增援 3 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe7-ch20-eliwood",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "175d78773997b086855476386cf8d10ad80c4ac96fba15570a499e5a4b407041",
    "difficulty": 0,
    "levelPolicy": {
@@ -3876,11 +4146,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch22-eliwood",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "4e5a9dd3dcc1839d78cf8ad5d579e4560fbd1ebfa58a5269dec7bf2cafa15690",
    "difficulty": 0,
    "levelPolicy": {
@@ -4022,11 +4294,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch23-eliwood-lloyd",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "d37c35500766d348acec8206406a4c06ce340fbf18f55efc3bc2fcbd1a910b6f",
    "difficulty": 1,
    "levelPolicy": {
@@ -4241,11 +4515,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch23-eliwood-linus",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "fa4c85f9f811e1c816a03b99aa4af370c6ca20cdce675593bfeff864d9d2bc39",
    "difficulty": 1,
    "levelPolicy": {
@@ -4455,11 +4731,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch25-eliwood-kenneth",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "9f35e1f75db78f52f53fab437b17249e95ec8f6508f8e9892bdf1d97ff537d01",
    "difficulty": 1,
    "levelPolicy": {
@@ -4665,6 +4943,70 @@
    ],
    "events": [
     {
+     "id": "wave-group-da0cb8",
+     "trigger": {
+      "kind": "turn",
+      "turn": 4
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          0,
+          9
+         ],
+         "levelOffset": 0,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 4
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 4 回合增援抵达"
+      }
+     ]
+    },
+    {
+     "id": "wave-group-da0cb8-turn-5",
+     "trigger": {
+      "kind": "turn",
+      "turn": 5
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "thief",
+         "pos": [
+          0,
+          9
+         ],
+         "levelOffset": 0,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 5
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 5 回合增援抵达"
+      }
+     ]
+    },
+    {
      "id": "wave-group-da0a58",
      "trigger": {
       "kind": "turn",
@@ -4735,11 +5077,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 0 名，条件增援 2 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe7-ch25-eliwood-jerme",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "70974e01b186660a9ee4b888d85a83b64ef10bff9d1f186420132b2ea2d6530c",
    "difficulty": 2,
    "levelPolicy": {
@@ -4996,11 +5340,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch27-eliwood",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "2737235304a12801f1ae1f08e8e246b6b34e720a9efeded57471eb7825759008",
    "difficulty": 2,
    "levelPolicy": {
@@ -5371,11 +5717,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-ch30-eliwood",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "fe034d55b25d682f03d998d856fdfa274dadc8ad0ad766903bbf69275f9ca402",
    "difficulty": 2,
    "levelPolicy": {
@@ -5642,11 +5990,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe7-chfinal-1-eliwood",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "20238626f4c0a54e45ca966ec3f340ff8c1e9cb27541c8e9c512dd68b93393d0",
    "difficulty": 3,
    "levelPolicy": {
@@ -5896,11 +6246,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch11-ephraim",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "28868c62eeea1905f8553448ecddd9e7b1d8f22afcf3e812d8f048c8882e6f3e",
    "difficulty": 0,
    "levelPolicy": {
@@ -6185,11 +6537,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch12-eirika",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "35b00fbbc6924523fadbb0d68f0adce5e8a1a3261191549ba512fc90bb9f9a00",
    "difficulty": 0,
    "levelPolicy": {
@@ -6286,11 +6640,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch13-ephraim",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "d40d37663a77338c5611bb4536483e83dcc0167e6658caf9b775cc7b3d64086f",
    "difficulty": 0,
    "levelPolicy": {
@@ -6502,11 +6858,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch14-eirika",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "6d452a6befcb88c130a60641aea5ca9eeaa20f0529a49df314dd6b04f8187730",
    "difficulty": 1,
    "levelPolicy": {
@@ -6835,11 +7193,22 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 37,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe8/fe8-ch14-eirika/scenario.json 初始编制 0x089104F0；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 1 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe8-ch14-ephraim",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "7195eddae98b498b739e80aa1bf5fc25b4e9fdb2df4c201bb64a0731b7ce20de",
    "difficulty": 1,
    "levelPolicy": {
@@ -7335,6 +7704,38 @@
    ],
    "events": [
     {
+     "id": "wave-group-91a92c",
+     "trigger": {
+      "kind": "turn",
+      "turn": 2
+     },
+     "actions": [
+      {
+       "kind": "spawn",
+       "units": [
+        {
+         "classId": "assassin",
+         "pos": [
+          27,
+          4
+         ],
+         "levelOffset": -2,
+         "boss": false,
+         "behavior": "thief",
+         "thiefTrigger": {
+          "kind": "turn",
+          "turn": 2
+         }
+        }
+       ]
+      },
+      {
+       "kind": "scenario",
+       "message": "第 2 回合增援抵达"
+      }
+     ]
+    },
+    {
      "id": "wave-group-91a990",
      "trigger": {
       "kind": "turn",
@@ -7444,11 +7845,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 0 名，条件增援 1 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe8-ch15-eirika",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "31192c6ce0033e9a790ab20d2075270f53c527b1e0512d14e08ac7bf5a2d8e73",
    "difficulty": 1,
    "levelPolicy": {
@@ -7787,11 +8190,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch16-eirika",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "c0057272f3012e5e99ffe333630f4d50ffe0ab4ec9407c7a7c6bd042c7d0c219",
    "difficulty": 2,
    "levelPolicy": {
@@ -8111,11 +8516,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch17-eirika",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "54221edfd4c50000f6f2ce2443a82b69e34457f2536f3e4394ff66e5eb4dbf70",
    "difficulty": 2,
    "levelPolicy": {
@@ -8337,11 +8744,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-ch20-eirika",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": "474328ef008793aee141a2a906310797c5a8f4f07c6cafea5f7055f519892392",
    "difficulty": 2,
    "levelPolicy": {
@@ -8480,12 +8889,14 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe8-chfinal-1-eirika",
-   "adapterVersion": "classic-adaptation-v1",
-   "sourceSha256": "5c2b5c9d2518c92b02b4f4c7634803a7accc40ed79701837f0e65c48c51e971f",
+   "adapterVersion": "classic-adaptation-v2",
+   "sourceSha256": "8ecc0e6bb713cfdd43b5bb0bd927cb11afa9d6ae3b196263daf4ba3acce2d340",
    "difficulty": 3,
    "levelPolicy": {
     "base": "quest",
@@ -8657,11 +9068,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe1-ch16",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -8758,11 +9171,22 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 19,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 19；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 1 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe1-ch17",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -8859,11 +9283,30 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 16,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 16；源抢宝 AI，未设置额外等待回合。"
+    },
+    {
+     "enemy": 17,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 17；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 2 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe1-ch18",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -8918,11 +9361,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe1-ch19",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -9019,11 +9464,38 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 16,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 16；源抢宝 AI，未设置额外等待回合。"
+    },
+    {
+     "enemy": 18,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 18；源抢宝 AI，未设置额外等待回合。"
+    },
+    {
+     "enemy": 19,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 19；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 3 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe1-ch20",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -9078,11 +9550,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe1-ch21",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -9137,11 +9611,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe1-ch22",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -9238,11 +9714,22 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 19,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 19；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 1 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe1-ch23",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -9339,11 +9826,30 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 16,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 16；源抢宝 AI，未设置额外等待回合。"
+    },
+    {
+     "enemy": 17,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 17；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 2 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe1-ch24",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -9440,11 +9946,22 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 19,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe1/scenarios.json 初始编制 19；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 1 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe1-ch25",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 3,
    "levelPolicy": {
@@ -9541,11 +10058,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch11",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -9588,11 +10107,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch12",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -9647,11 +10168,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch13",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -9736,11 +10259,94 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 18,
+     "trigger": {
+      "kind": "area",
+      "side": "self",
+      "min": [
+       11,
+       3
+      ],
+      "max": [
+       11,
+       3
+      ]
+     },
+     "evidence": "fe3/scenarios.json 初始编制 0x849237；源抢宝 AI，未设置额外等待回合。 AI2=105 L88CA82：先走到 [11, 3] 再抢宝。",
+     "approach": [
+      11,
+      3
+     ]
+    },
+    {
+     "enemy": 19,
+     "trigger": {
+      "kind": "area",
+      "side": "self",
+      "min": [
+       23,
+       12
+      ],
+      "max": [
+       23,
+       12
+      ]
+     },
+     "evidence": "fe3/scenarios.json 初始编制 0x84924A；源抢宝 AI，未设置额外等待回合。 AI2=106 L88CA90：先走到 [23, 12] 再抢宝。",
+     "approach": [
+      23,
+      12
+     ]
+    },
+    {
+     "enemy": 20,
+     "trigger": {
+      "kind": "area",
+      "side": "self",
+      "min": [
+       14,
+       11
+      ],
+      "max": [
+       14,
+       11
+      ]
+     },
+     "evidence": "fe3/scenarios.json 初始编制 0x84925D；源抢宝 AI，未设置额外等待回合。 AI2=107 L88CA9E：先走到 [15, 12] 再抢宝。 源坐标在适配地形不可站立，改为同连通区最近格 [14, 11]。",
+     "approach": [
+      14,
+      11
+     ]
+    },
+    {
+     "enemy": 21,
+     "trigger": {
+      "kind": "area",
+      "side": "self",
+      "min": [
+       7,
+       4
+      ],
+      "max": [
+       7,
+       4
+      ]
+     },
+     "evidence": "fe3/scenarios.json 初始编制 0x849270；源抢宝 AI，未设置额外等待回合。 AI2=108 L88CAAC：先走到 [7, 4] 再抢宝。",
+     "approach": [
+      7,
+      4
+     ]
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 4 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe3-book1-ch14",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -9809,11 +10415,22 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 18,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe3/scenarios.json 初始编制 0x8493DA；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 1 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe3-book1-ch15",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -9886,11 +10503,22 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [
+    {
+     "enemy": 3,
+     "trigger": {
+      "kind": "turn",
+      "turn": 1
+     },
+     "evidence": "fe3/scenarios.json 初始编制 0x849473；源抢宝 AI，未设置额外等待回合。"
+    }
+   ],
+   "thiefAudit": "已核对源编制及事件：初始抢宝单位 1 名，条件增援 0 名；启动条件逐单位保存。"
   },
   {
    "mapId": "fe3-book1-ch16",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -9977,11 +10605,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch17",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -10024,11 +10654,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch18",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -10071,11 +10703,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch19",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -10172,11 +10806,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe3-book1-ch20",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 3,
    "levelPolicy": {
@@ -10225,11 +10861,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-01",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -10261,11 +10899,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-02",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -10297,11 +10937,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-03",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 0,
    "levelPolicy": {
@@ -10333,11 +10975,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-04",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -10369,11 +11013,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-05",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -10405,11 +11051,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-06",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 1,
    "levelPolicy": {
@@ -10441,11 +11089,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-07",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -10490,11 +11140,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-08",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -10526,11 +11178,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-09",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 2,
    "levelPolicy": {
@@ -10562,11 +11216,13 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   },
   {
    "mapId": "fe2-map-10",
-   "adapterVersion": "classic-adaptation-v1",
+   "adapterVersion": "classic-adaptation-v2",
    "sourceSha256": null,
    "difficulty": 3,
    "levelPolicy": {
@@ -10623,7 +11279,9 @@
      "special-mechanisms",
      "loot-settlement"
     ]
-   }
+   },
+   "thieves": [],
+   "thiefAudit": "无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。"
   }
  ]
 }

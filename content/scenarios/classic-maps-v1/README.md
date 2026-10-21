@@ -100,6 +100,14 @@ FE2 的原始敌军/等级表未从 ROM 中恢复（此前已确认失败），�
 
 这些地图可用于验证任务/副本流程，但**不是原作守军**；后续若恢复 FE2 敌军表，应替换生成器并重新生成目录。
 
+### 3.6 盗贼启动条件（classic-adaptation-v2）
+
+每图都有 `thieves` 与 `thiefAudit`，空数组表示本图没有初始抢宝单位。`thieves[].enemy` 绑定目录中的敌军索引，`trigger` 保存启动条件，`evidence` 记录源证据；需要先走到路标的单位另有 `approach`。增援直接在 `spawn.units` 保存 `behavior: thief`、`thiefTrigger`。条件支持回合、区域（我方／敌方／该单位自身）、物件状态、场景标记及组合。
+
+启动回合不再统一为 3。GBA 源引用 `turn:N` 中的 N 是事件列表索引，实际回合读取该事件的 `turnBytes`；同一源事件内的重复回合和不同分支分别处理。FE7 按目录采用的 `enemy-table` 分支筛选，避免把其他路线／难度的较早回合套到本图；同一角色的互斥装载分支不会重复生成。源初始单位和第 1 回合装载单位已在开局可见，后续增援在指定回合出现；重用同一出生格的不同波次不会互相覆盖。源文件哈希统一按 LF 文本计算，避免 Windows 换行转换改动证据标识。
+
+FE3 的源 AI 路标解码及 FE7 分支审核存于 `tools/classic-integration/data/thief-ai.json`。全 60 图的审核表、实际回合、坐标与适配说明见 [docs/41-thief-conditions.md](../../../docs/41-thief-conditions.md)。
+
 ## 4. 任务与副本
 
 `backend/common/game/classic-quests.ts` 在目录之上生成：
@@ -131,7 +139,7 @@ node --experimental-strip-types --test common/game/classic.test.ts common/game/c
 
 ## 6. 已知限制
 
-- 敌军武器与 AI 使用项目默认，不还原原作装备表与 AI 字节；职业/等级/位置为源数据映射或替换。逐模板报告记录源武器和替换差异，但运行时不按源物品栏逐件装备。
+- 除显式盗贼抢宝条件外，敌军武器与 AI 使用项目默认，不完整还原原作装备表与 AI 字节；职业/等级/位置为源数据映射或替换。逐模板报告记录源武器和替换差异，但运行时不按源物品栏逐件装备。
 - FE7 的职业名称是依据源 `classTable` 基础值、移动力和装备职责推断的，`class-map.json` 标记 `nameConfidence: inferred-from-source-stats`；数字 ID、地址和原始记录是权威证据。
 - FE2 守军为程序生成；FE3 个别章节出击区经过补足。
 - 炮台和状态杖已按项目机关接入；其余专属机关（如传送、特殊地板、玩家夺取炮台）按 [24 §3–4](../../../docs/24-classic-scenarios-integration-todo.md) 替换或排除，替换差异写在 `class-map.json` / `adaptation-report.json`。

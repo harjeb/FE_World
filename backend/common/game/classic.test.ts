@@ -181,7 +181,7 @@ test('every classic map builds a battle with a six-unit party and its full garri
       createUnit(character, 20, `all-${index}`, 0));
     const record = createClassicBattle(units, { mapId: map.id, seed: 'all-maps' });
     assert.equal(record.state.units.filter(unit => unit.side === 'player').length, units.length, map.id);
-    assert.equal(record.state.units.filter(unit => unit.side === 'enemy').length, map.enemies.length, map.id);
+    assert.equal(record.state.units.filter(unit => unit.side === 'enemy' && !unit.id.startsWith('scenario-')).length, map.enemies.length, map.id);
     const positions = new Set(record.state.units.map(unit => `${unit.pos[0]},${unit.pos[1]}`));
     assert.equal(positions.size, record.state.units.length, `${map.id}: unit overlap`);
     for (const unit of record.state.units) {
@@ -197,12 +197,12 @@ test('every classic map builds a battle with a six-unit party and its full garri
   }
 });
 
-test('有宝箱或村庄的经典图让盗贼抢宝，没有可抢物件的图不抢', () => {
-  const lootMap = createClassicBattle([createUnit('erin', 20, 'hero')], { mapId: 'fe7-ch25-eliwood-kenneth', seed: 'thieves', day: 0 });
+test('经典图按源 AI 选择抢宝单位，没有可抢物件的图不抢', () => {
+  const lootMap = createClassicBattle([createUnit('erin', 20, 'hero')], { mapId: 'fe8-ch14-eirika', seed: 'thieves', day: 0 });
   const enemies = lootMap.state.units.filter(unit => unit.side === 'enemy');
   const thieves = enemies.filter(unit => unit.behavior === 'thief');
-  assert.equal(thieves.length, 1, '全图唯一的刺客去抢宝');
-  assert.ok(classicMap('fe7-ch25-eliwood-kenneth').enemies.some(enemy => enemy.classId === 'assassin'), '来自原始图的刺客');
+  assert.equal(thieves.length, 1, '伦纳克的源抢宝 AI 在降阶后仍然保留');
+  assert.deepEqual(thieves[0].thiefTrigger, { kind: 'turn', turn: 1 });
   assert.ok(enemies.filter(unit => unit.behavior !== 'thief').length > 0, '其他敌军不受影响');
   const noLoot = createClassicBattle([createUnit('erin', 20, 'hero')], { mapId: 'fe7-ch25-eliwood-jerme', seed: 'thieves', day: 0 });
   assert.ok(noLoot.state.units.filter(unit => unit.side === 'enemy').every(unit => unit.behavior !== 'thief'), '没有宝箱的图不抢');

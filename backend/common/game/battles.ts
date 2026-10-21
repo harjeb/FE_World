@@ -6,6 +6,7 @@ import { WEAPONS } from '../data/weapons.ts';
 import type { AiDifficulty, Action, BattleEvent, BattleObject, BattleState, Point, ScenarioEvent, UnitState } from '../engine/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
 import { initializeTurnSkills } from '../engine/turn-skills.ts';
+import { runScenarioEvents } from '../engine/scenario.ts';
 import { generateMap } from '../maps/generate.ts';
 import { THEMES, type Theme } from '../maps/themes.ts';
 import { canEnter, neighbors, seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
@@ -26,7 +27,7 @@ import type { RunCarry } from './expedition.ts';
 import { createEnemy, defaultBehavior, enemyClassForLevel, pickClasses } from './enemies.ts';
 import type { EnemySpec } from './enemies.ts';
 import { addEnemyReserves } from './enemy-formation.ts';
-import { ENEMY_VISION, THIEF_FIRST_TURN } from '../engine/ai.ts';
+import { ENEMY_VISION } from '../engine/ai.ts';
 import { dateOf, enemyLevel, regionById, ACTION_DAYS } from './calendar.ts';
 import { materialDrops, materialSources, MATERIALS } from './materials.ts';
 import { CATALOG_VERSION, RULESET_VERSION } from './version.ts';
@@ -364,9 +365,11 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     throw new Error(`经典地图 ${map.id} 最多出战 ${adaptation.deployment.max} 人`);
   }
   const objectBlocked = new Set(adaptation.objects.map(object => object.pos[1] * map.width + object.pos[0]));
-  // 盗贼只在真有东西可抢的经典图里抢宝；没有宝箱／村庄的图仍按普通单位作战。
-  const lootable = adaptation.objects.some(object => (object.kind === 'chest' && object.state === 'closed')
-    || (object.kind === 'village' && object.state === 'idle'));
+  const layer = classicScenarioLayer(map.id, adaptation, {
+    questId: options.quest?.id, claimed: options.claimed ?? [], lootRank: options.lootRank ?? 'E', seed: `${options.seed}:${stage}`, day: options.day,
+  });
+  const lootable = layer.objects.some(object => !object.once && object.loot && ((object.kind === 'chest' && object.state === 'closed')
+    || (object.kind === 'village' && object.state === 'idle')));
   const spawns = classicSpawns(map, Math.min(adaptation.deployment.max, units.length), objectBlocked);
   if (spawns.length === 0) throw new Error(`经典地图 ${map.id} 没有可用的出击位置`);
   const count = Math.min(units.length, spawns.length);
@@ -389,14 +392,14 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     const level = Math.max(1, Math.min(95, baseLevel + (boss ? policy.bossBonus : spread)));
     const classId = enemyClassForLevel(enemy.classId as UnitState['classId'], level);
     const guard = !boss && map.enemies.some(other => other.boss && Math.abs(other.pos[0] - enemy.pos[0]) + Math.abs(other.pos[1] - enemy.pos[1]) <= 3) && index % 3 === 0;
-    const thief = !boss && (enemy.classId === 'thief' || enemy.classId === 'assassin') && lootable;
+    const thief = !boss && lootable ? adaptation.thieves.find(entry => entry.enemy === index) : undefined;
     return {
       aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level, vision: options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
-      // 按原始图的职业判新盗贼：等级回退后盗贼可能被降阶，抢宝身份不变。
+      // 抢宝身份和启动条件按本图的源 AI 配置；不从降阶后的职业猜测。
       behavior: boss ? 'hold' : thief ? 'thief'
         : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
-      ...(thief ? { thiefTurn: THIEF_FIRST_TURN } : {}),
+      ...(thief ? { thiefTrigger: thief.trigger, thiefApproach: thief.approach } : {}),
     };
   });
   placeClassicEnemies(map, enemySpecs, playerUnits.map(unit => unit.pos), objectBlocked);
@@ -409,9 +412,6 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     : map.goal.kind === 'boss' ? { kind: 'boss', target: boss.id } as BattleState['goal'] : { kind: 'rout' } as BattleState['goal'];
   const name = options.quest?.name ?? map.name;
   const goalText = goal.kind === 'seize' ? '主将压制王座' : goal.kind === 'boss' ? '击败敌军主将或全灭' : '消灭全部敌军';
-  const layer = classicScenarioLayer(map.id, adaptation, {
-    questId: options.quest?.id, claimed: options.claimed ?? [], lootRank: options.lootRank ?? 'E', seed: `${options.seed}:${stage}`, day: options.day,
-  });
   const lootRegion = options.region ?? (options.quest?.region || 1);
   const replaceMaterial = (loot: { item: string; count: number }) => {
     if (!['herb', 'ore', 'wood'].includes(loot.item)) return;
@@ -441,6 +441,8 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     rng: seedRng(`${options.seed}:classic:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   addEnemyReserves(state, enemySpecs, [...map.playerSpawns, ...spawns]);
+  // Source turn-one units are already visible on the opening board; the first action emits their alerts.
+  runScenarioEvents(state, []);
   initializeTurnSkills(state);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name, region: options.region ?? options.quest?.region,

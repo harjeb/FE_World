@@ -1,6 +1,6 @@
 import data from '../../../content/scenarios/classic-maps-v1/adaptations.json' with { type: 'json' };
 import type { ClassId } from '../data/classes.ts';
-import type { BattleObject, BattleObjectState, Behavior, Goal, ScenarioAction, ScenarioEvent, ScenarioMapChange, ScenarioSpawn } from '../engine/types.ts';
+import type { BattleObject, BattleObjectState, Behavior, Goal, Point, ScenarioAction, ScenarioEvent, ScenarioMapChange, ScenarioSpawn, ScenarioTrigger } from '../engine/types.ts';
 
 // 经典地图适配层（docs/24、QUEST-06～09）。catalog 只保存可玩地形与初始编制；
 // 这里保存物件、增援、机关、宝箱掉落和难度策略，并保留源文件 SHA-256。
@@ -11,6 +11,8 @@ export interface ClassicAdaptation {
   difficulty: number;
   levelPolicy: { base: 'quest'; stageBonus: number; bossBonus: number; spread: number };
   deployment: { max: number };
+  thieves: { enemy: number; trigger: ScenarioTrigger; approach?: Point; evidence: string }[];
+  thiefAudit: string;
   objects: BattleObject[];
   events: ScenarioEvent[];
   mapChanges: ScenarioMapChange[];

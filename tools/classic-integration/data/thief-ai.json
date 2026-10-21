@@ -1,0 +1,19 @@
+{
+ "source": "https://github.com/minirop/fe3/blob/8e2f9ad31763a1c13ddecc098fafd546cf332de4/src/bank008.asm",
+ "interpreter": "https://github.com/minirop/fe3/blob/8e2f9ad31763a1c13ddecc098fafd546cf332de4/src/bank002.asm#L1943",
+ "note": "AI2 opcode 05 moves to [x=operand2,y=operand1] before opcode 08 searches for treasure. The project keeps its single-loot-then-escape rule. Unwalkable source coordinates are explicitly adapted to the nearest reachable tile.",
+ "groupModes": {
+  "fe7-ch19-eliwood": {
+   "group-d98014": [1, 2],
+   "group-d98034": [3, 4]
+  }
+ },
+ "groupModesEvidence": "Dragon's Gate uses two Legault loading branches: Eliwood inventory has Lockpick/Light Rune, Hector inventory has two Chest Keys. Keep the branch matching the catalog enemy-table variant; never spawn both versions of one character.",
+ "approaches": {
+  "104": { "label": "L88CA74", "rawHex": "05031314080214050e0114062700", "position": [19, 3] },
+  "105": { "label": "L88CA82", "rawHex": "05030b14080214050e0114062800", "position": [11, 3] },
+  "106": { "label": "L88CA90", "rawHex": "050c171408021405010114062900", "position": [23, 12] },
+  "107": { "label": "L88CA9E", "rawHex": "050c0f1408021405010114062a00", "position": [15, 12] },
+  "108": { "label": "L88CAAC", "rawHex": "0504071408021405010114062b00", "position": [7, 4] }
+ }
+}

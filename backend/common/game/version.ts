@@ -1,7 +1,14 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v25';
+export const RULESET_VERSION = 'rules-v26';
+// v55 / rules-v26: every classic map explicitly audits its looting units and activation conditions.
+// No default turn or assassin-class heuristic. Source thief waves read chapter turnBytes, not event
+// indices, and match the catalog's original FE7 mode. FE3 waypoint scripts become latched position
+// conditions (unwalkable source waypoints explicitly adapted). Reinforcements/reserves inherit gates;
+// thieves open doors on the treasure route. Turn/area/object/flag and any/all conditions are frozen
+// with the battle; activation warnings fire once. Explicit legacy thiefTurn is retained. Old replays
+// remain terminal snapshots; existing saved battles do not receive new map configurations.
 // v54 / rules-v25: C–S bonuses for all nine weapon types share the combat forecast,
 // resolution, unit stats and healing formulas. SS/SSS retain S bonuses; only used weapons count.
 // Ranks now require 0/50/200/600/1500/3000/5000/8000 cumulative XP; v3 unit migration
@@ -136,7 +143,7 @@ export const RULESET_VERSION = 'rules-v25';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 54;
+export const CATALOG_VERSION = 55;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

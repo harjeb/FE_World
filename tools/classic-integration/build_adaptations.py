@@ -103,20 +103,114 @@ def source_for(map_data: dict) -> tuple[Path | None, dict | None]:
     return (path, load_json(path)) if path.exists() else (None, None)
 
 
+def source_thief(unit: dict, game: str) -> bool:
+    """A mapped assassin is not evidence of looting (FE7 swordmasters / FE1 Xane)."""
+    if game == 'fe1':
+        return unit.get('classId') == 9
+    if game == 'fe3':
+        return unit.get('classId') == 19
+    return unit.get('faction') == 'enemy' and (unit.get('aiBytes') or [])[:2] == [6, 5]
+
+
+def thief_wave_turns(asset: dict, group: dict) -> list[int]:
+    # A reference named turn:N stores the event-list INDEX, not the chapter turn.
+    turns: set[int] = set()
+    primary = max(asset['unitGroups'], key=lambda g: (any(r.get('kind') == 'enemy-table' for r in g['references']),
+                  sum(u.get('faction') == 'enemy' and u.get('positionStatus') == 'on-map' for u in g['units'])))
+    variant = next((r.get('variant') for r in primary['references'] if r.get('kind') == 'enemy-table'), None)
+    mode = {'eliwood-normal': 1, 'eliwood-hard': 2, 'hector-normal': 3, 'hector-hard': 4}.get(variant)
+    branches = load_json(Path(__file__).parent / 'data/thief-ai.json')['groupModes'].get(asset['id'], {})
+    if group['id'] in branches and mode not in branches[group['id']]:
+        return []
+    for ref in group.get('references', []):
+        kind = ref.get('kind', '')
+        if not kind.startswith('turn:') or not kind[5:].isdigit():
+            continue
+        event = asset['events']['turn'][int(kind[5:])]
+        # References already follow nested script calls; indexing the owning event also handles FE8 LOAD indirection.
+        if asset['source']['game'] == 'fe7' and event['words'][3] not in (0, mode):
+            continue
+        first, last = event['turnBytes'][:2]
+        turns.update(range(first, max(first, last) + 1))
+    return sorted(turns)
+
+
+def configure_thieves(entry: dict, map_data: dict, asset: dict | None) -> None:
+    entry['thieves'] = []
+    entry['thiefAudit'] = '无可抢的普通宝箱／村庄，或源编制没有抢宝盗贼；不按刺客职业猜测。'
+    if not any(o.get('loot') and not o.get('secret') and o['kind'] in ('chest', 'village') for o in entry['objects']):
+        return
+    game = map_data['game']
+    if asset:
+        groups = asset['unitGroups']
+        enemies_of = lambda group: [u for u in group['units'] if u['faction'] == 'enemy' and u['positionStatus'] == 'on-map']
+        primary = max(groups, key=lambda g: (any(r.get('kind') == 'enemy-table' for r in g['references']), len(enemies_of(g))))
+        units = enemies_of(primary)
+    elif game in ('fe1', 'fe3'):
+        source = load_json(ROOT / 'content/scenarios' / map_data['source']['pack'] / map_data['source']['file'])
+        chapter = next(c for c in source['chapters'] if c['id'] == map_data['source']['sourceId'])
+        units = chapter['enemyGroups'][0]['units']
+    else:
+        return
+    assert len(units) == len(map_data['enemies']), map_data['id']
+    approaches = load_json(Path(__file__).parent / 'data/thief-ai.json')['approaches']
+    for index, (unit, enemy) in enumerate(zip(units, map_data['enemies'])):
+        if enemy.get('boss') or not source_thief(unit, game):
+            continue
+        trigger: dict = {'kind': 'turn', 'turn': 1}
+        rule: dict = {'enemy': index, 'trigger': trigger,
+                      'evidence': f"{map_data['source']['file']} 初始编制 {unit.get('sourceAddress', index)}；源抢宝 AI，未设置额外等待回合。"}
+        ai2 = (unit.get('aiBytes') or [0, 0])[1]
+        if game == 'fe3' and str(ai2) in approaches:
+            source = approaches[str(ai2)]
+            wanted = source['position']
+            # Catalog terrain adaptations can turn an original waypoint into water/wall.
+            cells = [(x, y) for y in range(map_data['height']) for x in range(map_data['width'])
+                     if passable(map_data['terrain'], x, y)
+                     and bc.component_reaches(map_data['terrain'], tuple(enemy['pos']), (x, y))]
+            at = list(min(cells, key=lambda p: (abs(p[0] - wanted[0]) + abs(p[1] - wanted[1]), p[1], p[0])))
+            rule['approach'] = at
+            rule['trigger'] = {'kind': 'area', 'side': 'self', 'min': at, 'max': at}
+            rule['evidence'] += f" AI2={ai2} {source['label']}：先走到 {wanted} 再抢宝。"
+            if at != wanted:
+                rule['evidence'] += f' 源坐标在适配地形不可站立，改为同连通区最近格 {at}。'
+        entry['thieves'].append(rule)
+    count = len(entry['thieves'])
+    spawned = sum(u.get('behavior') == 'thief' for e in entry['events'] for a in e['actions'] if a['kind'] == 'spawn' for u in a['units'])
+    if count or spawned:
+        entry['thiefAudit'] = f'已核对源编制及事件：初始抢宝单位 {count} 名，条件增援 {spawned} 名；启动条件逐单位保存。'
+
+
 def wave_events(map_data: dict, asset: dict, used: set[tuple[int, int]]) -> list[dict]:
     median = sorted(e['level'] for e in map_data['enemies'])[len(map_data['enemies']) // 2]
     groups: list[tuple[int, dict]] = []
     for group in asset.get('unitGroups', []):
         turns = [int(r['kind'].split(':', 1)[1]) for r in group.get('references', [])
                  if isinstance(r.get('kind'), str) and r['kind'].startswith('turn:') and r['kind'][5:].isdigit()]
-        turns = [t for t in turns if 2 <= t <= map_data['turnLimit']]
+        thief = any(source_thief(unit, map_data['game']) for unit in group.get('units', []))
+        if thief:
+            turns = thief_wave_turns(asset, group)
+        turns = [t for t in turns if (1 if thief else 2) <= t <= map_data['turnLimit']]
         enemies = [u for u in group.get('units', [])
                    if u.get('faction') == 'enemy' and u.get('positionStatus') == 'on-map']
         if turns and enemies:
-            groups.append((min(turns), group))
-    groups.sort(key=lambda pair: (pair[0], pair[1].get('id', '')))
+            groups.extend((turn, group) for turn in (turns if thief else [min(turns)]))
+    # Keep existing non-thief wave selection stable, while never dropping a verified thief wave
+    # merely because its real turn is later than two unrelated waves.
+    def old_order(pair):
+        refs = pair[1].get('references', [])
+        turns = [int(r['kind'][5:]) for r in refs if r.get('kind', '').startswith('turn:') and r['kind'][5:].isdigit()
+                 and 2 <= int(r['kind'][5:]) <= map_data['turnLimit']]
+        return min(turns, default=999), pair[1].get('id', '')
+    baseline = []
+    for pair in sorted(groups, key=old_order):
+        if 2 <= old_order(pair)[0] <= map_data['turnLimit'] and not any(g['id'] == pair[1]['id'] for _, g in baseline):
+            baseline.append(pair)
+    selected = baseline[:2]
+    selected += [pair for pair in groups if pair not in selected and any(source_thief(u, map_data['game']) for u in pair[1]['units'])]
+    selected.sort(key=lambda pair: (pair[0], pair[1].get('id', '')))
     events: list[dict] = []
-    for turn, group in groups[:2]:
+    for turn, group in selected:
         units = []
         for unit in group['units']:
             if unit.get('faction') != 'enemy' or unit.get('positionStatus') != 'on-map':
@@ -125,18 +219,23 @@ def wave_events(map_data: dict, asset: dict, used: set[tuple[int, int]]) -> list
             if not pos:
                 continue
             x, y = int(pos[0]), int(pos[1])
-            if not passable(map_data['terrain'], x, y) or (x, y) in used:
+            if not passable(map_data['terrain'], x, y) or (x, y) in used and not source_thief(unit, map_data['game']):
                 continue
             class_id = bc.project_class(unit, asset['source']['game'])
             units.append({'classId': class_id, 'pos': [x, y],
                           'levelOffset': max(-2, min(2, int(unit.get('level', median)) - median)),
-                          'boss': False})
+                          'boss': False,
+                          **({'behavior': 'thief', 'thiefTrigger': {'kind': 'turn', 'turn': turn}}
+                             if source_thief(unit, map_data['game']) else {})})
             used.add((x, y))
             if len(units) >= 3:
                 break
         if units:
+            identity = f'wave-{group.get("id", turn)}'
+            if any(event['id'] == identity for event in events):
+                identity += f'-turn-{turn}'
             events.append({
-                'id': f'wave-{group.get("id", turn)}',
+                'id': identity,
                 'trigger': {'kind': 'turn', 'turn': turn},
                 'actions': [{'kind': 'spawn', 'units': units},
                             {'kind': 'scenario', 'message': f'第 {turn} 回合增援抵达'}],
@@ -411,7 +510,7 @@ def build() -> dict:
     out = []
     for map_data in catalog['maps']:
         source_path, asset = source_for(map_data)
-        sha = hashlib.sha256(source_path.read_bytes()).hexdigest() if source_path else None
+        sha = hashlib.sha256(source_path.read_text(encoding='utf-8').encode()).hexdigest() if source_path else None
         used = occupied_cells(map_data)
         objects: list[dict] = []
         map_changes: list[dict] = []
@@ -471,7 +570,7 @@ def build() -> dict:
 
         out.append({
             'mapId': map_data['id'],
-            'adapterVersion': 'classic-adaptation-v1',
+            'adapterVersion': 'classic-adaptation-v2',
             'sourceSha256': sha,
             'difficulty': difficulty,
             'levelPolicy': {'base': 'quest', 'stageBonus': 2, 'bossBonus': 2, 'spread': 2},
@@ -497,6 +596,8 @@ def build() -> dict:
             if entry['mapId'] == map_id:
                 apply_find(entry, catalog_by_id[map_id], route, chapter, item)
         apply_growth_potions(entry)
+        _, asset = source_for(catalog_by_id[entry['mapId']])
+        configure_thieves(entry, catalog_by_id[entry['mapId']], asset)
     return {'format': 'agent-tactics.classic-adaptations', 'schemaVersion': 1, 'count': len(out), 'maps': out}
 
 

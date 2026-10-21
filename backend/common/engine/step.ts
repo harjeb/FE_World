@@ -1,3 +1,4 @@
+import { activateThieves } from './conditions.ts';
 import { activateCrossTimeGroups, isCrossTimeDormant, scheduleCrossTimeGroups } from './cross-time-groups.ts';
 import { ITEMS, WEAPONS } from '../data/weapons.ts';
 import type { WeaponId } from '../data/weapons.ts';
@@ -33,6 +34,7 @@ export function step(prev: BattleState, action: Action): { state: BattleState; e
   if (prev.result) throw new EngineError('BATTLE_OVER', '战斗已经结束');
   const state = structuredClone(prev);
   const events: BattleEvent[] = [];
+  activateThieves(state, events);
   if (action.type !== 'act') {
     if (state.phase !== 'player') throw new EngineError('NOT_YOUR_PHASE', '当前不是己方阶段');
     if (action.type === 'retreat') {
@@ -45,6 +47,8 @@ export function step(prev: BattleState, action: Action): { state: BattleState; e
     if (unitById(state, action.unit).side !== state.phase) throw new EngineError('NOT_YOUR_PHASE', '当前不是该单位的阶段');
     applyAct(state, action, events);
   }
+  if (!state.result) runScenarioEvents(state, events);
+  activateThieves(state, events);
   return { state, events };
 }
 
@@ -421,6 +425,7 @@ function startPhase(state: BattleState, side: Side, events: BattleEvent[]): void
   if (state.result) return;
   events.push({ t: 'phase', side, turn: state.turn });
   runScenarioEvents(state, events);
+  activateThieves(state, events);
   for (const unit of state.units) if (!unit.alive || unit.petrified) clearArtEffects(state, unit, events);
   if (state.result) return;
   applyTurnSkills(state, side, events);
@@ -468,12 +473,5 @@ function endPlayerPhase(state: BattleState, events: BattleEvent[]): void {
     return;
   }
   state.turn += 1;
-  // 盗贼动手前给出明确提示，玩家能在敌方行动前看到。
-  for (const thief of living(state, 'enemy')) {
-    if (thief.behavior !== 'thief' || thief.carrying) continue;
-    if (thief.thiefTurn !== undefined && state.turn === thief.thiefTurn) {
-      events.push({ t: 'scenario', event: `thief-alert:${thief.id}`, message: `${thief.name}盯上了宝物，准备动手抢夺！` });
-    }
-  }
   startPhase(state, 'player', events);
 }
