@@ -31,7 +31,7 @@ export const OPS: readonly OpDef[] = [
   { op: 35, name: 'RECRUIT', group: '日历', agentNote: '游历招募：只花行动日，按地区角色池概率遇到新人，失败也推进日期。' },
   { op: 36, name: 'START_MAIN_STAGE', group: '日历', agentNote: '开始大竞技场的下一轮（第 1–3 轮海选，之后淘汰赛），推进日期；普通角色阵亡即永久死亡。返回 battleId。' },
   { op: 37, name: 'SKIP_MAIN_STAGE', group: '日历', agentNote: '把日期推进到下一季第 1 日；只按到达日判断竞技场日，途经的竞技场日不会开放。' },
-  { op: 38, name: 'PREVIEW_ACTION', group: '日历', agentNote: '为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。dungeon 另返回 dungeonStages（各图 name、可选 scenarioId）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。' },
+  { op: 38, name: 'PREVIEW_ACTION', group: '日历', agentNote: '为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon/quest 还返回 encounter（quest 带 questId 与可选 region，预览任务首战；未开放任务仅返回 blockers）（布局、双方人数、maxUnits、map 地形/出生点/playerGroups、enemies 敌军公开字段 id/name/classId/level/hp/stats/pos/weapons，不含 AI 或战斗随机状态）。dungeon 另返回 dungeonStages（各图 name、可选 scenarioId）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。' },
   { op: 39, name: 'EXECUTE_ACTION', group: '日历', agentNote: '用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。' },
 
   { op: 40, name: 'GET_SHOP', group: '整备', agentNote: '读取本季商店的有限商品与价格。庆典（大竞技场窗口，每年最后 18 日）期间整店打折：每件商品各自 50%～65% 折扣，price 为实付单价、basePrice 为原价、discount 为折扣百分比（非庆典为 0）；折扣按账号和届次固定，不重抽，只影响买入价。军需处每季轮换 8 件 E／D 级基础装备（每件限量 3），长期每件都会轮到。高级物品按年份上架：特效药、完整料理、六种能力药第 2 年（第 500 日）起，不朽盾第 3 年（第 1000 日）起；未到日期的不在 items 里，列在 locked（item/name/openDay）。' },
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 39;
+export const DOC_VERSION = 40;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

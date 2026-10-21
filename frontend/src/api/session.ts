@@ -7,7 +7,7 @@ import type { BattleMap } from '@common/maps/map.ts';
 import { useSyncExternalStore } from 'react';
 import type { StoryScene } from '@common/game/story-narrative.ts';
 import { OP } from '@common/protocol/ops.ts';
-import type { Action, BattleEvent, BattleState, Point } from '@common/engine/index.ts';
+import type { Action, BattleEvent, BattleState, Point, UnitState } from '@common/engine/index.ts';
 import type { SnapshotUnit } from '@common/arena/rules.ts';
 import type { CharacterId } from '@common/data/characters.ts';
 import type { Rank, StatCaps, StatKey, Stats, WeaponType } from '@common/data/types.ts';
@@ -424,7 +424,7 @@ export interface ServerAgentInfo { online: boolean; model: string | null; plan: 
 // Quotes are bound to the player version; EXECUTE_ACTION re-checks it (docs/13 §3.2).
 export interface ActionQuote {
   dungeonStages?: { name: string; scenarioId?: string }[];
-  encounter?: FieldEncounter & { map: Pick<BattleMap, 'width' | 'height' | 'tiles' | 'spawns' | 'playerGroups' | 'objective'> };
+  encounter?: FieldEncounter & { map: Pick<BattleMap, 'width' | 'height' | 'tiles' | 'spawns' | 'playerGroups'> & { objective?: { kind: string; position: Point; label: string } }; enemies: Pick<UnitState, 'id' | 'name' | 'classId' | 'level' | 'hp' | 'stats' | 'pos' | 'weapons'>[] };
   quoteId: string; playerVersion: number; action: string; costDays: number; costGold: number;
   fromDay: number; toDay: number; date: ServerState['date']; risk: 'permadeath' | 'simulation';
   events: { day: number; kind: 'arena' | 'month' | 'annual' }[]; blockers: string[];

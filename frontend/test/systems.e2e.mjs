@@ -268,11 +268,10 @@ try {
 
     // 大副本: preview, set out, retreat, and the page reports the failed run.
     await page.open(`${BASE}/#/field/dungeon`, '#drg-h');
-    await press(page, 'section[aria-label=确认出发]', '流程', '预览第 1 图');
-    await until(async () => (await page.text()).includes('确认出发'));
+    await until(() => page.evaluate(`!!document.querySelector('.encounter-preview') && !document.querySelector('.prep-go .btn-primary').disabled`));
     const quote = await page.text();
-    check('the dungeon shows the server quote first', quote.includes('推进 3 日') && quote.includes('共 8 日') && quote.includes('3、3、2') && quote.includes('永久死亡'), quote.slice(quote.indexOf('总耗时'), quote.indexOf('总耗时') + 160));
-    await press(page, 'section[aria-label=确认出发]', '流程', '确认出发');
+    check('the dungeon automatically previews its map and enemy list', quote.includes('共 8 日') && quote.includes('3、3、2') && await page.evaluate(`!!document.querySelector('.encounter-roster tbody tr')`), quote.slice(quote.indexOf('总耗时'), quote.indexOf('总耗时') + 160));
+    await press(page, 'section[aria-label=确认出发]', '总耗时', '确认出发');
     check('setting out opens the first map', await until(async () => (await page.evaluate(`!!document.querySelector('.board')`)) && (await page.text()).includes('1 / 3 图')), (await page.text()).slice(0, 120));
     const run = (await api(page, OP.GET_RUN)).run;
     check('the run is stored with its fixed team', run?.state === 'battle' && run.unitIds.length > 0, JSON.stringify({ state: run?.state, team: run?.unitIds.length }));

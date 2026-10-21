@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 39
+docVersion: 40
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -70,7 +70,7 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 | 35 | RECRUIT | 游历招募：只花行动日，按地区角色池概率遇到新人，失败也推进日期。 |
 | 36 | START_MAIN_STAGE | 开始大竞技场的下一轮（第 1–3 轮海选，之后淘汰赛），推进日期；普通角色阵亡即永久死亡。返回 battleId。 |
 | 37 | SKIP_MAIN_STAGE | 把日期推进到下一季第 1 日；只按到达日判断竞技场日，途经的竞技场日不会开放。 |
-| 38 | PREVIEW_ACTION | 为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon 还返回 encounter（布局、双方人数、maxUnits、map 地形/出生点/playerGroups）。dungeon 另返回 dungeonStages（各图 name、可选 scenarioId）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。 |
+| 38 | PREVIEW_ACTION | 为一个日历行动生成与 playerVersion 绑定的报价：实际耗日／金币、起止日期、死亡风险与阻挡原因；sortie/dungeon/quest 还返回 encounter（quest 带 questId 与可选 region，预览任务首战；未开放任务仅返回 blockers）（布局、双方人数、maxUnits、map 地形/出生点/playerGroups、enemies 敌军公开字段 id/name/classId/level/hp/stats/pos/weapons，不含 AI 或战斗随机状态）。dungeon 另返回 dungeonStages（各图 name、可选 scenarioId）。同一未花费的日期内战场固定，修改队伍不重掷；EXECUTE_ACTION 按报价执行。 |
 | 39 | EXECUTE_ACTION | 用 quoteId 执行报价；服务端重新校验版本与库存，过期返回可刷新错误，不自动涨价。 |
 ### 整备
 

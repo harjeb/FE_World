@@ -7,7 +7,7 @@ import { OP, OP_BY_NUMBER, WRITE_OPS } from '../common/protocol/ops.ts';
 import { schemaFor } from '../common/protocol/schemas.ts';
 import { EngineError } from '../common/engine/types.ts';
 import { canWield } from '../common/engine/units.ts';
-import type { Action, ActAction, AiDifficulty, BattleEvent, BattleState, Point, Side } from '../common/engine/types.ts';
+import type { Action, ActAction, AiDifficulty, BattleEvent, BattleState, Point, Side, UnitState } from '../common/engine/types.ts';
 import { actionOptions, artObjectForecast, artForecast, destinationCells, expPreview, forecast, forecastOnHit, inBounds, movementBudget, moveRange, pathTo, spellForecast, spellKind, statusChance, step, threatMap, unitById } from '../common/engine/index.ts';
 import { SPELLBOOK_BY_ID } from '../common/data/spellbooks.ts';
 import { validateArt, availableArts } from '../common/engine/arts.ts';
@@ -2361,7 +2361,8 @@ const handlers: Record<number, Handler> = {
       const blockers = lifespanBlockers(ctx, ctx.player.day + 8);
       if (blockers.length) throw new OpError('FORBIDDEN', blockers.join('；'));
       const units = deploymentUnits(ctx, data.unitIds, 8);
-      const record = createCrossTimeBattle(units, { region, day: ctx.player.day, seed: randomUUID(), aiDifficulty });
+      const record = createCrossTimeBattle(units, { region, day: ctx.player.day, seed: questDepartureSeed(ctx, CROSS_TIME_QUEST_ID, region), aiDifficulty });
+      randomizeQuestCombat(record);
       record.playerId = ctx.player.id;
       record.questId = CROSS_TIME_QUEST_ID;
       record.costDays = 8;
@@ -2407,7 +2408,7 @@ const handlers: Record<number, Handler> = {
     }
     const maxUnits = questMaxUnits(quest);
     const ready = deploymentUnits(ctx, data.unitIds, maxUnits);
-    const seed = randomUUID().slice(0, 8);
+    const seed = questDepartureSeed(ctx, quest.id, quest.region);
     // 经典地图副本：按 scenarioIds 顺序逐图连战，跨图携带由 run.carry 维护（docs/24）。
     if (quest.scenarioIds?.length) {
       const run = createRun(`run-${randomUUID().slice(0, 8)}`, ctx.player.id, quest.region, ready.map(u => u.id),
@@ -2419,6 +2420,7 @@ const handlers: Record<number, Handler> = {
       syncPlayer(ctx.store, ctx.player);
       const record = createClassicBattle(ready, { aiDifficulty, mapId: quest.scenarioIds[0], seed, quest, level: run.level, stageIndex: 0, runId: run.id, day: ctx.player.day, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [], season: dateOf(ctx.player.day - costDays).season });
       record.costDays = costDays;
+      randomizeQuestCombat(record);
       record.playerId = ctx.player.id;
       run.battleId = record.id;
       ctx.store.saveRun(run);
@@ -2430,6 +2432,7 @@ const handlers: Record<number, Handler> = {
     // 单张经典地图任务。
     if (quest.scenarioId) {
       const record = createClassicBattle(ready, { aiDifficulty, mapId: quest.scenarioId, seed, quest, day: ctx.player.day, lootRank: lootRankOf(ctx.player), claimed: ctx.player.flags.secretsClaimed ?? [] });
+      randomizeQuestCombat(record);
       record.playerId = ctx.player.id;
       ctx.player.day += quest.costDays ?? QUEST_DAY_COST[quest.tier];
       syncPlayer(ctx.store, ctx.player);
@@ -2448,6 +2451,7 @@ const handlers: Record<number, Handler> = {
       ctx.player.day += stageDays;
       syncPlayer(ctx.store, ctx.player);
       const record = createFieldBattle(ready, { region: quest.region, cleared: run.clearedAtStart, day: ctx.player.day - stageDays, seed, level, stageIndex: 0, runId: run.id, quest, aiDifficulty });
+      randomizeQuestCombat(record);
       record.playerId = ctx.player.id;
       run.battleId = record.id;
       ctx.store.saveRun(run);
@@ -2457,6 +2461,7 @@ const handlers: Record<number, Handler> = {
       return { battleId: record.id, questId: quest.id, run: runSummary(run), goalText: record.goalText, battle: battleView(record, false) };
     }
     const record = createFieldBattle(ready, { region: quest.region, cleared: ctx.player.flags.clearedRegions.length, day: ctx.player.day, seed, quest, aiDifficulty });
+    randomizeQuestCombat(record);
     record.playerId = ctx.player.id;
     ctx.player.day += QUEST_DAY_COST[quest.tier];
     syncPlayer(ctx.store, ctx.player);
@@ -2634,7 +2639,10 @@ const handlers: Record<number, Handler> = {
 // 报价构造：不改变世界，只计算成本、起止日期、风险、途经日期事件与阻挡（docs/13 §3.2）。
 interface ActionQuote {
   dungeonStages?: DungeonStage[];
-  encounter?: ReturnType<typeof fieldEncounter> & { map: ReturnType<typeof encounterMap> };
+  encounter?: ReturnType<typeof fieldEncounter> & {
+    map: Omit<ReturnType<typeof encounterMap>, 'objective'> & { objective?: { kind: string; position: Point; label: string } };
+    enemies: Pick<UnitState, 'id' | 'name' | 'classId' | 'level' | 'hp' | 'stats' | 'pos' | 'weapons'>[];
+  };
   aiDifficulty?: 'normal' | 'hard';
   aiDifficultyText?: string;
   op: number;
@@ -2703,6 +2711,27 @@ function trainingPlan(ctx: Context, data: Json) {
   }
   if (ctx.player.gold < costGold) problems.push(new OpError('NOT_ENOUGH_GOLD', `训练需要 ${costGold} 金币`));
   return { units, types, groupId: group?.id ?? null, costGold, problems };
+}
+
+function questDepartureSeed(ctx: Context, questId: string, region: number): string {
+  return createHash('sha256').update(`quest:${ctx.player.id}:${ctx.player.day}:${questId}:${region}`).digest('hex');
+}
+
+function randomizeQuestCombat(record: BattleRecord) {
+  const seed = randomUUID();
+  record.state.rng = seedRng(`${seed}:combat`);
+  record.state.growthRng = seedRng(`${seed}:growth`);
+  record.initial = structuredClone(record.state);
+}
+
+function previewObjective(state: BattleState): { kind: string; position: Point; label: string } | undefined {
+  const goal = state.goal;
+  if (goal.kind === 'seize') return { kind: goal.kind, position: goal.throne, label: '占领目标' };
+  if (goal.kind === 'boss') {
+    const target = state.units.find(unit => unit.id === goal.target);
+    if (target) return { kind: goal.kind, position: target.pos, label: `击败${target.name}` };
+  }
+  if ('exits' in goal && goal.exits.length) return { kind: goal.kind, position: goal.exits[0], label: '撤离点' };
 }
 
 function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
@@ -2787,6 +2816,42 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       if (!combatFeaturesOpen(ctx.store, player, playerRegions(player))) blockers.push('完成一次地区讨伐后开放大副本');
       break;
     }
+    case 'quest': {
+      op = OP.START_QUEST;
+      risk = 'permadeath';
+      const questId = asString(data.questId, 'questId');
+      const difficulty = asAiDifficulty(data.aiDifficulty);
+      payload = { questId, unitIds: data.unitIds, aiDifficulty: difficulty, ...(data.region === undefined ? {} : { region: data.region }) };
+      if (fighting) blockers.push('已有进行中的战斗');
+      if (isActiveRun(run)) blockers.push('远征进行中');
+      if (questId === CROSS_TIME_QUEST_ID) {
+        costDays = 8;
+        const regions = playerRegions(player);
+        const accepted = player.flags.crossTime?.acceptedRegion;
+        const region = data.region === undefined ? accepted ?? regions[0] : asNumber(data.region, 'region');
+        payload.region = region;
+        if (player.day < 1000) blockers.push('第1000日起开放时空试炼');
+        if (!regions.includes(region) || accepted !== undefined && accepted !== region) blockers.push('请选择已开通地区；接取后入口地区固定');
+        if (difficulty === 'hard' && !player.flags.crossTime?.clearedNormal) blockers.push('先普通通关时空试炼');
+      } else {
+        const quest = questById(questId);
+        if (!quest) throw new OpError('NOT_FOUND', '没有这个任务');
+        costDays = quest.scenarioIds?.length ? quest.stageDays ?? DUNGEON_STAGE_DAYS[0] : quest.tier === 'region' ? DUNGEON_STAGE_DAYS[0] : quest.costDays ?? QUEST_DAY_COST[quest.tier];
+        const done = new Set(player.flags.questsDone ?? []);
+        if (quest.bounty || quest.archived) blockers.push('此任务不能新开战斗');
+        if (!quest.story && !playerRegions(player).includes(quest.region)) blockers.push('尚未解锁任务地区');
+        if (!(supportsHardQuest(quest) && done.has(quest.id)) && !questAvailable(quest, questState(ctx, quest, done))) blockers.push('任务尚未解锁或已完成');
+        if (quest.dungeonOnly && !combatFeaturesOpen(ctx.store, player, playerRegions(player))) blockers.push('完成一次地区讨伐后开放副本');
+        if (quest.story) {
+          const problem = storyBattleBlocker(ctx.store, player, quest.story);
+          if (problem) blockers.push(problem);
+          const missing = storyPrerequisite(player, quest.story);
+          if (missing) blockers.push(`先完成本章前置任务「${missing}」`);
+        }
+        if (difficulty === 'hard' && (!supportsHardQuest(quest) || !hardUnlocks(ctx.store, player).quests.includes(quest.id))) blockers.push('先以普通难度完整通关本任务副本，才能挑战困难版本');
+      }
+      break;
+    }
     case 'annual': {
       op = OP.START_ANNUAL_MATCH;
       costDays = ACTION_DAYS.festivalMatch;
@@ -2797,7 +2862,7 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
       break;
     }
     default:
-      throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / art_training / rest / recruit / dungeon / annual');
+      throw new OpError('BAD_REQUEST', 'action 取 sortie / sweep / train / art_training / rest / recruit / dungeon / quest / annual');
   }
   let encounter: ActionQuote['encounter'];
   let dungeonStages: DungeonStage[] | undefined;
@@ -2807,8 +2872,46 @@ function buildQuote(ctx: Context, action: string, data: Json): ActionQuote {
     const dungeon = action === 'dungeon' ? dungeonPlan(ctx, region, difficulty) : null;
     const plan = dungeon?.encounter ?? fieldEncounter(player.id, player.day, region, difficulty, 'field', availableFieldUnits(ctx));
     dungeonStages = dungeon?.stages;
-    deploymentUnits(ctx, data.unitIds, plan.maxUnits);
-    encounter = { ...plan, map: encounterMap(plan, player.day) };
+    const units = deploymentUnits(ctx, data.unitIds, plan.maxUnits);
+    const preview = createFieldBattle(units, {
+      region, cleared: player.flags.clearedRegions.length, day: player.day,
+      seed: plan.seed, aiDifficulty: difficulty, encounter: plan,
+      ...(dungeon ? { stageIndex: 0, level: enemyLevel(player.day, regionById(region).offset) } : {}),
+    });
+    const enemies = preview.state.units.filter(unit => unit.side === 'enemy').map(({ id, name, classId, level, hp, stats, pos, weapons }) =>
+      ({ id, name, classId, level, hp, stats, pos, weapons }));
+    encounter = { ...plan, map: { ...encounterMap(plan, player.day), objective: previewObjective(preview.state) }, enemies };
+  }
+  if (action === 'quest' && blockers.length === 0) {
+    const questId = asString(data.questId, 'questId');
+    const quest = questById(questId);
+    const crossTime = questId === CROSS_TIME_QUEST_ID;
+    const region = crossTime ? payload.region as number : quest!.region;
+    const maxUnits = crossTime ? 8 : questMaxUnits(quest!);
+    const units = deploymentUnits(ctx, data.unitIds, maxUnits);
+    const seed = questDepartureSeed(ctx, questId, region);
+    const aiDifficulty = asAiDifficulty(data.aiDifficulty);
+    const level = enemyLevel(player.day, regionById(region || 1).offset);
+    const scenarioId = quest?.scenarioIds?.[0] ?? quest?.scenarioId;
+    const preview = crossTime ? createCrossTimeBattle(units, { region, day: player.day, seed, aiDifficulty })
+      : scenarioId ? createClassicBattle(units, { mapId: scenarioId, seed, aiDifficulty, quest: quest!,
+        day: player.day + (quest!.scenarioIds?.length ? costDays : 0),
+        ...(quest!.scenarioIds?.length ? { level, stageIndex: 0, season: dateOf(player.day).season } : {}),
+        lootRank: lootRankOf(player), claimed: player.flags.secretsClaimed ?? [] })
+      : createFieldBattle(units, { region, cleared: player.flags.clearedRegions.length, day: player.day, seed, quest: quest!, aiDifficulty,
+        ...(quest!.tier === 'region' ? { stageIndex: 0, level } : {}) });
+    const state = preview.state;
+    const enemies = state.units.filter(u => u.side === 'enemy').map(({ id, name, classId, level, hp, stats, pos, weapons }) => ({ id, name, classId, level, hp, stats, pos, weapons }));
+    const players = state.units.filter(u => u.side === 'player' && !u.npc);
+    const tiles = state.map.tiles;
+    const width = tiles[0].length, height = tiles.length;
+    // Only public terrain and deployed positions; never spread scenario objects/events or AI state.
+    encounter = { seed, layout: 'skirmish', name: preview.name, description: preview.goalText, theme: 'grassland', width, height, maxUnits, enemyCount: enemies.length,
+      map: { generatorVersion: 4, seed, theme: 'grassland', layout: 'skirmish', width, height, tiles,
+        spawns: { player: players.map(u => u.pos), enemy: enemies.map(u => u.pos) }, playerGroups: players.map(() => 0),
+        objective: previewObjective(state) }, enemies };
+    if (quest?.scenarioIds) dungeonStages = quest.scenarioIds.map(id => ({ name: classicMap(id).name, scenarioId: id }));
+    else if (quest?.tier === 'region') dungeonStages = mixedDungeonStages(`${player.id}:${player.day}:${quest.id}`, region);
   }
   const toDay = player.day + costDays;
   for (const unit of ctx.store.units(player.id).filter(unit => unit.status === 'active')) {

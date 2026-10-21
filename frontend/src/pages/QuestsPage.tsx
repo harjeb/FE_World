@@ -1,10 +1,11 @@
 import type { AiDifficulty } from '@common/engine/types.ts';
+import { EncounterPreview } from '../battle/EncounterPreview.tsx';
 import { DifficultyChoice, difficultyLabel } from '../battle/DifficultyChoice.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { REPUTATION_TIERS } from '@common/game/reputation.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
-import type { ChallengeFloor, QuestRegion, QuestView } from '../api/session.ts';
+import type { ActionQuote, ChallengeFloor, QuestRegion, QuestView } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
 import { annualLive, busyReason } from '../model/roster.ts';
 import { featuresOf } from '../model/access.ts';
@@ -17,8 +18,6 @@ import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { advance, dateLabel, plainDate } from '../ui/calendar.ts';
 import { itemName, TeamPicker, useAct } from './SystemParts.tsx';
 import { QuestBoard } from './QuestBoard.tsx';
-import { CrossTimeEnemyPreview } from './CrossTimeEnemyPreview.tsx';
-import { CrossTimeBrief } from './CrossTimeBrief.tsx';
 import { crossTimeReward, isCrossTime, questsInRegion } from './cross-time.ts';
 import { itemResource, itemSpec } from './PrepParts.tsx';
 
@@ -73,12 +72,31 @@ function RegionsTab() {
   const [team, setTeam] = useState<string[]>([]);
   const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>('normal');
   const prepRef = useRef<HTMLElement>(null);
+  const openIds = new Set(state?.regions.map(r => r.id) ?? []);
+  const openRegions = (quests?.regions ?? []).filter(r => openIds.has(r.region))
+    .map(r => ({ ...r, quests: questsInRegion(quests!, r.region) }));
+  const region = openRegions.find(r => r.region === regionId)
+    ?? openRegions.find(r => r.quests.some(q => phaseOf(q) === 'done'))
+    ?? openRegions.find(r => r.quests.some(q => phaseOf(q) === 'available'))
+    ?? openRegions[0];
+  const quest = region?.quests.find(q => q.id === selected) ?? null;
+  const [quoted, setQuoted] = useState<{ key: string; quote: ActionQuote } | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const quoteKey = JSON.stringify([quest?.id, region?.region, team, state?.version, quest?.hardUnlocked ? aiDifficulty : 'normal']);
+  const quote = quoted?.key === quoteKey ? quoted.quote : null;
+  useEffect(() => {
+    let alive = true;
+    setQuoted(null);
+    setQuoteError(null);
+    if (quest && team.length) {
+      session.quote('quest', { questId: quest.id, region: region.region, unitIds: team, aiDifficulty: quest.hardUnlocked ? aiDifficulty : 'normal' }).then(q => {
+        if (alive) setQuoted({ key: quoteKey, quote: q });
+      }).catch(error => { if (alive) setQuoteError(error instanceof Error ? error.message : String(error)); });
+    }
+    return () => { alive = false; };
+  }, [quoteKey]);
   useEffect(() => { if (selected) prepRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [selected]);
   if (!quests || !state) return <p style={{ color: '#4E473D' }}>暂时读不到地区任务，刷新页面再试。</p>;
-  // 防御性过滤：GET_QUESTS 已只返回已开通地区，这里再按 state.regions 过一次，避免显示未开通地区。
-  const openIds = new Set(state.regions.map(r => r.id));
-  const openRegions = quests.regions.filter(r => openIds.has(r.region))
-    .map(r => ({ ...r, quests: questsInRegion(quests, r.region) }));
   if (openRegions.length === 0) {
     return (
       <div className="prep">
@@ -91,11 +109,6 @@ function RegionsTab() {
       </div>
     );
   }
-  const region = openRegions.find(r => r.region === regionId)
-    ?? openRegions.find(r => r.quests.some(q => phaseOf(q) === 'done'))
-    ?? openRegions.find(r => r.quests.some(q => phaseOf(q) === 'available'))
-    ?? openRegions[0];
-  const quest = region.quests.find(q => q.id === selected) ?? null;
   const allQuests = openRegions.flatMap(r => r.quests);
   const questName = (id: string) => allQuests.find(q => q.id === id)?.name ?? id;
   const active = state.units.filter(u => u.status === 'active');
@@ -110,7 +123,8 @@ function RegionsTab() {
     setTeam(active.filter(u => !busyReason(u, annual)).slice(0, q.maxUnits).map(u => u.id));
   };
   const start = (q: QuestView) => act(`s${q.id}`, async () => {
-    await session.run(OP.START_QUEST, { questId: q.id, region: region.region, unitIds: team, aiDifficulty: q.hardUnlocked === true ? effectiveDifficulty : 'normal' });
+    if (!quote) return;
+    await session.execute(quote.quoteId);
     // 远征／连续副本任务进入副本页；单图任务进入普通出击页。
     go(q.tier === 'region' || (q.classic?.stageCount ?? 1) > 1 ? links.dungeon : links.field);
     return q.name;
@@ -151,14 +165,16 @@ function RegionsTab() {
                 {!isCrossTime(quest) && quest.firstClearRewards && <><dt>本难度首通</dt><dd><FirstClearLoot reward={quest.firstClearRewards[effectiveDifficulty]} /></dd></>}
                 {quest.stageNames && <><dt>关卡顺序</dt><dd>{quest.stageNames.join(' → ')}</dd></>}
               </dl>
-              {isCrossTime(quest) && <><CrossTimeBrief /><CrossTimeEnemyPreview difficulty={effectiveDifficulty} day={state.day} /></>}
-              {quest.hardAvailable && <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度完整通关本副本后解锁，仅限本副本。" help={isCrossTime(quest) ? '固定17名敌军，普通48级、困难52级，面板见上方敌军详情；两档均消耗8日。困难使用更强的行动规划，奖励按本副本独立结算。出发后难度与敌军面板固定。' : undefined} onChange={setAiDifficulty} disabled={busy !== null || locked || battleLocked} />}
               <TeamPicker units={active} team={team} max={quest.maxUnits} protagonist={state.player.protagonist} onChange={setTeam} why={u => busyReason(u, annual)} />
+              {quoteError && <p role="alert">{quoteError}</p>}
+              {quote?.blockers.map(text => <p role="alert" key={text}>{text}</p>)}
+              {quest.hardAvailable && <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度完整通关本副本后解锁，仅限本副本。" onChange={setAiDifficulty} disabled={busy !== null || locked || battleLocked} />}
+              {quote?.encounter && <EncounterPreview encounter={quote.encounter} names={team.map(id => active.find(unit => unit.id === id)?.name ?? id)} />}
               <div className="go-bar">
                 {locked && <span className="why" style={{ marginRight: 'auto' }}>大竞技场进行中，暂时不能接任务</span>}
                 {battleLocked && <span className="why">已有战斗或远征进行中，暂时不能出征</span>}
                 <button type="button" className="btn btn-ghost" onClick={() => setSelected(null)}>取消</button>
-                <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || team.length === 0 || locked || battleLocked || quest.inProgress || quest.archived || !quest.available} onClick={() => void start(quest)}>
+                <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || !quote?.encounter || quote.blockers.length > 0 || team.length === 0 || locked || battleLocked || quest.inProgress || quest.archived || !quest.available} onClick={() => void start(quest)}>
                   {busy === `s${quest.id}` ? '出发中…' : `确认出征 · ${team.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
                 </button>
               </div>

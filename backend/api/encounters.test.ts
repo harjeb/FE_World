@@ -33,7 +33,9 @@ test('plans vary limits/layouts by seed, with fixed full deployment slots and en
     if (plan.layout !== 'skirmish') assert.equal(gated.layout, 'skirmish', `early gates dispersed layouts: ${i}`);
     const options = { region: 1, cleared: 0, day: 0, seed: 'combat', encounter: gated };
     const one = createFieldBattle(roster.slice(0, 1), options).state;
-    const full = createFieldBattle(roster.slice(0, gated.maxUnits), options).state;
+    const full = createFieldBattle(roster.slice(0, gated.maxUnits), { ...options, seed: 'different-server-combat-seed' }).state;
+    assert.notDeepEqual(one.rng, full.rng, 'enemy stability does not freeze combat RNG');
+    assert.notDeepEqual(one.growthRng, full.growthRng, 'growth RNG remains independent');
     assert.deepEqual(one.map, full.map);
     assert.deepEqual(one.units[0].pos, full.units[0].pos);
     assert.equal(one.units.filter(u => u.side === 'enemy').length, gated.enemyCount);
@@ -80,18 +82,29 @@ test('early balancing scales party caps and enemy counts, and converges to conce
 });
 
 for (const action of ['sortie', 'dungeon'] as const) {
-  test(`${action}: preview is stable across teams and matches actual seasonal map, slots and costs`, () => {
+  for (const aiDifficulty of ['normal', 'hard'] as const) {
+  test(`${action}/${aiDifficulty}: preview is stable across teams and matches actual enemies, seasonal map, slots and costs`, () => {
     const ctx = setup();
     ctx.player.day = 375;
+    ctx.player.flags.hardUnlocks = { regions: [1], dungeons: [1], quests: [] };
     ctx.store.savePlayer(ctx.player);
     const before = ctx.player.day;
-    const preview = (unitIds: string[]) => dispatch(ctx, OP.PREVIEW_ACTION, { action, region: 1, unitIds }) as any;
+    const unchanged = { player: ctx.store.getPlayer(ctx.player.id), units: ctx.store.units(ctx.player.id) };
+    const preview = (unitIds: string[]) => dispatch(ctx, OP.PREVIEW_ACTION, { action, region: 1, unitIds, aiDifficulty, seed: 'client-must-not-control-enemies' }) as any;
     const first = preview(['u_erin']);
     const ids = ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, first.encounter.maxUnits).map(u => u.id).reverse();
     const quote = preview(ids);
     assert.deepEqual(first.encounter, quote.encounter);
     assert.deepEqual(quote.encounter, preview(ids).encounter);
     assert.equal(ctx.player.day, before);
+    assert.deepEqual({ player: ctx.store.getPlayer(ctx.player.id), units: ctx.store.units(ctx.player.id) }, unchanged);
+    assert.equal(ctx.store.activeBattle(ctx.player.id), null);
+    assert.equal(ctx.store.activeRun(ctx.player.id), null);
+    const withoutClientSeed = dispatch(ctx, OP.PREVIEW_ACTION, { action, region: 1, unitIds: ids, aiDifficulty }) as any;
+    assert.deepEqual(quote.encounter, withoutClientSeed.encounter);
+    for (const enemy of quote.encounter.enemies) {
+      assert.deepEqual(Object.keys(enemy).sort(), ['id', 'name', 'classId', 'level', 'hp', 'stats', 'pos', 'weapons'].sort());
+    }
     const result = dispatch(ctx, OP.EXECUTE_ACTION, { quoteId: quote.quoteId }) as any;
     const battle = ctx.store.battle(ctx.player.id, result.battleId)!;
     assert.deepEqual(battle.state.units.filter(u => u.side === 'player').map(u => u.id), ids, 'submitted order becomes deployment order');
@@ -99,6 +112,8 @@ for (const action of ['sortie', 'dungeon'] as const) {
     assert.deepEqual(battle.state.map.tiles, quote.encounter.map.tiles);
     assert.deepEqual(battle.state.units.filter(u => u.side === 'player').map(u => u.pos), quote.encounter.map.spawns.player.slice(0, ids.length));
     assert.equal(battle.state.units.filter(u => u.side === 'enemy').length, quote.encounter.enemyCount);
+    assert.deepEqual(quote.encounter.enemies, battle.state.units.filter(u => u.side === 'enemy').map(({ id, name, classId, level, hp, stats, pos, weapons }) =>
+      ({ id, name, classId, level, hp, stats, pos, weapons })));
     assert.equal(ctx.player.day - before, quote.costDays);
     assert.notEqual(battle.seed, quote.encounter.seed);
     if (action === 'dungeon') {
@@ -120,6 +135,7 @@ for (const action of ['sortie', 'dungeon'] as const) {
       assert.deepEqual(state.map.tiles, encounterMap(run.encounter!, day, 1).tiles);
     }
   });
+  }
 
   test(`${action}: invalid deployments reject before date, gold, locks or battles change`, () => {
     const ctx = setup();
@@ -139,3 +155,61 @@ for (const action of ['sortie', 'dungeon'] as const) {
     }
   });
 }
+
+for (const questId of ['gw1', 'gw2', 'gw3', 'gw4', 'gw5', 'gw6', 'clx-fe1', 'story-1', 'cross-time-throne']) {
+  const single = ['gw1', 'gw2', 'gw3', 'gw4', 'gw5', 'story-1'].includes(questId);
+  for (const aiDifficulty of (single ? ['normal'] : ['normal', 'hard'])) {
+    test(`quest ${questId}/${aiDifficulty}: public preview matches departure without side effects`, () => {
+      const ctx = setup();
+      ctx.player.day = 1001;
+      ctx.player.flags.questsDone = single ? ['gw1', 'gw2', 'gw3', 'gw4', 'gw5'].filter(id => id !== questId) : ['gw1', 'gw2', 'gw3', 'gw4', 'gw5', questId];
+      ctx.player.flags.storyStepsDone = ['story-1-a', 'story-1-b'];
+      ctx.player.flags.hardUnlocks = { regions: [1, 2], dungeons: [], quests: [questId] };
+      ctx.player.flags.crossTime = { clearedNormal: true };
+      ctx.player.flags.unlockedRegions = [1, 2];
+      ctx.player.flags.regionReputation = { 1: 100, 2: 100 };
+      ctx.store.savePlayer(ctx.player);
+      const data = { action: 'quest', questId, aiDifficulty, region: 1, unitIds: ['u_erin'] };
+      const before = { player: ctx.store.getPlayer(ctx.player.id), units: ctx.store.units(ctx.player.id), inventory: ctx.store.inventory(ctx.player.id) };
+      const quote = dispatch(ctx, OP.PREVIEW_ACTION, data) as any;
+      assert.deepEqual(quote.encounter, (dispatch(ctx, OP.PREVIEW_ACTION, { ...data, seed: 'injected' }) as any).encounter);
+      assert.deepEqual({ player: ctx.store.getPlayer(ctx.player.id), units: ctx.store.units(ctx.player.id), inventory: ctx.store.inventory(ctx.player.id) }, before);
+      assert.equal(ctx.store.activeRun(ctx.player.id), null);
+      assert.equal(ctx.store.activeBattle(ctx.player.id), null);
+      assert.deepEqual(quote.blockers, []);
+      const result = dispatch(ctx, OP.EXECUTE_ACTION, { quoteId: quote.quoteId }) as any;
+      const battle = ctx.store.battle(ctx.player.id, result.battleId)!;
+      assert.deepEqual(battle.state.map.tiles, quote.encounter.map.tiles);
+      const goal = battle.state.goal;
+      const marker = quote.encounter.map.objective;
+      if (goal.kind === 'boss') {
+        assert.equal(marker.kind, 'boss');
+        assert.deepEqual(marker.position, battle.state.units.find(unit => unit.id === goal.target)!.pos);
+      } else if (goal.kind === 'seize') {
+        assert.equal(marker.kind, 'seize');
+        assert.deepEqual(marker.position, goal.throne);
+      } else if ('exits' in goal) {
+        assert.equal(marker.label, '撤离点');
+        assert.deepEqual(marker.position, goal.exits[0]);
+      } else assert.equal(marker, undefined, 'no false capture marker for rout/defend');
+      assert.deepEqual(battle.state.units.filter(u => u.side === 'enemy').map(({ id, name, classId, level, hp, stats, pos, weapons }) => ({ id, name, classId, level, hp, stats, pos, weapons })), quote.encounter.enemies);
+      assert.equal(ctx.player.day - before.player!.day, quote.costDays);
+      assert.deepEqual(battle.state.units.filter(u => u.side === 'player' && !u.npc).map(u => u.pos), quote.encounter.map.spawns.player);
+      for (const enemy of quote.encounter.enemies) assert.deepEqual(Object.keys(enemy).sort(), ['id', 'name', 'classId', 'level', 'hp', 'stats', 'pos', 'weapons'].sort());
+    });
+  }
+}
+
+test('locked quest preview reports blockers without revealing enemies and keeps lifecycle checks', () => {
+  const ctx = setup();
+  const day = ctx.player.day;
+  const data = { action: 'quest', questId: 'gw6', unitIds: ['u_erin'] };
+  const quote = dispatch(ctx, OP.PREVIEW_ACTION, data) as any;
+  assert.equal(quote.encounter, undefined);
+  assert.ok(quote.blockers.length);
+  assert.throws(() => dispatch(ctx, OP.EXECUTE_ACTION, { quoteId: quote.quoteId }));
+  assert.throws(() => dispatch(ctx, OP.START_QUEST, data));
+  assert.equal(ctx.store.activeBattle(ctx.player.id), null);
+  assert.equal(ctx.store.activeRun(ctx.player.id), null);
+  assert.equal(ctx.player.day, day);
+});

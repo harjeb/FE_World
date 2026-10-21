@@ -4,7 +4,7 @@
 //
 // Usage (from frontend/): npm run build && node test/backend-integration.e2e.mjs
 // Needs Node.js 22.18+ and Chromium (CHROME_BIN overrides the binary name).
-import { enemyStats, HARD_ENEMY_EFFECT, HARD_ENEMY_RULES, templateFor } from '../../backend/common/game/enemies.ts';
+import { enemyStats, HARD_ENEMY_RULES, templateFor } from '../../backend/common/game/enemies.ts';
 import { STAT_KEYS } from '../../backend/common/data/types.ts';
 import { WEAPONS, WEAPON_SERIES, weaponSeriesTier } from '../../backend/common/data/weapons.ts';
 import { materialTier } from '../../backend/common/game/materials.ts';
@@ -289,7 +289,7 @@ try {
       const row = [...document.querySelectorAll('.team li')].find(row => row.innerText.includes(${JSON.stringify(commanderName)}));
       return row?.querySelector('.pf .tm-ord')?.textContent === '1';
     })()`), commanderName);
-    check('reloaded quote preview names the reordered commander first', await until(() => page.evaluate(`document.querySelector('[aria-label="战场部署预览"] figcaption')?.innerText.includes(${JSON.stringify('小队 1：')} + ${JSON.stringify(commanderName)})`)), commanderName);
+    check('reloaded quote preview names the reordered commander first', await until(() => page.evaluate(`document.querySelector('[aria-label="战场部署预览"] svg g title')?.textContent.includes(${JSON.stringify(commanderName)})`)), commanderName);
     await page.viewport(1440, 900);
     check('field AI defaults to normal and hard starts locked', await page.evaluate(`document.querySelector('input[value="normal"]').checked && document.querySelector('input[value="hard"]').disabled`), 'normal first clear required');
     let hardBlocked = false;
@@ -316,9 +316,9 @@ try {
     await page.viewport(390, 844);
     await page.click('input[value="hard"]');
     check('difficulty choice fits mobile', await page.evaluate(`document.querySelector('input[value="hard"]').checked && document.documentElement.scrollWidth <= innerWidth`), 'hard selected at 390px');
-    check('hard preparation describes stronger enemies and reward limits', await page.evaluate(`(() => { const text = document.querySelector('input[value="hard"]').closest('fieldset').innerText; return [${JSON.stringify(HARD_ENEMY_EFFECT)}, '任务固定奖励与行动日成本不变', '更多战斗经验与掉落机会', '难度锁定', '刷新不会重随机'].every(value => text.includes(value)); })()`), 'shared hard rules, fixed quest rewards and extra combat opportunities');
+    check('hard preparation keeps only difficulty controls', await page.evaluate(`document.querySelector('input[value="hard"]').closest('fieldset').querySelectorAll('p').length === 0`), 'no difficulty explanation paragraphs');
     const hardPlan = (await api(page, 30)).sortieRegions.find(r => r.id === 2).encounters.hard;
-    check('hard preview has accessible squad labels and fits mobile', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] figcaption') && document.querySelector('[aria-label="战场部署预览"]').innerText.includes('小队 1') && !document.querySelector('.prep-go .btn-primary').disabled && document.documentElement.scrollWidth <= innerWidth`)), 'map and legend at 390px');
+    check('hard preview has accessible unit labels and fits mobile', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] [data-enemy-id][aria-label]') && !!document.querySelector('[aria-label="敌方单位简表"]') && !document.querySelector('.prep-go .btn-primary').disabled && document.documentElement.scrollWidth <= innerWidth`)), 'map and enemy list at 390px');
     const hardPreview = await api(page, 38, { action: 'sortie', region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' });
     await page.click('.prep-go .btn-primary');
     check('hard field battle starts through the UI', await until(() => page.evaluate(`document.querySelector('.hud')?.innerText.includes('战斗难度：困难')`)), 'locked hard HUD');
@@ -422,14 +422,11 @@ try {
     check('completed dungeon keeps its difficulty reward visible without a claim action',
       await page.evaluate(`(() => { const label = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通'); const reward = label?.nextElementSibling; return !!reward && reward.innerText.includes('已完成') && !reward.innerText.includes('未完成') && reward.innerText.includes('×') && reward.innerText.includes('普通、困难各一次固定奖励') && !reward.querySelector('button'); })()`), 'independent completion records, automatic deposits');
     check('dungeon AI defaults to normal', await page.evaluate(`document.querySelector('input[value="normal"]').checked`), 'normal selected');
-    await page.click('.prep-go .go-bar button');
-    check('dungeon preview shows normal difficulty', await until(() => page.evaluate(`document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通')`)), 'normal preview');
-    check('dungeon preview includes terrain and squad legend', await page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] svg') && document.querySelector('[aria-label="战场部署预览"] figcaption').innerText.includes('小队 1')`), 'shared deployment preview');
+    check('dungeon preview loads automatically', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] svg') && !document.querySelector('.prep-go .btn-primary').disabled`)), 'normal preview');
+    check('dungeon preview includes the map and enemy list', await page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] svg') && !!document.querySelector('[aria-label="敌方单位简表"] tbody tr')`), 'shared deployment preview');
     await page.click('input[value="hard"]');
-    check('changing difficulty clears the obsolete preview', await page.evaluate(`!document.querySelector('.prep-go').innerText.includes('预览战斗难度：普通') && document.querySelector('.prep-go .go-bar button').innerText.includes('预览第 1 图')`), 'new preview required');
     const dungeonPreview = await api(page, 38, { action: 'dungeon', region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' });
-    await page.click('.prep-go .go-bar button');
-    check('hard dungeon requotes its deployment map', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"]') && document.querySelector('.prep-go .go-bar button').innerText.includes('确认出发')`)), 'hard map ready');
+    check('hard dungeon requotes its deployment map', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"]') && document.querySelector('input[value="hard"]').checked && !document.querySelector('.prep-go .btn-primary').disabled`)), 'hard map ready');
     await page.click('.prep-go .go-bar button');
     check('quoted dungeon starts through the UI', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first dungeon map');
     const quotedDungeon = await api(page, 50, { full: true });

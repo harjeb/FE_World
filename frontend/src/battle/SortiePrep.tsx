@@ -3,7 +3,7 @@ import { defaultOrder, normalizeOrder, loadDeploymentOrder, saveDeploymentOrder 
 import type { AiDifficulty } from '@common/engine/types.ts';
 import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
 import { useEffect, useState } from 'react';
-import { EncounterPreview, EncounterSummary } from './EncounterPreview.tsx';
+import { EncounterPreview } from './EncounterPreview.tsx';
 import { ITEMS, WEAPONS } from '@common/data/weapons.ts';
 import type { ItemId, WeaponId } from '@common/data/weapons.ts';
 import { UnitFace } from '../pages/SystemParts.tsx';
@@ -14,7 +14,7 @@ import { featuresOf } from '../model/access.ts';
 import { links, regionInHash } from '../router.ts';
 import type { FieldTab } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
-import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
+import { advance, dateLabel } from '../ui/calendar.ts';
 import { RegionExploration } from '../ui/RegionExploration.tsx';
 import { busyReason } from '../model/roster.ts';
 
@@ -124,7 +124,6 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   const avg = picked.length > 0 ? Math.round(picked.reduce((sum, u) => sum + u.level, 0) / picked.length) : 0;
   const lead = active.find(u => u.isProtagonist);
   const to = advance(today.day, sortie.costDays);
-  const warning = arenaTodayWarning();
   const toggle = (id: string) => setTeam(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : selectedIds.length < max ? [...selectedIds, id] : selectedIds);
 
   return (
@@ -186,13 +185,11 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
             <dt>日期</dt><dd>{sortie.costDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
             {sortie.lethal && <><dt>阵亡</dt><dd className="risk">倒下的角色永久死亡，撤退只能保住还活着的人{lead ? `（主角${lead.name}倒下只撤退，不会死亡）` : ''}。</dd></>}
           </dl>
-          <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度赢得本地区野外遭遇战后解锁，仅限本地区野外。" onChange={setAiDifficulty} disabled={busy} />
-          {plan && <EncounterSummary plan={plan} />}
-          {quote?.encounter && <EncounterPreview encounter={quote.encounter} names={picked.map(u => u.name)} />}
           {quoteError && <p role="alert">{quoteError}</p>}
           {quote?.blockers.map(text => <p role="alert" key={text}>{text}</p>)}
-          {warning && <p className="a-warn" role="note">{warning}</p>}
           {error && <p role="alert" style={{ padding: '0 16px', fontSize: 13, color: '#93392F' }}>{error}</p>}
+          <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason="以普通难度赢得本地区野外遭遇战后解锁，仅限本地区野外。" onChange={setAiDifficulty} disabled={busy} />
+          {quote?.encounter && <EncounterPreview encounter={quote.encounter} names={picked.map(u => u.name)} />}
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
             <button type="button" className="btn btn-primary btn-lg" disabled={busy || !sortie.available || picked.length === 0 || !quote?.encounter || quote.blockers.length > 0}

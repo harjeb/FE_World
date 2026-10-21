@@ -16,7 +16,7 @@ const dbPath = join(temp, 'test.db'), name = 'deployment-browser';
 seedBrowserAccount(dbPath, name);
 const store = new Store(openDb(dbPath));
 const player = store.getPlayer(store.db.prepare('SELECT id FROM players LIMIT 1').get().id);
-player.day = 1601; player.flags.clearedRegions = [2]; store.savePlayer(player); store.db.close();
+player.day = 1601; player.flags.clearedRegions = [2]; player.flags.questsDone = ['gw1']; store.savePlayer(player); store.db.close();
 const origin = 'http://127.0.0.1:8617', debug = 'http://127.0.0.1:9417';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function until(test, message) {
@@ -53,6 +53,34 @@ try {
   const api = (op, data = {}) => evaluate(`fetch('/api/op',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+localStorage.getItem('agent-tactics.token')},body:JSON.stringify({op:${op},seq:1,data:${JSON.stringify(data)}})}).then(r=>r.json()).then(r=>{if(!r.ok)throw Error(r.error.message);return r.data})`);
   const order = () => evaluate(`Array.from(document.querySelectorAll('.deployment-list > li')).map(el=>el.dataset.unitId)`);
   const preferences = () => evaluate(`localStorage.getItem('agent-tactics.deployment-order.${player.id}')`);
+  const checkPreview = async (desktopLayout = false) => {
+    await until(() => evaluate(`document.querySelectorAll('.encounter-roster tbody tr').length > 0`), 'enemy preview missing');
+    assert.ok(await evaluate(`(() => {
+      const preview = document.querySelector('.encounter-preview');
+      const fieldset = preview.previousElementSibling;
+      return !preview.querySelector('figcaption, .pfoot') && fieldset.tagName === 'FIELDSET'
+        && fieldset.querySelectorAll('p').length === 0
+        && preview.querySelectorAll('[data-enemy-id]').length === preview.querySelectorAll('tbody tr').length;
+    })()`), 'only map and enemy list follow the difficulty controls');
+    assert.ok(await evaluate(`Array.from(document.querySelectorAll('.encounter-roster tbody tr')).every(row => row.children.length === 4 && /\\d+\\/\\d+/.test(row.children[1].textContent) && Number(row.children[2].textContent) > 0 && row.children[3].textContent)`), 'enemy summary includes HP, level and class');
+    if (desktopLayout) assert.ok(await evaluate(`(() => {
+      const map = document.querySelector('.encounter-map').getBoundingClientRect();
+      const list = document.querySelector('.encounter-roster').getBoundingClientRect();
+      return list.left >= map.right;
+    })()`), 'enemy list sits to the right of the map');
+    await evaluate(`document.querySelector('[data-enemy-id]').scrollIntoView({behavior:'instant',block:'center'})`);
+    await evaluate(`new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
+    const point = await evaluate(`(() => { const r = document.querySelector('[data-enemy-id]').getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`);
+    await mouse('mouseMoved', point);
+    await until(() => evaluate(`document.querySelector('[role="tooltip"]')?.innerText.includes('装备：')`), 'hover must display detailed enemy tooltip');
+    await evaluate(`document.querySelector('[data-enemy-id]').focus()`);
+    assert.ok(await evaluate(`!!document.querySelector('[role="tooltip"]')`), 'keyboard focus exposes enemy details too');
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+    assert.ok(await evaluate(`!document.querySelector('[role="tooltip"]')`), 'Escape dismisses enemy details');
+    await evaluate(`document.querySelector('[data-enemy-id]').blur()`);
+    await mouse('mouseMoved', { x: 1, y: 1 });
+    assert.ok(await evaluate(`document.documentElement.scrollWidth <= innerWidth`), 'preview does not overflow the viewport');
+  };
   const slots = async () => {
     await evaluate(`document.querySelector('.deployment-order').scrollIntoView({block:'center'})`);
     return evaluate(`Array.from(document.querySelectorAll('.deployment-list button')).map(el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+32}})`);
@@ -95,6 +123,7 @@ try {
   await evaluate(`location.hash='#/field?region=2'`);
   await until(async () => (await order()).length >= 3, 'deployment portraits missing');
   const original = await order();
+  await checkPreview(true);
   assert.ok(await evaluate(`(()=>{const cards=Array.from(document.querySelectorAll('.deployment-list > li'));return cards.every(card=>Math.abs(card.getBoundingClientRect().top-cards[0].getBoundingClientRect().top)<2)})()`), 'desktop portraits form one horizontal row');
   await dragMouse(original.length - 1, 0);
   const desktop = [original.at(-1), ...original.slice(0, -1)];
@@ -140,10 +169,27 @@ try {
   await evaluate(`location.hash='#/field/dungeon'`);
   await until(async () => (await order()).length >= 2 && await evaluate(`!!document.querySelector('#dtm-h')`), 'dungeon deployment missing');
   const dungeon = await order();
+  await checkPreview();
   assert.equal(dungeon[0], desktop[0], 'dungeon shares the saved commander');
   await beginTouchDrag(dungeon.length - 1, 0); await touch('touchEnd');
   const finalOrder = [dungeon.at(-1), ...dungeon.slice(0, -1)];
   await until(async () => JSON.stringify(await order()) === JSON.stringify(finalOrder), 'dungeon drag did not commit');
+  await evaluate(`document.querySelector('[aria-label="远征地区"] button:nth-child(2)').click()`);
+  await until(() => evaluate(`!!document.querySelector('[aria-label="副本路线"] button:nth-child(2)')`), 'classic dungeon choice missing');
+  await evaluate(`document.querySelector('[aria-label="副本路线"] button:nth-child(2)').click()`);
+  await until(() => evaluate(`document.querySelector('[aria-label="副本路线"] button:nth-child(2)').getAttribute('aria-checked') === 'true' && !!document.querySelector('.encounter-preview')`), 'classic map preview missing');
+  await checkPreview();
+  await evaluate(`location.hash='#/quests'`);
+  await until(() => evaluate(`!!document.querySelector('[data-quest="cross-time-throne"] button')`), 'cross-time preparation missing');
+  await evaluate(`document.querySelector('[data-quest="cross-time-throne"] button').click()`);
+  await until(() => evaluate(`document.querySelectorAll('.quest-prep .encounter-roster tbody tr').length === 17`), 'cross-time map must show 17 enemies');
+  await checkPreview();
+  assert.ok(await evaluate(`!!document.querySelector('#rg-2')`), 'default quest view chooses region with the pending reward');
+  const quotes = openDb(dbPath);
+  try {
+    const stored = JSON.parse(quotes.prepare('SELECT data FROM action_quotes ORDER BY created_at DESC LIMIT 1').get().data);
+    assert.equal(stored.payload.region, 2, 'cross-time quote uses the displayed default region');
+  } finally { quotes.close(); }
   await evaluate(`location.hash='#/field?region=2'`);
   await until(async () => {
     const field = await order();
@@ -158,7 +204,7 @@ try {
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');
   assert.deepEqual(errors, []);
-  console.log('PASS: horizontal portraits, mouse/touch sorting, keyboard ordering, cancellation, persistence, mobile wrapping, shared dungeon ordering and actual battle commander');
+  console.log('PASS: deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; actual battle commander');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ id: 1000000000, method: 'Browser.close' })); await sleep(200);

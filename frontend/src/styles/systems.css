@@ -8,6 +8,22 @@
 .sys-rules li + li { margin-top: 4px; }
 .pf.dim img { filter: grayscale(1) contrast(0.9); opacity: 0.75; }
 .field-tabs { border-top: 0; border-bottom: 1px solid var(--color-line); padding: 0; }
+.encounter-preview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); gap: 16px; margin: 16px; min-width: 0; align-items: start; }
+.encounter-map { position: relative; min-width: 0; }
+.encounter-map svg { display: block; width: 100%; height: auto; }
+.encounter-map [role="button"] { cursor: help; }
+.encounter-map [role="button"]:focus { outline: 2px solid var(--color-brass-deep); }
+.encounter-tooltip { position: absolute; left: 8px; bottom: 8px; max-width: calc(100% - 16px); padding: 10px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-paper); box-shadow: 0 2px 12px #0003; font-size: 13px; pointer-events: none; z-index: 2; }
+.encounter-tooltip dl { display: grid; grid-template-columns: repeat(4, auto); gap: 4px 12px; margin: 6px 0; }
+.encounter-tooltip dl > div { display: flex; gap: 4px; }
+.encounter-tooltip dd { margin: 0; font-weight: 700; }
+.encounter-roster { max-height: 520px; overflow: auto; }
+.encounter-roster table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.encounter-roster th, .encounter-roster td { padding: 7px 6px; text-align: left; border-bottom: 1px solid var(--color-line); }
+.encounter-roster td { white-space: nowrap; }
+.encounter-roster button { padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.encounter-roster [data-selected="true"] { background: var(--color-brass-soft); }
+@media (max-width: 700px) { .encounter-preview { grid-template-columns: minmax(0, 1fr); } }
 .last-run { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 13px; color: var(--color-ink-2); }
 .tm-ord { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--color-blue); color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
 

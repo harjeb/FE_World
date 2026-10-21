@@ -13,12 +13,12 @@ import { links, regionInHash } from '../router.ts';
 import { Shell } from '../shell/Shell.tsx';
 import { advance, arenaTodayWarning, dateLabel } from '../ui/calendar.ts';
 import { RegionExploration } from '../ui/RegionExploration.tsx';
-import { itemName, QuoteBox, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
+import { itemName, TeamPicker, UnitFace, useAct } from '../pages/SystemParts.tsx';
 import { BattlePage } from './BattlePage.tsx';
 import { fallenLine } from './Dialogs.tsx';
 import { goalLabel } from './names.ts';
 import type { BattleSession } from './session.ts';
-import { EncounterPreview, EncounterSummary } from './EncounterPreview.tsx';
+import { EncounterPreview } from './EncounterPreview.tsx';
 import { FieldTabs } from './SortiePrep.tsx';
 import { annualLive, busyReason } from '../model/roster.ts';
 
@@ -217,7 +217,20 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   };
   const version = state?.version ?? 0;
   const teamKey = selectionKey;
-  useEffect(() => setQuoted(null), [region, chainId, teamKey, version, aiDifficulty]);
+  const quoteKey = JSON.stringify([target?.id, chain?.id, teamKey, version, effectiveDifficulty, plan]);
+  const quote = quoted?.key === quoteKey ? quoted.quote : null;
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setQuoted(null);
+    setQuoteError(null);
+    if (target && picked.length && !chain?.archived) {
+      session.quote(chain ? 'quest' : 'dungeon', { region: target.id, ...(chain ? { questId: chain.id } : {}), unitIds: selectedIds, aiDifficulty: effectiveDifficulty }).then(q => {
+        if (alive) setQuoted({ key: quoteKey, quote: q });
+      }).catch(error => { if (alive) setQuoteError(error instanceof Error ? error.message : String(error)); });
+    }
+    return () => { alive = false; };
+  }, [quoteKey]);
 
   if (!today || !state) {
     return <Shell current="field"><p style={{ color: '#4E473D' }}>暂时读不到出击信息，刷新页面再试。</p></Shell>;
@@ -236,8 +249,6 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
       </Shell>
     );
   }
-  const quoteKey = JSON.stringify([target.id, chain?.id, teamKey, version, effectiveDifficulty, plan]);
-  const quote = quoted?.key === quoteKey ? quoted.quote : null;
   const exploration = state.world.nodes.find(node => node.id === target.id);
 
   const top = Math.max(0, ...picked.map(u => u.level));
@@ -248,7 +259,6 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const costDays = chain?.costDays ?? DUNGEON_DAYS;
   const total = advance(today.day, costDays);
   const reward = chain ? chain.firstClearRewards?.[effectiveDifficulty] : target.dungeonFirstClearRewards[effectiveDifficulty];
-  const warning = arenaTodayWarning();
   const startLocked = annualLive(annual) || !!today.battle || run?.state === 'battle' || run?.state === 'between_maps' || !!quests?.regions.some(r => r.quests.some(q => q.inProgress));
   const finished = run && run.state !== 'battle' && run.state !== 'between_maps' ? run : null;
 
@@ -325,27 +335,17 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
             <dt>关卡顺序</dt><dd>{stageNames.join(' → ')}</dd>
             <dt>总耗时</dt><dd>打满 {stageCount} 张共 {costDays} 日 → {total.label}{total.passes ? `；${total.passes}` : ''}（逐图支付 {stageDayCosts.join('、')} 日）</dd>
           </dl>
+          {startLocked && <p className="a-warn" role="alert">已有战斗、远征或大竞技场进行中，暂时不能出发。</p>}
+          {quoteError && <p role="alert">{quoteError}</p>}
+          {quote?.blockers.map(text => <p role="alert" key={text}>{text}</p>)}
           <DifficultyChoice value={effectiveDifficulty} hardUnlocked={hardUnlocked} unlockReason={chain ? '以普通难度完整通关本副本后解锁，仅限本副本。' : '以普通难度完整通关本地区远征后解锁，仅限本地区远征。'} onChange={value => { setQuote(); setAiDifficulty(value); }} disabled={busy !== null} />
-          {warning && <p className="a-warn" role="note">{warning}</p>}
-          {startLocked && <p className="a-warn">已有战斗、远征或大竞技场进行中，暂时不能出发。</p>}
-          {plan && <EncounterSummary plan={plan} />}
           {quote?.encounter && <EncounterPreview encounter={quote.encounter} names={picked.map(u => u.name)} />}
-          {quote && <><p className="pfoot">预览战斗难度：{difficultyLabel(effectiveDifficulty)}</p><QuoteBox quote={quote} /></>}
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
-            {chain ? <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || startLocked || picked.length === 0 || !chain.available || chain.archived}
-              onClick={() => void act('start', () => session.run(OP.START_QUEST, { questId: chain.id, unitIds: selectedIds, aiDifficulty: effectiveDifficulty }), () => `出发：${chain.name}`).then(ok => { if (ok) onStarted(); })}>
-              {busy === 'start' ? '出发中…' : `确认出发 · ${chain.name} · ${stageCount} 图 / ${costDays} 日 · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
-            </button> : !quote
-              ? <button type="button" className="btn" disabled={busy !== null || startLocked || picked.length === 0}
-                onClick={() => void act('quote', () => session.quote('dungeon', { region: target.id, unitIds: picked.map(u => u.id), aiDifficulty: effectiveDifficulty }),
-                  q => { setQuoted({ key: quoteKey, quote: q }); return q.blockers.length > 0 ? `现在不能出发：${q.blockers.join('；')}` : `报价：第 1 图推进 ${q.costDays} 日 → ${q.date.label}`; })}>
-                {busy === 'quote' ? '预览中…' : '预览第 1 图'}
-              </button>
-              : <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || startLocked || !quote.encounter || quote.blockers.length > 0}
-                onClick={() => void act('start', () => session.execute(quote.quoteId), () => `出发：${target.name}大副本第 1 图`).then(ok => { if (ok) onStarted(); })}>
-                {busy === 'start' ? '出发中…' : `确认出发 · ${target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
-              </button>}
+            <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || startLocked || !quote?.encounter || quote.blockers.length > 0 || (!!chain && (!chain.available || chain.archived))}
+              onClick={() => quote && void act('start', () => session.execute(quote.quoteId), () => `出发：${chain?.name ?? target.name}`).then(ok => { if (ok) onStarted(); })}>
+              {busy === 'start' ? '出发中…' : `确认出发 · ${chain?.name ?? target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
+            </button>
           </div>
         </section>
       </div>

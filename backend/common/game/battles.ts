@@ -148,11 +148,13 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
-  const classes = pickClasses(`${options.seed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
+  // Encounter enemies are fixed for the departure day; combat/growth RNG stays server-random.
+  const enemySeed = encounter?.seed ?? options.seed;
+  const classes = pickClasses(`${enemySeed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
   const vision = options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal;
   const enemyIdentity = battleEnemyIdentity({ quest, region: options.region });
   const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
-    aiDifficulty: options.aiDifficulty, seed: `${options.seed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0, vision,
+    aiDifficulty: options.aiDifficulty, seed: `${enemySeed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0, vision,
     name: enemyIdentityName(enemyIdentity, { classId, boss: i === 0, behavior: defaultBehavior(classId) }),
   }));
   const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, spec));
