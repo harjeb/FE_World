@@ -11,6 +11,7 @@ import { generateMap } from '../maps/generate.ts';
 import { THEMES, type Theme } from '../maps/themes.ts';
 import { canEnter, neighbors, seasonalMap, seasonalTerrain, tilesFromGlyphs } from '../maps/map.ts';
 import { classicMap } from './classic-catalog.ts';
+import { regionalDungeon, regionalDungeonName } from './dungeon-names.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { assertClassicScenario } from './classic-validation.ts';
 import { rollRankUpLoot } from './rank-loot.ts';
@@ -111,7 +112,7 @@ export interface FieldBattleOptions {
   chapter?: number;
 }
 
-const DUNGEON_STAGE_NAMES = ['探路', '消耗战', '首领战'];
+
 
 // A random encounter: level locked from the departure date before the fight.
 // 连续副本复用同一函数，只是等级、图名和跨图携带不同（docs/00 §8.1.3）。
@@ -162,7 +163,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
   const encounterTheme = encounter?.theme ?? theme;
   const name = quest ? `${region.name} · ${quest.name}`
-    : dungeon ? `${region.name} · ${DUNGEON_STAGE_NAMES[stage] ?? `第 ${stage + 1} 图`}`
+    : dungeon ? `${regionalDungeonName(options.region)} · ${regionalDungeon(options.region).stages[stage] ?? '终阵决战'}`
       : `${region.name} · ${encounterTheme === 'riverlands' || encounterTheme === 'lakeland' ? THEMES[encounterTheme].name : '遭遇战'}${encounter ? ` · ${encounter.name}` : ''}`;
   const exit = map.objective.position;
   // 连续副本每图目标不同（docs/00 §8.1.3）：探路压制、消耗战全灭、首领战斩首。

@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mixedDungeonStages, mixedDungeonMaxUnits, CLASSIC_DUNGEON_IDS } from './dungeon-plans.ts';
-import { CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
+import { regionalDungeonName, CLASSIC_DUNGEON_NAMES } from './dungeon-names.ts';
+import { STORY_CHAPTER_QUESTS } from './story-quests.ts';
+import { CLASSIC_GAME_NAMES, CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
 import { classicAdaptation } from './classic-adaptation.ts';
 import { CLASSIC_QUESTS } from './classic-quests.ts';
 import { questById, QUESTS } from './quests.ts';
@@ -71,8 +73,9 @@ test('six public classic dungeons each retain three coherent stages and no solo 
     assert.equal(quest.stageDays, undefined);
     assert.equal(quest.costDays, 8);
     assert.equal(quest.classic?.stageCount, 3);
-    assert.ok(quest.name.endsWith('三图远征'));
-    assert.ok(quest.objective.startsWith('3 图连战：'));
+    assert.ok(quest.name.length > 0 && !/三图|远征|副本\s*\d/.test(quest.name));
+    assert.ok(quest.objective.includes(classicMap(quest.scenarioIds![0]).name));
+    assert.ok(!/\d\s*图/.test(quest.objective));
     const ids = quest.scenarioIds!;
     assert.equal(ids.length, 3);
     assert.equal(new Set(ids).size, 3);
@@ -84,6 +87,28 @@ test('six public classic dungeons each retain three coherent stages and no solo 
     assert.ok(maps.at(-1)!.enemies.some(enemy => enemy.boss));
   }
   assert.ok(QUESTS.every(quest => !quest.archived && !quest.dungeonOnly));
+});
+
+test('dungeon and stage names are unique scene names without source titles or chapter numbers', () => {
+  const regional = Array.from({ length: 12 }, (_, i) => regionalDungeonName(i + 1));
+  const featured = CLASSIC_QUESTS.filter(q => !q.archived).map(q => q.name);
+  assert.equal(new Set([...regional, ...featured]).size, 18);
+  assert.equal(new Set(CLASSIC_MAPS.map(map => map.name)).size, 60);
+  const names = [...regional, ...featured, ...CLASSIC_MAPS.map(map => map.name),
+    ...Array.from({ length: 12 }, (_, i) => mixedDungeonStages('names', i + 1).slice(0, 2).map(stage => stage.name)).flat()];
+  for (const name of names) {
+    assert.ok(!/第.*章|古战场|三图|两张|外围突破|深入据点/.test(name), name);
+    for (const source of Object.values(CLASSIC_GAME_NAMES)) assert.ok(!name.includes(source), name);
+  }
+});
+
+test('story find clues name the dungeon route that actually contains the item', () => {
+  for (const chapter of STORY_CHAPTER_QUESTS) for (const step of chapter.steps) {
+    if (step.kind !== 'find') continue;
+    const name = CLASSIC_DUNGEON_NAMES[step.route as keyof typeof CLASSIC_DUNGEON_NAMES];
+    assert.ok(name && step.briefing.includes(name), `${step.id}: ${step.briefing}`);
+    assert.ok(!/三图|封印之剑|烈火之剑|光之剑|圣魔之光石/.test(step.briefing));
+  }
 });
 
 test('all legacy IDs retain their rewards, prerequisites and claim lookup', () => {

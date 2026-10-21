@@ -1,8 +1,7 @@
 import type { FieldEncounter } from './encounters.ts';
 import type { DungeonStage } from './dungeon-plans.ts';
 import type { AiDifficulty, ItemStack, UnitState } from '../engine/types.ts';
-import { WEAPON_SERIES } from '../data/weapons.ts';
-import { materialDrops, materialTier } from './materials.ts';
+import { materialDrops } from './materials.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import type { ItemKey } from './items.ts';
 
@@ -105,28 +104,28 @@ export function survivingIds(carry: Record<string, RunCarry>): string[] {
   return Object.keys(carry);
 }
 
-// Each difficulty has its own guaranteed first-clear equipment and supplies.
+// Each difficulty guarantees quality equipment, permanent stat items and premium supplies.
 const FIRST_CLEAR_WEAPONS: Record<AiDifficulty, WeaponId[]> = {
   normal: [
-    'steel_sword', 'killer_bow', 'armorslayer', 'silver_lance', 'recover', 'thunder',
-    'steel_axe', 'killer_lance', 'silver_axe', 'dragonstone_plus', 'silver_bow', 'flame_lance',
+    'killing_edge', 'killer_bow', 'killer_lance', 'silver_lance', 'recover', 'flame_lance',
+    'killer_axe', 'silver_gauntlet', 'silver_axe', 'dragonstone_plus', 'silver_bow', 'silver_sword',
   ],
   hard: [
-    'silver_sword', 'brave_bow', 'brave_sword', 'brave_lance', 'fortify', 'flame_lance',
-    'silver_axe', 'brave_lance', 'brave_axe', 'brave_sword', 'brave_bow', 'fortify',
+    'brave_sword', 'brave_bow', 'brave_lance', 'brave_axe', 'fortify', 'brave_sword',
+    'brave_axe', 'brave_lance', 'brave_axe', 'dragon_breath', 'brave_bow', 'fortify',
   ],
 };
-export function dungeonFirstClearLoot(region: number, aiDifficulty: AiDifficulty = 'normal', level?: number): { item: ItemKey; count: number }[] {
-  let weapon = FIRST_CLEAR_WEAPONS[aiDifficulty][region - 1];
-  if (!weapon) throw new Error(`Unknown dungeon region ${region}`);
-  // Old runs retain the former first-clear bundle; new offers follow the gathering grade.
-  if (level !== undefined) {
-    const type = (['sword', 'bow', 'lance', 'axe', 'fist'] as const)[(region - 1) % 5];
-    const tier = Math.min(5, materialTier(level) + (aiDifficulty === 'hard' ? 1 : 0));
-    weapon = WEAPON_SERIES[type][tier - 1];
-  }
-  return [{ item: weapon, count: 1 }, { item: 'vulnerary', count: aiDifficulty === 'hard' ? 4 : 2 },
-    { item: 'full_meal', count: aiDifficulty === 'hard' ? 2 : 1 }];
+const FIRST_CLEAR_POTIONS: ItemKey[] = ['energy_drop', 'secret_book', 'dracoshield', 'talisman', 'goddess_icon', 'speedwing',
+  'energy_drop', 'speedwing', 'dracoshield', 'talisman', 'secret_book', 'goddess_icon'];
+
+export function dungeonFirstClearLoot(region: number, aiDifficulty: AiDifficulty = 'normal', _level?: number): { item: ItemKey; count: number }[] {
+  const weapon = FIRST_CLEAR_WEAPONS[aiDifficulty][region - 1];
+  if (!Number.isInteger(region) || !weapon) throw new Error(`Unknown dungeon region ${region}`);
+  // The departure level never downgrades a first-clear prize. Existing runs keep their saved bundle.
+  const hard = aiDifficulty === 'hard';
+  return [{ item: weapon, count: 1 }, { item: FIRST_CLEAR_POTIONS[region - 1], count: hard ? 2 : 1 },
+    { item: 'elixir', count: hard ? 4 : 2 }, { item: 'full_meal', count: hard ? 3 : 2 },
+    { item: 'seal_promote', count: hard ? 2 : 1 }];
 }
 
 // 每图基础掉落；完整通关才带回，撤离／失败作废（docs/13 §4.3）。

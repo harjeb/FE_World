@@ -1,5 +1,6 @@
-import { CLASSIC_GAME_NAMES, CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
+import { CLASSIC_MAPS, classicMap } from './classic-catalog.ts';
 import { CLASSIC_DUNGEON_IDS } from './dungeon-plans.ts';
+import { CLASSIC_DUNGEON_NAMES } from './dungeon-names.ts';
 import { DUNGEON_DAYS } from './expedition.ts';
 import type { ClassicGame, ClassicMap } from './classic-catalog.ts';
 import type { ItemKey } from './items.ts';
@@ -84,8 +85,8 @@ function dungeonQuests(): Quest[] {
         id: `cld-${game}-${index + 1}`,
         archived: true,
         region: GAME_REGION[game],
-        name: `${CLASSIC_GAME_NAMES[game]} · 副本 ${index + 1}`,
-        objective: `${group.length} 图连战：${group.map(map => map.name).join(' → ')}`,
+        name: `${group[0].name}之役`,
+        objective: `攻克${group.map(map => map.name).join('、')}。`,
         kind: 'rout',
         tier: 'region',
         turnLimit: Math.max(...group.map(map => map.turnLimit)),
@@ -118,8 +119,8 @@ function featuredDungeonQuests(): Quest[] {
     const mapName = maps.map(map => map.name).join(' → ');
     return {
       id, region: GAME_REGION[game], dungeonOnly: true,
-      name: `${CLASSIC_GAME_NAMES[game]} · 三图远征`,
-      objective: `3 图连战：${mapName}`,
+      name: CLASSIC_DUNGEON_NAMES[id],
+      objective: `突破${maps[0].name}与${maps[1].name}，攻克${maps[2].name}。`,
       kind: 'rout', tier: 'region',
       turnLimit: Math.max(...maps.map(map => map.turnLimit)),
       reward: { gold: 3_500, reputation: 0, items: materialDrops(GAME_REGION[game],

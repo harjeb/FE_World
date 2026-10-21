@@ -385,10 +385,21 @@ try {
       const text = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通')?.nextElementSibling.innerText ?? '';
       return text.includes('未完成') && ${JSON.stringify(firstClearBundles.normal.items.map(drop => `${GAME_ITEMS[drop.item].name} ×${drop.count}`))}.every(item => text.includes(item));
     })()`), 'fixed equipment and supplies before departure');
-    check('one dungeon entry offers the regional route and two three-map classics', await page.evaluate(`(() => {
+    check('dungeon routes show only scene names and dungeon levels', await page.evaluate(`(() => {
       const routes = [...document.querySelectorAll('[aria-label="副本路线"] button')];
-      return routes.length === 3 && routes.slice(1).every(el => el.innerText.includes('三图远征') && el.innerText.includes('3 图 · 8 日')) && !document.querySelector('.prep').innerText.includes('六图');
-    })()`), 'six retained classics across three regions, each three maps');
+      return routes.length === 3 && routes.every(el => el.children.length === 2 && el.querySelector('.rg-l')?.innerText.startsWith('副本等级'))
+        && routes.map(el => el.querySelector('.rg-n').innerText).join('、') === '希尔瓦迷林、幽林龙殿、古林封印'
+        && !/两张地区战场|经典终章|逐图支付|三图远征|暗黑龙与光之剑|封印之剑/.test(document.querySelector('.prep').innerText);
+    })()`), 'name and level, no map-count or source-title labels');
+    const normalDungeonQuote = await api(page, 38, { action: 'dungeon', region: 2, unitIds: explorerTeam });
+    const normalAverageLevel = Math.round(normalDungeonQuote.encounter.enemies.reduce((sum, unit) => sum + unit.level, 0) / normalDungeonQuote.encounter.enemies.length * 10) / 10;
+    check('selected dungeon level is the preview enemy average', await until(() => page.evaluate(`document.querySelector('[aria-label="副本路线"] [aria-checked="true"] .rg-l')?.innerText === ${JSON.stringify(`副本等级 Lv ${normalAverageLevel}`)}`)), `Lv ${normalAverageLevel}`);
+    check('first-clear bundles include permanent stat items and premium supplies', ['normal', 'hard'].every(difficulty => {
+      const items = firstClearBundles[difficulty].items;
+      return items.some(drop => GAME_ITEMS[drop.item].kind === 'stat') && items.some(drop => drop.item === 'elixir')
+        && items.some(drop => drop.item === 'full_meal') && items.some(drop => drop.item === 'seal_promote')
+        && !items.some(drop => drop.item === 'vulnerary' || GAME_ITEMS[drop.item].name.startsWith('木'));
+    }), 'quality gear, growth items, elixir, meals and promotion seals');
     for (const difficulty of ['normal', 'hard']) {
       const bundle = firstClearBundles[difficulty];
       const beforeBundle = await bundleCounts(bundle);
@@ -420,12 +431,14 @@ try {
     check('dungeon bars reflect only the first full clear across two completed runs',
       await page.evaluate(`(() => { const panel = document.querySelector('#drg-h').closest('section'); return panel.querySelector('progress')?.value === 28 && panel.innerText.includes('仅首次完整通关 +20') && panel.innerText.includes('重复通关不加'); })()`), '8 + 20 = 28');
     check('completed dungeon keeps its difficulty reward visible without a claim action',
-      await page.evaluate(`(() => { const label = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通'); const reward = label?.nextElementSibling; return !!reward && reward.innerText.includes('已完成') && !reward.innerText.includes('未完成') && reward.innerText.includes('×') && reward.innerText.includes('普通、困难各一次固定奖励') && !reward.querySelector('button'); })()`), 'independent completion records, automatic deposits');
+      await page.evaluate(`(() => { const label = [...document.querySelectorAll('.prep-go dt')].find(el => el.textContent === '本难度首通'); const reward = label?.nextElementSibling; return !!reward && reward.innerText.includes('已完成') && !reward.innerText.includes('未完成') && reward.innerText.includes('×') && !reward.querySelector('button'); })()`), 'independent completion records, automatic deposits');
     check('dungeon AI defaults to normal', await page.evaluate(`document.querySelector('input[value="normal"]').checked`), 'normal selected');
     check('dungeon preview loads automatically', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] svg') && !document.querySelector('.prep-go .btn-primary').disabled`)), 'normal preview');
     check('dungeon preview includes the map and enemy list', await page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"] svg') && !!document.querySelector('[aria-label="敌方单位简表"] tbody tr')`), 'shared deployment preview');
     await page.click('input[value="hard"]');
     const dungeonPreview = await api(page, 38, { action: 'dungeon', region: 2, unitIds: explorerTeam, aiDifficulty: 'hard' });
+    const hardAverageLevel = Math.round(dungeonPreview.encounter.enemies.reduce((sum, unit) => sum + unit.level, 0) / dungeonPreview.encounter.enemies.length * 10) / 10;
+    check('switching difficulty updates the dungeon average level', await until(() => page.evaluate(`document.querySelector('[aria-label="副本路线"] [aria-checked="true"] .rg-l')?.innerText === ${JSON.stringify(`副本等级 Lv ${hardAverageLevel}`)}`)), `Lv ${hardAverageLevel}`);
     check('hard dungeon requotes its deployment map', await until(() => page.evaluate(`!!document.querySelector('[aria-label="战场部署预览"]') && document.querySelector('input[value="hard"]').checked && !document.querySelector('.prep-go .btn-primary').disabled`)), 'hard map ready');
     await page.click('.prep-go .go-bar button');
     check('quoted dungeon starts through the UI', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first dungeon map');
@@ -434,10 +447,10 @@ try {
     await api(page, 56);
     await page.open(`http://127.0.0.1:${API_PORT}/#/field/dungeon?region=2&dungeon=clx-fe1`, '#drg-h');
     await page.reload('#drg-h');
-    check('retained classic preparation has exactly three maps and eight total days', await page.evaluate(`(() => {
+    check('retained dungeon preparation uses the scene name and total days', await page.evaluate(`(() => {
       const text = document.querySelector('.prep-go').innerText;
-      return text.includes('3 张图连打') && text.includes('共 8 日') && document.querySelector('[aria-label="副本路线"] [aria-checked="true"]').innerText.includes('三图远征');
-    })()`), 'three stages, 3/3/2 days');
+      return text.includes('共 8 日') && !text.includes('逐图支付') && document.querySelector('[aria-label="副本路线"] [aria-checked="true"] .rg-n').innerText === '幽林龙殿';
+    })()`), 'scene name and total duration');
     await page.click('.prep-go .go-bar button');
     check('classic dungeon starts from the same preparation page', await until(() => page.evaluate(`!!document.querySelector('.hud')`)), 'first classic stage');
     for (let index = 0; index < 3; index++) {

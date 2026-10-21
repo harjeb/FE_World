@@ -5,7 +5,8 @@ import { DifficultyChoice, difficultyLabel } from './DifficultyChoice.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import type { BattleState } from '@common/engine/index.ts';
 import { regionById } from '@common/game/calendar.ts';
-import { DUNGEON_DAYS, DUNGEON_STAGES, DUNGEON_STAGE_DAYS, runStageDays } from '@common/game/expedition.ts';
+import { DUNGEON_DAYS, DUNGEON_STAGES, runStageDays } from '@common/game/expedition.ts';
+import { regionalDungeonName } from '@common/game/dungeon-names.ts';
 import { OP } from '@common/protocol/ops.ts';
 import { session, useSession } from '../api/session.ts';
 import type { ActionQuote, ServerRun } from '../api/session.ts';
@@ -101,11 +102,12 @@ function RunMap({ run }: { run: ServerRun }) {
 }
 
 function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => void }) {
-  const { state } = useSession();
+  const { state, quests } = useSession();
   const { busy, act } = useAct();
   const [leaving, setLeaving] = useState(false);
   if (!state) return null;
   const region = regionById(run.region);
+  const dungeonName = quests?.regions.flatMap(r => r.quests).find(q => q.id === run.questId)?.name ?? regionalDungeonName(run.region);
   const next = run.stageIndex + 1;
   const stageDays = runStageDays(run);
   const to = advance(state.day, stageDays);
@@ -120,7 +122,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
         <div className="brief-head">
           <div>
             <div className="eyebrow">出击 · 大副本 · {dateLabel(state.day)}</div>
-            <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>{region.name}大副本</h1>
+            <h1 className="serif" style={{ fontSize: 28, lineHeight: 1.25 }}>{dungeonName}</h1>
             <p style={{ fontSize: 14, color: '#4E473D' }}>已拿下 {run.stageIndex} / {run.stageCount ?? DUNGEON_STAGES} 图。</p>
           </div>
           <span className={`tag ${RUN_STATE[run.state][1]}`}>{RUN_STATE[run.state][0]}</span>
@@ -129,7 +131,7 @@ function RunBetween({ run, onContinued }: { run: ServerRun; onContinued: () => v
         <div className="sys-cols">
           <div className="colstack">
             <section className="panel" aria-labelledby="run-h">
-              <div className="ph"><h2 id="run-h">远征进度</h2><span style={{ fontSize: 12, color: '#6A6256' }}>敌 Lv {run.level}</span></div>
+              <div className="ph"><h2 id="run-h">远征进度</h2><span style={{ fontSize: 12, color: '#6A6256' }}>副本等级 ≈ Lv {run.level}</span></div>
               <RunMap run={run} />
               <dl className="facts">
                 <dt>战斗难度</dt><dd>{difficultyLabel(run.aiDifficulty)}（本次远征已锁定）</dd>
@@ -252,15 +254,20 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
   const exploration = state.world.nodes.find(node => node.id === target.id);
 
   const top = Math.max(0, ...picked.map(u => u.level));
-  const enemyLevel = chain?.enemyLevel ?? target.level;
+  const baseEnemyLevel = chain?.enemyLevel ?? target.level;
+  const enemies = quote?.encounter?.enemies ?? [];
+  const averageLevel = enemies.length ? Math.round(enemies.reduce((sum, enemy) => sum + enemy.level, 0) / enemies.length * 10) / 10 : null;
+  const enemyLevel = averageLevel ?? baseEnemyLevel;
+  const levelLabel = (id: string | null, level: number) =>
+    (chain?.id ?? null) === id && averageLevel !== null ? `Lv ${averageLevel}` : `≈ Lv ${level}`;
+  const dungeonName = chain?.name ?? regionalDungeonName(target.id);
   const stageNames = chain?.stageNames ?? target.dungeonStages.map(s => s.name);
-  const stageCount = stageNames.length || DUNGEON_STAGES;
-  const stageDayCosts = chain?.archived ? Array.from({ length: stageCount }, () => chain.costDays / stageCount) : DUNGEON_STAGE_DAYS;
   const costDays = chain?.costDays ?? DUNGEON_DAYS;
   const total = advance(today.day, costDays);
   const reward = chain ? chain.firstClearRewards?.[effectiveDifficulty] : target.dungeonFirstClearRewards[effectiveDifficulty];
   const startLocked = annualLive(annual) || !!today.battle || run?.state === 'battle' || run?.state === 'between_maps' || !!quests?.regions.some(r => r.quests.some(q => q.inProgress));
   const finished = run && run.state !== 'battle' && run.state !== 'between_maps' ? run : null;
+  const finishedName = finished ? quests?.regions.flatMap(r => r.quests).find(q => q.id === finished.questId)?.name ?? regionalDungeonName(finished.region) : '';
 
   return (
     <Shell current="field">
@@ -277,7 +284,7 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
         {finished && (
           <section className="panel last-run" aria-label="上次远征">
             <span className={`tag ${RUN_STATE[finished.state][1]}`}>{RUN_STATE[finished.state][0]}</span>
-            <span>上次远征：{regionById(finished.region).name} · 到达第 {Math.min(finished.stageIndex + 1, finished.stageCount ?? DUNGEON_STAGES)} 图 · 敌 Lv {finished.level}</span>
+            <span>上次远征：{finishedName} · 到达第 {Math.min(finished.stageIndex + 1, finished.stageCount ?? DUNGEON_STAGES)} 图 · 副本等级 ≈ Lv {finished.level}</span>
             {finished.state === 'completed' && <span>已入库：{lootLine(finished.pendingLoot)}</span>}
           </section>
         )}
@@ -308,11 +315,10 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
           <div className="ph"><h2>选择副本</h2></div>
           <div className="regions" role="radiogroup" aria-label="副本路线">
             <button type="button" className="rg" role="radio" aria-checked={!chain} disabled={busy !== null} onClick={() => { setChainId(null); setAiDifficulty('normal'); setQuote(); }}>
-              <span className="rg-n">{target.name}远征</span><span className="rg-l">3 图 · 两张地区战场与经典终章</span>
+              <span className="rg-n">{regionalDungeonName(target.id)}</span><span className="rg-l" title="敌军平均等级">副本等级 {levelLabel(null, target.level)}</span>
             </button>
             {chains.map(q => <button key={q.id} type="button" className="rg" role="radio" aria-checked={chain?.id === q.id} disabled={busy !== null} onClick={() => { setChainId(q.id); setAiDifficulty('normal'); setQuote(); }}>
-              <span className="rg-n">{q.name}</span><span className="rg-l">{q.stageNames?.length ?? q.classic?.stageCount} 图 · {q.costDays} 日 · 最多 {q.maxUnits} 人</span>
-              <span className="rg-r">{q.archived ? '已归档' : q.inProgress ? '进行中' : q.done && !q.claimed ? '奖励待领取' : q.available ? '可出征' : '未解锁'}</span>
+              <span className="rg-n">{q.name}</span><span className="rg-l" title="敌军平均等级">副本等级 {levelLabel(q.id, q.enemyLevel)}</span>
             </button>)}
           </div>
           {chain && <div style={{ padding: 16 }}>
@@ -327,13 +333,13 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
 
         <section className="panel prep-go" aria-label="确认出发">
           <dl className="facts">
-            <dt>敌方等级</dt>
-            <dd className={picked.length > 0 && enemyLevel > top ? 'risk' : undefined}>{chain?.name ?? target.name} 敌 Lv {enemyLevel}；我方最高 Lv {top}{picked.length > 0 && enemyLevel > top ? `，敌方高出 ${enemyLevel - top} 级` : ''}</dd>
+            <dt>副本等级</dt>
+            <dd className={picked.length > 0 && enemyLevel > top ? 'risk' : undefined}>{dungeonName} {levelLabel(chain?.id ?? null, baseEnemyLevel)}（敌军平均等级）；我方最高 Lv {top}{picked.length > 0 && enemyLevel > top ? `，敌方高出 ${Math.round((enemyLevel - top) * 10) / 10} 级` : ''}</dd>
             {reward && <>
               <dt>本难度首通</dt><dd>{lootLine(reward.items)} · {reward.available ? '未完成' : '已完成'}</dd>
             </>}
             <dt>关卡顺序</dt><dd>{stageNames.join(' → ')}</dd>
-            <dt>总耗时</dt><dd>打满 {stageCount} 张共 {costDays} 日 → {total.label}{total.passes ? `；${total.passes}` : ''}（逐图支付 {stageDayCosts.join('、')} 日）</dd>
+            <dt>总耗时</dt><dd>共 {costDays} 日 → {total.label}{total.passes ? `；${total.passes}` : ''}</dd>
           </dl>
           {startLocked && <p className="a-warn" role="alert">已有战斗、远征或大竞技场进行中，暂时不能出发。</p>}
           {quoteError && <p role="alert">{quoteError}</p>}
@@ -343,8 +349,8 @@ function DungeonPrep({ onStarted }: { onStarted: () => void }) {
           <div className="go-bar">
             <a className="btn btn-ghost" href={links.camp}>返回军营</a>
             <button type="button" className="btn btn-primary btn-lg" disabled={busy !== null || startLocked || !quote?.encounter || quote.blockers.length > 0 || (!!chain && (!chain.available || chain.archived))}
-              onClick={() => quote && void act('start', () => session.execute(quote.quoteId), () => `出发：${chain?.name ?? target.name}`).then(ok => { if (ok) onStarted(); })}>
-              {busy === 'start' ? '出发中…' : `确认出发 · ${chain?.name ?? target.name} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
+              onClick={() => quote && void act('start', () => session.execute(quote.quoteId), () => `出发：${dungeonName}`).then(ok => { if (ok) onStarted(); })}>
+              {busy === 'start' ? '出发中…' : `确认出发 · ${dungeonName} · ${picked.length} 人 · ${difficultyLabel(effectiveDifficulty)}`}
             </button>
           </div>
         </section>

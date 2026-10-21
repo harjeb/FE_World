@@ -63,6 +63,7 @@ function finish(ctx: Context, first: Started, scenarios: (string | undefined)[],
     assert.equal(b.runId, first.run.id);
     if (Array.isArray(days)) assert.equal(b.costDays, costs[i]);
     assert.equal(b.state.scenario?.id, scenarios[i]);
+    if (!frozen.questId && frozen.stages) assert.ok(b.name.includes(frozen.stages[i].name), 'regional battle headers use the named map');
     assert.deepEqual(b.state.units.filter(u => u.side === 'player').map(u => u.id), TEAM);
     if (scenarios[i]) {
       const map = classicMap(scenarios[i]!);

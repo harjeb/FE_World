@@ -9,6 +9,8 @@ import { dungeonFirstClearReward, syncPlayer } from './services.ts';
 import { enemyLevel, regionById } from '../common/game/calendar.ts';
 import { createRun, dungeonFirstClearLoot } from '../common/game/expedition.ts';
 import { GAME_ITEMS, isBoundWeapon } from '../common/game/items.ts';
+import { WEAPONS } from '../common/data/weapons.ts';
+import { RANKS } from '../common/data/types.ts';
 import { ALL_QUESTS } from '../common/game/quests.ts';
 import { OP } from '../common/protocol/ops.ts';
 import type { RunRecord } from '../common/game/expedition.ts';
@@ -62,6 +64,24 @@ function complete(ctx: Context, first: { battleId: string; run: RunRecord }) {
   return run;
 }
 
+test('a saved pre-update run pays its frozen first-clear bundle after reload', t => {
+  const ctx = setup(t);
+  const first = start(ctx);
+  const oldLoot: NonNullable<RunRecord['firstClearLoot']> = [
+    { item: 'steel_sword', count: 1 }, { item: 'vulnerary', count: 2 }, { item: 'full_meal', count: 1 },
+  ];
+  first.run.firstClearLoot = oldLoot;
+  ctx.store.saveRun(first.run);
+  const before = counts(ctx, oldLoot);
+  const newLoot = previewLoot(ctx);
+  const beforeNew = counts(ctx, newLoot);
+  const reloaded = { ...ctx, store: new Store(ctx.store.db), player: ctx.store.getPlayer(ctx.player.id)! };
+  const run = complete(reloaded, { ...first, run: reloaded.store.run(ctx.player.id, first.run.id)! });
+  assert.deepEqual(run.firstClearLoot, oldLoot);
+  assert.deepEqual(counts(reloaded, oldLoot), before.map((count, i) => count + oldLoot[i].count));
+  assert.deepEqual(counts(reloaded, newLoot).slice(0, 3), beforeNew.slice(0, 3), 'new gear, growth items and elixirs are not added to an old frozen bundle');
+});
+
 test('all regional bundles contain usable equipment and items; preview reads never grant them', t => {
   const ctx = setup(t);
   const before = ctx.store.inventory(ctx.player.id);
@@ -72,7 +92,12 @@ test('all regional bundles contain usable equipment and items; preview reads nev
     assert.deepEqual(row.dungeonFirstClearRewards.hard, { items: previewLoot(ctx, row.id, 'hard'), available: true });
     assert.equal(GAME_ITEMS[loot[0].item].kind, 'weapon');
     assert.equal(isBoundWeapon(loot[0].item), false, 'existing unique quest/tower gear must stay exclusive');
-    assert.equal(loot.filter(drop => GAME_ITEMS[drop.item].kind !== 'weapon').length, 2);
+    assert.equal(loot.filter(drop => GAME_ITEMS[drop.item].kind === 'stat').length, 1);
+    assert.ok(RANKS.indexOf(WEAPONS[GAME_ITEMS[loot[0].item].weapon!].rank) >= RANKS.indexOf('C'));
+    assert.equal(loot.some(drop => drop.item === 'vulnerary'), false);
+    assert.equal(loot.find(drop => drop.item === 'elixir')?.count, 2);
+    assert.equal(loot.find(drop => drop.item === 'full_meal')?.count, 2);
+    assert.equal(loot.find(drop => drop.item === 'seal_promote')?.count, 1);
     for (const drop of loot) assert.ok(GAME_ITEMS[drop.item] && drop.count > 0);
   }
   for (let region = 1; region <= 12; region++) {
@@ -81,8 +106,15 @@ test('all regional bundles contain usable equipment and items; preview reads nev
     assert.notEqual(hard[0].item, normal[0].item);
     assert.equal(GAME_ITEMS[hard[0].item].kind, 'weapon');
     assert.equal(isBoundWeapon(hard[0].item), false);
+    assert.ok(RANKS.indexOf(WEAPONS[GAME_ITEMS[hard[0].item].weapon!].rank) >= RANKS.indexOf('A'));
+    assert.equal(hard[1].item, normal[1].item);
+    assert.equal(GAME_ITEMS[hard[1].item].kind, 'stat');
+    for (const level of [1, 9, 20, 35, 75, 99]) {
+      assert.deepEqual(dungeonFirstClearLoot(region, 'normal', level), normal, 'early levels cannot downgrade the prize');
+      assert.deepEqual(dungeonFirstClearLoot(region, 'hard', level), hard);
+    }
     for (const drop of hard) assert.ok(GAME_ITEMS[drop.item] && drop.count > 0);
-    assert.ok(hard[1].count > normal[1].count && hard[2].count > normal[2].count);
+    assert.ok(hard.slice(1).every((drop, i) => drop.item === normal[i + 1].item && drop.count > normal[i + 1].count));
   }
   const quests = dispatch(ctx, OP.GET_QUESTS, {}) as { regions: { quests: { id: string; firstClearRewards: Record<'normal' | 'hard', unknown> | null }[] }[] };
   const rows = quests.regions.flatMap(r => r.quests);
@@ -105,7 +137,8 @@ for (const questId of [undefined, ...questIds]) {
     assert.deepEqual(run.firstClearLoot, loot);
     assert.deepEqual(counts(ctx, loot), before.map((n, i) => n + loot[i].count));
     for (const drop of loot) assert.deepEqual(run.pendingLoot.filter(row => row.item === drop.item), [drop]);
-    assert.equal(ctx.store.inventory(ctx.player.id).find(row => row.item === 'vulnerary' && row.uses === 3)!.count, before[1] + 2);
+    const elixirIndex = loot.findIndex(drop => drop.item === 'elixir');
+    assert.equal(ctx.store.inventory(ctx.player.id).find(row => row.item === 'elixir' && row.uses === 1)!.count, before[elixirIndex] + loot[elixirIndex].count);
     assert.equal(dungeonFirstClearReward(ctx.store, ctx.player, 2, questId).available, false);
     const reloaded = { ...ctx, store: new Store(ctx.store.db), player: ctx.store.getPlayer(ctx.player.id)! };
     const exploration = { ...reloaded.player.flags.regionExploration };

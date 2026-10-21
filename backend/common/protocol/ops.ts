@@ -23,7 +23,7 @@ export const OPS: readonly OpDef[] = [
   { op: 22, name: 'GET_INVENTORY', group: '仓库', agentNote: '仓库物品与每个单位携带的物品。' },
   { op: 23, name: 'GET_CATALOG', group: '名册', agentNote: '职业、武器、技能、地形等静态数据；materials含72种素材的类别／阶级／稀有／产地，weaponSeries给出木铜铁钢银序列，recipes给出所有用途；带版本号，缓存后只在版本变化时重取。' },
 
-  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，装备按出发等级选档，困难提高一档（银档封顶）；materials 为当前地区可掉落素材ID；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。' },
+  { op: 30, name: 'GET_TODAY', group: '日历', agentNote: '今天可选的活动（耗日、金币、是否可用）与各地区敌方等级；sortieRegions 的 hardUnlocked/dungeonHardUnlocked 表示野图／副本困难权限，encounters/dungeonEncounters 的 normal/hard 给出该地图的编队布局、尺寸、maxUnits 与独立敌军人数 enemyCount。出战名额随地图和难度变化，不按我方所选人数缩减敌军；dungeonFirstClearRewards={normal:{items,available},hard:{items,available}} 分别给出两档首通礼包，固定优质装备、成长药、特效药、完整料理与转职印，困难装备更强且道具更多，不按出发等级降档；materials 为当前地区可掉落素材ID；dungeonStages 为 {name,scenarioId?} 数组（两张生成图＋一张经典终图），dungeonEncounters.maxUnits 按整趟所有图限制。' },
   { op: 31, name: 'SORTIE', group: '日历', agentNote: '本地区普通野外胜利后才能选 hard，其他地区或副本的通关不替代；带可选 aiDifficulty（normal／hard，默认 normal；hard 更深入搜索，初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级；移动力不变，人数受合法空位限制，等级上限99、HP上限150、其他属性无上限）、region（地区 id）与 unitIds（按数组顺序部署，首位为主将；互不重复的可出战单位，名额见 GET_TODAY.sortieRegions[].encounters[aiDifficulty].maxUnits；省略时按当前上限选取；超额、重复或不可用单位拒绝）出击，普通野图推进2日（副本三图共8日，逐图3／3／2日），敌军按等级分阶；返回 battleId，之后用战斗类 op；普通随机野外遭遇战胜利增加当地探索度3点。' },
   { op: 32, name: 'SWEEP', group: '日历', agentNote: '对已讨伐地区扫荡，可一次指定多次；低操作成本，不发等级经验。' },
   { op: 33, name: 'TRAIN', group: '日历', agentNote: '按unitIds和groupId分组训练；第1/2/3/4年起最多1/3/5/8人，此后不变。agility=剑/弓/拳，power=斧/枪/兽，mystic=拳/杖/理/龙；每人200金币，共推进3日，组内每种武器各获3点经验，不要求携带或职业武器权限，不发角色经验/精通。返回units逐人的各武器前后经验/等级；保留旧unitId/weaponType单项兼容。' },
@@ -68,7 +68,7 @@ export const OPS: readonly OpDef[] = [
   { op: 96, name: 'CLAIM_RATING_REWARD', group: '竞技场', agentNote: '领取某个已归档月份的排名奖励；旧奖励可稍后领取，但不影响新月积分。' },
 
   { op: 100, name: 'GET_RUN', group: '远征', agentNote: '读取当前或最近一次连续远征：状态、stageNames/stageCount、剩余名单、每名存活者带入下一图的 HP 与物品（carry）、待带回掉落；completed 时 pendingLoot 是已入库清单，包含本次实际获得的首通奖励。' },
-  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；装备与道具按地区和难度分别首通自动入库，装备按出发等级冻结，困难提高一档（银档封顶）；中间图、失败、撤离及同难度重复通关不发首通奖励。' },
+  { op: 101, name: 'START_DUNGEON', group: '远征', agentNote: '开始三图地区大副本（两张生成图＋一张经典终图，逐图3／3／2日，共8日，开局冻结方案）：本地区此副本普通完整通关后才能选 hard，野外胜利或中间图不算；可选 aiDifficulty（normal／hard，默认 normal；hard 初始敌阵及增援人数约+50%、等级随机+2～5、HP+20%～35%、其余能力+10%～25%、体格+1～3、装备升级，移动力不变；等级上限99、HP上限150、其他属性无上限），整个远征锁定；人数上限与敌军规模见 GET_TODAY 的 dungeonEncounters 和报价 encounter，互不重复且可用的队员才可出征，按 unitIds 数组顺序部署且首位为主将；固定名单、地图配置与物品，支付首图日数；普通角色真实死亡；每个副本仅首次完整通关增加当地探索度20点（跨难度一次）；装备与道具按地区和难度分别首通自动入库，优质装备与成长药、特效药、完整料理及转职印在开局冻结，困难礼包更丰厚，不按出发等级降档；中间图、失败、撤离及同难度重复通关不发首通奖励。' },
   { op: 102, name: 'CONTINUE_DUNGEON', group: '远征', agentNote: '打完一图后继续下一图：只允许原名单存活者，跨图继承 HP、异常与消耗。' },
   { op: 103, name: 'WITHDRAW_RUN', group: '远征', agentNote: '撤离当前远征：保留已发生的伤亡与消耗，放弃未带回的掉落与首通奖励。' },
 
@@ -168,7 +168,7 @@ export const WRITE_OPS = new Set<number>([
 ]);
 
 // The protocol version in the docs. LOGIN compares it and returns docNotice when the client is behind.
-export const DOC_VERSION = 40;
+export const DOC_VERSION = 43;
 
 export interface ErrorDef { code: string; meaning: string; action: string }
 

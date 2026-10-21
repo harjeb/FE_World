@@ -1,5 +1,6 @@
 import type { CharacterId } from '../data/characters.ts';
 import { classicMap } from './classic-catalog.ts';
+import { CLASSIC_DUNGEON_NAMES } from './dungeon-names.ts';
 import type { ItemKey } from './items.ts';
 import { materialDrops } from './materials.ts';
 import { STORY_DUEL_NAMES } from './enemy-identities.ts';
@@ -90,7 +91,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '追查冠军收到的求援信，朝圣道尽头的废弃关门出现异常车队。进入关门，查明车队往返王城所运送的东西。',
     clue: { name: '医护车运单', note: '货物登记为“圣物”，附单却反复领取绷带，并注明不得耽搁回城。' },
     steps: [
-      step(2, 'a', { kind: 'find', name: '裂隙里的晶片', briefing: '封印之剑的三图远征里，有人在遗迹的角落藏了一只箱子。取回箱中的「裂隙晶片」。', item: 'story_find_2', route: 'clx-fe6', mapId: 'fe6-ch23-main' }),
+      step(2, 'a', { kind: 'find', name: '裂隙里的晶片', briefing: `「${CLASSIC_DUNGEON_NAMES['clx-fe6']}」的遗迹角落藏着一只箱子。取回箱中的「裂隙晶片」。`, item: 'story_find_2', route: 'clx-fe6', mapId: 'fe6-ch23-main' }),
       step(2, 'b', { kind: 'dispatch', name: '北道的剑刻', briefing: '巡路队在废关门附近失踪。派队伍沿路搜寻，满 3 日归来，辨认冠军是否经过。', days: 3 }),
     ] },
   { chapter: 3, mapId: 'fe8-ch16-eirika', name: '被抹去的名字·档案库',
@@ -104,7 +105,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     briefing: '药物底册指向旧礼拜堂的地下慈济室。持旧式通行印进入，查清被转移的伤者和铸器师之间的关系。',
     clue: { name: '神裔病历', note: '伤者的左肩骨裂与旧剑伤和冠军一致，病历注明神裔反应持续，转移由铸器师维洛签收。' },
     steps: [
-      step(4, 'a', { kind: 'find', name: '旧约封蜡', briefing: '圣魔之光石的三图远征里，一只旧箱子装着旧约的封蜡。取回「旧约封蜡」。', item: 'story_find_4', route: 'clx-fe8', mapId: 'fe8-ch17-eirika' }),
+      step(4, 'a', { kind: 'find', name: '旧约封蜡', briefing: `「${CLASSIC_DUNGEON_NAMES['clx-fe8']}」的一只旧箱子装着旧约的封蜡。取回「旧约封蜡」。`, item: 'story_find_4', route: 'clx-fe8', mapId: 'fe8-ch17-eirika' }),
       step(4, 'b', { kind: 'arena', name: '慈济室的护卫名单', briefing: '慈济室借普通竞技场挑选护卫。在擂台赢 3 场，混入轮值名单。', wins: 3 }),
     ] },
   { chapter: 5, mapId: 'fe6-ch20-ilia', name: '渗入·暗仓',
@@ -119,7 +120,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     clue: { name: '供能记录板', note: '神力被送往禁忌之地，两道枷锁已断裂；每页供能记录均有祭仪院最高印章。' },
     steps: [
       step(6, 'a', { kind: 'tavern', name: '散场后的工单', briefing: '筹备处的人常在酒馆赌钱。赢 3 次小游戏，借机查问授冠台下新装置的用途。', wins: 3 }),
-      step(6, 'b', { kind: 'find', name: '封印节点图', briefing: '烈火之剑的三图远征里藏着一份被撕下的底图。取回「封印节点图」。', item: 'story_find_6', route: 'clx-fe7', mapId: 'fe7-ch30-eliwood' }),
+      step(6, 'b', { kind: 'find', name: '封印节点图', briefing: `「${CLASSIC_DUNGEON_NAMES['clx-fe7']}」藏着一份被撕下的底图。取回「封印节点图」。`, item: 'story_find_6', route: 'clx-fe7', mapId: 'fe7-ch30-eliwood' }),
     ] },
   { chapter: 7, mapId: 'fe8-ch15-eirika', name: '重聚·黄沙证人',
     briefing: '逃亡教士带着关键档案前往黄沙驿站，追兵也已赶到。接应证人，护住能揭开王城阴谋的证据。',
@@ -133,7 +134,7 @@ export const STORY_CHAPTER_QUESTS: readonly StoryChapterQuest[] = [
     clue: { name: '最后的交换手札', note: '教首准备亲自接入装置完成交换，亡妻却从未真正回应。已经流向北地的神力正在唤醒禁忌之地。' },
     steps: [
       step(8, 'a', { kind: 'duel', name: '祭台前的守卫', briefing: '守在旧通道的护卫不肯相信指控，只接受一人应战。赢下单挑，打通撤离观众后进入祭台的路。', mapId: 'fe2-map-07', enemy: STORY_DUEL_NAMES['story-8-a'], levelBonus: 2 }),
-      step(8, 'b', { kind: 'find', name: '阵眼钥石', briefing: '黑暗龙与光之剑的三图远征里，有一只箱子压着阵眼的钥石。取回「阵眼钥石」。', item: 'story_find_8', route: 'clx-fe3', mapId: 'fe3-book1-ch20' }),
+      step(8, 'b', { kind: 'find', name: '阵眼钥石', briefing: `「${CLASSIC_DUNGEON_NAMES['clx-fe3']}」的一只箱子压着阵眼的钥石。取回「阵眼钥石」。`, item: 'story_find_8', route: 'clx-fe3', mapId: 'fe3-book1-ch20' }),
     ] },
 ];
 

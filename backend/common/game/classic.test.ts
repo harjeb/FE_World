@@ -28,9 +28,9 @@ test('the classic catalog covers six games, every terrain and every class', () =
   }
 });
 
-test('the tower final map uses an original work and chapter name', () => {
+test('the tower final map uses only its scene name', () => {
   const map = classicMap('fe8-chfinal-1-eirika');
-  assert.equal(map.name, '神蚀纪 · 终焉王座');
+  assert.equal(map.name, '终焉王座');
   assert.ok(!map.name.includes('圣魔之光石'), 'the display name must not repeat the source work title');
 });
 

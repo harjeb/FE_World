@@ -1,4 +1,5 @@
 import { STORY_DUEL_NAMES, STORY_ENEMY_IDENTITIES } from './enemy-identities.ts';
+import { CLASSIC_DUNGEON_NAMES } from './dungeon-names.ts';
 
 // 王城主线的叙事数据只由服务器按调查进度下发；客户端只引用类型。
 export interface StoryLine { speaker: string; text: string }
@@ -77,7 +78,7 @@ export const STORY_NARRATIVE: Readonly<Record<number, ChapterNarrative>> = {
     steps: {
       a: {
         before: scene('story-2-a-before', '遗迹线报 · 发热的晶片', [
-          ['书记官·薇拉', '有人在封印之剑远征沿线捡到一种黑色晶片，和北道车辙里的碎屑很像。'],
+          ['书记官·薇拉', `有人在「${CLASSIC_DUNGEON_NAMES['clx-fe6']}」沿线捡到一种黑色晶片，和北道车辙里的碎屑很像。`],
           ['你', '能找回完整的一片吗？'],
           ['书记官·薇拉', '拾荒人把它藏进了遗迹的箱子。带回来时，别直接用手碰。'],
         ]),

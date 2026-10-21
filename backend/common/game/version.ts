@@ -2,6 +2,10 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v26';
+// v61: dungeon routes and all sixty classic maps use local scene names without source-work
+// titles. New first-clear bundles guarantee quality equipment, stat boosters, elixirs, full meals
+// and promotion seals; rewards no longer downgrade at low departure levels. Saved runs retain
+// their frozen names and loot, and completion flags remain unchanged. Combat rules do not change.
 // v57: story chapters, duels, companion missions, regional battles and tower/forbidden-land maps
 // use contextual enemy identities. New battle snapshots freeze faction/role naming for initial units,
 // scripted waves and hard reserves. Dialogue and duel previews share the actual combatant names;
@@ -153,7 +157,7 @@ export const RULESET_VERSION = 'rules-v26';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 57;
+export const CATALOG_VERSION = 61;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {
