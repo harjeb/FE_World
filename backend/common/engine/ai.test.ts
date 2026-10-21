@@ -10,6 +10,7 @@ import { createEnemy } from '../game/enemies.ts';
 import { createUnit } from '../game/model.ts';
 import { decide } from './ai.ts';
 import { moveRange } from './movement.ts';
+import { interactionOptions } from './scenario.ts';
 import { actionOptions, reachCells, threatMap } from './ranges.ts';
 import { step } from './step.ts';
 import { cellKey, distance, staffWeapons, unitById } from './units.ts';
@@ -218,4 +219,43 @@ test('field enemies carry a difficulty-scaled vision radius; legacy battles stay
   const make = (aiDifficulty?: 'normal' | 'hard') => createClassicBattle([createUnit('erin', 5, 'hero')], { mapId: 'fe1-ch20', seed: 'vision', day: 0, aiDifficulty });
   assert.ok(make('normal').state.units.filter(u => u.side === 'enemy').every(u => u.vision === 5));
   assert.ok(make('hard').state.units.filter(u => u.side === 'enemy').every(u => u.vision === 7));
+});
+
+test('敌军盗贼会去拿附近的宝箱，拿走的东西不进我方带回清单', () => {
+  const state = createPinepassBattle('thief-ai');
+  state.map = { width: 14, height: 6, tiles: Array.from({ length: 6 }, () => Array(14).fill('plain')) };
+  const thief = createEnemy('thief', { classId: 'thief', level: 5, pos: [2, 2], behavior: 'thief' });
+  const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [12, 5] }); foe.side = 'player';
+  state.units = [thief, foe]; state.goal = { kind: 'rout' }; state.phase = 'enemy';
+  state.objects = [{ id: 'chest1', kind: 'chest', pos: [5, 2], state: 'closed', loot: { item: 'silver_sword', count: 1 } }];
+  const first = decide(state, thief);
+  assert.equal(first.act, 'wait', 'walks toward the chest before looting');
+  const moved = unitById(step(state, first).state, thief.id);
+  moved.acted = false;
+  const afterMove = step(state, first).state;
+  const current = unitById(afterMove, thief.id); current.acted = false;
+  const loot = decide(afterMove, current);
+  const distanceToChest = Math.abs(current.pos[0] - 5) + Math.abs(current.pos[1] - 2);
+  if (distanceToChest === 1) {
+    assert.equal(loot.act, 'interact');
+    const result = step(afterMove, loot);
+    assert.equal(result.state.objects![0].state, 'opened');
+    assert.deepEqual(result.state.loot ?? [], [], '敌方拿走的东西不会出现在我方战利品里');
+    assert.ok(result.state.scenario?.flags.includes('stolen:chest1'));
+    const player = result.state.units.find(unit => unit.side === 'player')!;
+    player.pos = [5, 3];
+    assert.deepEqual(interactionOptions(result.state, player, player.pos), [], '被抢走的宝箱我方也无法再取');
+  } else {
+    assert.equal(loot.act, 'wait', 'keeps walking while the chest is still two or more tiles away');
+  }
+  assert.ok(moved.pos[0] > thief.pos[0], 'moves toward the chest, not toward the player');
+});
+
+test('没有可抢的东西时盗贼按普通单位作战', () => {
+  const state = createPinepassBattle('thief-empty');
+  state.map = { width: 12, height: 5, tiles: Array.from({ length: 5 }, () => Array(12).fill('plain')) };
+  const thief = createEnemy('thief', { classId: 'thief', level: 20, pos: [2, 2], behavior: 'thief' });
+  const foe = createEnemy('foe', { classId: 'swordsman', level: 1, pos: [3, 2] }); foe.side = 'player';
+  state.units = [thief, foe]; state.goal = { kind: 'rout' }; state.phase = 'enemy';
+  assert.equal(decide(state, thief).act, 'attack');
 });

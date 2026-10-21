@@ -1,15 +1,17 @@
 import { isCrossTimeDormant } from './cross-time-groups.ts';
 import { SPELLBOOK_BY_ID } from '../data/spellbooks.ts';
+import { neighbors } from '../maps/map.ts';
 import { forecast, terrainBonus } from './combat.ts';
 import type { Forecast } from './combat.ts';
 import { moveRange, travelCosts } from './movement.ts';
 import type { MoveRange } from './movement.ts';
 import { targetsFrom, threatMap, reachCells } from './ranges.ts';
+import { interactionOptions } from './scenario.ts';
 import { seedRng } from './rng.ts';
 import { step } from './step.ts';
 import { spellTargets } from './support.ts';
 import { attackWeapons, cellKey, distance, isAsleep, isBerserk, keyPoint, living, staffWeapons } from './units.ts';
-import type { ActAction, BattleState, Point, UnitState } from './types.ts';
+import type { ActAction, BattleObject, BattleState, Point, UnitState } from './types.ts';
 
 // Deterministic rule AI (docs/03「服务端规则 AI」). Same state, same decision; only combat rolls are random.
 const KILL_WEIGHT = 50;
@@ -23,6 +25,36 @@ function inVision(state: BattleState, unit: UnitState, anySide = false): boolean
   if (unit.vision === undefined) return true;
   const foes = living(state).filter(foe => foe.id !== unit.id && (anySide || foe.side !== unit.side));
   return foes.some(foe => !foe.petrified && distance(unit.pos, foe.pos) <= unit.vision!);
+}
+
+// 盗贼（火纹 thief）：先去拿最近的宝箱／村庄，没得拿了再当普通战斗单位。
+function lootTarget(state: BattleState, unit: UnitState): BattleObject | null {
+  // 主线/一次性任务物件（once）不让盗贼抢走，避免把任务物品变成永久损失。
+  const objects = (state.objects ?? []).filter(object => (object.kind === 'chest' || object.kind === 'village')
+    && !object.once && (object.state === 'closed' || object.state === 'idle'));
+  if (!objects.length) return null;
+  const costs = travelCosts(state, unit, objects.flatMap(object => neighbors(object.pos, state.map.width, state.map.height)));
+  let best: BattleObject | null = null, bestCost = Infinity;
+  for (const object of objects) {
+    const cost = Math.min(...neighbors(object.pos, state.map.width, state.map.height).map(point => costs.get(cellKey(state, point)) ?? Infinity));
+    if (cost < bestCost) { bestCost = cost; best = object; }
+  }
+  return best;
+}
+
+function thiefDecision(state: BattleState, unit: UnitState, stops: number[]): ActAction | null {
+  const object = lootTarget(state, unit);
+  if (!object) return null;
+  if (interactionOptions(state, unit, unit.pos).some(option => option.object === object.id)) {
+    return { type: 'act', unit: unit.id, to: unit.pos, act: 'interact', target: object.id };
+  }
+  const costs = travelCosts(state, unit, neighbors(object.pos, state.map.width, state.map.height));
+  let best: number | null = null, bestCost = Infinity;
+  for (const stop of stops) {
+    const cost = costs.get(stop) ?? Infinity;
+    if (cost < bestCost) { bestCost = cost; best = stop; }
+  }
+  return best === null ? null : { type: 'act', unit: unit.id, to: keyPoint(state, best), act: 'wait' };
 }
 
 function sortedStops(range: MoveRange): number[] {
@@ -141,7 +173,11 @@ function normalDecision(state: BattleState, unit: UnitState): ActAction {
   const range = moveRange(state, unit);
   // 固守：不离开原地，但射程内有目标就出手（火纹守卫型首领/重甲）。
   if (behavior === 'hold') return bestAttack(state, unit, [range.origin], 1, berserk) ?? stay;
-  if (behavior !== 'healer' && !inVision(state, unit, berserk)) return stay;
+  if (behavior === 'thief') {
+    const loot = thiefDecision(state, unit, sortedStops(range));
+    if (loot) return loot;
+  }
+  if (behavior !== 'healer' && behavior !== 'thief' && !inVision(state, unit, berserk)) return stay;
   let stops = sortedStops(range);
   const boss = living(state, unit.side).find(u => u.boss && u.id !== unit.id);
   if (behavior === 'guard' && boss) {
@@ -205,8 +241,13 @@ function tacticalChoices(state: BattleState, actors: UnitState[], search = false
     }
     const range = moveRange(state, unit);
     const hold = unit.behavior === 'hold';
+    // 盗贼：有东西可拿就去拿，没得拿再按普通单位处理。
+    if (unit.behavior === 'thief') {
+      const loot = thiefDecision(state, unit, range.stops.size ? sortedStops(range) : [range.origin]);
+      if (loot) { offer(loot, 500); continue; }
+    }
     // 视野外不主动推进；固守只在自己格上出手。
-    if (!hold && unit.behavior !== 'healer' && !inVision(state, unit)) {
+    if (!hold && unit.behavior !== 'healer' && unit.behavior !== 'thief' && !inVision(state, unit)) {
       offer(normalDecision(state, unit), -2000);
       continue;
     }

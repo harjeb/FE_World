@@ -364,6 +364,9 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     throw new Error(`经典地图 ${map.id} 最多出战 ${adaptation.deployment.max} 人`);
   }
   const objectBlocked = new Set(adaptation.objects.map(object => object.pos[1] * map.width + object.pos[0]));
+  // 盗贼只在真有东西可抢的经典图里抢宝；没有宝箱／村庄的图仍按普通单位作战。
+  const lootable = adaptation.objects.some(object => (object.kind === 'chest' && object.state === 'closed')
+    || (object.kind === 'village' && object.state === 'idle'));
   const spawns = classicSpawns(map, Math.min(adaptation.deployment.max, units.length), objectBlocked);
   if (spawns.length === 0) throw new Error(`经典地图 ${map.id} 没有可用的出击位置`);
   const count = Math.min(units.length, spawns.length);
@@ -389,7 +392,9 @@ export function createClassicBattle(units: UnitRecord[], options: ClassicBattleO
     return {
       aiDifficulty: options.aiDifficulty, seed: `${options.seed}:classic:${stage}`, classId, level, vision: options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal,
       pos: [enemy.pos[0], enemy.pos[1]], boss, name: boss ? `${map.name}守将` : undefined,
-      behavior: boss ? 'hold' : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
+      // 按原始图的职业判断盗贼：等级回退后盗贼可能被降阶，抢宝身份不变。
+      behavior: boss ? 'hold' : (enemy.classId === 'thief' || enemy.classId === 'assassin') && lootable ? 'thief'
+        : guard && defaultBehavior(classId) !== 'healer' ? 'guard' : undefined,
     };
   });
   placeClassicEnemies(map, enemySpecs, playerUnits.map(unit => unit.pos), objectBlocked);

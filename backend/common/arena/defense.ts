@@ -104,6 +104,8 @@ export function behaviorArea(defense: Defense, character: string): { kind: Reach
     case 'opportunist': return { kind: 'trigger', cells: toPoints(reachCells(state, unit, range, 'attack')) };
     case 'aggressive': return { kind: 'chase', cells: toPoints(reachCells(state, unit, range, 'attack')) };
     case 'healer': return { kind: 'heal', cells: toPoints(reachCells(state, unit, range, 'heal')) };
+    // 抢宝只在经典图出现，竞技场没有物件，不画范围。
+    case 'thief': return null;
     case 'hold': {
       const cells: Point[] = [];
       for (const w of unit.weapons) {

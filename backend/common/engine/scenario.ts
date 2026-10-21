@@ -51,8 +51,9 @@ const LABELS: Record<BattleObject['kind'], string> = {
 
 // Objects adjacent to the planned destination that this unit could use.
 export function interactionOptions(state: BattleState, unit: UnitState, to: Point): { object: string; kind: BattleObject['kind']; label: string }[] {
-  if (unit.side !== 'player') return [];
-  return (state.objects ?? []).filter(object => interactionState(object) && adjacent(to, object))
+  // 敌军盗贼可以开宝箱、抢村庄、开门；其余物件仍只归我方操作。
+  return (state.objects ?? []).filter(object => interactionState(object) && adjacent(to, object)
+    && (unit.side === 'player' || object.kind === 'chest' || object.kind === 'village' || object.kind === 'door'))
     .map(object => ({ object: object.id, kind: object.kind, label: LABELS[object.kind] }));
 }
 
@@ -86,6 +87,11 @@ export function damageObject(state: BattleState, unit: UnitState, objectId: stri
 
 function objectTreasure(state: BattleState, unit: UnitState, object: BattleObject, events: BattleEvent[]): void {
   if (!object.loot) return;
+  // 敌军盗贼拿走的东西不会进入我方带回清单，也不生成“获得”事件，相当于失去该宝箱。
+  if (unit.side !== 'player') {
+    addFlag(state, `stolen:${object.id}`);
+    return;
+  }
   if (!addLoot(state, `object:${object.id}`, object.loot.item, object.loot.count)) return;
   events.push({ t: 'treasure', unit: unit.id, object: object.id, item: object.loot.item, count: object.loot.count });
 }

@@ -13,7 +13,7 @@ export type Point = [number, number];
 export type Side = 'player' | 'enemy';
 export type AiDifficulty = 'normal' | 'hard';
 // Rule-AI behaviors from docs/03: 进攻 / 伺机 / 固守 / 护卫 / 治疗优先.
-export type Behavior = 'aggressive' | 'opportunist' | 'hold' | 'guard' | 'healer';
+export type Behavior = 'aggressive' | 'opportunist' | 'hold' | 'guard' | 'healer' | 'thief';
 
 export interface ItemStack { id: ItemId; uses: number }
 

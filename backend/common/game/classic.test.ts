@@ -196,3 +196,14 @@ test('every classic map builds a battle with a six-unit party and its full garri
     }
   }
 });
+
+test('有宝箱或村庄的经典图让盗贼抢宝，没有可抢物件的图不抢', () => {
+  const lootMap = createClassicBattle([createUnit('erin', 20, 'hero')], { mapId: 'fe7-ch25-eliwood-kenneth', seed: 'thieves', day: 0 });
+  const enemies = lootMap.state.units.filter(unit => unit.side === 'enemy');
+  const thieves = enemies.filter(unit => unit.behavior === 'thief');
+  assert.equal(thieves.length, 1, '全图唯一的刺客去抢宝');
+  assert.ok(classicMap('fe7-ch25-eliwood-kenneth').enemies.some(enemy => enemy.classId === 'assassin'), '来自原始图的刺客');
+  assert.ok(enemies.filter(unit => unit.behavior !== 'thief').length > 0, '其他敌军不受影响');
+  const noLoot = createClassicBattle([createUnit('erin', 20, 'hero')], { mapId: 'fe7-ch25-eliwood-jerme', seed: 'thieves', day: 0 });
+  assert.ok(noLoot.state.units.filter(unit => unit.side === 'enemy').every(unit => unit.behavior !== 'thief'), '没有宝箱的图不抢');
+});

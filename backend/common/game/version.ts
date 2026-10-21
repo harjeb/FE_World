@@ -1,7 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v22';
+export const RULESET_VERSION = 'rules-v23';
+// v23: classic-map thieves (original class thief/assassin) loot the nearest closed chest or idle
+// village when the map has any, taking the item out of the player's haul. One-shot quest objects
+// (once) are never stolen. Other enemies still cannot interact with objects; old battles are frozen.
 // v22: enemy AI follows Fire Emblem behaviour tables instead of a stronger search.
 // 固守 units now strike anything already in reach without leaving their tile (bosses, armour);
 // new battles give enemies a 5-cell 警戒半径 (7 on hard) so they hold position until a player unit

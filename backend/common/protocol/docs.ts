@@ -98,6 +98,7 @@ export function changesSince(version: number): { from: number; to: number; chang
     { version: 33, text: 'v33: 规则rules-v19、目录49。基础武器按木／铜／铁／钢／银五档统一；草药、矿物、木材各24种，共72种六阶素材，地区产地交叠并含稀有种。野图、扫荡、副本、派遣、任务及宝箱采用区域素材，新增活动出发时冻结随机奖励；旧活动缺少冻结字段时保留旧奖励。锻造按对应原料消耗（钢用铁矿＋煤，银用银矿），工坊增加全部素材的来源和用途。GET_CATALOG新增materials、weaponSeries、recipes；GET_TODAY.sortieRegions新增materials；PLANT支持可选recipeId（默认plant_herb），高阶种植需母株。旧herb／ore／wood物品ID保留。部署前结束活动战斗／远征并备份；旧规则回放保持冻结。' },
     { version: 34, text: 'v34: 规则rules-v21、目录52。TRAIN新增unitIds/groupId分组训练：第1/2/3/4年最多1/3/5/8人，每人200金币，共3日；agility剑/弓/拳、power斧/枪/兽、mystic拳/杖/理/龙，组内每种武器各获3经验。GET_TODAY训练新增maxUnits/groups，报价按总人数计费；保留旧单人单项参数。E到D需50经验，已有等级不降。开局伙伴使用初级职业。人类PROMOTE可跨全部职业，仍检查资格与武器门槛。飞行固定7移动，第3阶起非重甲步行6/骑乘7，龙类武器和战技仅相邻1格。随机野图按可出战人数和章节限制前期3–5敌军，分散布局需8名可用队员；已有远征冻结计划不变。' },
     { version: 35, text: 'v35: 规则rules-v22，目录不变。敌军 AI 改为数据化行为：固守单位不再只挨打，射程内有目标就原地出手；新建战斗的敌军带警戒半径（普通5格／困难7格），己方进入半径前不主动推进会合；困难仍以更多人数、更高属性、备队与更宽警戒为主要手段，并保留原有的有界连续行动搜索；预计能造成伤害且不会阵亡时接受略亏的交换，零伤害或必死仍放弃。旧战斗与回放不受影响。' },
+    { version: 36, text: 'v36: 规则rules-v23，目录不变。经典图中原始职业为盗贼／刺客的敌军新增抢宝行为：该图有未开宝箱或未访问村庄时会走向最近的宝物并拿走，物品不进入我方带回清单，战斗记录只显示该单位打开宝箱；主线与一次性任务物件不会被抢。其他敌军仍不能操作物件，旧战斗与回放保持冻结。' },
   ];
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }
