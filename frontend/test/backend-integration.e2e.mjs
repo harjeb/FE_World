@@ -91,6 +91,15 @@ async function openPage(profile) {
       if (!at) throw new Error(`no ${selector}`);
       for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: at[0], y: at[1], button: 'left', clickCount: 1 });
     },
+    async drag(from, to) {
+      const points = await evaluate(`(() => {
+        document.querySelector(${JSON.stringify(from)}).closest('ol').scrollIntoView({block:'center'});
+        return [${JSON.stringify(from)}, ${JSON.stringify(to)}].map(selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + 30 }; });
+      })()`);
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...points[0], button: 'left', buttons: 1, clickCount: 1 });
+      for (let i = 1; i <= 10; i++) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: points[0].x + (points[1].x - points[0].x) * i / 10, y: points[0].y + (points[1].y - points[0].y) * i / 10, buttons: 1 });
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...points[1], button: 'left', buttons: 0, clickCount: 1 });
+    },
     async type(selector, text) {
       await evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(el, ${JSON.stringify(text)}); el.dispatchEvent(new Event('input', { bubbles: true })); })()`);
     },
@@ -259,7 +268,7 @@ try {
     const explorer = await api(page, 10);
     const explorerTeam = explorer.units.map(unit => unit.id);
     [explorerTeam[0], explorerTeam[1]] = [explorerTeam[1], explorerTeam[0]];
-    await page.click('[aria-label="部署顺序"] li:nth-child(2) button');
+    await page.drag('[aria-label="部署顺序"] li:nth-child(2) button', '[aria-label="部署顺序"] li:first-child button');
     const orderIds = () => page.evaluate(`[...document.querySelectorAll('[aria-label="部署顺序"] li')].map(el => el.dataset.unitId)`);
     check('reordering preserves selected members in the requested order', JSON.stringify(await orderIds()) === JSON.stringify(explorerTeam), 'second member becomes commander');
     check('deployment portraits show consecutive order badges at the bottom right', await page.evaluate(`(() => {
