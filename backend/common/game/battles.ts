@@ -1,5 +1,5 @@
 import { fieldEncounter, type FieldEncounter } from './encounters.ts';
-import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, classUnavailableReason, weaponRankCap } from '../data/classes.ts';
 import type { Rank, WeaponType } from '../data/types.ts';
 import { stats } from '../data/types.ts';
 import { WEAPONS } from '../data/weapons.ts';
@@ -168,6 +168,12 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   }));
   // Reserves use the ordinary class/level, including legacy one-enemy encounters.
   const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, fieldBoss && i === 0 ? { ...spec, classId: bossClass, level: bossLevel, highGrowth: true } : spec));
+  if (fieldBoss) {
+    const boss = enemies[0];
+    for (const type of Object.keys(CLASSES[boss.classId].weapons) as WeaponType[]) {
+      boss.ranks[type] = weaponRankCap(boss.classId, type)!;
+    }
+  }
   const tiles = map.tiles;
   const npcUnits = quest?.kind === 'escort' ? [createEscortNpc('npc0', map.spawns.player[count] ?? map.spawns.player[0], level)] : [];
   const encounterTheme = encounter?.theme ?? theme;

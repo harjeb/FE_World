@@ -2,6 +2,9 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v26';
+// v64: new ordinary field commanders receive their class's weapon proficiency caps (S/SS/SSS).
+// Only permitted weapon types change; equipment, mob/reserve ranks, fixed/quest/dungeon bosses,
+// saved battles and combat formulas remain unchanged. Existing rank bonuses apply without stacking.
 // v63: ordinary field commanders now use their own class template with 150% of normal effective
 // growth before hard modifiers, replacing the v62 mob-stat maximum and flat bonuses. Class weaknesses
 // remain; no guarantee of leading every stat. Level +4 and early promotions are unchanged.
@@ -165,7 +168,7 @@ export const RULESET_VERSION = 'rules-v26';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 63;
+export const CATALOG_VERSION = 64;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

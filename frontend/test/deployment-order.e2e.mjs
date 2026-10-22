@@ -11,6 +11,7 @@ import { stopProcess } from './processes.mjs';
 import { openDb } from '../../backend/api/db.ts';
 import { Store } from '../../backend/api/store.ts';
 import { enemyStats } from '../../backend/common/game/enemies.ts';
+import { CLASSES, weaponRankCap } from '../../backend/common/data/classes.ts';
 
 const temp = mkdtempSync(join(tmpdir(), 'fe-deployment-'));
 const dbPath = join(temp, 'test.db'), name = 'deployment-browser';
@@ -207,6 +208,8 @@ try {
     'the deployed field commander has the highest level');
   assert.deepEqual(enemyBoss.stats, enemyStats(enemyBoss.classId, enemyBoss.level, true),
     'the deployed field commander uses its own class with high growth');
+  for (const type of Object.keys(CLASSES[enemyBoss.classId].weapons))
+    assert.equal(enemyBoss.ranks[type], weaponRankCap(enemyBoss.classId, type), 'field boss receives class-capped proficiency');
   const deployed = battle.state.units.filter(unit => unit.side === 'player');
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');
