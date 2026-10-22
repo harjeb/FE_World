@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 48
+docVersion: 49
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
@@ -20,6 +20,8 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 
 属性上限：GET_UNIT.caps 与 GET_CATALOG.classes[id].caps 的 hp 为150，其余八项均为null表示无上限；stats 始终为数字，可超过99。等级仍为1～99，能力药使用次数与成长分配预算不变。数值传承预览 capacity=null、clippedTarget=sourceTotal、lost=0；HP补点仍限制150，其他点按权重分配。旧合同按保存的sourceTotal恢复未截断目标，已有属性和过去随机成长不重算。
 阿波罗个人特性 lightshot（光明神射）：开战时满HP且使用弓，本次有效技巧×2，覆盖主动、反击、连击、追击和战技技巧引用；不改永久stats及射程，最终概率仍限制0～100%，禁止必杀照常生效。单位快照可带personalSkill覆盖形象默认技能；预测双方skl为本次有效技巧。时空副本与固定兑换已接入，见v17变更与GET_CROSS_TIME_RECRUITS。
+
+战斗EXP按敌我保留总等级差计算。击杀首领额外+20（由原+40下调），只在击杀时发放；己方高出敌人5级及以上时，交战／击杀基础经验仍降为1，但首领击杀保留这20点、合计21，普通小怪仍为1。无伤且未击杀为0，单次总经验最多100，累计100升级，不保证击杀首领必升一级；治疗仍为12，竞技场不发战斗经验。战斗预测与实际结算共用公式。
 
 ## 帧格式
 

@@ -1,7 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v26';
+export const RULESET_VERSION = 'rules-v27';
+// v67 / rules-v27: boss kill bonuses drop from 40 to 20 and survive level-gap reduction.
+// Overlevelled boss kills grant 1+20; ordinary foes, non-kills and the 100 EXP cap are unchanged.
+// Finish active battles/runs before deployment; old replays stay frozen, never re-simulated.
 // v66: new ordinary field levels follow the floored deployment average, with seeded mob offsets -1..+1.
 // Remove the field-only level-50 cap; commanders use average +4 and existing high growth/ranks.
 // Only the global level-99 limit remains. Other modes, loot and saved battles are unchanged.
@@ -174,7 +177,7 @@ export const RULESET_VERSION = 'rules-v26';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 66;
+export const CATALOG_VERSION = 67;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {
