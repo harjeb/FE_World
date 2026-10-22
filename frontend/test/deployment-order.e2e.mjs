@@ -120,6 +120,38 @@ try {
   await evaluate(`(()=>{const input=document.querySelector('input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(name)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   await evaluate(`document.querySelector('button[type=submit]').click()`);
   await until(() => evaluate(`!!document.querySelector('[data-action=train]')`), 'camp missing');
+  await evaluate(`location.hash='#/settings'`);
+  await until(() => evaluate(`!!document.querySelector('#ag-h')`), 'Agent settings missing');
+  const pressAgent = async label => {
+    const point = await evaluate(`(() => { const button=Array.from(document.querySelectorAll('[aria-labelledby="ag-h"] button')).find(b=>b.textContent===${JSON.stringify(label)}); button.scrollIntoView({block:'center'}); const r=button.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`);
+    await mouse('mouseMoved', point); await mouse('mousePressed', point, 1); await mouse('mouseReleased', point);
+  };
+  await pressAgent('取得接入令牌');
+  await until(() => evaluate(`!!document.querySelector('.token-row')`), 'Agent token missing');
+  const readAgent = () => evaluate(`fetch('/api/agent-token',{headers:{authorization:'Bearer '+localStorage.getItem('agent-tactics.token')}}).then(r=>r.json())`);
+  const initialAgent = await readAgent();
+  assert.ok(await evaluate(`document.querySelector('[aria-labelledby="ag-h"]').textContent.includes(${JSON.stringify(origin.replace(/^http/, 'ws') + '/ws')})`), 'settings display the actual browser host');
+  await send('Browser.grantPermissions', { origin, permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'] });
+  await evaluate(`window.__readAgentClipboard=navigator.clipboard.readText.bind(navigator.clipboard); Object.defineProperty(navigator,'clipboard',{configurable:true,value:undefined})`);
+  await pressAgent('复制');
+  await until(() => evaluate(`document.body.innerText.includes('已复制')`), 'HTTP-compatible token copy did not succeed');
+  assert.equal(await evaluate(`window.__readAgentClipboard()`), initialAgent.token, 'copy writes the actual token, not its mask');
+  await evaluate(`Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('denied')}}})`);
+  await pressAgent('复制给 AI');
+  const bundle = await evaluate(`window.__readAgentClipboard()`);
+  for (const text of [`AGENT_TOKEN=${initialAgent.token}`, `API_URL=${origin}`, `docVersion: ${initialAgent.docVersion}`, `${origin}/agent-api.json`, 'MCP']) assert.ok(bundle.includes(text));
+  await evaluate(`window.__agentExecCopy=document.execCommand; document.execCommand=()=>false`);
+  await pressAgent('复制');
+  await until(() => evaluate(`document.body.innerText.includes('复制失败')`), 'copy failure must not claim success');
+  assert.equal(await evaluate(`document.querySelector('.token-row code').textContent`), initialAgent.token, 'manual copying remains possible after failure');
+  await evaluate(`document.execCommand=window.__agentExecCopy`);
+  await pressAgent('重置令牌');
+  await until(() => evaluate(`!!document.querySelector('[role="dialog"]')`), 'token reset requires confirmation');
+  assert.equal((await readAgent()).token, initialAgent.token, 'opening confirmation never rotates');
+  await evaluate(`document.querySelector('[role="dialog"] .btn-primary').click()`);
+  await until(async () => (await readAgent()).token !== initialAgent.token, 'confirmed token reset did not rotate');
+  await until(() => evaluate(`!document.querySelector('[role="dialog"]') && !document.querySelector('[aria-labelledby="ag-h"] button:disabled')`), 'token reset did not finish');
+  assert.equal(await evaluate(`fetch('/api/op',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+${JSON.stringify(initialAgent.token)}},body:JSON.stringify({op:10,data:{}})}).then(r=>r.status)`), 401, 'old Agent token must stop working');
   const before = await api(10);
   await evaluate(`location.hash='#/field?region=2'`);
   await until(async () => (await order()).length >= 3, 'deployment portraits missing');
@@ -233,7 +265,7 @@ try {
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');
   assert.deepEqual(errors, []);
-  console.log('PASS: deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; player commander, dynamic field levels and stronger field boss');
+  console.log('PASS: Agent settings copy/fallback/reset and actual addresses; deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; player commander, dynamic field levels and stronger field boss');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ id: 1000000000, method: 'Browser.close' })); await sleep(200);

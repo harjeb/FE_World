@@ -1,10 +1,14 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 50
+docVersion: 51
+
+engineVersion: 1 · rulesetVersion: rules-v28 · catalogVersion: 68
 
 本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。
 
 每个请求的完整参数见 `/agent-api.json` 中对应 op 的 `dataSchema`，与 MCP 的 `data` 参数声明共用来源。
+
+设置 → Agent 接入可复制令牌或完整接入信息；地址以实际访问的 HTTP／HTTPS 域名为准，对应 ws／wss，不写死 localhost。GET /api/agent-token 返回 token、apiUrl、ws、docs 与 docVersion／engineVersion／rulesetVersion／catalogVersion，只读取或首次创建令牌；POST 同一路径仅供玩家凭据重置，旧 Agent 令牌及已建立 WebSocket 的后续请求立即失效，Agent 控制租约释放，网页会话与存档保留。GET /api/health 与 /agent-api.json 返回相同版本信息。
 
 MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。
 

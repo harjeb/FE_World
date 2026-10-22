@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { DOC_VERSION, ERRORS, OPS, PUSH_OPS, opDef } from './ops.ts';
 import { apiDoc, changesSince, renderMarkdown } from './docs.ts';
 import { encode, errorBody, parseRequest } from './frames.ts';
+import { CATALOG_VERSION, ENGINE_VERSION, RULESET_VERSION } from '../game/version.ts';
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..');
 
@@ -37,6 +38,9 @@ test('the checked-in docs are generated from the op table', () => {
   const json = JSON.parse(readFileSync(join(ROOT, 'agent-api.json'), 'utf8')) as { docVersion: number; ops: unknown[]; errors: unknown[] };
   assert.deepEqual(json, apiDoc());
   assert.equal(json.docVersion, DOC_VERSION);
+  assert.equal(apiDoc().engineVersion, ENGINE_VERSION);
+  assert.equal(apiDoc().rulesetVersion, RULESET_VERSION);
+  assert.equal(apiDoc().catalogVersion, CATALOG_VERSION);
 });
 
 test('frames round-trip and reject malformed requests', () => {

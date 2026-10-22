@@ -32,6 +32,12 @@ function client(t: Cleanup, url: string) {
   const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
   return {
     child,
+    async raw(text: string) {
+      child.stdin.write(text + '\n');
+      const next = await lines.next();
+      assert.equal(next.done, false);
+      return JSON.parse(next.value!);
+    },
     async send(id: string | number, method: string, params = {}) {
       child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`);
       const next = await lines.next();
@@ -127,5 +133,33 @@ test('MCP excludes WebSocket authentication, rejects bad IDs, and does not retry
   assert.equal(requests.length, 1);
   assert.equal(requests[0].op, OP.REST);
   assert.equal(requests[0].data.commandId, 'explicit-id');
+  await mcp.close();
+});
+
+ test('MCP ignores all notifications and survives invalid requests and parse errors', { timeout: 10000 }, async t => {
+  const mcp = client(t, 'http://127.0.0.1:1');
+  await mcp.send('before', 'ping');
+  mcp.child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'unknown/notification' }) + '\n');
+  await mcp.send(0, 'ping');
+  for (const [payload, code] of [['null', -32600], ['[]', -32600], ['{}', -32600], ['{', -32700]]) {
+    const response = await mcp.raw(payload);
+    assert.equal(response.id, null);
+    assert.equal(response.error.code, code);
+    await mcp.send('alive', 'ping');
+  }
+  await mcp.close();
+});
+
+test('MCP unauthorized guidance replaces WebSocket LOGIN instructions', { timeout: 10000 }, async t => {
+  const url = await apiFor(t, (_body, _req, res) => {
+    res.end(JSON.stringify({ ok: false, error: { code: 'UNAUTHORIZED', message: 'token expired', action: 'call LOGIN' } }));
+  });
+  const mcp = client(t, url);
+  const response = await mcp.send('auth', 'tools/call', { name: 'get_state' });
+  const text = response.result.content[0].text;
+  assert.match(text, /UNAUTHORIZED.*token expired/);
+  assert.match(text, /AGENT_TOKEN/);
+  assert.match(text, /restart MCP/);
+  assert.doesNotMatch(text, /LOGIN/);
   await mcp.close();
 });

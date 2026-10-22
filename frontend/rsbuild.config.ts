@@ -18,6 +18,7 @@ export default defineConfig({
     // frontend can be served from the API too (docs/07).
     // The Agent protocol docs linked from 设置 come from the API as well.
     proxy: {
+      '/ws': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true, ws: true },
       '/api': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true },
       '/agent-api': { target: process.env.API_URL || 'http://localhost:8525', changeOrigin: true },
     },

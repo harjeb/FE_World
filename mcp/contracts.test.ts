@@ -14,6 +14,7 @@ const tools = toolList();
 
 test('MCP covers every browser operation and shares each API data contract', () => {
   const names = new Set(tools.map(tool => tool.name));
+  assert.equal(names.size, 109);
   assert.equal(names.size, OPS.length - PUSH_OPS.size - 2);
   function checkDir(path: string) {
     for (const entry of readdirSync(path, { withFileTypes: true })) {
@@ -62,6 +63,7 @@ test('advertised nested MCP arguments accept actual gameplay payloads and retry 
   for (const [name, data] of samples) {
     const valid = ajv.compile(tools.find(tool => tool.name === name)!.inputSchema);
     assert.equal(valid({ data }), true, `${name}: ${JSON.stringify(valid.errors)}`);
+    assert.equal(valid(data), true, `${name} flat: ${JSON.stringify(valid.errors)}`);
   }
   const buy = ajv.compile(tools.find(tool => tool.name === 'buy')!.inputSchema);
   assert.equal(buy({}), false, 'required fields cannot disappear by omitting data');
@@ -70,4 +72,12 @@ test('advertised nested MCP arguments accept actual gameplay payloads and retry 
   assert.equal(buy({ data: { item: 'vulnerary', commandId: '' } }), false);
   assert.equal(buy({ data: { item: 'vulnerary', unknown: true } }), false);
   assert.equal(buy({ item: 'vulnerary', count: 2 }), true, 'legacy flat arguments still pass the advertised schema');
+  for (const data of [{ item: 2 }, { item: 'vulnerary', count: 'two' }, { item: 'vulnerary', commandId: '' }, { item: 'vulnerary', commandId: 2 }, { item: 'vulnerary', unknown: true }]) {
+    assert.equal(buy(data), false, JSON.stringify(data));
+  }
+  for (const [name, data] of [['sell', { item: 'vulnerary', count: 0 }], ['sortie', { region: 0 }], ['preview_action', { action: 'invalid' }]] as const) {
+    const valid = ajv.compile(tools.find(tool => tool.name === name)!.inputSchema);
+    assert.equal(valid(data), false);
+    assert.equal(valid({ data }), false);
+  }
 });

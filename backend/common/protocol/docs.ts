@@ -2,9 +2,13 @@
 // The API serves the JSON at /agent-api.json; a test keeps the checked-in markdown in sync.
 import { DOC_VERSION, ERRORS, OPS, PUSH_OPS } from './ops.ts';
 import { schemaFor, type OpSchema } from './schemas.ts';
+import { CATALOG_VERSION, ENGINE_VERSION, RULESET_VERSION } from '../game/version.ts';
 
 export interface ApiDoc {
   docVersion: number;
+  engineVersion: number;
+  rulesetVersion: string;
+  catalogVersion: number;
   frames: Record<string, string>;
   ops: { op: number; name: string; group: string; push: boolean; agentNote: string; dataSchema?: OpSchema & { type: 'object'; additionalProperties: false } }[];
   errors: { code: string; meaning: string; action: string }[];
@@ -13,6 +17,9 @@ export interface ApiDoc {
 export function apiDoc(): ApiDoc {
   return {
     docVersion: DOC_VERSION,
+    engineVersion: ENGINE_VERSION,
+    rulesetVersion: RULESET_VERSION,
+    catalogVersion: CATALOG_VERSION,
     frames: {
       request: '{ op: number, seq: number, data?: object }',
       response: '{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }',
@@ -30,8 +37,10 @@ export function renderMarkdown(): string {
   const lines: string[] = [];
   lines.push('# Agent 接口文档（自动生成）', '');
   lines.push(`docVersion: ${DOC_VERSION}`, '');
+  lines.push(`engineVersion: ${ENGINE_VERSION} · rulesetVersion: ${RULESET_VERSION} · catalogVersion: ${CATALOG_VERSION}`, '');
   lines.push('本文件由 `backend/common/protocol/ops.ts` 与 `schemas.ts` 生成，不要手改。', '');
   lines.push('每个请求的完整参数见 `/agent-api.json` 中对应 op 的 `dataSchema`，与 MCP 的 `data` 参数声明共用来源。', '');
+  lines.push('设置 → Agent 接入可复制令牌或完整接入信息；地址以实际访问的 HTTP／HTTPS 域名为准，对应 ws／wss，不写死 localhost。GET /api/agent-token 返回 token、apiUrl、ws、docs 与 docVersion／engineVersion／rulesetVersion／catalogVersion，只读取或首次创建令牌；POST 同一路径仅供玩家凭据重置，旧 Agent 令牌及已建立 WebSocket 的后续请求立即失效，Agent 控制租约释放，网页会话与存档保留。GET /api/health 与 /agent-api.json 返回相同版本信息。', '');
   lines.push('MCP 使用 `AGENT_TOKEN` 认证，不提供 WebSocket 专用的 LOGIN／LOGOUT。写操作自动附带 commandId，连接或响应解析失败时使用同一 ID 重试一次；仍无法确认时错误会返回该 ID，后续重试必须复用 data.commandId。', '');
   lines.push('SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty: normal | hard（默认 normal）。困难需先普通通关相同内容：野外胜利解锁本地区困难野图，普通完整通关解锁本副本；两者互不替代，失败、中间图和困难胜利不算。单图任务保持普通一次性流程。读取 GET_STATE.hardUnlocks.regions/dungeons/quests 或 GET_QUESTS.hardAvailable/hardUnlocked 判断；直接请求未解锁 hard 会被拒绝，预览列出 blockers。任务副本可重打，但固定任务奖励与首通探索不重复发。旧档按真实普通胜利与完整通关记录补齐，缺失难度按普通，不从模糊完成标记推定。normal 已会集火与调整出手顺序，hard 进一步搜索连续三次行动的走位和配合。困难初始敌阵和增援人数增加50%（向上取整，附近合法空位为限），等级随机+2～5（上限99），按提高后的等级计算基础属性，再给HP随机+20%～35%、其余八项能力各+10%～25%、体格+1～3；能力加成向上取整且至少+1，HP上限150，其余八项属性无上限，移动力不变；配备更强装备及对应熟练度。独立种子固定生成结果，刷新不重掷、旧单位不重加。耗日及任务固定奖励不变，随机战场的出战上限和敌军规模由地图／难度配置决定，更多高等级敌人会自然增加战斗经验，敌军携带装备不会按概率掉落。远征全程锁定，缺失字段的旧战斗／远征按 normal 返回。battle.aiDifficulty 与 GET_RUN.run.aiDifficulty 返回当前设置；PREVIEW_ACTION 的 sortie／dungeon 报价 payload.aiDifficulty 保留设置，EXECUTE_ACTION 按报价执行。其他模式保持 normal；主线通关后的禁忌之地挑战固定 hard。', '');
   lines.push('随机野外与随机副本先确定战场，再选择队伍：GET_TODAY.sortieRegions 的 encounters／dungeonEncounters 分别提供 normal、hard 的布局、尺寸、maxUnits 与 enemyCount；少带人不会减少敌军。同一账号、日期、地区与活动的战场固定，刷新、换队或切换难度不会重抽布局；推进日期后才更新。PREVIEW_ACTION 返回 encounter.map 的真实地形、双方出生点与 playerGroups，报价按玩家版本绑定。出征名单按unitIds数组顺序分配到map.spawns.player对应落点，首位为主将；必须互不重复、可用且不超过该图该难度的上限；副本开局保存RunRecord.stages，出战上限取整趟所有图的限制（含经典终图）。地图布局含交错遭遇、隔墙分队会合和分散据点；已保存战场不重排。', '');
@@ -115,5 +124,6 @@ export function changesSince(version: number): { from: number; to: number; chang
   releases.push({ version: 48, text: 'v48: 目录66，战斗规则不变。新普通随机野图以实际出战均级向下取整分级，小怪固定随机−1／0／+1，困难继续加2～5级；移除原50级限制，仅限1～99。主将按均级＋4继续高成长与熟练度强化，最多99级。同均级换队／重排不重掷，换均级更新敌军但不改变地图和人数；预览与实际出征一致。GET_TODAY.sortieRegions[].level保留日期活动参考，野图准备页改读真实预览等级。任务、副本、经典、赛事、固定首领与材料奖励不变，旧战局和回放保持冻结。' });
   releases.push({ version: 49, text: 'v49: rules-v27、目录67。击杀首领额外经验由40降至20；己方比敌人高5级及以上时，基础交战／击杀经验仍降为1，但首领奖励在衰减后保留，总计21。未击杀不发额外奖励，普通小怪、无伤未击杀0、治疗12、单次100上限与累计100升级不变；战斗预测和结算共用公式。既有经验、等级、背包及已发奖励不重算。部署前结束进行中的战斗／远征并备份，旧规则回放只读冻结快照，不按新规则重模拟。' });
   releases.push({ version: 50, text: 'v50: rules-v28、目录68。新随机野图按章节与可出战上限生成浮动敌军：普通第1章6～10人，末章最多35～39人；第3／5／7章起增加1／2／3波定时援军，困难初始和援军各+50%仅一次。encounter新增可选reinforcements[{turn,count}]和turnLimit，预览展示初始人数、援军回合及人数，全部计划开局冻结。援军提前一回合预警、我方阶段进场，普通小怪等级／成长／熟练度规则和独立种子保持一致；击败主将仍可提前结束。后期地图增大，出生点支持64敌军，原16人以内生成结果不变。旧战场不补人，副本／任务／经典／固定战斗及耗日不变；旧规则回放只展示冻结快照，不以新规则重模拟。' });
+  releases.push({ version: 51, text: 'v51: 更新 Agent 接入闭环，协议及文档携带当前引擎／战斗规则／目录版本。复制支持 Clipboard API 和 HTTP 环境兼容路径，失败时提示手动复制；完整接入信息包含实际 HTTP／HTTPS、ws／wss 地址、文档与 MCP 配置。GET /api/agent-token 只读，POST 由玩家确认重置，撤销旧令牌的 HTTP 和已连接 WebSocket 权限并释放 Agent 控制租约，不重置存档或网页会话。MCP 保留全部业务工具、嵌套与旧平铺参数，统一参数 schema，通知不产生响应，认证失效提示更新 AGENT_TOKEN。战斗规则及目录不变。' });
   return { from: version, to: DOC_VERSION, changes: releases.filter(release => release.version > version).map(release => release.text) };
 }

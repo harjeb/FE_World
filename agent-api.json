@@ -1,5 +1,8 @@
 {
-  "docVersion": 50,
+  "docVersion": 51,
+  "engineVersion": 1,
+  "rulesetVersion": "rules-v28",
+  "catalogVersion": 68,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",

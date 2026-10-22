@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import Fastify from 'fastify';
+import Fastify, { type FastifyRequest } from 'fastify';
 import websocket from '@fastify/websocket';
 import { DOC_VERSION, PUSH_OPS } from '../common/protocol/ops.ts';
 import { changesSince, apiDoc, renderMarkdown } from '../common/protocol/docs.ts';
@@ -14,11 +14,13 @@ import { loginOrRegister } from './auth.ts';
 import { OpError, dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
+import { CATALOG_VERSION, ENGINE_VERSION, RULESET_VERSION } from '../common/game/version.ts';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(HERE, '..', '..');
 const DB_PATH = process.env.DB_PATH ?? join(ROOT, 'backend', 'data', 'agent-tactics.db');
 const PORT = Number(process.env.API_PORT ?? 8525);
+const versions = { docVersion: DOC_VERSION, engineVersion: ENGINE_VERSION, rulesetVersion: RULESET_VERSION, catalogVersion: CATALOG_VERSION };
 
 const store = new Store(openDb(DB_PATH));
 
@@ -50,13 +52,14 @@ await app.register(websocket);
 
 interface Conn {
   accountId: string | null;
+  token: string | null;
   agentModel: string | null;
   actor: 'human' | 'agent';
   seq: number;
 }
 
 app.get('/ws', { websocket: true }, (socket) => {
-  const conn: Conn = { accountId: null, agentModel: null, actor: 'human', seq: 0 };
+  const conn: Conn = { accountId: null, token: null, agentModel: null, actor: 'human', seq: 0 };
   const send = (frame: unknown) => { try { socket.send(encode(frame as never)); } catch { /* closed */ } };
 
   socket.on('message', (raw: Buffer) => {
@@ -68,23 +71,32 @@ app.get('/ws', { websocket: true }, (socket) => {
       if (frame.op === 1) {
         const data = (frame.data ?? {}) as Record<string, unknown>;
         const token = String(data.token ?? '');
+        conn.accountId = null;
+        conn.token = null;
         const resolved = authCredential(token);
         if (!resolved) throw new OpError('UNAUTHORIZED', '令牌无效');
         conn.accountId = resolved.accountId;
+        conn.token = token;
         conn.actor = resolved.actor;
         conn.agentModel = conn.actor === 'agent' && typeof data.agentModel === 'string' ? data.agentModel : null;
         const clientVersion = typeof data.docVersion === 'number' ? data.docVersion : 0;
         const notice = clientVersion !== DOC_VERSION ? `当前协议版本 ${DOC_VERSION}，你的客户端是 ${clientVersion}，请更新。` : null;
         const player = playerFor(conn.accountId);
-        send({ op: 1, seq, ok: true, data: { docVersion: DOC_VERSION, docNotice: notice, player: { id: player.id, name: player.name, legion: player.legion } } });
+        send({ op: 1, seq, ok: true, data: { ...versions, docNotice: notice, player: { id: player.id, name: player.name, legion: player.legion } } });
         return;
       }
       if (frame.op === 2) {
         conn.accountId = null;
+        conn.token = null;
         send({ op: 2, seq, ok: true, data: { ok: true } });
         return;
       }
-      if (!conn.accountId) throw new OpError('UNAUTHORIZED', '先 LOGIN');
+      // Recheck credentials so rotating a token also revokes already-open Agent connections.
+      if (!conn.accountId || authCredential(conn.token ?? '')?.accountId !== conn.accountId) {
+        conn.accountId = null;
+        conn.token = null;
+        throw new OpError('UNAUTHORIZED', '先用有效令牌 LOGIN');
+      }
       const data = (frame.data ?? {}) as Record<string, unknown>;
       const result = runOp(conn.accountId, frame.op, data, conn.agentModel, (pushOp, pushData) => send({ op: pushOp, data: pushData }), conn.actor);
       send({ op, seq, ok: true, data: result ?? {} });
@@ -106,12 +118,38 @@ app.post('/api/login', (req, reply) => {
   }
 });
 
+function agentAccess(req: FastifyRequest, token: string) {
+  // Forwarded headers affect advertised URLs only, never authentication or authorization.
+  const forwardedProto = String(req.headers['x-forwarded-proto'] ?? '').split(',')[0].trim();
+  const protocol = ['http', 'https'].includes(forwardedProto) ? forwardedProto : req.protocol;
+  const host = String(req.headers['x-forwarded-host'] ?? req.headers.host ?? req.host).split(',')[0].trim();
+  const apiUrl = new URL(`${protocol}://${host}`).origin;
+  return { token, ...versions, apiUrl, ws: `${apiUrl.replace(/^http/, 'ws')}/ws`, docs: `${apiUrl}/agent-api.md` };
+}
+
 app.get('/api/agent-token', (req, reply) => {
   const accountId = authCredential(req.headers.authorization)?.accountId;
   if (!accountId) return reply.code(401).send({ error: 'unauthorized' });
   const existing = store.db.prepare("SELECT token FROM tokens WHERE account_id = ? AND kind = 'agent' LIMIT 1").get(accountId) as { token: string } | undefined;
   const token = existing?.token ?? store.createToken(accountId, 'agent', '网页生成');
-  reply.send({ token, docVersion: DOC_VERSION, ws: `ws://localhost:${PORT}/ws`, docs: '/agent-api.md' });
+  reply.send(agentAccess(req, token));
+});
+
+app.post('/api/agent-token', (req, reply) => {
+  const credential = authCredential(req.headers.authorization);
+  if (!credential) return reply.code(401).send({ error: 'unauthorized' });
+  if (credential.actor !== 'human') return reply.code(403).send({ error: '只能由玩家重置 Agent 令牌' });
+  const metadata = agentAccess(req, '');
+  const token = store.transaction(() => {
+    store.db.prepare("DELETE FROM tokens WHERE account_id = ? AND kind = 'agent'").run(credential.accountId);
+    const player = playerFor(credential.accountId);
+    if (player.flags.controlLease?.owner === 'agent') {
+      delete player.flags.controlLease;
+      store.savePlayer(player);
+    }
+    return store.createToken(credential.accountId, 'agent', '网页重置');
+  });
+  reply.send({ ...metadata, token });
 });
 
 app.post('/api/op', (req, reply) => {
@@ -147,7 +185,7 @@ app.get('/agent-api/changes/:v', (req, reply) => {
   if (!changes) return reply.code(404).send({ error: `没有从 v${v} 起的变更记录` });
   reply.send(changes);
 });
-app.get('/api/health', (_req, reply) => reply.send({ ok: true, docVersion: DOC_VERSION, players: store.allPlayers().length }));
+app.get('/api/health', (_req, reply) => reply.send({ ok: true, ...versions, players: store.allPlayers().length }));
 
 // ---- static frontend (production build) ----------------------------------
 

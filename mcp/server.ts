@@ -25,12 +25,13 @@ export function toolList(): McpTool[] {
       inputSchema: {
         type: 'object',
         properties: {
+          ...schema?.properties,
           data: schema
             ? { type: 'object', properties: schema.properties, required: schema.required ?? [], additionalProperties: false }
             : { type: 'object', description: '该 op 的请求字段，见 docs/agent-api.md', additionalProperties: true },
         },
         ...(schema?.required?.length ? { anyOf: [{ required: ['data'] }, { required: schema.required }] } : {}),
-        additionalProperties: true,
+        additionalProperties: !schema,
       },
     };
   });
@@ -60,7 +61,12 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<{ 
       });
       const frame = await response.json() as { ok: boolean; data?: unknown; error?: { code: string; message: string; action: string } };
       if (!frame || typeof frame.ok !== 'boolean') throw new Error('API 返回了无效的协议响应');
-      if (!frame.ok) return { text: `[${frame.error?.code}] ${frame.error?.message}\naction: ${frame.error?.action}`, isError: true };
+      if (!frame.ok) {
+        const action = frame.error?.code === 'UNAUTHORIZED'
+          ? 'Replace AGENT_TOKEN with a valid agent token and restart MCP.'
+          : frame.error?.action;
+        return { text: `[${frame.error?.code}] ${frame.error?.message}\naction: ${action}`, isError: true };
+      }
       return { text: JSON.stringify(frame.data ?? {}, null, 2), isError: false };
     } catch (error) {
       if (attempt === 0) continue;
@@ -79,8 +85,21 @@ function replyError(id: unknown, code: number, message: string): void {
   process.stdout.write(`${JSON.stringify({ jsonrpc: '2.0', id, error: { code, message } })}\n`);
 }
 
-async function handle(message: { id?: unknown; method?: string; params?: Record<string, unknown> }): Promise<void> {
-  const { id, method, params = {} } = message;
+async function handle(message: unknown): Promise<void> {
+  if (!message || typeof message !== 'object' || Array.isArray(message)) {
+    return replyError(null, -32600, '无效请求');
+  }
+  const request = message as Record<string, unknown>;
+  const hasId = Object.hasOwn(request, 'id');
+  const validId = request.id === null || typeof request.id === 'string' || typeof request.id === 'number';
+  if (request.jsonrpc !== '2.0' || typeof request.method !== 'string' || (hasId && !validId)
+    || (request.params !== undefined && (!request.params || typeof request.params !== 'object'))) {
+    return replyError(hasId && validId ? request.id : null, -32600, '无效请求');
+  }
+  // Every valid notification is response-free, including unknown methods.
+  if (!hasId) return;
+  const { id, method } = request;
+  const params = (request.params ?? {}) as Record<string, unknown>;
   if (method === 'initialize') {
     reply(id, {
       protocolVersion: '2024-11-05',
@@ -89,12 +108,11 @@ async function handle(message: { id?: unknown; method?: string; params?: Record<
     });
     return;
   }
-  if (method === 'notifications/initialized' || method === 'notifications/cancelled') return;
   if (method === 'ping') return reply(id, {});
   if (method === 'tools/list') return reply(id, { tools: toolList() });
   if (method === 'tools/call') {
     const name = String(params.name ?? '');
-    const args = (params.arguments ?? {}) as Record<string, unknown>;
+    const args = (params.arguments === undefined ? {} : params.arguments) as Record<string, unknown>;
     const result = await callTool(name, args);
     return reply(id, { content: [{ type: 'text', text: result.text }], isError: result.isError });
   }
@@ -107,7 +125,7 @@ if (process.argv[1] && process.argv[1].endsWith('server.ts')) {
     const text = line.trim();
     if (!text) return;
     try {
-      const message = JSON.parse(text) as { id?: unknown; method?: string; params?: Record<string, unknown> };
+      const message = JSON.parse(text);
       void handle(message).catch(error => {
         const detail = error instanceof Error ? error.message : String(error);
         if (message?.method === 'tools/call') {

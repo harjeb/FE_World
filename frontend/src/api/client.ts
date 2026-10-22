@@ -70,8 +70,27 @@ export async function login(name: string, password?: string, legion?: string): P
   return { token: body.token, state: body.state };
 }
 
-export async function agentToken(): Promise<{ token: string; ws: string; docVersion: number }> {
-  const response = await fetch('/api/agent-token', { headers: token() ? { authorization: `Bearer ${token()}` } : {}, signal: AbortSignal.timeout(15_000) });
-  if (!response.ok) throw new Error('无法获取 Agent 令牌');
-  return response.json();
+export interface AgentToken {
+  token: string;
+  ws: string;
+  apiUrl: string;
+  docs: string;
+  docVersion: number;
+  engineVersion: number;
+  rulesetVersion: string;
+  catalogVersion: number;
+}
+
+export function agentBundle(agent: AgentToken): string {
+  return `Agent 接入（请保密，不要记录令牌）\nAGENT_TOKEN=${agent.token}\nAPI_URL=${agent.apiUrl}\nWebSocket: ${agent.ws}\ndocVersion: ${agent.docVersion}\nMarkdown: ${agent.docs}\nJSON: ${new URL('/agent-api.json', agent.apiUrl).href}\nHTTP API 使用 Authorization: Bearer <AGENT_TOKEN>；WebSocket 通过 LOGIN 携带令牌。\nMCP：在 MCP 服务进程环境中设置 API_URL 和 AGENT_TOKEN 为上述值，再启动项目 MCP 服务。`;
+}
+
+export async function agentToken(rotate = false): Promise<AgentToken> {
+  const response = await fetch('/api/agent-token', { method: rotate ? 'POST' : 'GET', headers: token() ? { authorization: `Bearer ${token()}` } : {}, signal: AbortSignal.timeout(15_000) });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(typeof body?.error === 'string' ? body.error : body?.error?.message ?? '无法获取 Agent 令牌');
+  if (!body || typeof body.token !== 'string' || !body.token || !Number.isInteger(body.docVersion)) throw new Error('Agent 令牌响应无效');
+  // The browser origin is authoritative: proxy/backend metadata may contain localhost.
+  const origin = window.location.origin;
+  return { ...body, apiUrl: origin, ws: `${origin.replace(/^http/, 'ws')}/ws`, docs: new URL('/agent-api.md', origin).href };
 }

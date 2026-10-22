@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CHARACTERS } from '@common/data/characters.ts';
 import { OP } from '@common/protocol/ops.ts';
-import { agentToken } from '../api/client.ts';
+import { agentBundle, agentToken, type AgentToken } from '../api/client.ts';
 import { session, useSession } from '../api/session.ts';
 import { useServerData } from '../api/useServerData.ts';
 import { ART_CREDITS } from '../battle/battle-sheets.ts';
@@ -11,6 +11,8 @@ import { go, links } from '../router.ts';
 import { agentOnline, Shell } from '../shell/Shell.tsx';
 import { clockTime } from '../ui/calendar.ts';
 import { toast } from '../ui/toast.tsx';
+import { copyText } from '../ui/clipboard.ts';
+import { ConfirmButton } from '../ui/Modal.tsx';
 import { useAct } from './SystemParts.tsx';
 
 const SCENES: [ScenePolicy, string][] = [['all', '全部播放'], ['boss', '仅主将战'], ['off', '关闭']];
@@ -25,8 +27,12 @@ function Toggle({ on, label, onChange }: { on: boolean; label: string; onChange:
 export function SettingsPage() {
   const { state } = useSession();
   const { busy, act } = useAct();
-  const [agent, setAgent] = useState<{ token: string; ws: string; docVersion: number } | null>(null);
+  const [agent, setAgent] = useState<AgentToken | null>(null);
   const [shown, setShown] = useState(false);
+  const copy = async (text: string) => {
+    try { await copyText(text); toast('已复制'); }
+    catch { setShown(true); toast('复制失败，请手动选中复制'); }
+  };
   const [view, setView] = useState<Settings>(loadSettings);
   const { data: info } = useServerData(() => session.agentInfo(), []);
   if (!state) return null;
@@ -61,18 +67,23 @@ export function SettingsPage() {
                 <dl className="facts">
                   <dt>接入令牌</dt>
                   <dd className="token-row">
-                    <code>{shown ? agent.token : mask(agent.token)}</code>
+                    <code style={{ userSelect: 'text', overflowWrap: 'anywhere' }}>{shown ? agent.token : mask(agent.token)}</code>
                     <button type="button" className="btn btn-sm btn-ghost" onClick={() => setShown(s => !s)}>{shown ? '隐藏' : '显示'}</button>
-                    <button type="button" className="btn btn-sm" onClick={() => void navigator.clipboard?.writeText(agent.token).then(() => toast('令牌已复制'), () => toast('浏览器不允许复制，请手动选中'))}>复制</button>
+                    <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => void copy(agent.token)}>复制</button>
+                  </dd>
+                  <dt>HTTP API</dt><dd><code>{agent.apiUrl}</code></dd>
+                  <dt>接入操作</dt><dd>
+                    <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => void copy(agentBundle(agent))}>复制给 AI</button>{' '}
+                    <ConfirmButton title="重置令牌" message="旧 Agent 令牌将立即失效，需要把新令牌重新交给 Agent。确定重置？" confirmLabel="重置令牌" className="btn btn-sm btn-danger" disabled={busy !== null} onConfirm={() => void act('token', () => agentToken(true).catch(error => { setAgent(null); setShown(false); throw error; }), r => { setAgent(r); setShown(false); void session.refresh().catch(() => toast('令牌已重置，请刷新页面同步控制权')); return '令牌已重置，旧令牌已失效'; })}>重置令牌</ConfirmButton>
                   </dd>
                   <dt>连接地址</dt><dd><code>{agent.ws}</code></dd>
-                  <dt>协议版本</dt><dd>docVersion {agent.docVersion} · <a href="/agent-api.md" target="_blank" rel="noreferrer">接口说明</a> · <a href="/agent-api.json" target="_blank" rel="noreferrer">JSON</a></dd>
+                  <dt>协议版本</dt><dd>docVersion {agent.docVersion} · {agent.rulesetVersion} · 目录 {agent.catalogVersion} · <a href={agent.docs} target="_blank" rel="noreferrer">接口说明</a> · <a href={new URL('/agent-api.json', agent.apiUrl).href} target="_blank" rel="noreferrer">JSON</a></dd>
                 </dl>
               )
               : (
                 <div className="go-bar" style={{ borderTop: 0 }}>
                   <button type="button" className="btn btn-primary" disabled={busy !== null}
-                    onClick={() => void act('token', agentToken, r => { setAgent(r); return '已取得接入令牌'; })}>
+                    onClick={() => void act('token', () => agentToken(), r => { setAgent(r); return '已取得接入令牌'; })}>
                     {busy === 'token' ? '读取中…' : '取得接入令牌'}
                   </button>
                 </div>
