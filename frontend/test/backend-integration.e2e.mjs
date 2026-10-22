@@ -9,8 +9,6 @@ import { STAT_KEYS } from '../../backend/common/data/types.ts';
 import { WEAPONS, WEAPON_SERIES, weaponSeriesTier } from '../../backend/common/data/weapons.ts';
 import { materialTier } from '../../backend/common/game/materials.ts';
 import { canWield } from '../../backend/common/engine/units.ts';
-import { enemyLevel, regionById } from '../../backend/common/game/calendar.ts';
-import { QUEST_LEVEL_CAP } from '../../backend/common/game/quests.ts';
 import { GAME_ITEMS } from '../../backend/common/game/items.ts';
 import { REGION_EXPLORATION_GAIN } from '../../backend/common/game/region-map.ts';
 import { CLASSES } from '../../backend/common/data/classes.ts';
@@ -326,14 +324,15 @@ try {
     check('server stores hard AI', fieldWin.state.aiDifficulty === 'hard', fieldWin.state.aiDifficulty);
     const hardEnemies = fieldWin.state.units.filter(unit => unit.side === 'enemy');
     check('hard field enemy count and map match the plan', hardEnemies.length === hardPlan.enemyCount && JSON.stringify(fieldWin.state.map.tiles) === JSON.stringify(hardPreview.encounter.map.tiles), `${hardPlan.name}, ${hardEnemies.length} enemies`);
-    const normalEnemyLevel = Math.min(QUEST_LEVEL_CAP.standard, enemyLevel(hardDeparture.day, regionById(2).offset));
+    const selected = hardDeparture.units.filter(unit => explorerTeam.includes(unit.id));
+    const normalEnemyLevel = Math.floor(selected.reduce((sum, unit) => sum + unit.level, 0) / selected.length);
     const hardMobs = hardEnemies.filter(unit => !unit.boss);
     const fieldBoss = hardEnemies.find(unit => unit.boss);
     check('the field commander has the highest level', fieldBoss && hardMobs.every(unit =>
-      fieldBoss.level > unit.level), 'commander level bonus survives hard generation');
+      fieldBoss.level >= unit.level), 'commander level bonus survives hard generation');
     check('hard enemy levels include the commander bonus and configured hard range', hardEnemies.every(unit =>
-      unit.level >= Math.min(99, normalEnemyLevel + (unit.boss ? 4 : 0) + HARD_ENEMY_RULES.levelMin)
-      && unit.level <= Math.min(99, normalEnemyLevel + (unit.boss ? 4 : 0) + HARD_ENEMY_RULES.levelMax)), `normal level ${normalEnemyLevel}, hard levels ${hardEnemies.map(unit => unit.level).join(', ')}`);
+      unit.level >= Math.min(99, Math.max(1, normalEnemyLevel + (unit.boss ? 4 : -1)) + HARD_ENEMY_RULES.levelMin)
+      && unit.level <= Math.min(99, normalEnemyLevel + (unit.boss ? 4 : 1) + HARD_ENEMY_RULES.levelMax)), `party baseline ${normalEnemyLevel}, hard levels ${hardEnemies.map(unit => unit.level).join(', ')}`);
     check('UI-started hard enemies boost every stat within capped random ranges', hardEnemies.every(unit => {
       const base = enemyStats(unit.classId, unit.level, unit.boss);
       return unit.hp === unit.stats.hp && unit.con >= 9 && unit.con <= 11 && STAT_KEYS.every(key => {
@@ -344,15 +343,17 @@ try {
           && unit.stats[key] <= Math.min(cap, base[key] + Math.max(1, Math.ceil(base[key] * max / 100)));
       });
     }), `${hardEnemies.length} enemies checked at their actual increased levels`);
-    check('hard enemies retain original gear and carry better usable equipment', hardEnemies.every(unit => {
-      const originals = templateFor(unit.classId).weapons.map(id => weaponSeriesTier(id)
-        ? WEAPON_SERIES[WEAPONS[id].type][Math.min(5, materialTier(normalEnemyLevel + (unit.boss ? 4 : 0))) - 1] : id);
-      return originals.every(id => unit.weapons.includes(id)) && unit.weapons.some(id =>
-        !originals.includes(id) && canWield(unit, id) && originals.some(old =>
-          WEAPONS[old].type === WEAPONS[id].type && (WEAPONS[id].might > WEAPONS[old].might
-            || (WEAPONS[id].heal === 'full' && WEAPONS[old].heal !== 'full')
-            || (WEAPONS[id].magRange && !WEAPONS[old].magRange))));
-    }), 'original options retained with a stronger legal weapon');
+    check('hard enemies retain original gear and carry better usable equipment', hardEnemies.every(unit =>
+      (unit.boss ? [4] : [-1, 0, 1]).some(offset => {
+        const level = Math.max(1, Math.min(99, normalEnemyLevel + offset));
+        const originals = templateFor(unit.classId).weapons.map(id => weaponSeriesTier(id)
+          ? WEAPON_SERIES[WEAPONS[id].type][Math.min(5, materialTier(level)) - 1] : id);
+        return originals.every(id => unit.weapons.includes(id)) && unit.weapons.some(id =>
+          !originals.includes(id) && canWield(unit, id) && originals.some(old =>
+            WEAPONS[old].type === WEAPONS[id].type && (WEAPONS[id].might > WEAPONS[old].might
+              || (WEAPONS[id].heal === 'full' && WEAPONS[old].heal !== 'full')
+              || (WEAPONS[id].magRange && !WEAPONS[old].magRange))));
+      })), 'original options retained with a stronger legal weapon');
     await page.reload('.hud');
     const reloadedField = await api(page, 50, { full: true });
     check('hard AI survives reload', await page.evaluate(`document.querySelector('.hud').innerText.includes('战斗难度：困难') && !document.querySelector('input[value="hard"]')`) && reloadedField.state.aiDifficulty === 'hard', 'locked hard restored');

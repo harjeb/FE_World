@@ -20,9 +20,9 @@ function setup(): Context {
   return { store, accountId, player: syncPlayer(store, player), agentModel: null, push: () => {} };
 }
 
-test('plans vary limits/layouts by seed, with fixed full deployment slots and enemy counts', () => {
+test('plans keep slots, counts and same-average enemies stable across deployment sizes', () => {
   const ctx = setup();
-  const roster = ctx.store.units(ctx.player.id).filter(u => u.status === 'active');
+  const roster = ctx.store.units(ctx.player.id).filter(u => u.status === 'active').map(unit => ({ ...unit, level: 10 }));
   const layouts = new Set<string>(), limits = new Set<number>();
   for (let i = 0; i < 30; i++) {
     // 中后期（无人数限制）抽签验证三种布局与原上限 4／6／8 仍会出现；
@@ -81,20 +81,53 @@ test('early balancing scales party caps and enemy counts, and converges to conce
   assert.deepEqual(fieldEncounter('fixed', chapterOpenDay(3) + 1, 5, 'normal', 'field', 12), fieldEncounter('fixed', chapterOpenDay(3) + 1, 5, 'normal', 'field', 12), 'fixed seed stays stable');
 });
 
+for (const aiDifficulty of ['normal', 'hard'] as const) {
+  test(`field/${aiDifficulty}: preview and departure support levels above 50 and default deployment`, () => {
+    const ctx = setup();
+    ctx.player.flags.hardUnlocks = { regions: [1], dungeons: [], quests: [] };
+    ctx.store.savePlayer(ctx.player);
+    for (const unit of ctx.store.units(ctx.player.id)) {
+      unit.level = 85;
+      ctx.store.saveUnit(unit, ctx.player.id);
+    }
+    const data = { action: 'sortie', region: 1, aiDifficulty };
+    const quote = dispatch(ctx, OP.PREVIEW_ACTION, { ...data, unitIds: ['u_erin'], level: 1 }) as any;
+    const extra = aiDifficulty === 'hard' ? [2, 5] : [0, 0];
+    for (const enemy of quote.encounter.enemies) {
+      assert.ok(enemy.level >= (enemy.id === 'e0' ? 89 : 84) + extra[0]);
+      assert.ok(enemy.level <= (enemy.id === 'e0' ? 89 : 86) + extra[1]);
+    }
+    const defaultQuote = dispatch(ctx, OP.PREVIEW_ACTION, data) as any;
+    const ids = ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, defaultQuote.encounter.maxUnits).map(u => u.id);
+    assert.deepEqual(defaultQuote.encounter, (dispatch(ctx, OP.PREVIEW_ACTION, { ...data, unitIds: ids }) as any).encounter);
+    const result = dispatch(ctx, OP.EXECUTE_ACTION, { quoteId: quote.quoteId }) as any;
+    const battle = ctx.store.battle(ctx.player.id, result.battleId)!;
+    assert.deepEqual(battle.initial.units.filter(u => u.side === 'enemy').map(({ id, name, classId, level, hp, stats, pos, weapons }) =>
+      ({ id, name, classId, level, hp, stats, pos, weapons })), quote.encounter.enemies);
+  });
+}
+
 for (const action of ['sortie', 'dungeon'] as const) {
   for (const aiDifficulty of ['normal', 'hard'] as const) {
-  test(`${action}/${aiDifficulty}: preview is stable across teams and matches actual enemies, seasonal map, slots and costs`, () => {
+  test(`${action}/${aiDifficulty}: preview tracks the selected team and matches actual enemies, seasonal map, slots and costs`, () => {
     const ctx = setup();
     ctx.player.day = 375;
     ctx.player.flags.hardUnlocks = { regions: [1], dungeons: [1], quests: [] };
     ctx.store.savePlayer(ctx.player);
+    for (const unit of ctx.store.units(ctx.player.id)) {
+      unit.level = unit.id === 'u_erin' ? 10 : 30;
+      ctx.store.saveUnit(unit, ctx.player.id);
+    }
     const before = ctx.player.day;
     const unchanged = { player: ctx.store.getPlayer(ctx.player.id), units: ctx.store.units(ctx.player.id) };
     const preview = (unitIds: string[]) => dispatch(ctx, OP.PREVIEW_ACTION, { action, region: 1, unitIds, aiDifficulty, seed: 'client-must-not-control-enemies' }) as any;
     const first = preview(['u_erin']);
     const ids = ctx.store.units(ctx.player.id).filter(u => u.status === 'active').slice(0, first.encounter.maxUnits).map(u => u.id).reverse();
     const quote = preview(ids);
-    assert.deepEqual(first.encounter, quote.encounter);
+    assert.deepEqual({ ...first.encounter, enemies: quote.encounter.enemies }, quote.encounter, 'changing average never rerolls the map or count');
+    if (action === 'sortie') assert.notDeepEqual(first.encounter.enemies, quote.encounter.enemies, 'changing the selected average updates enemy levels');
+    else assert.deepEqual(first.encounter.enemies, quote.encounter.enemies, 'dungeon levels remain date-based');
+    assert.deepEqual(quote.encounter, preview([...ids].reverse()).encounter, 'same members in a different order do not reroll enemies');
     assert.deepEqual(quote.encounter, preview(ids).encounter);
     assert.equal(ctx.player.day, before);
     assert.deepEqual({ player: ctx.store.getPlayer(ctx.player.id), units: ctx.store.units(ctx.player.id) }, unchanged);

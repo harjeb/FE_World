@@ -108,7 +108,7 @@ export const REGIONS: RegionDef[] = [
   { id: 12, name: '赛勒斯汀之门', offset: 2, resource: '轮回线索' },
 ];
 
-// 各年末培养目标：前期快、后期慢；敌军按日期插值，不读取队伍等级。
+// 各年末培养目标：任务／副本等按日期插值；普通野图改按实际出战均级。
 export const ENEMY_YEAR_LEVELS = [1, 20, 35, 47, 57, 66, 74, 81, 87] as const;
 export function enemyLevel(day: number, offset = 0): number {
   const elapsed = Math.max(0, day) / DAYS_PER_YEAR;

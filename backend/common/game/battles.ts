@@ -98,7 +98,7 @@ export interface FieldBattleOptions {
   seed: string;
   width?: number;
   height?: number;
-  // 省略时按出发日期计算；连续副本三张图共用出发时的等级。
+  // 任务／副本等级覆盖，省略时按日期；普通野图始终取实际出战均级向下取整。
   level?: number;
   // 连续副本的图号与跨图携带状态（HP、物品、武器）。
   stageIndex?: number;
@@ -114,7 +114,7 @@ export interface FieldBattleOptions {
 
 
 
-// A random encounter: level locked from the departure date before the fight.
+// A random encounter: field levels follow the deployed team; dungeon entry levels stay locked.
 // 连续副本复用同一函数，只是等级、图名和跨图携带不同（docs/00 §8.1.3）。
 export function encounterMap(encounter: FieldEncounter, day: number, stage = 0) {
   const map = generateMap({ seed: `${encounter.seed}:map:${stage}`, width: encounter.width, height: encounter.height,
@@ -126,9 +126,7 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   const region = regionById(options.region);
   const dungeon = options.stageIndex !== undefined;
   const stage = options.stageIndex ?? 0;
-  const cap = options.quest?.enemyLevelCap ?? QUEST_LEVEL_CAP[options.quest?.tier ?? 'standard'];
-  const base = Math.min(cap, options.level ?? enemyLevel(options.day ?? 0, region.offset));
-  const level = dungeon ? Math.min(cap, base + stage * 2) : base;
+  const fieldBoss = !dungeon && !options.quest;
   const themes: Theme[] = [REGION_THEMES[(options.region - 1) % REGION_THEMES.length]];
   if (!dungeon && !options.quest && options.region === 4) themes.push('riverlands');
   if (!dungeon && !options.quest && options.region === 5) themes.push('lakeland');
@@ -138,6 +136,11 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   if (!units.length || units.length > maxUnits || new Set(units.map(u => u.id)).size !== units.length) throw new Error(`Invalid deployment (maximum ${maxUnits})`);
   const count = units.length;
   const quest = options.quest;
+  const cap = fieldBoss ? 99 : quest?.enemyLevelCap ?? QUEST_LEVEL_CAP[quest?.tier ?? 'standard'];
+  const sourceLevel = fieldBoss ? Math.floor(units.reduce((sum, unit) => sum + unit.level, 0) / count)
+    : options.level ?? enemyLevel(options.day ?? 0, region.offset);
+  const base = Math.max(1, Math.min(cap, sourceLevel));
+  const level = dungeon ? Math.min(cap, base + stage * 2) : base;
   // 护卫任务多留一个己方出生点给被护送者（unitsPerSide 封顶 8）。
   const map = encounter ? encounterMap(encounter, options.day ?? 0, stage) : generateMap({
     seed: `${options.seed}:map:${stage}`, width: options.width ?? 20, height: options.height ?? 20,
@@ -149,10 +152,9 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     if (carry) Object.assign(extra, structuredClone(carry), { hp: Math.max(1, carry.hp) });
     return toBattleUnit(u, 'player', u.id, map.spawns.player[i], extra);
   });
-  // Encounter enemies are fixed for the departure day; combat/growth RNG stays server-random.
+  // Same team and encounter fix enemies; reordering never rerolls their level offsets.
   const enemySeed = encounter?.seed ?? options.seed;
   const classes = pickClasses(`${enemySeed}:foes:${stage}`, encounter ? map.spawns.enemy.length : count, ENEMY_CLASSES.filter(id => enemyClassForLevel(id, level) === id));
-  const fieldBoss = !dungeon && !quest;
   const bossLevel = Math.min(99, level + 4);
   let bossClass = classes[0];
   if (fieldBoss) {
@@ -162,10 +164,15 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
   }
   const vision = options.aiDifficulty === 'hard' ? ENEMY_VISION.hard : ENEMY_VISION.normal;
   const enemyIdentity = battleEnemyIdentity({ quest, region: options.region });
-  const enemySpecs: EnemySpec[] = classes.map((classId, i) => ({
-    aiDifficulty: options.aiDifficulty, seed: `${enemySeed}:foes:${stage}`, classId, level, pos: map.spawns.enemy[i], boss: i === 0, levelRanks: fieldBoss, vision,
-    name: enemyIdentityName(enemyIdentity, { classId, boss: i === 0, behavior: defaultBehavior(classId) }),
-  }));
+  const enemySpecs: EnemySpec[] = classes.map((classId, i) => {
+    const mobLevel = fieldBoss ? Math.max(1, Math.min(cap, level + nextU32(seedRng(`${enemySeed}:levels:${i}`)) % 3 - 1)) : level;
+    const mobClass = fieldBoss ? enemyClassForLevel(classId, mobLevel) : classId;
+    return {
+      aiDifficulty: options.aiDifficulty, seed: `${enemySeed}:foes:${stage}`, classId: mobClass, level: mobLevel,
+      pos: map.spawns.enemy[i], boss: i === 0, levelRanks: fieldBoss, vision,
+      name: enemyIdentityName(enemyIdentity, { classId: mobClass, boss: i === 0, behavior: defaultBehavior(mobClass) }),
+    };
+  });
   // Reserves use the ordinary class/level, including legacy one-enemy encounters.
   const enemies = enemySpecs.map((spec, i) => createEnemy(`e${i}`, fieldBoss && i === 0 ? { ...spec, classId: bossClass, level: bossLevel, highGrowth: true } : spec));
   const tiles = map.tiles;

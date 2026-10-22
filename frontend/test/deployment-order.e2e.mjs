@@ -125,6 +125,16 @@ try {
   await until(async () => (await order()).length >= 3, 'deployment portraits missing');
   const original = await order();
   await checkPreview(true);
+  const initialPreview = await api(38, { action: 'sortie', region: 2, unitIds: original });
+  const toggleMember = id => evaluate(`(() => { const row=Array.from(document.querySelectorAll('.team li')).find(row=>row.querySelector('input') && row.innerText.includes(${JSON.stringify(before.units.find(unit => unit.id === id).name)})); row.querySelector('input').click(); })()`);
+  for (const id of original.slice(1)) await toggleMember(id);
+  await until(async () => (await order()).length === 1 && await evaluate(`!!document.querySelector('.prep-go .btn-primary:not(:disabled)')`), 'solo quote missing');
+  const soloPreview = await api(38, { action: 'sortie', region: 2, unitIds: original.slice(0, 1) });
+  assert.notDeepEqual(soloPreview.encounter.enemies.map(unit => unit.level), initialPreview.encounter.enemies.map(unit => unit.level), 'changing the selected average refreshes field levels');
+  assert.deepEqual(soloPreview.encounter.map, initialPreview.encounter.map, 'team changes never reroll the map');
+  assert.ok(await evaluate(`document.querySelector('.prep-go .facts').innerText.includes('主将 Lv ${soloPreview.encounter.enemies.find(unit => unit.id === 'e0').level}')`), 'preparation displays the current quote, not a date level');
+  for (const id of original.slice(1)) await toggleMember(id);
+  await until(async () => JSON.stringify(await order()) === JSON.stringify(original) && await evaluate(`!!document.querySelector('.prep-go .btn-primary:not(:disabled)')`), 'team quote did not restore');
   assert.ok(await evaluate(`(()=>{const cards=Array.from(document.querySelectorAll('.deployment-list > li'));return cards.every(card=>Math.abs(card.getBoundingClientRect().top-cards[0].getBoundingClientRect().top)<2)})()`), 'desktop portraits form one horizontal row');
   await dragMouse(original.length - 1, 0);
   const desktop = [original.at(-1), ...original.slice(0, -1)];
@@ -194,7 +204,9 @@ try {
   await evaluate(`location.hash='#/field?region=2'`);
   await until(async () => {
     const field = await order();
-    return field.length > 0 && await evaluate(`!!document.querySelector('#tm-h')`) && JSON.stringify(field) === JSON.stringify(finalOrder.slice(0, field.length));
+    // A larger field deployment appends available units after the saved dungeon order.
+    return field.length > 0 && await evaluate(`!!document.querySelector('#tm-h')`)
+      && JSON.stringify(field.slice(0, finalOrder.length)) === JSON.stringify(finalOrder.slice(0, field.length));
   }, 'field did not inherit the dungeon order');
   const fieldOrder = await order();
   await until(() => evaluate(`!!document.querySelector('.prep-go .btn-primary:not(:disabled)')`), 'reordered departure quote was not ready');
@@ -212,10 +224,13 @@ try {
       pos: enemy.pos, levelRanks: true, boss: enemy.boss }).ranks,
     'field proficiency follows each enemy level, with the boss one rank ahead');
   const deployed = battle.state.units.filter(unit => unit.side === 'player');
+  const baseline = Math.floor(deployed.reduce((sum, unit) => sum + unit.level, 0) / deployed.length);
+  assert.equal(enemyBoss.level, Math.min(99, baseline + 4));
+  assert.ok(enemies.filter(unit => !unit.boss).every(unit => unit.level >= Math.max(1, baseline - 1) && unit.level <= Math.min(99, baseline + 1)), 'deployed mobs use the selected average with -1/+1 variation');
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');
   assert.deepEqual(errors, []);
-  console.log('PASS: deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; player commander and stronger field boss');
+  console.log('PASS: deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; player commander, dynamic field levels and stronger field boss');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ id: 1000000000, method: 'Browser.close' })); await sleep(200);

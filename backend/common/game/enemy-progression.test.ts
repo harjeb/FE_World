@@ -10,7 +10,7 @@ import { canEnter } from '../maps/map.ts';
 import { createUnit } from './model.ts';
 import type { BattleEvent } from '../engine/types.ts';
 
-const party = () => Array.from({ length: 3 }, (_, i) => createUnit('erin', 1, `u${i}`, 0));
+const party = (level = 1) => Array.from({ length: 3 }, (_, i) => createUnit('erin', level, `u${i}`, 0));
 const stageAt = (level: number) => level >= 81 ? 5 : level >= 66 ? 4 : level >= 47 ? 3 : level >= 20 ? 2 : 1;
 
 test('every class respects each stage boundary without replacing already eligible classes', () => {
@@ -22,10 +22,10 @@ test('every class respects each stage boundary without replacing already eligibl
   }
 });
 
-test('new field, dungeon and annual enemies progress from low classes with the date-level curve', () => {
+test('field party levels and dungeon/annual date levels select eligible enemy classes', () => {
   for (const level of [1, 19, 20, 46, 47, 65, 66, 80, 81, 95]) {
     for (const aiDifficulty of ['normal', 'hard'] as const) {
-      const field = createFieldBattle(party(), { region: 1, cleared: 0, level, seed: `progress-${level}`, aiDifficulty });
+      const field = createFieldBattle(party(level), { region: 1, cleared: 0, seed: `progress-${level}`, aiDifficulty });
       const dungeon = createFieldBattle(party(), { region: 1, cleared: 0, level, stageIndex: 2, seed: `dungeon-${level}`, aiDifficulty });
       const annual = createFestivalBattle(party(), 1, `annual-${level}`, { day: (level - 1) * 80 });
       for (const battle of [field, dungeon, annual]) for (const enemy of battle.state.units.filter(u => u.side === 'enemy')) {

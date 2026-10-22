@@ -2,6 +2,9 @@
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
 export const RULESET_VERSION = 'rules-v26';
+// v66: new ordinary field levels follow the floored deployment average, with seeded mob offsets -1..+1.
+// Remove the field-only level-50 cap; commanders use average +4 and existing high growth/ranks.
+// Only the global level-99 limit remains. Other modes, loot and saved battles are unchanged.
 // v65: new ordinary field enemies use level-based weapon ranks (E at Lv1, +1 every 12 levels).
 // Commanders earn one extra rank; final hard levels, class caps and carried-weapon requirements apply.
 // Template rank caps no longer become starting ranks. Other modes and frozen battles are unchanged.
@@ -171,7 +174,7 @@ export const RULESET_VERSION = 'rules-v26';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 65;
+export const CATALOG_VERSION = 66;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

@@ -1,5 +1,5 @@
 {
-  "docVersion": 47,
+  "docVersion": 48,
   "frames": {
     "request": "{ op: number, seq: number, data?: object }",
     "response": "{ op: number, seq: number, ok: boolean, data?: object, error?: { code, message, action } }",
@@ -246,7 +246,7 @@
             "minItems": 1,
             "maxItems": 8,
             "uniqueItems": true,
-            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. For dungeons this limit accounts for every stage, including the classic finale. Omission chooses available units up to that limit; excess or duplicate IDs are rejected."
+            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. For dungeons this limit accounts for every stage, including the classic finale. Omission chooses available units up to that limit; excess or duplicate IDs are rejected. Random-field enemy levels use the deployment average rounded down (mobs -1/0/+1, commander +4, then hard bonuses; global level cap 99); changing the average updates the preview, not its map or enemy count."
           },
           "commandId": {
             "type": "string",
@@ -1378,7 +1378,7 @@
             "minItems": 1,
             "maxItems": 8,
             "uniqueItems": true,
-            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. For dungeons this limit accounts for every stage, including the classic finale. Omission chooses available units up to that limit; excess or duplicate IDs are rejected."
+            "description": "Ordered, distinct available roster IDs; the first is commander and index i uses map.spawns.player[i]. The current map/difficulty may allow fewer than eight: read GET_TODAY sortieRegions.encounters/dungeonEncounters and PREVIEW_ACTION.encounter.maxUnits. For dungeons this limit accounts for every stage, including the classic finale. Omission chooses available units up to that limit; excess or duplicate IDs are rejected. Random-field enemy levels use the deployment average rounded down (mobs -1/0/+1, commander +4, then hard bonuses; global level cap 99); changing the average updates the preview, not its map or enemy count."
           },
           "aiDifficulty": {
             "type": "string",

@@ -121,7 +121,12 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
   const exploration = state.world.nodes.find(node => node.id === target.id);
   const cleared = today.sortieRegions.filter(r => r.cleared).length;
   const top = Math.max(0, ...picked.map(u => u.level));
-  const avg = picked.length > 0 ? Math.round(picked.reduce((sum, u) => sum + u.level, 0) / picked.length) : 0;
+  const avg = picked.length > 0 ? Math.floor(picked.reduce((sum, u) => sum + u.level, 0) / picked.length) : 0;
+  const enemies = quote?.encounter?.enemies ?? [];
+  const mobs = enemies.filter(unit => unit.id !== 'e0');
+  const boss = enemies.find(unit => unit.id === 'e0');
+  const enemyTop = Math.max(0, ...enemies.map(unit => unit.level));
+  const mobLevels = mobs.length ? `${Math.min(...mobs.map(unit => unit.level))}–${Math.max(...mobs.map(unit => unit.level))}` : '—';
   const lead = active.find(u => u.isProtagonist);
   const to = advance(today.day, sortie.costDays);
   const toggle = (id: string) => setTeam(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : selectedIds.length < max ? [...selectedIds, id] : selectedIds);
@@ -147,7 +152,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
               {today.sortieRegions.map(r => (
                 <button key={r.id} type="button" role="radio" aria-checked={r.id === target.id} className="rg" disabled={busy} onClick={() => { setRegionId(r.id); setAiDifficulty('normal'); }}>
                   <span className="rg-n">{r.name}</span>
-                  <span className="rg-l">敌 Lv {r.level}</span>
+                  <span className="rg-l">随出战均级</span>
                   <span className="rg-r">{r.resource}</span>
                   <span className={`tag ${r.cleared ? 'tag-green' : 'tag-grey'}`}>{r.cleared ? '已讨伐' : '未讨伐'}</span>
                 </button>
@@ -179,8 +184,8 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
           <dl className="facts">
             <dt>胜利条件</dt><dd>{sortie.goalText ?? '击败敌方主将'} · 回合上限 {sortie.turnLimit ?? '—'}</dd>
             <dt>敌方等级</dt>
-            <dd className={picked.length > 0 && target.level > top ? 'risk' : undefined}>
-              {target.name} 敌 Lv {target.level}；我方最高 Lv {top}、平均 Lv {avg}{picked.length > 0 && target.level > top ? `，敌方高出 ${target.level - top} 级` : ''}
+            <dd className={picked.length > 0 && enemyTop > top ? 'risk' : undefined}>
+              小怪 Lv {mobLevels}；主将 Lv {boss?.level ?? '—'}；我方最高 Lv {top}、平均取整 Lv {avg}
             </dd>
             <dt>日期</dt><dd>{sortie.costDays} 日 → {to.label}{to.passes ? `；${to.passes}` : ''}</dd>
             {sortie.lethal && <><dt>阵亡</dt><dd className="risk">倒下的角色永久死亡，撤退只能保住还活着的人{lead ? `（主角${lead.name}倒下只撤退，不会死亡）` : ''}。</dd></>}

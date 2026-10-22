@@ -147,7 +147,7 @@ test('dungeon exploration is first-clear only per region, independent of field c
   }
 });
 
-test('a cleared region uses departure date rather than its historical first-clear level', () => {
+test('a cleared field uses the selected party average rather than date or historical first-clear level', () => {
   const { store, accountId, player } = setup();
   const ctx = ctxFor(store, accountId, player);
   // Pretend region 3 was first cleared at level 20.
@@ -155,14 +155,15 @@ test('a cleared region uses departure date rather than its historical first-clea
   player.flags.firstClearLevel = { 3: 20 };
   player.day = 240;
   store.savePlayer(player);
-  const preview = dispatch(ctx, OP.GET_TODAY, {}) as { sortieRegions: { id: number; level: number }[] };
+  const preview = dispatch(ctx, OP.PREVIEW_ACTION, { action: 'sortie', region: 3, unitIds: ['u_erin', 'u_victor'] }) as { encounter: { enemies: { id: string; level: number }[] } };
+  const base = Math.floor(['u_erin', 'u_victor'].reduce((sum, id) => sum + store.unit(player.id, id)!.level, 0) / 2);
   const sortie = dispatch(ctx, OP.SORTIE, { region: 3, unitIds: ['u_erin', 'u_victor'] }) as { battleId: string };
   const battle = store.battle(player.id, sortie.battleId)!;
   const enemy = battle.state.units.find(u => u.side === 'enemy' && !u.boss)!;
   const boss = battle.state.units.find(u => u.side === 'enemy' && u.boss)!;
-  assert.equal(enemy.level, 11, 'day 240 base 10 plus region offset 1');
-  assert.equal(boss.level, 15, 'commander is four levels above the date-level baseline');
-  assert.equal(preview.sortieRegions.find(r => r.id === 3)!.level, enemy.level);
+  assert.ok(enemy.level >= base - 1 && enemy.level <= base + 1);
+  assert.equal(boss.level, base + 4, 'commander is four levels above the party baseline');
+  assert.equal(preview.encounter.enemies.find(u => u.id === enemy.id)!.level, enemy.level);
 });
 
 test('a second dungeon cannot start while one is active', () => {
