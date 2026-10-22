@@ -127,8 +127,8 @@ export function assertMap(value: unknown): asserts value is BattleMap {
   const occupied = new Set<number>();
   for (const side of ['player', 'enemy'] as const) {
     const points = map.spawns[side];
-    if (!Array.isArray(points) || points.length < 1 || points.length > (side === 'player' ? 8 : 16)) {
-      throw new Error('玩家必须有 1–8 个出生点，敌方必须有 1–16 个出生点');
+    if (!Array.isArray(points) || points.length < 1 || points.length > (side === 'player' ? 8 : 64)) {
+      throw new Error('玩家必须有 1–8 个出生点，敌方必须有 1–64 个出生点');
     }
     for (const point of points) {
       assertPoint(point, map.width, map.height);

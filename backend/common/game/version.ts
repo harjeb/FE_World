@@ -1,7 +1,10 @@
 // Frozen rule/catalog identifiers for battles, activities, snapshots and replays.
 // Bump these only with a migration note; old replays are never silently re-simulated under new rules.
 export const ENGINE_VERSION = 1;
-export const RULESET_VERSION = 'rules-v27';
+export const RULESET_VERSION = 'rules-v28';
+// v68 / rules-v28: ordinary field armies scale from 6–10 to dozens with chapter/deployment caps.
+// Frozen timed waves use encounter seeds, field mob ranks/vision and advance warnings, without double hard scaling.
+// New maps support 64 enemy slots; <=16 map output, other modes and saved encounters remain unchanged.
 // v67 / rules-v27: boss kill bonuses drop from 40 to 20 and survive level-gap reduction.
 // Overlevelled boss kills grant 1+20; ordinary foes, non-kills and the 100 EXP cap are unchanged.
 // Finish active battles/runs before deployment; old replays stay frozen, never re-simulated.
@@ -177,7 +180,7 @@ export const RULESET_VERSION = 'rules-v27';
 // old_map (unsellable, warehouse-only; quests may require holding it). clx-fe7's first map gains a
 // secret room whose three chests roll gear one rank above the best purchasable rank at battle creation.
 // Existing battles keep their frozen objects; no saves are migrated.
-export const CATALOG_VERSION = 67;
+export const CATALOG_VERSION = 68;
 export const REPLAY_COMPATIBLE_ENGINES = [1] as const;
 
 export interface VersionedBattle {

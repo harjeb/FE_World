@@ -54,13 +54,15 @@ test('plans keep slots, counts and same-average enemies stable across deployment
   assert.deepEqual([...late].sort((a, b) => a - b), [4, 6, 8]);
 });
 
-test('early balancing scales party caps and enemy counts, and converges to concentrated spawns', () => {
-  // 前期：可出战 3 人时上限与敌军都压到 3–5；首战（第 1 场）绝不分散。
+test('early field armies have six to ten enemies before hard scaling and keep concentrated spawns', () => {
+  // 少带人不减怪，前期仍保留三人队可用的集中出生布局。
   for (let i = 0; i < 30; i++) {
     for (const difficulty of ['normal', 'hard'] as const) {
       const early = fieldEncounter(String(i), 0, 1, difficulty, 'field', 3);
       assert.equal(early.maxUnits, 3, `availableUnits caps the plan: ${i}`);
-      assert.ok(early.enemyCount >= 3 && early.enemyCount <= 5, `${i}: ${early.enemyCount}`);
+      const normal = fieldEncounter(String(i), 0, 1, 'normal', 'field', 3);
+      assert.ok(normal.enemyCount >= 6 && normal.enemyCount <= 10, `${i}: ${normal.enemyCount}`);
+      assert.equal(early.enemyCount, difficulty === 'hard' ? normal.enemyCount + Math.ceil(normal.enemyCount / 2) : normal.enemyCount);
     }
   }
   // 前期可出战 < 8：分散布局退回集中出生的交错遭遇，且同一未花费日内固定。
@@ -82,8 +84,9 @@ test('early balancing scales party caps and enemy counts, and converges to conce
 });
 
 for (const aiDifficulty of ['normal', 'hard'] as const) {
-  test(`field/${aiDifficulty}: preview and departure support levels above 50 and default deployment`, () => {
+  test(`field/${aiDifficulty}: late preview and departure freeze large armies, waves, levels and default deployment`, () => {
     const ctx = setup();
+    ctx.player.day = chapterOpenDay(8);
     ctx.player.flags.hardUnlocks = { regions: [1], dungeons: [], quests: [] };
     ctx.store.savePlayer(ctx.player);
     for (const unit of ctx.store.units(ctx.player.id)) {
@@ -102,6 +105,11 @@ for (const aiDifficulty of ['normal', 'hard'] as const) {
     assert.deepEqual(defaultQuote.encounter, (dispatch(ctx, OP.PREVIEW_ACTION, { ...data, unitIds: ids }) as any).encounter);
     const result = dispatch(ctx, OP.EXECUTE_ACTION, { quoteId: quote.quoteId }) as any;
     const battle = ctx.store.battle(ctx.player.id, result.battleId)!;
+    assert.ok(quote.encounter.enemyCount >= 20);
+    assert.equal(quote.encounter.reinforcements.length, 3);
+    assert.deepEqual(battle.initial.encounter?.reinforcements, quote.encounter.reinforcements);
+    assert.equal(battle.initial.turnLimit, quote.encounter.turnLimit);
+    assert.equal(battle.initial.scenario?.events.filter(e => e.actions.some(a => a.kind === 'spawn')).length, 3);
     assert.deepEqual(battle.initial.units.filter(u => u.side === 'enemy').map(({ id, name, classId, level, hp, stats, pos, weapons }) =>
       ({ id, name, classId, level, hp, stats, pos, weapons })), quote.encounter.enemies);
   });

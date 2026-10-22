@@ -164,7 +164,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
           <section className="panel" aria-labelledby="tm-h">
             <div className="ph">
               <h2 id="tm-h">出战队伍 <span style={{ fontWeight: 500, color: '#6A6256' }}>{picked.length} / {max}</span></h2>
-              <span style={{ fontSize: 12, color: '#6A6256' }}>本图最多 {max} 人 · 敌军 {plan?.enemyCount ?? '—'} 人</span>
+              <span style={{ fontSize: 12, color: '#6A6256' }}>本图最多 {max} 人 · 初始敌军 {plan?.enemyCount ?? '—'} 人{plan?.reinforcements?.length ? ` · 援军 ${plan.reinforcements.reduce((sum, wave) => sum + wave.count, 0)} 人` : ''}</span>
             </div>
             <ul className="team" aria-label="现役单位">
               {active.map(u => {
@@ -182,7 +182,7 @@ export function SortiePrep({ busy, error, onStart }: { busy: boolean; error: str
 
         <section className="panel prep-go" aria-label="确认出征">
           <dl className="facts">
-            <dt>胜利条件</dt><dd>{sortie.goalText ?? '击败敌方主将'} · 回合上限 {sortie.turnLimit ?? '—'}</dd>
+            <dt>胜利条件</dt><dd>{sortie.goalText ?? '击败敌方主将'} · 回合上限 {plan?.turnLimit ?? sortie.turnLimit ?? '—'}</dd>
             <dt>敌方等级</dt>
             <dd className={picked.length > 0 && enemyTop > top ? 'risk' : undefined}>
               小怪 Lv {mobLevels}；主将 Lv {boss?.level ?? '—'}；我方最高 Lv {top}、平均取整 Lv {avg}

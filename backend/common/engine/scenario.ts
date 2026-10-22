@@ -1,4 +1,5 @@
 import { conditionMet } from './conditions.ts';
+import { ENEMY_VISION } from './ai.ts';
 import { createEnemy, enemyClassForLevel, type EnemySpec } from '../game/enemies.ts';
 import { enemyIdentityName } from '../game/enemy-identities.ts';
 import { CLASSES } from '../data/classes.ts';
@@ -186,6 +187,7 @@ function nearestTargets(state: BattleState, side: 'player' | 'enemy', from: Poin
 function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioAction, events: BattleEvent[]): void {
   if (action.kind === 'spawn') {
     const leader = living(state, 'enemy')[0];
+    const fieldWave = state.scenario?.id === 'field-reinforcements' && state.encounter?.reinforcements !== undefined;
     const deployed: EnemySpec[] = [];
     action.units.forEach((spec, index) => {
       const level = Math.max(1, Math.min(99, (state.scenario?.baseLevel ?? 1) + spec.levelOffset));
@@ -198,8 +200,9 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
       let id = `scenario-${event.id}-${index}`;
       while (state.units.some(unit => unit.id === id)) id += '-x';
       const enemySpec: EnemySpec = {
-        aiDifficulty: state.aiDifficulty, seed: `${state.id}:${event.id}`,
+        aiDifficulty: state.aiDifficulty, seed: `${fieldWave ? state.encounter!.seed : state.id}:${event.id}`,
         classId, level,
+        ...(fieldWave ? { levelRanks: true, vision: ENEMY_VISION[state.aiDifficulty ?? 'normal'] } : {}),
         pos, boss: spec.boss, behavior: spec.behavior,
         thiefTrigger: spec.thiefTrigger, thiefApproach: spec.thiefApproach,
       };
@@ -210,7 +213,8 @@ function applyAction(state: BattleState, event: ScenarioEvent, action: ScenarioA
       events.push({ t: 'spawn', unit: id, event: event.id, spawned: structuredClone(enemy) });
       breakIce(state, enemy, [pos], events);
     });
-    for (const enemy of addEnemyReserves(state, deployed)) {
+    // Field wave counts already include the difficulty multiplier in the frozen encounter.
+    for (const enemy of fieldWave ? [] : addEnemyReserves(state, deployed)) {
       events.push({ t: 'spawn', unit: enemy.id, event: event.id, spawned: structuredClone(enemy) });
       breakIce(state, enemy, [enemy.pos], events);
     }

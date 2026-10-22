@@ -44,12 +44,37 @@ export function generateMap(options: GenerateOptions): BattleMap {
   }
   if (typeof theme !== 'string' || !Object.hasOwn(THEMES, theme)) throw new Error('未知地图主题');
   const enemyCount = options.enemyCount ?? unitsPerSide;
-  if (!Number.isInteger(enemyCount) || enemyCount < 1 || enemyCount > 16) throw new Error('enemyCount 必须是 1–16 的整数');
+  if (!Number.isInteger(enemyCount) || enemyCount < 1 || enemyCount > 64) throw new Error('enemyCount 必须是 1–64 的整数');
   if (options.layout !== undefined && !Object.hasOwn(LAYOUTS, options.layout)) throw new Error('未知地图布局');
   const layoutRandom = seededRandom(`${seed}:layout`);
   const layout = options.layout ?? (Object.keys(LAYOUTS) as EncounterLayout[])[Math.floor(layoutRandom() * 3)];
   const design = designLayout(layout, width, height, layoutRandom);
   const protectedWalls = new Set(design.walls.map(([x, y]) => y * width + x));
+  if (enemyCount > 16) {
+    // Reserve the complete design, independent of the requested player count.
+    const key = ([x, y]: Point) => y * width + x;
+    const reserved = new Set([...design.player, ...design.enemy, design.objective, ...design.walls].map(key));
+    const distances = new Map(design.player.map(point => [key(point), 0]));
+    const queue = [...design.player];
+    for (let i = 0; i < queue.length; i++) {
+      for (const next of neighbors(queue[i], width, height)) {
+        if (protectedWalls.has(key(next)) || distances.has(key(next))) continue;
+        distances.set(key(next), distances.get(key(queue[i]))! + 1);
+        queue.push(next);
+      }
+    }
+    const minimum = layout === 'pincer' && Math.min(width, height) >= 20 ? 8 : 4;
+    const parity = (design.enemy[0][0] + design.enemy[0][1]) % 2;
+    for (let y = 1; y < height - 1 && design.enemy.length < enemyCount; y++) {
+      for (let x = 1; x < width - 1 && design.enemy.length < enemyCount; x++) {
+        const point: Point = [x, y];
+        const distance = distances.get(key(point));
+        if ((x + y) % 2 !== parity || reserved.has(key(point)) || distance === undefined || distance < minimum) continue;
+        design.enemy.push(point);
+      }
+    }
+    if (design.enemy.length < enemyCount) throw new Error('地图空间不足，无法容纳 enemyCount');
+  }
   const random = seededRandom(seed);
   const integer = (limit: number) => Math.floor(random() * limit);
   const tiles = generateTerrain(width, height, theme, random);

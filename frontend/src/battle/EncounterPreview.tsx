@@ -38,6 +38,9 @@ export function EncounterPreview({ encounter, names }: { encounter: NonNullable<
       </div>}
     </div>
     <div className="encounter-roster">
+      {!!encounter.reinforcements?.length && <div className="pfoot" aria-label="敌方增援计划">
+        初始 {encounter.enemyCount} 人；援军 {encounter.reinforcements.map(wave => `第${wave.turn}回合 ${wave.count}人`).join('、')}。提前一回合预警，我方回合开始抵达；击败主将即可结束。
+      </div>}
       <table aria-label="敌方单位简表">
         <thead><tr><th scope="col">敌军</th><th scope="col">HP</th><th scope="col">等级</th><th scope="col">职业</th></tr></thead>
         <tbody>{enemies.map(unit => <tr key={unit.id} data-selected={enemy?.id === unit.id}>

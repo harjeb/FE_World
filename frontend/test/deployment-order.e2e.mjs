@@ -59,7 +59,7 @@ try {
     assert.ok(await evaluate(`(() => {
       const preview = document.querySelector('.encounter-preview');
       const fieldset = preview.previousElementSibling;
-      return !preview.querySelector('figcaption, .pfoot') && fieldset.tagName === 'FIELDSET'
+      return !preview.querySelector('figcaption, .pfoot:not([aria-label="敌方增援计划"])') && fieldset.tagName === 'FIELDSET'
         && fieldset.querySelectorAll('p').length === 0
         && preview.querySelectorAll('[data-enemy-id]').length === preview.querySelectorAll('tbody tr').length;
     })()`), 'only map and enemy list follow the difficulty controls');
@@ -210,9 +210,12 @@ try {
   }, 'field did not inherit the dungeon order');
   const fieldOrder = await order();
   await until(() => evaluate(`!!document.querySelector('.prep-go .btn-primary:not(:disabled)')`), 'reordered departure quote was not ready');
+  const waveText = await evaluate(`document.querySelector('[aria-label="敌方增援计划"]')?.innerText`);
   await evaluate(`document.querySelector('.prep-go .btn-primary').click()`);
   await until(() => evaluate(`!!document.querySelector('.hud')`), 'battle did not start');
   const battle = await api(50, { full: true });
+  for (const wave of battle.state.encounter.reinforcements) assert.ok(waveText.includes(`第${wave.turn}回合 ${wave.count}人`), 'the preview exposes frozen reinforcement timing and counts');
+  assert.equal(battle.state.turnLimit, battle.state.encounter.turnLimit);
   const enemies = battle.state.units.filter(unit => unit.side === 'enemy');
   const enemyBoss = enemies.find(unit => unit.boss);
   assert.ok(enemyBoss && enemies.filter(unit => !unit.boss).every(unit => enemyBoss.level > unit.level),

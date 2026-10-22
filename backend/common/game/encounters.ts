@@ -2,7 +2,7 @@ import type { AiDifficulty } from '../engine/types.ts';
 import { nextU32, seedRng } from '../engine/rng.ts';
 import type { EncounterLayout } from '../maps/layouts.ts';
 import type { Theme } from '../maps/themes.ts';
-import { chapterOpenDay } from './story.ts';
+import { chapterOpenDay, STORY_CHAPTERS } from './story.ts';
 import { HARD_ENEMY_RULES } from './enemies.ts';
 
 export interface FieldEncounter {
@@ -15,6 +15,9 @@ export interface FieldEncounter {
   height: number;
   maxUnits: number;
   enemyCount: number;
+  // Missing in saved encounters means the original 20-turn battle without timed waves.
+  turnLimit?: number;
+  reinforcements?: { turn: number; count: number }[];
 }
 
 const PLANS = [
@@ -24,8 +27,8 @@ const PLANS = [
 ] as const;
 const THEMES: Theme[] = ['grassland', 'forest', 'mountain', 'town', 'grassland', 'city', 'mountain', 'mountain', 'grassland', 'mountain', 'palace', 'palace'];
 
-// 前期敌军规模（docs/03「少带人不会减少敌军」仍指同一张图内，不含开局过渡期）：
-// 出战上限按当前可出战人数与章节压到 3–5 人；中后期（默认第 3 章起）回到各图原值。
+// Retain early deployment limits and the dungeon's original enemy scale.
+// Ordinary fields use their separate chapter-scaled army and wave plan below.
 const EARLY_MAX_UNITS = { skirmish: 4, pincer: 5, convergence: 5 } as const;
 const EARLY_ENEMY_RANGE = [3, 5] as const;
 // 分散布局需要两路／多路出生点：少于 8 人可出战时不启用；前期上限本身 < 8，
@@ -42,7 +45,7 @@ function earlyProgress(day: number, chapter?: number): number {
 
 // The same unspent day keeps the encounter fixed; combat rolls use a separate server-generated seed.
 // availableUnits is the available roster, so choosing fewer units cannot reroll a smaller army.
-// Chapter defaults to calendar progress; early encounters keep enemies within 3–5.
+// Chapter defaults to calendar progress; field armies grow independently of the selected team.
 export function fieldEncounter(playerId: string, day: number, region: number, difficulty: AiDifficulty = 'normal',
   activity: 'field' | 'dungeon' = 'field', availableUnits?: number, chapter?: number): FieldEncounter {
   const rng = seedRng(JSON.stringify(['field-encounter', playerId, day, region, activity]));
@@ -58,15 +61,33 @@ export function fieldEncounter(playerId: string, day: number, region: number, di
   const enemies = effective.enemies + (region > 4 ? 2 : 0);
   // 出战上限永不高于可出战人数；前期另压到 3–5，中后期保持各图原值。
   const maxUnits = Math.max(1, Math.min(effective[difficulty], availableUnits ?? effective[difficulty], earlyPhase ? EARLY_MAX_UNITS[effective.layout] : effective[difficulty]));
-  const baseEnemies = earlyPhase
+  let baseEnemies = earlyPhase
     ? Math.max(EARLY_ENEMY_RANGE[0], Math.min(EARLY_ENEMY_RANGE[1], (availableUnits ?? enemies) + (early - 1) + (region > 4 ? 1 : 0)))
     : enemies;
-  const scaledEnemies = baseEnemies + (difficulty === 'hard' ? Math.ceil(baseEnemies * HARD_ENEMY_RULES.extraRatio) : 0);
-  const enemyCount = earlyPhase ? Math.min(EARLY_ENEMY_RANGE[1], scaledEnemies) : scaledEnemies;
+  const scale = (count: number) => count + (difficulty === 'hard' ? Math.ceil(count * HARD_ENEMY_RULES.extraRatio) : 0);
+  let width: number = effective.width, height: number = effective.height;
+  let field: Pick<FieldEncounter, 'turnLimit' | 'reinforcements'> = {};
+  if (activity === 'field') {
+    const progress = Math.max(1, Math.min(STORY_CHAPTERS, chapter ?? Array.from({ length: STORY_CHAPTERS }, (_, i) => i + 1)
+      .filter(n => day >= chapterOpenDay(n)).length));
+    const normalMax = Math.max(1, Math.min(effective.normal, availableUnits ?? effective.normal,
+      earlyPhase ? EARLY_MAX_UNITS[effective.layout] : effective.normal));
+    const armyRng = seedRng(JSON.stringify(['field-army', playerId, day, region]));
+    // shortcut: crowded hard phases can take several seconds; optimize AI candidates if this latency is unacceptable.
+    baseEnemies = 2 * Math.max(4, normalMax) + 3 * (progress - 1) + nextU32(armyRng) % 5 - 2;
+    field = {
+      turnLimit: 20 + 2 * (progress - 1),
+      reinforcements: Array.from({ length: Math.floor((progress - 1) / 2) }, (_, i) => ({
+        turn: 5 + 4 * i, count: scale(Math.max(2, normalMax + nextU32(armyRng) % 3 - 1)),
+      })),
+    };
+    if (progress >= 3) { width = Math.max(width, 24); height = Math.max(height, 24); }
+    if (progress >= 6) { width = Math.max(width, 28); height = Math.max(height, 28); }
+  }
+  const enemyCount = activity === 'field' ? scale(baseEnemies) : earlyPhase ? Math.min(EARLY_ENEMY_RANGE[1], scale(baseEnemies)) : scale(baseEnemies);
   return {
     seed: `encounter-${Array.from({ length: 4 }, () => nextU32(rng).toString(16)).join('-')}`,
     layout: effective.layout, name: effective.name, description: effective.description, theme,
-    width: effective.width, height: effective.height, maxUnits,
-    enemyCount,
+    width, height, maxUnits, enemyCount, ...field,
   };
 }

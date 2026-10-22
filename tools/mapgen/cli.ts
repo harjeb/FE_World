@@ -15,7 +15,7 @@ const help = `随机战场生成器（Node.js 22.18+，无需安装依赖）
 --width N      宽度，10–64，默认 20
 --height N     高度，10–64，默认等于 width
 --units N      己方出生点数量，1–8，默认 6
---enemies N    敌方出生点数量，1–16，默认与 units 相同
+--enemies N    敌方出生点数量，1–64，默认与 units 相同
 --layout NAME skirmish 交错遭遇 / pincer 分进合击 / convergence 分散据点；省略按种子选择
 --theme NAME   grassland 草地（默认）/ city 城市 / palace 王宫内
                town 城镇街道 / mountain 山地 / forest 树林

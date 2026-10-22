@@ -205,13 +205,30 @@ export function createFieldBattle(units: UnitRecord[], options: FieldBattleOptio
     encounter: encounter ? { ...encounter, playerGroups: map.playerGroups } : undefined,
     engineVersion: 1, aiDifficulty: options.aiDifficulty ?? 'normal', id: `field-${options.seed}-${stage}`, kind: 'field', name, enemyIdentity,
     map: seasonalMap(tiles, dateOf(options.day ?? 0).season),
-    units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
+    units: [...playerUnits, ...npcUnits, ...enemies], turn: 1, turnLimit: quest?.turnLimit ?? encounter?.turnLimit ?? FIELD_BATTLE.turnLimit, phase: 'player',
     goal, boxes: quest?.kind === 'gather' ? gatherBoxes(exit, tiles[0].length, tiles.length) : undefined,
     npcRoute: quest?.kind === 'escort' ? (quest.npcRoute?.map(p => [p.x, p.y] as Point) ?? [exit]) : undefined,
     nextObjective: quest?.nextObjective ?? (quest?.kind === 'escort' ? '护送 NPC 抵达撤离点' : undefined),
     rng: seedRng(`${options.seed}:combat:${stage}`), growthRng: seedRng(`${options.seed}:growth:${stage}`),
   };
   if (!encounter) addEnemyReserves(state, enemySpecs, map.spawns.player);
+  if (fieldBoss && encounter?.reinforcements?.length) {
+    state.scenario = {
+      id: 'field-reinforcements', adapterVersion: 'field-v1', sourceSha256: null, baseLevel: level,
+      events: encounter.reinforcements.flatMap(({ turn, count }, wave): ScenarioEvent[] => [
+        { id: `field-warning-${wave}`, trigger: { kind: 'turn', turn: turn - 1 },
+          actions: [{ kind: 'scenario', message: `第${turn}回合预计有${count}名敌方援军抵达！` }] },
+        { id: `field-wave-${wave}`, trigger: { kind: 'turn', turn }, actions: [{ kind: 'spawn',
+          units: Array.from({ length: count }, (_, i) => {
+            const waveLevel = Math.max(1, Math.min(99, level + nextU32(seedRng(`${enemySeed}:wave:${wave}:${i}`)) % 3 - 1));
+            return { classId: enemyClassForLevel(classes[(i + wave) % classes.length], waveLevel),
+              pos: map.spawns.enemy[(i + wave * 3) % map.spawns.enemy.length], levelOffset: waveLevel - level };
+          }),
+        }] },
+      ]),
+      mapChanges: [], fired: [], flags: [],
+    };
+  }
   initializeTurnSkills(state);
   return {
     id: state.id, playerId: '', kind: 'field', mode: 'field', name: state.name, region: options.region,

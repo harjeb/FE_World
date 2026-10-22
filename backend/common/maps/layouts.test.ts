@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import { generateMap } from './generate.ts';
 import { LAYOUTS } from './layouts.ts';
 import type { EncounterLayout } from './layouts.ts';
@@ -21,6 +22,45 @@ function distance(map: BattleMap, start: Point, targets: Point[]) {
   }
   return Infinity;
 }
+
+test('legacy capacity output retains its pre-change byte hash', () => {
+  const maps = [];
+  for (const layout of Object.keys(LAYOUTS) as EncounterLayout[]) {
+    for (const enemyCount of [1, 8, 16]) maps.push(generateMap({ seed: 'baseline-capacity', layout, width: 24, height: 24, unitsPerSide: 8, enemyCount }));
+  }
+  assert.equal(createHash('sha256').update(JSON.stringify(maps)).digest('hex'), 'c26dfe6cbf6b9897fb3019b97cab3102ac242c70f4758cf64b5e47a8ec4dc649');
+});
+
+test('overflow slots are independent, reachable, separated, and never truncated', () => {
+  for (const layout of Object.keys(LAYOUTS) as EncounterLayout[]) {
+    for (let seed = 0; seed < 6; seed++) {
+      const options = { seed: `overflow-${seed}`, layout, width: 24, height: 24, unitsPerSide: 8, enemyCount: 64 };
+      const map = generateMap(options);
+      const small = generateMap({ ...options, unitsPerSide: 2 });
+      assert.equal(map.spawns.enemy.length, 64);
+      assert.deepEqual(small.spawns.enemy, map.spawns.enemy);
+      assert.deepEqual(map, generateMap(options));
+      for (const enemyCount of [17, 32]) {
+        const partial = generateMap({ ...options, enemyCount });
+        assert.deepEqual(partial.spawns.enemy, map.spawns.enemy.slice(0, enemyCount));
+        assert.ok(validateMap(partial).valid);
+      }
+      const parity = (map.spawns.enemy[0][0] + map.spawns.enemy[0][1]) % 2;
+      for (const [x, y] of map.spawns.enemy.slice(16)) assert.equal((x + y) % 2, parity);
+      assert.deepEqual(map.spawns.enemy.slice(0, 16), generateMap({ ...options, enemyCount: 16 }).spawns.enemy);
+      assert.ok(validateMap(map).valid);
+      assert.ok(validateMap(small).valid);
+      const all = [...map.spawns.player, ...map.spawns.enemy, map.objective.position];
+      assert.equal(new Set(all.map(point => point.join(','))).size, all.length);
+      for (const point of map.spawns.enemy) {
+        const steps = distance(map, point, map.spawns.player);
+        assert.ok(Number.isFinite(steps) && steps >= (layout === 'pincer' ? 8 : 4));
+        assert.ok(canEnter(map.tiles[point[1]][point[0]], 'armored'));
+      }
+    }
+    assert.throws(() => generateMap({ seed: 'too-small', layout, width: 10, height: 10, enemyCount: 64 }), /空间不足/);
+  }
+});
 
 test('pincer squads meet only after a long ground route around the protected wall', () => {
   for (let seed = 0; seed < 100; seed++) {
@@ -78,7 +118,7 @@ test('compact layouts preserve legal exits at maximum capacity', () => {
 });
 
 test('new optional metadata and count limits are validated; legacy maps remain readable', () => {
-  for (const enemyCount of [0, 17, 1.5, NaN]) assert.throws(() => generateMap({ seed: 'bad', enemyCount }));
+  for (const enemyCount of [0, 65, 1.5, NaN]) assert.throws(() => generateMap({ seed: 'bad', enemyCount }));
   assert.throws(() => generateMap({ seed: 'bad', layout: 'unknown' as EncounterLayout }));
   const map = generateMap({ seed: 'legacy' });
   map.generatorVersion = 3;
