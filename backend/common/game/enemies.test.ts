@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CATALOG_CLASS_IDS, CLASSES } from '../data/classes.ts';
+import { CATALOG_CLASS_IDS, CLASSES, weaponRankCap } from '../data/classes.ts';
 import { createEnemy, enemyStats, templateFor } from './enemies.ts';
-import { STAT_KEYS } from '../data/types.ts';
+import { RANKS, STAT_KEYS } from '../data/types.ts';
+import type { WeaponType } from '../data/types.ts';
 import { WEAPONS, WEAPON_SERIES } from '../data/weapons.ts';
 import { canUseWeapon, weaponRange } from '../engine/units.ts';
 import { movementBudget } from '../engine/movement.ts';
 import { createClassicBattle } from './battles.ts';
-import { createUnit } from './model.ts';
+import { createUnit, recruitRank } from './model.ts';
 
 import { runScenarioEvents } from '../engine/scenario.ts';
 import type { BattleEvent } from '../engine/types.ts';
@@ -46,6 +47,40 @@ test('high growth uses the class template and 150% of its effective growth, not 
   const armor = enemyStats('general', 50, true), sword = enemyStats('swordmaster', 50, true), mage = enemyStats('sage', 50, true);
   assert.ok(armor.def > sword.def && armor.spd < sword.spd, 'armor keeps its defense/speed tradeoff');
   assert.ok(mage.mag > mage.str && mage.def < armor.def, 'mages keep their magic focus and lower defense');
+});
+
+test('field proficiency increases every twelve levels, with commanders one rank ahead', () => {
+  for (const [level, mobRank, bossRank] of [
+    [1, 'E', 'D'], [12, 'E', 'D'], [13, 'D', 'C'], [24, 'D', 'C'], [25, 'C', 'B'],
+    [36, 'C', 'B'], [37, 'B', 'A'], [48, 'B', 'A'], [49, 'A', 'S'], [60, 'A', 'S'], [61, 'S', 'S'],
+  ] as const) for (const [boss, rank] of [[false, mobRank], [true, bossRank]] as const) {
+    const unit = createEnemy('field', { classId: 'fighter', level, pos: [0, 0], levelRanks: true, boss });
+    assert.deepEqual(unit.ranks, { sword: rank, axe: rank, fist: rank });
+  }
+  const spec = { classId: 'thief' as const, level: 1, pos: [0, 0] as [number, number] };
+  assert.equal(createEnemy('legacy', spec).ranks.sword, 'S', 'unscoped templates are unchanged');
+  assert.equal(createEnemy('field', { ...spec, levelRanks: true }).ranks.sword, 'E', 'class caps are not starting proficiency');
+  assert.equal(createEnemy('boss', { ...spec, levelRanks: true, boss: true }).ranks.sword, 'D');
+  assert.equal(createEnemy('late', { ...spec, classId: 'blade', level: 73, levelRanks: true, boss: true }).ranks.sword, 'SSS');
+});
+
+test('field proficiency uses final hard levels, retains legal equipment and respects class caps', () => {
+  for (const classId of CATALOG_CLASS_IDS) for (const level of [1, 12, 13, 24, 25, 36, 37, 48, 49, 60, 61, 72, 73, 84, 85, 99])
+    for (const aiDifficulty of ['normal', 'hard'] as const) for (const boss of [false, true]) {
+      const spec = { classId, level, pos: [0, 0] as [number, number], aiDifficulty, boss, seed: 'field-ranks' };
+      const original = createEnemy('field', spec), unit = createEnemy('field', { ...spec, levelRanks: true });
+      assert.deepEqual({ ...unit, ranks: original.ranks }, original, 'only proficiency changes');
+      const expected = Object.fromEntries((Object.keys(CLASSES[classId].weapons) as WeaponType[])
+        .map(type => [type, recruitRank(unit.level + (boss ? 12 : 0), classId, type)]));
+      for (const id of unit.weapons) {
+        const weapon = WEAPONS[id];
+        if (RANKS.indexOf(expected[weapon.type]) < RANKS.indexOf(weapon.rank)) expected[weapon.type] = weapon.rank;
+        assert.ok(canUseWeapon(unit, id), `${classId}: ${id}`);
+      }
+      assert.deepEqual(unit.ranks, expected);
+      for (const type of Object.keys(unit.ranks) as WeaponType[])
+        assert.ok(RANKS.indexOf(unit.ranks[type]!) <= RANKS.indexOf(weaponRankCap(classId, type)!));
+    }
 });
 
 test('material gear changes at level boundaries and hard adds one tier capped at silver', () => {

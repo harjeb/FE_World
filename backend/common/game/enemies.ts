@@ -8,6 +8,7 @@ import { materialTier } from './materials.ts';
 import type { WeaponId } from '../data/weapons.ts';
 import type { AiDifficulty, Behavior, Point, UnitState } from '../engine/types.ts';
 import { DAYS_PER_YEAR, enemyLevel } from './calendar.ts';
+import { recruitRank, RECRUIT_RANK_STEP_LEVELS } from './model.ts';
 
 // Enemy stages follow the existing year/level curve: 1, 20, 47, 66, 81; player unlocks stay separate.
 export function enemyClassForLevel(classId: ClassId, level: number): ClassId {
@@ -87,7 +88,7 @@ const HARD_GEAR: Partial<Record<WeaponId, WeaponId>> = {
   heal: 'recover', recover: 'physic',
 };
 
-export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; highGrowth?: boolean; behavior?: Behavior; vision?: number; thiefTurn?: number; thiefTrigger?: UnitState['thiefTrigger']; thiefApproach?: Point; name?: string; tags?: UnitState['tags'] }
+export interface EnemySpec { seed?: string; aiDifficulty?: AiDifficulty; classId: ClassId; level: number; pos: Point; boss?: boolean; highGrowth?: boolean; levelRanks?: boolean; behavior?: Behavior; vision?: number; thiefTurn?: number; thiefTrigger?: UnitState['thiefTrigger']; thiefApproach?: Point; name?: string; tags?: UnitState['tags'] }
 
 export function createEnemy(id: string, spec: EnemySpec): UnitState {
   const hard = spec.aiDifficulty === 'hard';
@@ -104,7 +105,11 @@ export function createEnemy(id: string, spec: EnemySpec): UnitState {
     }
   }
   const tpl = templateFor(spec.classId);
-  const ranks = { ...tpl.ranks };
+  // Field ranks follow actual level, not template caps; commanders earn one extra rank.
+  const ranks = spec.levelRanks
+    ? Object.fromEntries((Object.keys(CLASSES[spec.classId].weapons) as WeaponType[])
+      .map(type => [type, recruitRank(level + (spec.boss ? RECRUIT_RANK_STEP_LEVELS : 0), spec.classId, type)]))
+    : { ...tpl.ranks };
   const baseWeapons = tpl.weapons.map(id => {
     const type = WEAPONS[id].type as keyof typeof WEAPON_SERIES;
     return weaponSeriesTier(id) ? WEAPON_SERIES[type][Math.min(5, materialTier(spec.level)) - 1] : id;
