@@ -44,7 +44,7 @@ export async function contention() {
   let store = new Store(openDb(path));
   const children: ReturnType<typeof fork>[] = [];
   try {
-    const { player } = loginOrRegister(store, 'contention', undefined, '竞争验证');
+    const { player } = loginOrRegister(store, 'contention', 'test-password', '竞争验证');
     const spawn = (role: string, id: string) => {
       const child = fork(filename, ['--child', path, player.id, role, id], { execPath: process.execPath, execArgv: [], stdio: ['ignore', 'ignore', 'pipe', 'ipc'] });
       children.push(child);

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { syncPlayer } from './services.ts';
 import { migrateCalendarDay, migrateSaveFile } from './save-migration.ts';
 import { createUnit, ageAt, toSnapshot } from '../common/game/model.ts';

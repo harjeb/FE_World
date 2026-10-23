@@ -5,7 +5,7 @@ import { WEAPON_ART_BY_ID } from '../common/data/weapon-arts.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 
 function fixture(artId: string, weapon = 'fw_weapon_65') {

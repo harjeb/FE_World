@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { seedBrowserAccount } from './fixtures.mjs';
+import { TEST_PASSWORD, seedBrowserAccount } from './fixtures.mjs';
 import { stopProcess } from './processes.mjs';
 import { openDb } from '../../backend/api/db.ts';
 import { Store } from '../../backend/api/store.ts';
@@ -68,6 +68,7 @@ try {
   await send('Page.navigate', { url: origin });
   await until(() => evaluate(`!!document.querySelector('input')`), 'login missing');
   await evaluate(`(()=>{const input=document.querySelector('input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(account)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await evaluate(`(()=>{const input=document.querySelector('input[name=password]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(TEST_PASSWORD)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   await evaluate(`document.querySelector('button[type=submit]').click()`);
   await until(() => evaluate(`!!document.querySelector('[data-action=train]')`), 'camp missing');
   await evaluate(`location.hash='#/story'`);

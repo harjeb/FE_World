@@ -76,8 +76,9 @@ npm test           # 引擎 / 竞技场 / 协议 / API / Worker 测试
 
 - **WebSocket Agent 协议**：`ws://localhost:8525/ws`，帧格式 `{op,seq,data}` / `{op,seq,ok,data|error}`，推送无 `seq`；用 `sk_` 令牌 `LOGIN`（带 `docVersion`，落后会返回 `docNotice`）。
 - **协议文档**：`GET /agent-api.md`、`GET /agent-api.json`、`GET /agent-api/changes/:v`；op 与错误码只在 `backend/common/protocol/ops.ts` 定义一次，文档与 MCP 工具都由它生成。
-- **浏览器桥**：`POST /api/login`、`POST /api/op`、`GET /api/agent-token`、`GET /api/health`。前端用会话令牌调用同一套 op。
+- **浏览器桥**：`POST /api/register` 创建新账号、`POST /api/login` 仅登录已有账号（均须密码）、`POST /api/password` 人类会话验证当前密码后改密、`POST /api/op`、`GET /api/agent-token`、`GET /api/health`。前端用会话令牌调用同一套 op。
 - **存档**：SQLite 表（账号 / 玩家 / 单位 / 战斗 / 竞技场日 / 快照 / 事件 / 回放 / due_tasks）；行动日懒结算，竞技场日三场打完或到达下一个竞技场日时结算，中途推进日期不会吞掉剩余进攻。
+- **账号密码**：网页支持注册、登录及设置改密；新密码8–128字符且不裁剪，改密退出并撤销全部会话／Agent令牌，存档保留。无密码旧账号及旧凭据已禁用，须管理员带外核验后初始化；命令、限流与部署边界见[密码流程](docs/06-agent-api.md#人类账号密码非-mcp-工具)。本次未修改真实账号，不提供邮件／短信找回。
 - **Agent 接入**：设置页可复制令牌或完整接入信息，地址跟随实际访问域名与HTTP／HTTPS；确认重置会撤销旧令牌的HTTP及已登录WebSocket权限，不重置存档。协议及引擎／规则／目录版本可读`/api/health`或`/agent-api.json`，当前用法见[接入说明](docs/06-agent-api.md)。
 - **MCP 插件**：`mcp/server.ts` 用共享 op 与参数 schema 生成工具，经 `AGENT_TOKEN` 调 API：`node mcp/server.ts`（stdio，`API_URL` 默认 `http://localhost:8525`）。无需调用 LOGIN／LOGOUT；参数用 `{ "data": { ... } }`，兼容旧的平铺参数。写操作自动生成 `commandId`，连接／响应解析失败时复用同一 ID 重试一次；最终错误若提示“操作结果未确认”，先查询状态，再用错误中的 `data.commandId` 重试，避免重复扣费。
 - **永久军团后端**（2026-10-16）：幂等命令收据与玩家版本、事件游标；年龄按天与自然寿终；死亡／退役的装备回收（活动结束回仓）、纪念名册与两种遗产传承（逐级保底、一代血缘锁）；一次轮回（保留继承成长）；职业资格市场与免费切回；职业精通节点与五格技能；自选天数的并行自动探索／职业训练；两条生产链；三图连续副本与地区首通等级锁定；年度大竞技场海选＋64 强；八章主线独立结算；不朽盾（1HP 石化）；普通竞技场现实月榜；严重损失免费补员。规则在 `backend/common/game/`，网页已接入主要页面。

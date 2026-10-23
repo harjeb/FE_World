@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { syncPlayer, stateView } from './services.ts';

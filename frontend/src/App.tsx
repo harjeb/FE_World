@@ -80,21 +80,28 @@ function Page() {
 function Login() {
   const { loading, error } = useSession();
   const [name, setName] = useState('指挥官');
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   return (
     <div className="app-bg" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
       <form
-        className="panel" style={{ padding: 24, width: 360, display: 'flex', flexDirection: 'column', gap: 12 }}
-        onSubmit={e => { e.preventDefault(); void session.login(name.trim()).catch(() => {}); }}
+        className="panel" style={{ padding: 24, width: 'min(360px, 100%)', display: 'flex', flexDirection: 'column', gap: 12 }}
+        onSubmit={e => { e.preventDefault(); if (mode === 'register' && password !== confirm) return; void session.login(name.trim(), password, mode).catch(() => {}); }}
       >
         <h1 style={{ fontSize: 20, fontWeight: 700 }}>AgentTactics</h1>
-        <p style={{ fontSize: 13, color: '#4E473D' }}>输入军团指挥官名进入游戏。首次进入会创建账号与初始名册。</p>
+        <p style={{ fontSize: 13, color: '#4E473D' }}>登录已有账号，或注册新的军团指挥官。</p>
         <label style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 4 }}>
           指挥官名
-          <input value={name} onChange={e => setName(e.target.value)} minLength={2} maxLength={32} required />
+          <input autoComplete="username" value={name} onChange={e => setName(e.target.value)} minLength={2} maxLength={32} required />
         </label>
+        <div role="group" aria-label="账号操作">{(['login', 'register'] as const).map(value => <button key={value} type="button" className="btn" aria-pressed={mode === value} disabled={loading} onClick={() => { setMode(value); setPassword(''); setConfirm(''); }}>{value === 'login' ? '登录' : '注册'}</button>)}</div>
+        <label>密码（最多 128 字符）<input name="password" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} minLength={mode === 'login' ? 1 : 8} maxLength={128} required disabled={loading} /></label>
+        {mode === 'register' && <label>确认密码<input name="confirmPassword" type="password" autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} minLength={8} maxLength={128} required disabled={loading} /></label>}
+        {mode === 'register' && confirm && password !== confirm && <p role="alert">两次密码不一致</p>}
         {error && <p role="alert" style={{ color: '#93392F', fontSize: 13 }}>{error}</p>}
-        <button type="submit" className="btn btn-primary" disabled={loading || name.trim().length < 2}>
-          {loading ? '进入中…' : '进入阵营'}
+        <button type="submit" className="btn btn-primary" disabled={loading || name.trim().length < 2 || password.length < (mode === 'login' ? 1 : 8) || (mode === 'register' && password !== confirm)}>
+          {loading ? '进入中…' : mode === 'register' ? '注册并进入' : '进入阵营'}
         </button>
       </form>
     </div>
@@ -119,7 +126,7 @@ export default function App() {
     window.addEventListener('online', reconnect);
     return () => window.removeEventListener('online', reconnect);
   }, []);
-  if (!ready) return <>{loading ? <div className="app-bg" style={{ padding: 24 }}>载入中…</div> : <Login />}</>;
+  if (!ready) return <>{loading && token() ? <div className="app-bg" style={{ padding: 24 }}>载入中…</div> : <Login />}</>;
   return (
     <>
       <SyncNotice />

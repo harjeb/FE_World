@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { once } from 'node:events';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { seedFullRoster } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
@@ -86,7 +86,7 @@ test('HTTP and WebSocket derive control identity from credentials, including dur
   }
   t.after(async () => { await app.close(); store.db.close(); rmSync(dir, { recursive: true, force: true }); });
   if (!app.server.listening) await once(app.server, 'listening');
-  const login = (await app.inject({ method: 'POST', url: '/api/login', payload: { name: 'identity-test' } })).json();
+  const login = (await app.inject({ method: 'POST', url: '/api/register', payload: { name: 'identity-test', password: 'test-password' } })).json();
   const agent = (await app.inject({ method: 'GET', url: '/api/agent-token', headers: { authorization: `Bearer ${login.token}` } })).json();
   const call = async (token: string, op: number, data = {}) => (await app.inject({ method: 'POST', url: '/api/op', headers: { authorization: `Bearer ${token}` }, payload: { op, data } })).json();
   assert.equal((await call(login.token, OP.CLAIM_CONTROL)).data.owner, 'human');

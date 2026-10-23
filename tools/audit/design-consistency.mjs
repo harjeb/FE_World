@@ -36,7 +36,7 @@ function probe(id, description, expected, run) {
 function withContext(run) {
   const store = new Store(openDb(':memory:'));
   try {
-    const { accountId, player } = loginOrRegister(store, 'audit-user', undefined, 'Audit');
+    const { accountId, player } = loginOrRegister(store, 'audit-user', 'test-password', 'Audit');
     player.registered = false;
     player.flags.setupCompleted = true;
     return run({ store, accountId, player, agentModel: null, push: () => {} });

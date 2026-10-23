@@ -10,7 +10,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
+import { TEST_PASSWORD, prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
 import { moveRange } from '../../backend/common/engine/index.ts';
 
 const API_PORT = 8612;
@@ -177,6 +177,7 @@ try {
     // Log in once; every later navigation reuses the stored token.
     await page.open(`${base}/`, 'input');
     await page.type('input', 'battle-seeded');
+    await page.type('input[name="password"]', TEST_PASSWORD);
     await page.evaluate(`document.querySelector('button[type=submit]').click()`);
     await page.open(`${base}/#/camp`, '.topbar');
 

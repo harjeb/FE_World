@@ -19,7 +19,7 @@
 
 UI读取`useSession()`状态，通过`session`提交操作。新增协议须修改共享op表／schema／处理器并重生成文档，客户端只发送意图，金币、属性、消耗和胜负由服务端计算。
 
-HTTP使用`POST /api/login`、`POST /api/op`，Agent可使用`/ws`或以`AGENT_TOKEN`经MCP调用`POST /api/op`；MCP不暴露WebSocket专用的LOGIN／LOGOUT。当前没有`/api/v2/query`、`/api/v2/commands`、`GET_CAPABILITIES`或单独的命令收据查询接口；原型中的这些字符串操作不能当作线上接口调用。
+HTTP使用`POST /api/register`（新账号）、`POST /api/login`（仅已有账号，二者密码必填）、`POST /api/password`（人类Bearer验证当前密码后改密）、`POST /api/op`，Agent可使用`/ws`或以`AGENT_TOKEN`经MCP调用`POST /api/op`；MCP不暴露WebSocket专用的LOGIN／LOGOUT，也不暴露人类密码端点，109个玩法工具不变。网页已提供登录、注册与设置改密；改密撤销全部会话和Agent token（含已连接WS下一次操作），仅清理临时控制租约并保留存档，前端退出登录。无密码旧账号及凭据禁用；管理员初始化命令、密码长度兼容、对端IP限流及部署边界见[06](06-agent-api.md#人类账号密码非-mcp-工具)。当前没有`/api/v2/query`、`/api/v2/commands`、`GET_CAPABILITIES`或单独的命令收据查询接口；原型中的这些字符串操作不能当作线上接口调用。
 
 ## 当前功能与连接恢复
 

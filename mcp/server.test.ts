@@ -6,7 +6,7 @@ import { createInterface } from 'node:readline';
 import { once } from 'node:events';
 import { openDb } from '../backend/api/db.ts';
 import { Store } from '../backend/api/store.ts';
-import { loginOrRegister } from '../backend/api/auth.ts';
+import { loginForTest as loginOrRegister } from '../backend/api/test-support.ts';
 import { dispatch, type Context } from '../backend/api/handlers.ts';
 import { OP } from '../backend/common/protocol/ops.ts';
 

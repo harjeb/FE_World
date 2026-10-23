@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { seedFullRoster } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 import { handleRunOutcome, applyBattleOutcome, settleDispatches } from './services.ts';

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { CHARACTERS, LEGACY_FIXED_GROWTH } from '../common/data/characters.ts';
 import { createUnit } from '../common/game/model.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 

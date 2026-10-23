@@ -5,7 +5,7 @@ import { createFieldBattle } from '../common/game/battles.ts';
 import { OP } from '../common/protocol/ops.ts';
 import type { BattleState, Point } from '../common/engine/types.ts';
 import { dispatch, type Context } from './handlers.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 import { seedFullRoster } from './test-support.ts';

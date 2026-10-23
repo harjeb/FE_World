@@ -32,7 +32,7 @@ export function campaign(years = 8, postgameDays = 30) {
   const dir = mkdtempSync(join(tmpdir(), 'agent-campaign-'));
   let store = new Store(openDb(join(dir, 'campaign.sqlite')));
   try {
-    const { accountId, player } = loginOrRegister(store, 'campaign', undefined, '长期验证');
+    const { accountId, player } = loginOrRegister(store, 'campaign', 'test-password', '长期验证');
     const playerId = player.id;
     let ctx: Context = { store, accountId, player, agentModel: null, push: () => {} };
     let commands = 0;

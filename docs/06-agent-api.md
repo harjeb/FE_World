@@ -1,6 +1,6 @@
 # 06 Agent 接口接入与当前协议
 
-当前协议 **docVersion 51**，引擎 **1**，战斗规则 **rules-v28**，目录 **68**。运行中服务以 `GET /api/health` 和 `GET /agent-api.json` 返回的版本为准；旧规则回放保持冻结。本次只更新接入，不改变战斗、存档或目录规则。
+当前协议 **docVersion 52**，引擎 **1**，战斗规则 **rules-v28**，目录 **68**。运行中服务以 `GET /api/health` 和 `GET /agent-api.json` 返回的版本为准；旧规则回放保持冻结。本次只更新接入，不改变战斗、存档或目录规则。
 
 ## 获取接入信息
 
@@ -12,7 +12,14 @@
 
 公网 HTTPS 页面使用 `https://实际域名` 和 `wss://实际域名/ws`，不复制后端内部的 localhost。开发服务器代理 `/api`、`/agent-api` 和 `/ws`。反向代理应正确设置 Host 或 `X-Forwarded-Host`／`X-Forwarded-Proto`；这些头仅用于接入地址展示，不决定账号权限。
 
-令牌具有代玩权限，不得写入仓库、聊天公开记录或公开日志。当前网页仍支持仅用户名的原型登录，不能把接入修复理解为公网账号安全已经验收；公开服务前必须完成账号认证与部署安全检查，见[28](28-release-readiness.md)及[35](35-release-validation-record.md)。
+令牌具有代玩权限，不得写入仓库、聊天公开记录或公开日志。网页已有登录、注册及设置页改密；认证更新不代表部署安全验收，见[28](28-release-readiness.md)及[35](35-release-validation-record.md)。
+
+### 人类账号密码（非 MCP 工具）
+
+- `POST /api/register` 严格创建新账号，正文 `{name,password,legion?}`；`POST /api/login` 仅登录已有账号，正文 `{name,password}`。两者密码必填；用户名 trim 后2–32字符，密码绝不 trim。新密码8–128字符；登录兼容历史受保护账号的1–128字符非空密码。密码以每账号独立盐的 scrypt 保存。
+- `POST /api/password` 必须使用人类会话 Bearer，正文 `{currentPassword,newPassword}`，验证当前密码后返回 `{ok:true}`；撤销全部会话及 Agent token（含已连接 WebSocket 的下一次操作），仅清除临时控制租约，保留存档。前端随后退出登录。
+- 无密码旧账号禁止公开登录或注册认领，旧会话及 token 立即失效。管理员须在带外核验归属、备份数据库并最好停止相关进程后执行 `node tools/set-password.ts --db EXISTING_DB --name ACCOUNT_NAME`：仅重置已有账号，生成随机24字符密码，仅一次输出 JSON `{name,password}`，不接受密码参数或环境变量；保留存档并撤销全部凭据。不要记录或把密码输出管道接入公共日志；用户取得初始密码后在设置页改密。无邮件／短信找回，本次未修改真实账号。
+- 密码端点合并按网络对端 IP 固定窗口限流60次／分钟，内存最多1024个 IP；不信任 forwarded-IP 头，反向代理后的用户可能共享额度。生产网关应另设限制；这不是跨进程全局限流，也不代表部署安全完成。现有109个玩法 MCP 工具不变。
 
 ## 三种调用方式
 
@@ -30,7 +37,9 @@ Content-Type: application/json
 
 | 路径 | 作用 |
 | --- | --- |
-| `POST /api/login` | 网页账号登录／原型注册，取得网页会话；不是 MCP 工具 |
+| `POST /api/register` | 新账号注册，必须提供密码；不是 MCP 工具 |
+| `POST /api/login` | 已有账号密码登录，取得人类会话；不是 MCP 工具 |
+| `POST /api/password` | 人类 Bearer 验证当前密码后改密并撤销全部凭据；不是 MCP 工具 |
 | `GET /api/agent-token` | 用有效凭据读取或首次生成 Agent 令牌；返回 `token/apiUrl/ws/docs` 及四项版本信息，不轮换旧令牌 |
 | `POST /api/agent-token` | 仅玩家凭据可重置 Agent 令牌；Agent 自身不能调用 |
 | `POST /api/op` | 使用 Bearer 凭据调用全部业务 op |
@@ -44,7 +53,7 @@ Content-Type: application/json
 连接接入信息中的 `/ws`，先发送：
 
 ```json
-{"op":1,"seq":1,"data":{"token":"<sk_令牌>","docVersion":51,"agentModel":"你的模型名"}}
+{"op":1,"seq":1,"data":{"token":"<sk_令牌>","docVersion":52,"agentModel":"你的模型名"}}
 ```
 
 LOGIN 返回当前 `docVersion`；版本不一致时带 `docNotice`。之后复用相同 `{op,seq,data}` 格式调用业务操作；响应按 `seq` 对应，推送 `{op,data}` 没有 `seq`。LOGOUT 为 op 2。令牌重置后，旧连接必须用新令牌重新 LOGIN。

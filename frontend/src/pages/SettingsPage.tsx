@@ -15,6 +15,33 @@ import { copyText } from '../ui/clipboard.ts';
 import { ConfirmButton } from '../ui/Modal.tsx';
 import { useAct } from './SystemParts.tsx';
 
+function PasswordForm({ clearAgent }: { clearAgent: () => void }) {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  return <form aria-label="修改密码" onSubmit={async e => {
+    e.preventDefault();
+    if (next !== confirm || pending) return;
+    setPending(true); setError('');
+    try { await session.changePassword(current, next); clearAgent(); setCurrent(''); setNext(''); setConfirm(''); }
+    catch (error) { setError(error instanceof Error ? error.message : String(error)); }
+    finally { setPending(false); }
+  }} style={{ padding: 16, display: 'grid', gap: 12 }}>
+    <h3>修改密码</h3>
+    <p>修改后所有登录会话和 Agent 令牌立即失效，需要重新登录并重新连接 Agent。</p>
+    <fieldset disabled={pending} style={{ display: 'grid', gap: 12 }}>
+      <label>当前密码<input name="currentPassword" type="password" autoComplete="current-password" required minLength={1} maxLength={128} value={current} onChange={e => setCurrent(e.target.value)} /></label>
+      <label>新密码（8–128 字符）<input name="newPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={next} onChange={e => setNext(e.target.value)} /></label>
+      <label>确认新密码<input name="confirmPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
+      {confirm && next !== confirm && <p role="alert">两次密码不一致</p>}
+      {error && <p role="alert">{error}</p>}
+      <button className="btn btn-danger" type="submit" disabled={pending || next.length < 8 || next !== confirm}>{pending ? '修改中…' : '修改密码并退出'}</button>
+    </fieldset>
+  </form>;
+}
+
 const SCENES: [ScenePolicy, string][] = [['all', '全部播放'], ['boss', '仅主将战'], ['off', '关闭']];
 const mask = (token: string) => (token.length > 12 ? `${token.slice(0, 6)}…${token.slice(-4)}` : '••••');
 
@@ -149,6 +176,8 @@ export function SettingsPage() {
               <button type="button" className="btn btn-danger" onClick={() => { session.logout(); go(links.camp); }}>退出登录</button>
             </div>
           </section>
+
+          <section className="panel"><PasswordForm clearAgent={() => { setAgent(null); setShown(false); }} /></section>
 
           <section className="panel" aria-labelledby="cr-h">
             <div className="ph"><h2 id="cr-h">美术鸣谢</h2></div>

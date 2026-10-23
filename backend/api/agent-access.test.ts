@@ -28,7 +28,7 @@ before(async () => {
     if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key];
   }
   if (!app.server.listening) await once(app.server, 'listening');
-  login = (await app.inject({ method: 'POST', url: '/api/login', payload: { name: 'agent-access' } })).json();
+  login = (await app.inject({ method: 'POST', url: '/api/register', payload: { name: 'agent-access', password: 'test-password' } })).json();
 });
 after(async () => { await app?.close(); store?.db.close(); rmSync(dir, { recursive: true, force: true }); });
 
@@ -58,7 +58,7 @@ test('human token rotation revokes old HTTP and open WebSocket access without ch
   const old = (await access()).json();
   const accountId = store.accountByName('agent-access')!.id;
   const extra = store.createToken(accountId, 'agent', 'legacy extra');
-  const other = (await app.inject({ method: 'POST', url: '/api/login', payload: { name: 'agent-access-other' } })).json();
+  const other = (await app.inject({ method: 'POST', url: '/api/register', payload: { name: 'agent-access-other', password: 'test-password' } })).json();
   const otherToken = (await access(other.token)).json().token;
   assert.equal((await access('', 'POST')).statusCode, 401);
   assert.equal((await access(old.token, 'POST')).statusCode, 403, 'an Agent cannot rotate its own credentials');

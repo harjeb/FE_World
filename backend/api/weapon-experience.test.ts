@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { applyBattleOutcome } from './services.ts';
 import { createFieldBattle, type BattleRecord } from '../common/game/battles.ts';
 import { addWeaponExp, createUnit, normalizeUnit, RANK_EXP, rankFromExp, toBattleUnit } from '../common/game/model.ts';

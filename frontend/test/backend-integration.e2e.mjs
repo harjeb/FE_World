@@ -19,7 +19,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
+import { TEST_PASSWORD, prepareBrowserBattleWin, seedBrowserAccount } from './fixtures.mjs';
 
 const API_PORT = 8611;
 let cdpPort = 9411;
@@ -151,7 +151,10 @@ try {
   const page = await openPage(profile);
   try {
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
+    await page.evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='注册').click()`);
     await page.type('input', 'onboarding-player');
+    await page.type('input[name="password"]', TEST_PASSWORD);
+    await page.type('input[name="confirmPassword"]', TEST_PASSWORD);
     await page.click('button[type=submit]');
     check('new accounts enter character setup', await until(() => page.evaluate(`document.body.innerText.includes('缔结神约')`)), 'setup shown');
     await page.type('input[placeholder="2–12 字"]', '星海神主');
@@ -482,6 +485,7 @@ try {
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     const name = 'e2e-seeded';
     await page.type('input', name);
+    await page.type('input[name="password"]', TEST_PASSWORD);
     await page.click('button[type=submit]');
     await page.open(`http://127.0.0.1:${API_PORT}/#/camp`, '.topbar');
     const topbar = await page.evaluate(`document.querySelector('.topbar').innerText.replace(/\\s+/g, ' ')`);
@@ -672,6 +676,7 @@ try {
     await page.evaluate(`localStorage.clear()`);
     await page.open(`http://127.0.0.1:${API_PORT}/`, 'input');
     await page.type('input', 'duplicates-seeded');
+    await page.type('input[name="password"]', TEST_PASSWORD);
     await page.click('button[type=submit]');
     await page.open(`http://127.0.0.1:${API_PORT}/#/roster/u_owen`, '#ab-h');
     const original = await api(page, 21, { unitId: 'u_owen' });

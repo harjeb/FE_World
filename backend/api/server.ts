@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import Fastify, { type FastifyRequest } from 'fastify';
+import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import websocket from '@fastify/websocket';
 import { DOC_VERSION, PUSH_OPS } from '../common/protocol/ops.ts';
 import { changesSince, apiDoc, renderMarkdown } from '../common/protocol/docs.ts';
@@ -10,7 +10,7 @@ import type { ResponseFrame } from '../common/protocol/frames.ts';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
 import type { Player } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { changePassword, loginOrRegister } from './auth.ts';
 import { OpError, dispatch } from './handlers.ts';
 import type { Context } from './handlers.ts';
 import { syncPlayer } from './services.ts';
@@ -108,13 +108,49 @@ app.get('/ws', { websocket: true }, (socket) => {
 
 // ---- HTTP bridge for the browser -----------------------------------------
 
-app.post('/api/login', (req, reply) => {
-  const body = (req.body ?? {}) as { name?: string; password?: string; legion?: string };
+// Bound password-hash work without trusting client-supplied forwarding/IP headers.
+const passwordAttempts = new Map<string, number>();
+let passwordWindow = Date.now();
+function allowPasswordAttempt(req: FastifyRequest, reply: FastifyReply): boolean {
+  if (Date.now() - passwordWindow >= 60_000) { passwordAttempts.clear(); passwordWindow = Date.now(); }
+  const count = passwordAttempts.get(req.ip) ?? 0;
+  if (count >= 60 || (count === 0 && passwordAttempts.size >= 1024)) {
+    reply.header('Retry-After', '60').code(429).send({ error: '密码操作过于频繁，请一分钟后重试' });
+    return false;
+  }
+  passwordAttempts.set(req.ip, count + 1);
+  return true;
+}
+
+function passwordLogin(req: FastifyRequest, reply: FastifyReply, register: boolean) {
+  if (!allowPasswordAttempt(req, reply)) return;
+  const body = (req.body ?? {}) as { name: string; password: string; legion?: string };
   try {
-    const result = loginOrRegister(store, String(body.name ?? ''), body.password, body.legion);
+    const result = store.transaction(() => {
+      const account = typeof body.name === 'string' ? store.accountByName(body.name.trim()) : null;
+      if (register && account) throw new Error('名字已存在，请登录；旧无密码账号请联系管理员初始化');
+      if (!register && !account) throw new Error('用户名或密码不正确');
+      return loginOrRegister(store, body.name, body.password, body.legion);
+    });
     reply.send({ token: result.token, state: runOp(result.accountId, 10, {}, null, () => {}) });
   } catch (error) {
-    reply.code(400).send(error instanceof Error ? { error: error.message } : { error: String(error) });
+    reply.code(400).send({ error: error instanceof Error ? error.message : '登录失败' });
+  }
+}
+app.post('/api/login', (req, reply) => passwordLogin(req, reply, false));
+app.post('/api/register', (req, reply) => passwordLogin(req, reply, true));
+
+app.post('/api/password', (req, reply) => {
+  const credential = authCredential(req.headers.authorization);
+  if (!credential) return reply.code(401).send({ error: '未登录' });
+  if (credential.actor !== 'human') return reply.code(403).send({ error: '只能由玩家修改密码' });
+  if (!allowPasswordAttempt(req, reply)) return;
+  const body = (req.body ?? {}) as { currentPassword: string; newPassword: string };
+  try {
+    changePassword(store, credential.accountId, body.currentPassword, body.newPassword);
+    reply.send({ ok: true });
+  } catch (error) {
+    reply.code(400).send({ error: error instanceof Error ? error.message : '修改密码失败' });
   }
 });
 

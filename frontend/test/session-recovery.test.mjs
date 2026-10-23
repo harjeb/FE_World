@@ -166,3 +166,34 @@ test('expired authentication clears old account data', async () => {
   assert.equal(session.get().ready, false);
   assert.equal(session.get().state, null);
 });
+
+test('password change preserves spaces and clears credentials and cached state only on success', async () => {
+  await session.refresh();
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, '/api/password');
+    assert.equal(options.headers.authorization, 'Bearer test-session');
+    assert.deepEqual(JSON.parse(options.body), { currentPassword: ' old password ', newPassword: ' new password ' });
+    return Response.json({ ok: true });
+  };
+  await session.changePassword(' old password ', ' new password ');
+  assert.equal(storage.get('agent-tactics.token'), undefined);
+  assert.equal(session.get().ready, false);
+  assert.equal(session.get().state, null);
+});
+
+test('failed password change keeps the active session', async () => {
+  await session.refresh();
+  globalThis.fetch = async () => Response.json({ error: '当前密码错误' }, { status: 400 });
+  await assert.rejects(session.changePassword('wrong-pass', 'new-password'), /当前密码错误/);
+  assert.equal(session.get().ready, true);
+  assert.equal(storage.get('agent-tactics.token'), 'test-session');
+});
+
+test('a revoked session cannot leave cached account state visible after a password attempt', async () => {
+  await session.refresh();
+  globalThis.fetch = async () => Response.json({ error: '未登录' }, { status: 401 });
+  await assert.rejects(session.changePassword('old-password', 'new-password'), /未登录/);
+  assert.equal(storage.get('agent-tactics.token'), undefined);
+  assert.equal(session.get().ready, false);
+  assert.equal(session.get().state, null);
+});

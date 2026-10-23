@@ -11,7 +11,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess } from './processes.mjs';
-import { prepareBrowserBattleWin, seedBrowserAccount, skipStoryStepsInDb } from './fixtures.mjs';
+import { TEST_PASSWORD, prepareBrowserBattleWin, seedBrowserAccount, skipStoryStepsInDb } from './fixtures.mjs';
 
 const API_PORT = 8613;
 const BASE = `http://127.0.0.1:${API_PORT}`;
@@ -144,6 +144,7 @@ try {
   try {
     await page.open(`${BASE}/`, 'input');
     await page.type('input', 'systems-seeded');
+    await page.type('input[name="password"]', TEST_PASSWORD);
     await page.click('button[type=submit]');
     await page.open(`${BASE}/#/camp`, '.topbar');
     const nav = await page.evaluate(`document.querySelector('.rail nav').innerText.replace(/\\s+/g, ' ')`);

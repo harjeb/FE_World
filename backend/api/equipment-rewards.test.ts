@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 import { OP } from '../common/protocol/ops.ts';
 import { CHALLENGE_FLOORS } from '../common/game/challenges.ts';

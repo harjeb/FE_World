@@ -6,7 +6,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { seedBrowserAccount } from './fixtures.mjs';
+import { TEST_PASSWORD, seedBrowserAccount } from './fixtures.mjs';
 import { stopProcess } from './processes.mjs';
 import { openDb } from '../../backend/api/db.ts';
 import { Store } from '../../backend/api/store.ts';
@@ -117,7 +117,17 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: origin });
   await until(() => evaluate(`!!document.querySelector('input')`), 'login missing');
+  assert.equal(await evaluate(`document.querySelector('input[name=password]').required && document.querySelector('button[type=submit]').disabled`), true, 'password is required');
+  const fillAuth = async (selector, value) => {
+    await evaluate(`(()=>{const input=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  };
   await evaluate(`(()=>{const input=document.querySelector('input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(name)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await evaluate(`(()=>{const input=document.querySelector('input[name=password]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(TEST_PASSWORD)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await fillAuth('input[name=password]', 'wrong-password');
+  await evaluate(`document.querySelector('button[type=submit]').click()`);
+  await until(() => evaluate(`!!document.querySelector('[role=alert]')`), 'wrong password must reject');
+  assert.equal(await evaluate(`document.querySelector('input[autocomplete=username]').value`), name, 'failed login retains the entered name');
+  await fillAuth('input[name=password]', TEST_PASSWORD);
   await evaluate(`document.querySelector('button[type=submit]').click()`);
   await until(() => evaluate(`!!document.querySelector('[data-action=train]')`), 'camp missing');
   await evaluate(`location.hash='#/settings'`);
@@ -265,6 +275,42 @@ try {
   assert.deepEqual(deployed.map(unit => unit.id), fieldOrder, 'the server receives the dragged order');
   assert.equal(deployed.find(unit => unit.boss)?.id, fieldOrder[0], 'the first dragged portrait is the actual commander');
   assert.deepEqual(errors, []);
+  // Exercise Settings on the seeded account, then register a separate disposable account.
+  await evaluate(`location.hash='#/settings'`);
+  await until(() => evaluate(`!!document.querySelector('#ac-h')`), 'account settings missing');
+  const staleHuman = await evaluate(`localStorage.getItem('agent-tactics.token')`);
+  await fillAuth('input[name=currentPassword]', TEST_PASSWORD);
+  await fillAuth('input[name=newPassword]', TEST_PASSWORD + '-changed');
+  await fillAuth('input[name=confirmPassword]', 'mismatch-password');
+  assert.equal(await evaluate(`document.querySelector('form[aria-label="修改密码"] button[type=submit]').disabled`), true, 'change requires confirmation');
+  await fillAuth('input[name=confirmPassword]', TEST_PASSWORD + '-changed');
+  await evaluate(`document.querySelector('form[aria-label="修改密码"] button[type=submit]').click()`);
+  await until(() => evaluate(`!!document.querySelector('input[name=password]') && !localStorage.getItem('agent-tactics.token')`), 'password change must log out');
+  assert.equal(await evaluate(`fetch('/api/op',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+${JSON.stringify(staleHuman)}},body:JSON.stringify({op:10,data:{}})}).then(r=>r.status)`), 401, 'UI change revokes previous session');
+  await fillAuth('input[autocomplete=username]', name);
+  await fillAuth('input[name=password]', TEST_PASSWORD + '-changed');
+  await evaluate(`document.querySelector('button[type=submit]').click()`);
+  await until(() => evaluate(`!!document.querySelector('#ac-h')`), 'changed password relogin missing');
+  await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='退出登录').click()`);
+  await until(() => evaluate(`!!document.querySelector('input[name=password]')`), 'logout missing');
+  await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='注册').click()`);
+  const freshName = 'auth-' + Date.now();
+  await fillAuth('input[autocomplete=username]', freshName);
+  await fillAuth('input[name=password]', TEST_PASSWORD);
+  await fillAuth('input[name=confirmPassword]', 'mismatched-password');
+  assert.equal(await evaluate(`document.querySelector('button[type=submit]').disabled`), true, 'register requires confirmation');
+  await fillAuth('input[name=confirmPassword]', TEST_PASSWORD);
+  await evaluate(`document.querySelector('button[type=submit]').click()`);
+  await until(() => evaluate(`!!localStorage.getItem('agent-tactics.token')`), 'register missing');
+  await evaluate(`location.hash='#/settings'`);
+  const freshToken = await evaluate(`localStorage.getItem('agent-tactics.token')`);
+  const authRequest = (path, data, credential) => evaluate(`fetch(${JSON.stringify(path)}, {method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+${JSON.stringify(credential)}},body:JSON.stringify(${JSON.stringify(data)})}).then(async r=>({status:r.status,body:await r.json()}))`);
+  // New-account setup gates settings; test password endpoint without bypassing that gameplay gate.
+  const changed = await authRequest('/api/password', { currentPassword: TEST_PASSWORD, newPassword: TEST_PASSWORD + '-new' }, freshToken);
+  assert.equal(changed.body.ok, true);
+  assert.equal((await authRequest('/api/login', { name: freshName, password: TEST_PASSWORD })).status, 400, 'old password rejected');
+  assert.ok((await authRequest('/api/login', { name: freshName, password: TEST_PASSWORD + '-new' })).body.token, 'new password logs in');
+  assert.equal(await evaluate(`fetch('/api/op',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+${JSON.stringify(freshToken)}},body:JSON.stringify({op:10,data:{}})}).then(r=>r.status)`), 401, 'old session revoked');
   console.log('PASS: Agent settings copy/fallback/reset and actual addresses; deployment sorting and persistence; field, dungeon, classic and cross-time previews; enemy summaries, hover/focus tooltips and responsive layout; player commander, dynamic field levels and stronger field boss');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) {

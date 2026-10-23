@@ -4,7 +4,7 @@ import { defenseBoard } from '../common/arena/rules.ts';
 import type { Defense } from '../common/arena/rules.ts';
 import { createUnit, toBattleUnit, toSnapshot } from '../common/game/model.ts';
 import { OP } from '../common/protocol/ops.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { openDb } from './db.ts';
 import { dispatch, type Context } from './handlers.ts';
 import { Store } from './store.ts';

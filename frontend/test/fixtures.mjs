@@ -4,6 +4,8 @@ import { loginOrRegister } from '../../backend/api/auth.ts';
 import { seedDefense, seedFullRoster } from '../../backend/api/test-support.ts';
 import { createUnit } from '../../backend/common/game/model.ts';
 
+export const TEST_PASSWORD = 'browser-test-password';
+
 // 流程测试直接准备一手可胜的棋盘，结算仍通过真实 HTTP 操作完成。
 export function prepareBrowserBattleWin(dbPath, playerId, battleId) {
   const store = new Store(openDb(dbPath));
@@ -33,7 +35,7 @@ export function skipStoryStepsInDb(dbPath, playerId, chapter) {
 export function seedBrowserAccount(dbPath, name, duplicates = false, qualificationRanks = {}) {
   const store = new Store(openDb(dbPath));
   try {
-    const { player } = loginOrRegister(store, name, undefined, '浏览器测试军团');
+    const { player } = loginOrRegister(store, name, TEST_PASSWORD, '浏览器测试军团');
     seedFullRoster(store, player);
     seedDefense(store, player);
     for (const [id, ranks] of Object.entries(qualificationRanks)) {

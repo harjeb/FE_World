@@ -1,6 +1,6 @@
 # Agent 接口文档（自动生成）
 
-docVersion: 51
+docVersion: 52
 
 engineVersion: 1 · rulesetVersion: rules-v28 · catalogVersion: 68
 
@@ -28,6 +28,8 @@ SORTIE、START_DUNGEON 和任务连战副本的 START_QUEST 支持 aiDifficulty:
 阿波罗个人特性 lightshot（光明神射）：开战时满HP且使用弓，本次有效技巧×2，覆盖主动、反击、连击、追击和战技技巧引用；不改永久stats及射程，最终概率仍限制0～100%，禁止必杀照常生效。单位快照可带personalSkill覆盖形象默认技能；预测双方skl为本次有效技巧。时空副本与固定兑换已接入，见v17变更与GET_CROSS_TIME_RECRUITS。
 
 战斗EXP按敌我保留总等级差计算。击杀首领额外+20（由原+40下调），只在击杀时发放；己方高出敌人5级及以上时，交战／击杀基础经验仍降为1，但首领击杀保留这20点、合计21，普通小怪仍为1。无伤且未击杀为0，单次总经验最多100，累计100升级，不保证击杀首领必升一级；治疗仍为12，竞技场不发战斗经验。战斗预测与实际结算共用公式。
+
+人类密码接口（不是 MCP 工具，109个玩法工具不变）：POST /api/register 严格创建新账号 {name,password,legion?}；POST /api/login 仅登录已有账号 {name,password}。用户名 trim 后2–32字符，密码必填且绝不 trim；新密码8–128字符，登录兼容历史非空1–128字符密码，按账号独立盐 scrypt 保存。POST /api/password 需人类 Bearer 与 {currentPassword,newPassword}，验证后返回 {ok:true}，撤销全部会话及 Agent token（含已连接 WebSocket 下一次操作），仅清除临时控制租约，保留存档，前端退出登录。无密码旧账号禁止公开登录／注册认领，旧凭据立即失效，须管理员带外核验后用 tools/set-password.ts 初始化；操作流程见 docs/06-agent-api.md。密码端点合并按网络对端 IP 固定60次／分钟，内存最多1024个 IP，不信任 forwarded-IP 头；代理可能共享额度，网关应另设限制，不是跨进程全局限流或部署安全验收。
 
 ## 帧格式
 

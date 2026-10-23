@@ -174,6 +174,12 @@ export class Store {
     return row ? { id: row.id, name: row.name, passwordHash: row.password_hash } : null;
   }
 
+  accountById(id: string): { id: string; name: string; passwordHash: string | null } | null {
+    const row = this.db.prepare('SELECT id, name, password_hash FROM accounts WHERE id = ?').get(id) as
+      { id: string; name: string; password_hash: string | null } | undefined;
+    return row ? { id: row.id, name: row.name, passwordHash: row.password_hash } : null;
+  }
+
   createToken(accountId: string, kind: 'agent' | 'web', label: string | null): string {
     const token = kind === 'agent' ? `sk_${randomUUID().replace(/-/g, '')}` : `ws_${randomUUID().replace(/-/g, '')}`;
     this.db.prepare('INSERT INTO tokens (token, account_id, kind, label, created_at) VALUES (?, ?, ?, ?, ?)')
@@ -182,7 +188,9 @@ export class Store {
   }
 
   resolveToken(token: string): { accountId: string; kind: string } | null {
-    const row = this.db.prepare('SELECT account_id, kind FROM tokens WHERE token = ?').get(token) as
+    const row = this.db.prepare(`SELECT tokens.account_id, tokens.kind FROM tokens
+      JOIN accounts ON accounts.id = tokens.account_id
+      WHERE token = ? AND accounts.password_hash <> ''`).get(token) as
       { account_id: string; kind: string } | undefined;
     return row ? { accountId: row.account_id, kind: row.kind } : null;
   }
@@ -195,7 +203,9 @@ export class Store {
   }
 
   resolveSession(token: string): string | null {
-    const row = this.db.prepare('SELECT account_id, last_seen FROM sessions WHERE token = ?').get(token) as { account_id: string; last_seen: number } | undefined;
+    const row = this.db.prepare(`SELECT sessions.account_id, sessions.last_seen FROM sessions
+      JOIN accounts ON accounts.id = sessions.account_id
+      WHERE token = ? AND accounts.password_hash <> ''`).get(token) as { account_id: string; last_seen: number } | undefined;
     if (!row) return null;
     // 30 天不活跃的网页会话失效；Agent token 独立且不随网页会话过期。
     if (Date.now() - row.last_seen > 30 * 24 * 60 * 60 * 1000) {

@@ -57,8 +57,8 @@ export async function call<T = unknown>(op: number, data: Record<string, unknown
   return frame.data as T;
 }
 
-export async function login(name: string, password?: string, legion?: string): Promise<{ token: string; state: unknown }> {
-  const response = await fetch('/api/login', {
+async function authenticate(path: string, name: string, password: string, legion?: string): Promise<{ token: string; state: unknown }> {
+  const response = await fetch(path, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name, password, legion }),
@@ -68,6 +68,22 @@ export async function login(name: string, password?: string, legion?: string): P
   if (!body.token) throw new Error(body.error ?? '登录失败');
   setToken(body.token);
   return { token: body.token, state: body.state };
+}
+
+export const login = (name: string, password: string) => authenticate('/api/login', name.trim(), password);
+export const register = (name: string, password: string, legion?: string) => authenticate('/api/register', name.trim(), password, legion);
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await fetch('/api/password', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token()}` },
+    body: JSON.stringify({ currentPassword, newPassword }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  const body = await response.json().catch(() => null);
+  const message = typeof body?.error === 'string' ? body.error : body?.error?.message ?? '修改密码失败';
+  if (response.status === 401) throw new ApiError({ code: 'UNAUTHORIZED', message, action: '重新登录' });
+  if (!response.ok || body?.ok !== true) throw new Error(message);
 }
 
 export interface AgentToken {

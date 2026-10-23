@@ -3,6 +3,11 @@ import type { CharacterId } from '../common/data/characters.ts';
 import type { Defense } from '../common/arena/rules.ts';
 import type { Store, Player } from './store.ts';
 import { DEMO_LEVEL, SEED_BEXP, SEED_DAY, SEED_GOLD } from './store.ts';
+import { loginOrRegister } from './auth.ts';
+
+export function loginForTest(store: Store, name: string, password = 'test-password', legion?: string) {
+  return loginOrRegister(store, name, password, legion);
+}
 
 // 测试用：开局只发主角，但多数测试需要整套演示名册，这里补全（等级与旧 SEED_LEVELS 一致）。
 export function seedFullRoster(store: Store, player: Player): void {

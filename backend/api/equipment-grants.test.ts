@@ -6,7 +6,7 @@ import { applyBattleOutcome, flushRecoveryBag, recordDeath, recordRetire, unitDe
 import { OP } from '../common/protocol/ops.ts';
 import { openDb } from './db.ts';
 import { Store } from './store.ts';
-import { loginOrRegister } from './auth.ts';
+import { loginForTest as loginOrRegister } from './test-support.ts';
 import { dispatch, type Context } from './handlers.ts';
 
 function setup() {

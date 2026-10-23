@@ -12,7 +12,7 @@ import type { SnapshotUnit } from '@common/arena/rules.ts';
 import type { CharacterId } from '@common/data/characters.ts';
 import type { Rank, StatCaps, StatKey, Stats, WeaponType } from '@common/data/types.ts';
 import type { FeatureAccess, WorldMapView } from '@common/game/region-map.ts';
-import { ApiError, call, login as apiLogin, newCommandId, setToken, token } from './client.ts';
+import { ApiError, call, login as apiLogin, register as apiRegister, changePassword as apiChangePassword, newCommandId, setToken, token } from './client.ts';
 import { parseRoute } from '../router.ts';
 import type { Route } from '../router.ts';
 
@@ -536,10 +536,10 @@ class SessionStore {
     return this.snap.ready;
   }
 
-  async login(name: string, password?: string, legion?: string): Promise<void> {
+  async login(name: string, password: string, mode: 'login' | 'register' = 'login'): Promise<void> {
     this.set({ loading: true, error: null });
     try {
-      await apiLogin(name, password, legion);
+      await (mode === 'register' ? apiRegister(name, password) : apiLogin(name, password));
       await this.refresh();
       this.set({ ready: true });
     } catch (error) {
@@ -614,6 +614,16 @@ class SessionStore {
     catch (error) {
       if (credential === token()) this.set({ error: `操作已提交，但状态尚未同步：${error instanceof Error ? error.message : String(error)}。请重新同步，不要重复提交。` });
     }
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    try {
+      await apiChangePassword(currentPassword, newPassword);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'UNAUTHORIZED') this.logout();
+      throw error;
+    }
+    this.logout();
   }
 
   logout(): void {
